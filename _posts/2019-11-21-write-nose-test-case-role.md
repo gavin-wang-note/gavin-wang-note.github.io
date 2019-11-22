@@ -24,7 +24,7 @@ tags:
 
 test_9143_same_daemon_different_signal， 对应TestLink的用例为：
 
-Sc-9143:Same daemon, different signal core file
+Sc-9143:Same daemon, different signal core file)
 
  
 
@@ -112,7 +112,7 @@ MESSAGE_TYPE 有如下几种：
 
 比如下文中的RRS用例 test_remote_replication_tasks.py（下文代码是一个不可取的代码，这里仅做示例用）
 
-  ![image-20191121102829783](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20191121102829783.png)
+<img class="shadow" src="/img/in-post/bad_eg.png" width="1200">
 
  在class TestReplicationTask 与setup_class之间，启用了RRS服务、创建了S3账号并创建bucket，最后上传了一些object到bucket中。正常情况下，这部分动作应该是在用例被执行之前要做的，然后会立刻执行setup_class中的动作，接着执行用例，最后teardown。实际上，在run.py 去执行所有测试用例的时候， 在init完所有的class之后（即创建完session后），会先执行所有test_xx.py中定义在class 与 setup_class之间的所有动作， 这也无可厚非，但是，由于约束了用例的执行顺序，case_2_Accounts 会优先于 case_5_Remote_DR被执行，而case_2_Accounts里将其他pool设置为S3 pool的动作，这势必会清理掉在执行run.py init结束后所创建的所有bucket与bucket下的object，到case_5_Remote_DR被执行时，曾经创建的bucket与bucket下的object早已不复存在，自然case_5_Remote_DR下面的相关用例就会失败。
 
