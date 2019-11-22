@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "Nose测试用例编写规则基本要求"
+title:      "nose测试用例编写规则基本要求"
 subtitle:   "nose wirte test case rule"
 date:       2019-11-21
 author:     "Gavin"
@@ -20,11 +20,11 @@ tags:
 
 例如：
 
-​       ![image-20191121102705635](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20191121102705635.png)
+<img class="shadow" src="/img/in-post/test_link_case_no.png" width="1200">
 
 test_9143_same_daemon_different_signal， 对应TestLink的用例为：
 
-Sc-9143:Same daemon, different signal core file，详见本章节4)
+Sc-9143:Same daemon, different signal core file
 
  
 
@@ -36,7 +36,7 @@ Sc-9143:Same daemon, different signal core file，详见本章节4)
 
 这里的逗号，是中文符号，会导致用例报错：
 
-  ![image-20191121102713516](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20191121102713516.png)
+  <img class="shadow" src="/img/in-post/doc_error.png" width="1200">
 
  
 

@@ -15,7 +15,7 @@ tags:
 
 在使用nose 插件时，发现这个插件只能显示进度（nose-progressive），并不知道当前执行多少个用例，执行到哪个了，如下图所示：
 
-![image-20191120184537031](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20191120184537031.png)
+<img class="shadow" src="/img/in-post/before_progress_bar.png" width="1200">
 
 
 
@@ -68,7 +68,7 @@ tags:
 
 再次执行，效果图如下：
 
-![image-20191120184651276](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20191120184651276.png)
+<img class="shadow" src="/img/in-post/after_progress_bar.png" width="1200">
 
 
 
