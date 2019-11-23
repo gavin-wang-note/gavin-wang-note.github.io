@@ -2,7 +2,7 @@
 layout:     post
 title:      "Appium+python自动化安装指南"
 subtitle:   "Appium+python APP automation guide"
-date:       205-07-23
+date:       2015-07-23
 author:     "Gavin"
 catalog:    true
 tags:
