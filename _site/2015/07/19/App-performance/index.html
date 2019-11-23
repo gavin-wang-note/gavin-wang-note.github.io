@@ -11,28 +11,39 @@
     <meta name="theme-color" content="#000000">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="使用shell实现节点间ssh互信 - Gavin的博客 | Gavin Blog">
+    <meta property="og:title" content="APP性能数据收集操作指南 - Gavin的博客 | Gavin Blog">
     
     <meta property="og:type" content="article">
-    <meta property="og:description" content="概述
-">
+    <meta property="og:description" content="功能描述
+
+集成monkey功能， android测试工作中常用测试脚本，以及在手工测试app端功能时，自动收集相关数据，并生成HTML报告。
+
+需要源码的，请发我163邮箱
+
+monkey稳定性测试：
+
+（1）monkey各参数从配置文件中读取，基本涵盖monkey所有参数，可随时调整/修改配置项值；
+
+（2）获取logcat、traces、monkey日志，出现问题时可通知日志进行问题初...">
     
-    <meta property="article:published_time" content="2015-09-22T00:00:00Z">
+    <meta property="article:published_time" content="2015-07-19T00:00:00Z">
     
     
     <meta property="article:author" content="Gavin">
     
     
-    <meta property="article:tag" content="ssh">
+    <meta property="article:tag" content="APP">
     
-    <meta property="article:tag" content="shell">
+    <meta property="article:tag" content="performance">
+    
+    <meta property="article:tag" content="Automation">
     
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts/">
+    <meta property="og:url" content="http://172.17.73.80:4000/2015/07/19/App-performance/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
-    <title>使用shell实现节点间ssh互信 - Gavin的博客 | Gavin Blog</title>
+    <title>APP性能数据收集操作指南 - Gavin的博客 | Gavin Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -41,7 +52,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts/">
+    <link rel="canonical" href="http://172.17.73.80:4000/2015/07/19/App-performance/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -203,15 +214,17 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/archive/?tag=ssh" title="ssh">ssh</a>
+                        <a class="tag" href="/archive/?tag=APP" title="APP">APP</a>
                         
-                        <a class="tag" href="/archive/?tag=shell" title="shell">shell</a>
+                        <a class="tag" href="/archive/?tag=performance" title="performance">performance</a>
+                        
+                        <a class="tag" href="/archive/?tag=Automation" title="Automation">Automation</a>
                         
                     </div>
-                    <h1>使用shell实现节点间ssh互信</h1>
+                    <h1>APP性能数据收集操作指南</h1>
                     
-                    <h2 class="subheading">ssh key mutual trust between hosts</h2>
-                    <span class="meta">Posted by Gavin on September 22, 2015</span>
+                    <h2 class="subheading">APP performance autotest</h2>
+                    <span class="meta">Posted by Gavin on July 19, 2015</span>
                 </div>
             </div>
         </div>
@@ -237,117 +250,166 @@
                 <!-- Multi-Lingual -->
                 
 
-				<h1 id="概述">概述</h1>
+				<h1 id="功能描述">功能描述</h1>
 
-<p>说假设有一个100台节点的Hadoop集群，要配置节点之间的SSH免密码登录，该如何用shell脚本实现？</p>
+<p>集成monkey功能， android测试工作中常用测试脚本，以及在手工测试app端功能时，自动收集相关数据，并生成HTML报告。</p>
 
-<h2 id="方案1脚本实现">方案1：脚本实现</h2>
+<p><code class="highlighter-rouge">需要源码的，请发我163邮箱</code></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-</pre></td><td class="rouge-code"><pre>#!/bin/expect
-#循环100台机器的IP地址，生成密钥文件authorized_keys
+<p><strong>monkey</strong><strong>稳定性测试：</strong></p>
 
-for ip in {cat ip.list}
-do
-  ssh user@$ip ssh-keygen -t rsa  &amp;&gt;/dev/null
-  expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }
+<p>（1）monkey各参数从配置文件中读取，基本涵盖monkey所有参数，可随时调整/修改配置项值；</p>
 
-  cat ~/.ssh/id_rsa.pub &gt; ~/.ssh/authorized_keys &amp;&gt; /dev/null  
-  exit
+<p>（2）获取logcat、traces、monkey日志，出现问题时可通知日志进行问题初步分析；</p>
 
-  if [ !-f ~/.ssh/authorized_keys ];&lt;br&gt;   then
-​    touch ~/.ssh/authorized_keys&lt;br&gt;   fi
-  ssh user@$ip cat ~/.ssh/authorized_keys &gt;&gt; ~/.ssh/authorized_keys  &amp;&gt; /dev/null
-  expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }  
-done
+<p>（3）捕获JAVA异常日志，提取异常日志写入error文件，并统计异常日志</p>
 
- 
-#scp authorized_keys 文件到各台机器上面。
-for ip in {cat ip.list}
-do
-  scp ~/.ssh/authorized_keys user@$ip:~/.ssh/ 
-  expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }  
-done
-</pre></td></tr></tbody></table></code></pre></div></div>
+<p><strong>performance</strong> <strong>数据收集：</strong></p>
 
-<h2 id="方案2所有node使用相同key">方案2：所有node使用相同key</h2>
+<p>（1）获取终端设备硬件信息（Results Summary）</p>
 
-<p>将第一个node上生成的dsa public key（一般是/root/.ssh/id_dsa.pub），scp到其他节点的/root/.ssh/目录下，即所有节点的dsa public key都一样，自然就实现ssh的互信了。</p>
+<p>（2）app平均启动时间</p>
 
-<p>这里介绍个快速传递ssh key的命令，ssh-copy-id ：</p>
+<p>（3）获取cpu、cpu load、memory、flow上下行（WIFI）信息</p>
 
-<p>ssh-copy-id 将本机的公钥复制到远程机器的authorized_keys文件中，ssh-copy-id也能让你到远程机器的home, ~./ssh , 和 ~/.ssh/authorized_keys的权利。</p>
+<p>（4）处理获取数据，写入文本文件，同时入库（SQLIte）</p>
 
-<p>语法格式如下：</p>
+<p>（5）绘曲线图，并生成HTML测试报告</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-</pre></td><td class="rouge-code"><pre> ssh-copy-id 将key写到远程机器的 ~/ .ssh/authorized_key.文件中 
-</pre></td></tr></tbody></table></code></pre></div></div>
+<p><strong>其他脚本：</strong></p>
 
-<p>示例：</p>
+<p>（1）批量备份/安装/卸载APP；</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-</pre></td><td class="rouge-code"><pre> ssh-copy-id -i .ssh/id_rsa.pub 用户名字@192.168.x.xxx
-</pre></td></tr></tbody></table></code></pre></div></div>
+<p>（2）kill 5037进程</p>
 
+<p>（3）获取全局cpu、mem信息并绘曲线图</p>
+
+<p>（4）获取当前activity</p>
+
+<p>（5）获取安装包名称（package_name）</p>
+
+<p>（6）获取安装包详细信息</p>
+
+<p>（7）截屏，传到本地PC</p>
+
+<p>（8）屏幕操作过程录制（要求sdk version&gt;=19）</p>
+
+<h1 id="实现方法">实现方法</h1>
+
+<p>1、采用python脚本来驱动测试；</p>
+
+<p>2、调用android SDK adb与monkey命令，进行数据采集和稳定性测试；</p>
+
+<p>3、采集数据写入文件和数据库；</p>
+
+<p>4、附带android其他小脚本，便于测试过程中使用；</p>
+
+<p>5、根据实际情况修改配置文件后进行数据采集，生成静态HTML报告，数据一目了然</p>
+
+<h1 id="目录结构">目录结构</h1>
+
+<p>代码目录结构：</p>
+
+<p><img class="shadow" src="/img/in-post/app_performance_code_tree.png" width="400" /></p>
+
+<h1 id="性能数据收集使用指南">性能数据收集使用指南</h1>
+
+<h2 id="测试准备">测试准备</h2>
+
+<h3 id="1配置文件">1、配置文件</h3>
+
+<p>只需保证配置文件内容正确即可。</p>
+
+<p>配置文件存放在src/config/目录下，名称是：config.ini。配置文件各参数介绍，请参考下图：</p>
+
+<p><img class="shadow" src="/img/in-post/config_ini.png" width="1200" /></p>
+
+<h3 id="2sqlite数据库表设计说明">2、SQLIte数据库表设计说明</h3>
+
+<p><img class="shadow" src="/img/in-post/table_desc.png" width="1200" /></p>
+
+<h3 id="3创建表sql语句">3、创建表SQL语句</h3>
+
+<p><img class="shadow" src="/img/in-post/sqlite_create_tab.png" width="1200" /></p>
+
+<h3 id="4涉及的第三方模块">4、涉及的第三方模块</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>模块名称</th>
+      <th>安装命令</th>
+      <th>模块说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>progressbar</td>
+      <td>pip  install progressbar</td>
+      <td>进度条</td>
+    </tr>
+    <tr>
+      <td>configobj</td>
+      <td>pip install configobj</td>
+      <td>读取配置文件</td>
+    </tr>
+    <tr>
+      <td>matplotlib</td>
+      <td>pip  install matplotlib</td>
+      <td>绘图使用</td>
+    </tr>
+    <tr>
+      <td>dateuti</td>
+      <td>pip install python-dateutil</td>
+      <td>绘图使用</td>
+    </tr>
+    <tr>
+      <td>numpy</td>
+      <td>pip  install numpy</td>
+      <td>绘图使用</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="性能数据收集代码执行">性能数据收集代码执行</h2>
+
+<p>执行src目录下run_performance.py，即可进行性能数据的收集工作，在数据收集期间，请手工进行app端的功能测试，这样的数据采集才具有意义。</p>
+
+<h2 id="monkey稳定性测试">Monkey稳定性测试</h2>
+
+<p>src目录下，执行run_monkey.py，可调用monkey命令进行稳定性测试，产生的日志信息记录在report目录下。</p>
+
+<p><strong>说明：</strong></p>
+
+<p>可在进行monkey稳定性过程中，进行性能数据收集操作，这样采集的数据为monkey稳定性测试期间被测app的性能数据。</p>
+
+<h2 id="测试报告查看">测试报告查看</h2>
+
+<p>测试报告在report目录下Performance_Results.html文件，部分截图如下：</p>
+
+<p><img class="shadow" src="/img/in-post/app_performance_html_view.png" width="1200" /></p>
 
 
                 <hr style="visibility: hidden;">
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2015/07/23/Appium+python-automaion-guide/" data-toggle="tooltip" data-placement="top" title="Appium+python自动化安装指南">
+                        <a href="/2011/03/11/rman-auto-backup/" data-toggle="tooltip" data-placement="top" title="oracle RMAN自动备份">
                         Previous<br>
-                        <span>Appium+python自动化安装指南</span>
+                        <span>oracle RMAN自动备份</span>
                         </a>
                     </li>
                     
                     
                     <li class="next">
-                        <a href="/2019/11/20/nose-progress-bar/" data-toggle="tooltip" data-placement="top" title="nose进度条中展示执行用例数与总数">
+                        <a href="/2015/07/23/Appium+python-automaion-guide/" data-toggle="tooltip" data-placement="top" title="Appium+python自动化安装指南">
                         Next<br>
-                        <span>nose进度条中展示执行用例数与总数</span>
+                        <span>Appium+python自动化安装指南</span>
                         </a>
                     </li>
                     
@@ -448,8 +510,8 @@ done
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "Gavin";
-    var disqus_identifier = "/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts";
-    var disqus_url = "http://172.17.73.80:4000/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts/";
+    var disqus_identifier = "/2015/07/19/App-performance";
+    var disqus_url = "http://172.17.73.80:4000/2015/07/19/App-performance/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
