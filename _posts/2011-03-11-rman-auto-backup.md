@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "oracle RMAN自动备份"
-subtitle:   "rman auto bancup"
+subtitle:   "rman auto backup"
 date:       2011-03-11
 author:     "Gavin"
 catalog:    true
