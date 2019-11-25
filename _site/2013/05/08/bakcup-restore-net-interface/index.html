@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="绑定与还原网卡配置文件 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2013-05-08T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="perl">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2013/05/08/bakcup-restore-net-interface/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>绑定与还原网卡配置文件 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2013/05/08/bakcup-restore-net-interface/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=perl" title="perl">perl</a>
+                        
+                    </div>
+                    <h1>绑定与还原网卡配置文件</h1>
+                    
+                    <h2 class="subheading">Bond and restore NIC interface</h2>
+                    <span class="meta">Posted by Gavin on May 8, 2013</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p>在网关测试组工作期间，产品支持SUSE9/SUSE10/SUSE11平台，每次部署环境，都要进行网卡配置操作，虽然有指导手册，无奈比较懒，不想浪费心力在手动配置上，于是酝酿出这个脚本，实现自动进行网卡的绑定动作，一旦绑定失败，自动还原。</p>
+
+<h1 id="直接上脚本">直接上脚本</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+</pre></td><td class="rouge-code"><pre><span class="c1">#!/usr/bin/perl</span>
+<span class="k">use</span> <span class="nv">warnings</span><span class="p">;</span>
+<span class="k">use</span> <span class="nv">strict</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">Sys::</span><span class="nv">Hostname</span><span class="p">;</span>
+<span class="k">use</span> <span class="nv">Socket</span><span class="p">;</span>
+
+
+<span class="c1">################################################################################</span>
+<span class="c1">#    ######################################################################    #</span>
+<span class="c1">#   #      说明：   完成网卡文件的备份、绑定、回滚等操作                   #   #</span>
+<span class="c1">#   #      使用：   perl   network_bond.pl                                 #   #</span>
+<span class="c1">#   #      AUTH：   wangyunzeng                                            #   #</span>
+<span class="c1">#   #      VER ：   1.0                                                    #   #</span>
+<span class="c1">#   #      TIME：   2012-06-11   18:50   create                            #   #</span>
+<span class="c1">#   #      VER ：   1.1                                                    #   #</span>
+<span class="c1">#   #      TIME：   2013-05-08   18:05   增加SUSE9/11平台绑定网卡操作      #   #</span>
+<span class="c1">#    ######################################################################    #</span>
+<span class="c1">################################################################################</span>
+
+<span class="c1">#定义全局变量</span>
+<span class="nb">chomp</span><span class="p">(</span><span class="k">my</span> <span class="nv">$OS_Type</span> <span class="o">=</span> <span class="vg">$^O</span><span class="p">);</span>                                                       <span class="c1">#操作系统类型</span>
+<span class="k">my</span> <span class="nv">$cornel</span><span class="p">;</span>                                                                     <span class="c1">#内核版本号,2013-05-08</span>
+
+<span class="k">my</span> <span class="nv">$host</span><span class="o">=</span><span class="nv">hostname</span><span class="p">();</span>                                                            <span class="c1">#修改获取大网IP可能错误问题，2013-05-08</span>
+<span class="k">my</span> <span class="nv">$IP_A</span><span class="o">=</span><span class="nv">inet_ntoa</span><span class="p">(</span><span class="nb">scalar</span> <span class="nb">gethostbyname</span> <span class="p">(</span><span class="nv">$host</span> <span class="o">||</span> <span class="p">'</span><span class="s1">localhost</span><span class="p">'));</span>
+<span class="nb">chomp</span><span class="p">(</span><span class="nv">$IP_A</span><span class="p">);</span>
+
+
+<span class="c1">#判断当前登录用户，非root，退出</span>
+<span class="k">my</span> <span class="nv">$localuser</span> <span class="o">=</span> <span class="nb">getlogin</span> <span class="o">||</span> <span class="p">(</span><span class="nb">getpwuid</span><span class="p">(</span><span class="vg">$&lt;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Can't find a user here!!!</span><span class="se">\n</span><span class="p">";</span>
+
+<span class="k">if</span><span class="p">(</span><span class="nv">$localuser</span> <span class="ow">ne</span> <span class="p">"</span><span class="s2">root</span><span class="p">")</span>
+<span class="p">{</span>
+  <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">当前登录用户非root，退出！</span><span class="se">\n\n</span><span class="p">";</span>
+  <span class="nb">exit</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+   <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">【说明】
+       1、本脚本仅支持SUSE9/SUSE10/SUSE11平台
+       
+       2、本脚本将Fabric平面网卡绑定成bond0，将Base平面网卡绑定成bond1
+       
+       3、本脚本备份原网卡配置文件，备份在 /etc/sysconfig 目录下，network_日期.tar.gz
+          如果绑定失败，请登录usm，到 /etc/sysconfig 目录下解压后重启网卡既可. </span><span class="se">\n\n</span><span class="p">";</span>
+       
+   
+   <span class="c1">##判断操作系统类型</span>
+   <span class="k">if</span><span class="p">(</span><span class="nv">$OS_Type</span> <span class="o">=~</span> <span class="sr">/linux/</span><span class="p">)</span>
+   <span class="p">{</span>
+      <span class="nb">chomp</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=</span><span class="p">`</span><span class="sb">cat /etc/SuSE-release  | head -1</span><span class="p">`);</span>                        <span class="c1">#内核版本号</span>
+      
+      <span class="c1">##获取系统时间  </span>
+      <span class="k">my</span> <span class="p">(</span><span class="nv">$sec</span><span class="p">,</span><span class="nv">$min</span><span class="p">,</span><span class="nv">$hour</span><span class="p">,</span><span class="nv">$day</span><span class="p">,</span><span class="nv">$month</span><span class="p">,</span><span class="nv">$year</span><span class="p">)</span><span class="o">=</span> <span class="nb">localtime</span><span class="p">(</span><span class="nb">time</span><span class="p">());</span>
+      
+      <span class="nv">$year</span><span class="o">+=</span><span class="mi">1900</span><span class="p">;</span>
+      <span class="nv">$month</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$month</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+      <span class="nv">$day</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$day</span><span class="p">);</span>
+      <span class="nv">$hour</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$hour</span><span class="p">);</span>
+      <span class="nv">$min</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$min</span><span class="p">);</span>
+      <span class="nv">$sec</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$sec</span><span class="p">);</span>
+      
+      <span class="k">my</span> <span class="nv">$daytime</span> <span class="o">=</span> <span class="p">"</span><span class="si">$year$month$day</span><span class="p">";</span>
+      
+      <span class="nb">chdir</span> <span class="p">"</span><span class="s2">/etc/sysconfig</span><span class="p">";</span> 
+      <span class="k">if</span><span class="p">(</span><span class="o">!</span> <span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="s2">network_ </span><span class="si">$daytime</span><span class="s2">.tar.gz</span><span class="p">")</span>
+      <span class="p">{</span>
+         <span class="nb">system</span><span class="p">("</span><span class="s2">tar zcf network_</span><span class="si">$daytime</span><span class="s2">.tar.gz network</span><span class="p">");</span>
+      <span class="p">}</span>
+
+      <span class="o">&amp;</span><span class="nv">bak_check</span><span class="p">;</span>
+   <span class="p">}</span>
+   <span class="k">else</span>
+   <span class="p">{</span>
+      <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">当前仅支持ATAE SUSE平台下网卡绑定操作!</span><span class="se">\n\n</span><span class="p">";</span>
+      <span class="nb">exit</span><span class="p">;</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="c1">#################################################################################</span>
+<span class="c1">###                                  定义子例程                               ###</span>
+<span class="c1">#################################################################################</span>
+
+<span class="k">sub </span><span class="nf">bak_check</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span> <span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="s2">/etc/sysconfig/network/ifcfg-bond0</span><span class="p">")</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">存在网卡绑定文件ifcfg-bond0! </span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">可能已经绑定网卡，程序退出.</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">exit</span><span class="p">;</span>
+  <span class="p">}</span>
+  
+  <span class="k">if</span><span class="p">(</span> <span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="s2">/etc/sysconfig/network/ifcfg-bond1</span><span class="p">")</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">存在网卡绑定文件ifcfg-bond1! </span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">可能已经绑定网卡，程序退出.</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">exit</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nb">chdir</span> <span class="p">"</span><span class="s2">/etc/sysconfig/network</span><span class="p">";</span> 
+  
+  <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">开始备份网卡文件.</span><span class="se">\n\n</span><span class="p">";</span>
+ 
+  <span class="c1">#创建目录</span>
+  <span class="k">unless</span> <span class="p">(</span><span class="o">-</span><span class="nv">d</span> <span class="p">"</span><span class="s2">bak</span><span class="p">")</span>                                                             <span class="c1">#如果目录不存在，创建目录</span>
+  <span class="p">{</span>
+    <span class="nb">mkdir</span><span class="p">("</span><span class="s2">bak</span><span class="p">",</span> <span class="mo">0755</span><span class="p">)</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Make directory bak error,$!.</span><span class="se">\n</span><span class="p">";</span>
+  <span class="p">}</span>
+
+  <span class="c1">#增加SUSE9和SUSE11平台的支持与判断</span>
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span> <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">cp ifcfg-eth-id-* ./bak/</span><span class="p">");</span>
+  <span class="p">}</span>
+  <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">cp ifcfg-eth[0-9] ./bak/</span><span class="p">");</span>
+  <span class="p">}</span>
+  
+  
+  <span class="c1">#判断备份是否成功,成功则继续</span>
+  <span class="c1">#my $ifcfg_cut=`ls ./bak/ifcfg-eth-id-* | wc -l`;</span>
+  <span class="k">my</span> <span class="nv">$ifcfg_cut</span><span class="o">=</span><span class="p">`</span><span class="sb">ls ./bak/ifcfg-eth* | wc -l</span><span class="p">`;</span>                                  <span class="c1">#SUSE11 文件名称发生变化,2013-05-08</span>
+  <span class="nb">chomp</span><span class="p">(</span><span class="nv">$ifcfg_cut</span><span class="p">);</span>
+
+  <span class="k">if</span><span class="p">(</span><span class="nv">$ifcfg_cut</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">备份网卡文件成功</span><span class="se">\n\n</span><span class="p">";</span>
+    
+    <span class="c1">#绑定网卡</span>
+    <span class="o">&amp;</span><span class="nv">bond</span><span class="p">;</span>
+    
+    <span class="c1">#清理文件</span>
+    <span class="o">&amp;</span><span class="nv">clear</span><span class="p">;</span>
+    
+    <span class="c1">#重启网卡</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">重启网卡......</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">rcnetwork restart</span><span class="p">");</span>
+    
+    <span class="c1">#打印绑定后的网卡信息</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">绑定后的网卡信息如下:</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">ifconfig -a</span><span class="p">");</span>
+  
+    
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">完成网卡的绑定.</span><span class="se">\n\n</span><span class="p">";</span>
+   
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">备份网卡文件失败,退出!</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">exit</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="k">sub </span><span class="nf">bond</span><span class="p">()</span>
+<span class="p">{</span>
+   <span class="nb">system</span><span class="p">("</span><span class="s2">/var/adm/autoinstall/scripts/eth_alias.sh  | grep -v Update | grep -v PMC  &gt; eth.tmp</span><span class="p">");</span>
+   <span class="nb">system</span><span class="p">("</span><span class="s2">ifconfig -a | grep -v RX | grep -v dropped | grep -v UP | grep -v collisions | grep -v Interrupt | grep -v </span><span class="se">\"</span><span class="s2">127.0.0.1</span><span class="se">\"</span><span class="s2"> &gt; ifconfig.txt</span><span class="p">");</span>
+   
+   <span class="c1">##网卡名</span>
+   <span class="k">my</span> <span class="nv">$eth_A</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Fabric1 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_B</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Fabric2 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_C</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Base1 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_D</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Base2 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_A</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_B</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_C</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_D</span><span class="p">);</span>
+   
+   
+   <span class="c1">##总线</span>
+   <span class="k">my</span> <span class="nv">$Fabric1_A1</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Fabric1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Fabric1_A2</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Fabric1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Base1_A1</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Base1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Base1_A2</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Base1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric1_A1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric1_A2</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base1_A1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base1_A2</span><span class="p">);</span>
+   
+   <span class="c1">##10转16进制</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX_1</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Fabric1_A1</span><span class="sb">"|bc</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX_2</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Fabric1_A2</span><span class="sb">"|bc</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Base_ZX_1</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Base1_A1</span><span class="sb">"|bc</span><span class="p">`;</span>    
+   <span class="k">my</span> <span class="nv">$Base_ZX_2</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Base1_A2</span><span class="sb">"|bc</span><span class="p">`;</span>
+   
+   <span class="c1">##全部转换成小写 add by wangyunzeng  2012-11-06</span>
+   <span class="c1">##-----begin-----##</span>
+   <span class="nv">$Fabric_ZX_1</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Fabric_ZX_1</span><span class="p">);</span>
+   <span class="nv">$Fabric_ZX_2</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Fabric_ZX_2</span><span class="p">);</span>
+   <span class="nv">$Base_ZX_1</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Base_ZX_1</span><span class="p">);</span>
+   <span class="nv">$Base_ZX_2</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Base_ZX_2</span><span class="p">);</span>
+   <span class="c1">##------end------##</span>
+      
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric_ZX_1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric_ZX_2</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base_ZX_1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base_ZX_2</span><span class="p">);</span>
+   
+   
+   <span class="c1">## 拼接</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX0</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Fabric_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.0</span><span class="p">";</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX1</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Fabric_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.1</span><span class="p">";</span>
+   <span class="k">my</span> <span class="nv">$Base_ZX0</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Base_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.0</span><span class="p">";</span>
+   <span class="k">my</span> <span class="nv">$Base_ZX1</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Base_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.1</span><span class="p">";</span>
+
+   
+   <span class="c1">##MAC</span>
+   <span class="k">my</span> <span class="nv">$eth_A_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_A</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_B_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_B</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_C_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_C</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_D_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_D</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_A_MAC</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_B_MAC</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_C_MAC</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_D_MAC</span><span class="p">);</span>
+   
+   <span class="c1">##IP地址,修改SUSE11平台ifconfig显示大网地址在小网地址后，获取大网地址错误问题，注释掉原cat和chomp操作，2013-05-08</span>
+   <span class="c1">#my $IP_A=`cat ifconfig.txt | grep "inet addr" | head -1  | awk -F \" \" \'\{print \$2\}\' | sed \'s\/addr\:\/\/\'`;</span>
+   <span class="k">my</span> <span class="nv">$IP_C</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep "inet addr" | sort -r | head -1  | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | sed </span><span class="err">\</span><span class="sb">'s</span><span class="err">\</span><span class="sb">/addr</span><span class="err">\</span><span class="sb">:</span><span class="err">\</span><span class="sb">/</span><span class="err">\</span><span class="sb">/</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="c1">#chomp($IP_A);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$IP_C</span><span class="p">);</span>
+   
+   <span class="c1">#print "\n$IP_A\n";</span>
+   <span class="c1">#print "\n$IP_C\n";</span>
+   
+   <span class="c1">##写bind文件</span>
+   <span class="nb">open</span><span class="p">(</span><span class="nv">BOND0</span><span class="p">,"</span><span class="s2">&gt;ifcfg-bond0</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$!</span><span class="se">\n\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">WIRELESS='no'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">device='bond0'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">IPADDR='</span><span class="si">$IP_A</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">NETMASK='255.255.254.0'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">REMOTE_IPADDR=''</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_MASTER='yes'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_MODULE_OPTS='mode=1 miimon=200'</span><span class="se">\n</span><span class="p">";</span>
+      
+      <span class="c1">#增加SUSE11平台网卡绑定操作</span>
+      <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0=' bus-pci-0000:</span><span class="si">$Fabric_ZX0</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1=' bus-pci-0000:</span><span class="si">$Fabric_ZX1</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="p">}</span>
+      <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0='</span><span class="si">$eth_A</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1='</span><span class="si">$eth_B</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>  
+      <span class="p">}</span>
+
+   <span class="nb">close</span><span class="p">(</span><span class="nv">BOND0</span><span class="p">);</span>
+
+
+   
+   
+   <span class="nb">open</span><span class="p">(</span><span class="nv">BOND1</span><span class="p">,"</span><span class="s2">&gt;ifcfg-bond1</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$!</span><span class="se">\n\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">WIRELESS='no'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">device='bond1'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">IPADDR='</span><span class="si">$IP_C</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">NETMASK='255.255.255.0'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">REMOTE_IPADDR=''</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_MASTER='yes'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_MODULE_OPTS='mode=1 miimon=200'</span><span class="se">\n</span><span class="p">";</span>
+      
+      <span class="c1">#增加SUSE11平台网卡绑定操作</span>
+      <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0=' bus-pci-0000:</span><span class="si">$Base_ZX0</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1=' bus-pci-0000:</span><span class="si">$Base_ZX1</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span> 
+      <span class="p">}</span>
+      <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0='</span><span class="si">$eth_C</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1='</span><span class="si">$eth_D</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>  
+      <span class="p">}</span>
+
+   <span class="nb">close</span><span class="p">(</span><span class="nv">BOND1</span><span class="p">);</span>
+   
+   
+   <span class="c1">##写网卡文件</span>
+   <span class="c1">#增加SUSE11平台支持,2013-05-08</span>
+   <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHA</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_A</span><span class="s2">-id-</span><span class="si">$eth_A_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHA</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_A</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file ifcfg-</span><span class="si">$eth_A</span><span class="s2"> failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="c1">#open(ETHA,"&gt;ifcfg-$eth_A-id-$eth_A_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHA</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_A</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHA</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span> 
+       <span class="k">print</span> <span class="nv">ETHA</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHA</span><span class="p">);</span>
+   
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHB</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_B</span><span class="s2">-id-</span><span class="si">$eth_B_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHB</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_B</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="c1">#open(ETHB,"&gt;ifcfg-$eth_B-id-$eth_B_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHB</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_B</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHB</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>                                                 
+       <span class="k">print</span> <span class="nv">ETHB</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHB</span><span class="p">);</span>
+   
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHC</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_C</span><span class="s2">-id-</span><span class="si">$eth_C_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHC</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_C</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>   
+   <span class="c1">#open(ETHC,"&gt;ifcfg-$eth_C-id-$eth_C_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHC</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_C</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHC</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>                                                 
+       <span class="k">print</span> <span class="nv">ETHC</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHC</span><span class="p">);</span>
+   
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHD</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_D</span><span class="s2">-id-</span><span class="si">$eth_D_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHD</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_D</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>   
+   <span class="c1">#open(ETHD,"&gt;ifcfg-$eth_D-id-$eth_D_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHD</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_D</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHD</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>                                                 
+       <span class="k">print</span> <span class="nv">ETHD</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHD</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">#文件清理</span>
+<span class="k">sub </span><span class="nf">clear</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="c1">##删除原网卡配置文件</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">rm  -f ifcfg-eth-id-*</span><span class="p">");</span>
+  <span class="p">}</span>
+  <span class="c1">#elsif($cornel=~m/Server 11/i)</span>
+  <span class="c1">#{</span>
+  <span class="c1">#  ##删除原网卡配置文件</span>
+  <span class="c1">#  system("rm  -f ifcfg-eth[0-9]");</span>
+  <span class="c1">#}</span>
+  <span class="c1">#else</span>
+  <span class="c1">#{</span>
+  <span class="c1">#  print "\n不支持的操作系统类型，程序退出!\n";</span>
+  <span class="c1">#  exit</span>
+  <span class="c1">#}</span>
+
+  <span class="c1">##清理其他文件</span>
+  <span class="nb">unlink</span><span class="p">("</span><span class="s2">eth.tmp</span><span class="p">");</span>
+  <span class="nb">unlink</span><span class="p">("</span><span class="s2">ifconfig.txt</span><span class="p">");</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2013/01/25/clean-all-data-in-db/" data-toggle="tooltip" data-placement="top" title="清除Oracle数据库中所有表、视图、触发器">
+                        Previous<br>
+                        <span>清除Oracle数据库中所有表、视图、触发器</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2014/01/21/file-column-summation/" data-toggle="tooltip" data-placement="top" title="根据文件列求和">
+                        Next<br>
+                        <span>根据文件列求和</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0013" 
+                    href="/archive/?tag=rman"
+                    title="rman"
+                    rel="2">rman</a>
+        
+                <a data-sort="0010" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="5">Automation</a>
+        
+                <a data-sort="0012" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="3">awk</a>
+        
+                <a data-sort="0012" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="3">oracle</a>
+        
+                <a data-sort="0012" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="3">perl</a>
+        
+                <a data-sort="0013" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0013" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="2">nose</a>
+        
+                <a data-sort="0013" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0013" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2013/05/08/bakcup-restore-net-interface";
+    var disqus_url = "http://172.17.73.80:4000/2013/05/08/bakcup-restore-net-interface/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2019
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>
