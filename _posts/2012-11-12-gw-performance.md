@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "消息网关组性能数据收集"
-subtitle:   "GW performance date parse"
+subtitle:   "GW performance data collection, analysis and drawing"
 date:       2012-11-12
 author:     "Gavin"
 catalog:    true
