@@ -11,26 +11,26 @@
     <meta name="theme-color" content="#000000">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="彩信网关数据库自动升级与比对（QCC） - Gavin的博客 | Gavin Blog">
+    <meta property="og:title" content="磁盘加入RAID组 - Gavin的博客 | Gavin Blog">
     
     <meta property="og:type" content="article">
-    <meta property="og:description" content="概述
+    <meta property="og:description" content="背景
 ">
     
-    <meta property="article:published_time" content="2013-07-05T00:00:00Z">
+    <meta property="article:published_time" content="2016-08-28T00:00:00Z">
     
     
     <meta property="article:author" content="Gavin">
     
     
-    <meta property="article:tag" content="Automation">
+    <meta property="article:tag" content="RAID">
     
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/2013/07/05/auto-upgrade-commpare/">
+    <meta property="og:url" content="http://172.17.73.80:4000/2016/08/28/join-disk-to-raid/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
-    <title>彩信网关数据库自动升级与比对（QCC） - Gavin的博客 | Gavin Blog</title>
+    <title>磁盘加入RAID组 - Gavin的博客 | Gavin Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -39,7 +39,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/2013/07/05/auto-upgrade-commpare/">
+    <link rel="canonical" href="http://172.17.73.80:4000/2016/08/28/join-disk-to-raid/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -209,13 +209,13 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/archive/?tag=Automation" title="Automation">Automation</a>
+                        <a class="tag" href="/archive/?tag=RAID" title="RAID">RAID</a>
                         
                     </div>
-                    <h1>彩信网关数据库自动升级与比对（QCC）</h1>
+                    <h1>磁盘加入RAID组</h1>
                     
-                    <h2 class="subheading">MMSG Gateway auto upgrade and commpare</h2>
-                    <span class="meta">Posted by Gavin on July 5, 2013</span>
+                    <h2 class="subheading">HDD join RAID5</h2>
+                    <span class="meta">Posted by Gavin on August 28, 2016</span>
                 </div>
             </div>
         </div>
@@ -241,100 +241,51 @@
                 <!-- Multi-Lingual -->
                 
 
-				<h1 id="概述">概述</h1>
+				<h1 id="背景">背景</h1>
 
-<p>原始文件是个ppt，大约是在2013年在网关测试组测试时，写了一个QCC，获奖了哦~~</p>
+<p>测试场景中含有容灾测试，其中涉及到拔盘测试，本文以该场景为例，指导如何恢复RAID组到正常状态。</p>
 
-<p>现在把PPT截图放出来，做了关键信息的屏蔽处理，往见谅~</p>
+<h1 id="新盘加入">新盘加入</h1>
 
-<h1 id="mmsg-qcc-auto-upgrade-评审胶片">MMSG QCC auto upgrade 评审胶片</h1>
+<p>从RAID组中拔掉一块硬盘，重新插入一块新盘，无需执行任何megacli命令，新盘会自动加入RAID组，并处于rebuild状态，直至rebuild完成后，RAID组恢复正常。</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_1.png" width="1200" /></p>
+<h1 id="旧盘加入">旧盘加入</h1>
 
-<p><img class="shadow" src="/img/in-post/qcc_2.png" width="1200" /></p>
+<p>从RAID组中拔掉一块硬盘，再重新插入这块被拔下来的磁盘，RAID组的校验机制检测到这块盘曾经是RAID组成员，之前叛变了，现在又先回归组织，需要进行身份验证，所以这块旧盘会被标记成unconfig（good）状态，需要做两个动作，来完成再加入RAID，分别是：</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_3.png" width="1200" /></p>
+<p>1、标记硬盘状态为config(good)</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_4.png" width="1200" /></p>
+<p>2、导入到RAID组</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_5.png" width="1200" /></p>
+<h2 id="具体操作步骤如下">具体操作步骤如下：</h2>
 
-<p><img class="shadow" src="/img/in-post/qcc_6.png" width="1200" /></p>
+<p>（1）获取被加入RAID组磁盘的Enclosure Device ID 和Slot Number</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_7.png" width="1200" /></p>
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -LdPdInfo -aALL</code></p>
 
-<p><img class="shadow" src="/img/in-post/qcc_8.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/hdd_join_raid.png" width="800" /></p>
 
-<p>说明：</p>
+<p>（2）标记磁盘为unconfig（good）状态</p>
 
-<p>测试环境准备：包括但不限制于：测试环境准备、产品部署、数据导入等操作</p>
+<p>如上图所示，坏了的磁盘，状态应该是unconfig（good），这里截图仅供参考。</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_9.png" width="1200" /></p>
+<p>假如Enclosure Device ID 为8，Slot Number为2的磁盘坏了的话，执行如下命令：</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_10.png" width="1200" /></p>
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDMakeGood -PhysDrv[8:2] -a0</code></p>
 
-<p><img class="shadow" src="/img/in-post/qcc_11.png" width="1200" /></p>
+<p>将磁盘设置为good状态。</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_12.png" width="1200" /></p>
+<p>（3）导入RAID组</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_13.png" width="1200" /></p>
+<p>执行</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_14.png" width="1200" /></p>
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -CfgForeign -import -a0</code></p>
 
-<p><img class="shadow" src="/img/in-post/qcc_15.png" width="1200" /></p>
+<p>命令，将步骤2中标记的盘导入raid组。</p>
 
-<p><img class="shadow" src="/img/in-post/qcc_16.png" width="1200" /></p>
+<h2 id="查看raid组rebuild进度">查看RAID组rebuild进度</h2>
 
-<p><img class="shadow" src="/img/in-post/qcc_17.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_18.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_19.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_20.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_21.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_22.png" width="1200" /></p>
-
-<p>说明：</p>
-
-<ul>
-  <li>cfg：存放产品的配置文件信息，方便产品安装与部署</li>
-  <li>cls_db.pl：用于清理数据库中对象，包括表、视图、存储过程、package等对象</li>
-  <li>compare.pl：用于数据的比对，并将结果保存到文件</li>
-  <li>config：存放配置文件信息</li>
-  <li>data：存放现网数据，即dmp文件</li>
-  <li>exp_date.pl：导出数据</li>
-  <li>exp_parameter.pl：导出参数数据</li>
-  <li>imp_data.pl：导入现网数据</li>
-  <li>main.pl：调用其他的所有的pl脚本</li>
-  <li>m_manager：存放XXC的相关升级脚本</li>
-  <li>mmsg：存放XXA的相关升级脚本</li>
-  <li>package：存放安装包，无需解压的gz或Z包</li>
-  <li>sms：存放XXB的相关升级脚本</li>
-  <li>syslib：Perl模块，解决AIX平台未安装Config模块无法从配置文件获取信息问题</li>
-</ul>
-
-<p><img class="shadow" src="/img/in-post/qcc_23.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_24.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_25.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_26.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_27.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_28.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_29.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_30.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_31.png" width="1200" /></p>
-
-<p><img class="shadow" src="/img/in-post/qcc_32.png" width="1200" /></p>
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -pdrbld -showprog -physdrv[8:2] -aALL</code></p>
 
 
 
@@ -342,17 +293,17 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2013/05/21/Linux-script-replay/" data-toggle="tooltip" data-placement="top" title="Linux录屏与回放">
+                        <a href="/2016/03/22/check-nic-used-or-not/" data-toggle="tooltip" data-placement="top" title="查看网卡对应网口是否已使用">
                         Previous<br>
-                        <span>Linux录屏与回放</span>
+                        <span>查看网卡对应网口是否已使用</span>
                         </a>
                     </li>
                     
                     
                     <li class="next">
-                        <a href="/2014/01/21/file-column-summation/" data-toggle="tooltip" data-placement="top" title="根据文件列求和">
+                        <a href="/2018/05/01/jenkins-html-report/" data-toggle="tooltip" data-placement="top" title="Jenkins Email发送HTML测试报告模板">
                         Next<br>
-                        <span>根据文件列求和</span>
+                        <span>Jenkins Email发送HTML测试报告模板</span>
                         </a>
                     </li>
                     
@@ -493,8 +444,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "Gavin";
-    var disqus_identifier = "/2013/07/05/auto-upgrade-commpare";
-    var disqus_url = "http://172.17.73.80:4000/2013/07/05/auto-upgrade-commpare/";
+    var disqus_identifier = "/2016/08/28/join-disk-to-raid";
+    var disqus_url = "http://172.17.73.80:4000/2016/08/28/join-disk-to-raid/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
