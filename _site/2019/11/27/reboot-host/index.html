@@ -11,28 +11,26 @@
     <meta name="theme-color" content="#000000">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="使用shell实现节点间ssh互信 - Gavin的博客 | Gavin Blog">
+    <meta property="og:title" content="魔法键重启Linux机器 - Gavin的博客 | Gavin Blog">
     
     <meta property="og:type" content="article">
     <meta property="og:description" content="概述
 ">
     
-    <meta property="article:published_time" content="2015-09-22T00:00:00Z">
+    <meta property="article:published_time" content="2019-11-27T00:00:00Z">
     
     
     <meta property="article:author" content="Gavin">
     
     
-    <meta property="article:tag" content="ssh">
-    
-    <meta property="article:tag" content="shell">
+    <meta property="article:tag" content="Linux">
     
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts/">
+    <meta property="og:url" content="http://172.17.73.80:4000/2019/11/27/reboot-host/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
-    <title>使用shell实现节点间ssh互信 - Gavin的博客 | Gavin Blog</title>
+    <title>魔法键重启Linux机器 - Gavin的博客 | Gavin Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -41,7 +39,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts/">
+    <link rel="canonical" href="http://172.17.73.80:4000/2019/11/27/reboot-host/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -211,15 +209,13 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/archive/?tag=ssh" title="ssh">ssh</a>
-                        
-                        <a class="tag" href="/archive/?tag=shell" title="shell">shell</a>
+                        <a class="tag" href="/archive/?tag=Linux" title="Linux">Linux</a>
                         
                     </div>
-                    <h1>使用shell实现节点间ssh互信</h1>
+                    <h1>魔法键重启Linux机器</h1>
                     
-                    <h2 class="subheading">ssh key mutual trust between hosts</h2>
-                    <span class="meta">Posted by Gavin on September 22, 2015</span>
+                    <h2 class="subheading">reboot Linux machine by magic key</h2>
+                    <span class="meta">Posted by Gavin on November 27, 2019</span>
                 </div>
             </div>
         </div>
@@ -247,97 +243,51 @@
 
 				<h1 id="概述">概述</h1>
 
-<p>说假设有一个100台节点的Hadoop集群，要配置节点之间的SSH免密码登录，该如何用shell脚本实现？</p>
+<p>啥？ 重启Linux机器，无非通过下列几种常见命令：</p>
 
-<h2 id="方案1脚本实现">方案1：脚本实现</h2>
+<p><code class="highlighter-rouge">reboot</code></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-</pre></td><td class="rouge-code"><pre>#!/bin/expect
-#循环100台机器的IP地址，生成密钥文件authorized_keys
+<p><code class="highlighter-rouge">reboot -f</code></p>
 
-for ip in {cat ip.list}
-do
-  ssh user@$ip ssh-keygen -t rsa  &amp;&gt;/dev/null
-  expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }
+<p><code class="highlighter-rouge">poweroff</code></p>
 
-  cat ~/.ssh/id_rsa.pub &gt; ~/.ssh/authorized_keys &amp;&gt; /dev/null  
-  exit
+<p>说明：</p>
 
-  if [ !-f ~/.ssh/authorized_keys ];&lt;br&gt;   then
-​    touch ~/.ssh/authorized_keys&lt;br&gt;   fi
-  ssh user@$ip cat ~/.ssh/authorized_keys &gt;&gt; ~/.ssh/authorized_keys  &amp;&gt; /dev/null
-  expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }  
-done
+<p>如果上面的指令，在机器重启、关机期间卡住了，怎么办？看下面ipmi指令。</p>
 
- 
-#scp authorized_keys 文件到各台机器上面。
-for ip in {cat ip.list}
-do
-  scp ~/.ssh/authorized_keys user@$ip:~/.ssh/ 
-  expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }  
-done
-</pre></td></tr></tbody></table></code></pre></div></div>
+<h1 id="ipmi指令">IPMI指令</h1>
 
-<h2 id="方案2所有node使用相同key">方案2：所有node使用相同key</h2>
+<p>说明：</p>
 
-<p>将第一个node上生成的dsa public key（一般是/root/.ssh/id_dsa.pub），scp到其他节点的/root/.ssh/目录下，即所有节点的dsa public key都一样，自然就实现ssh的互信了。</p>
+<p>需要安装ipmitool工具, 这个也不是本文重点哦。</p>
 
-<p>这里介绍个快速传递ssh key的命令，ssh-copy-id ：</p>
+<h2 id="硬关机直接切断电源">硬关机，直接切断电源</h2>
 
-<p>ssh-copy-id 将本机的公钥复制到远程机器的authorized_keys文件中，ssh-copy-id也能让你到远程机器的home, ~./ssh , 和 ~/.ssh/authorized_keys的权利。</p>
+<p><code class="highlighter-rouge">ipmitool -I lan -H 192.168.1.2 -U IPMI的管理员账号 -P 密码 power off</code></p>
 
-<p>语法格式如下：</p>
+<h2 id="软关机">软关机</h2>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-</pre></td><td class="rouge-code"><pre> ssh-copy-id 将key写到远程机器的 ~/ .ssh/authorized_key.文件中 
-</pre></td></tr></tbody></table></code></pre></div></div>
+<p>即如同轻按一下开机扭，对于linux，服务器将halt，power status 为off</p>
 
-<p>示例：</p>
+<p><code class="highlighter-rouge">ipmitool -I lan -H 192.168.1.2 -U IPMI的管理员账号 -P 密码 power soft</code></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-</pre></td><td class="rouge-code"><pre> ssh-copy-id -i .ssh/id_rsa.pub 用户名字@192.168.x.xxx
-</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="硬开机">硬开机</h2>
+
+<p><code class="highlighter-rouge">ipmitool -I lan -H 192.168.1.2 -U IPMI的管理员账号 -P 密码 power on</code></p>
+
+<h2 id="硬重启">硬重启</h2>
+
+<p><code class="highlighter-rouge">ipmitool -I lan -H 192.168.1.2 -U IPMI的管理员账号 -P 密码 power reset</code></p>
+
+<h1 id="魔法键">魔法键</h1>
+
+<p>重点来了~~~</p>
+
+<p>上面的指令大家都知道，本文要讲的，是一个Magic key，可以做到强制重启哦，非常的神奇，一切卡死都不是事~~</p>
+
+<p>命令如下：</p>
+
+<p><code class="highlighter-rouge">echo "b" &gt; /proc/sysrq-trigger</code></p>
 
 
 
@@ -345,19 +295,12 @@ done
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2015/08/21/app-mokey-help-details/" data-toggle="tooltip" data-placement="top" title="Monkey详解">
+                        <a href="/2019/11/21/write-nose-test-case-role/" data-toggle="tooltip" data-placement="top" title="nose测试用例编写规则基本要求">
                         Previous<br>
-                        <span>Monkey详解</span>
+                        <span>nose测试用例编写规则基本要求</span>
                         </a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2016/03/09/view-dd-progress/" data-toggle="tooltip" data-placement="top" title="查看dd进度">
-                        Next<br>
-                        <span>查看dd进度</span>
-                        </a>
-                    </li>
                     
                 </ul>
                 <hr style="visibility: hidden;">
@@ -496,8 +439,8 @@ done
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "Gavin";
-    var disqus_identifier = "/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts";
-    var disqus_url = "http://172.17.73.80:4000/2015/09/22/Shell-implements-ssh-key-mutual-trust-between-hosts/";
+    var disqus_identifier = "/2019/11/27/reboot-host";
+    var disqus_url = "http://172.17.73.80:4000/2019/11/27/reboot-host/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
