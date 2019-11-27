@@ -488,3 +488,40 @@ sysctl -w vm.drop_caches=3
 [root@localhost sbull]# arp -n
 ```
 
+# 查看当前主机是物理机还是虚拟机
+
+```dmidecode -s system-product-name ```
+
+示例：
+
+物理服务器
+
+```
+[root@JX-P-L-KVM-231 ~]# dmidecode -s system-product-name
+# SMBIOS implementations newer than version 2.7 are not
+# fully supported by this version of dmidecode.
+PowerEdge R930
+```
+
+
+KVM 虚拟主机
+
+```
+[root@JX-V-L-PHP-237 ~]# dmidecode -s system-product-name
+KVM
+```
+
+VMware vSphere 虚拟主机
+
+```
+[root@ZE-T1 ~]# dmidecode -s system-product-name
+VMware Virtual Platform
+```
+
+阿里云主机
+
+```
+[root@zdc ~]# dmidecode -s system-product-name
+HVM domU
+```
+
