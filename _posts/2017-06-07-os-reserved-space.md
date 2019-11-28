@@ -29,12 +29,23 @@ tags:
 
 # 意图
 
-默认预留5%的磁盘空间，留给root用户维护系统或者记录系统关键日志的时候使用(比如磁盘使用空间已经100%的情况下的处理)，这也就是导致普通用户无法使用部分磁盘空间的原因了。
+看一下man手册：
+
+```
+-m reserved-blocks-percentage
+Specify the percentage of the filesystem blocks reserved for the
+super-user.   This  avoids  fragmentation, and allows root-owned
+daemons, such as syslogd(8), to continue to  function  correctly
+after non-privileged processes are prevented from writing to the
+filesystem.  The default percentage is 5%.
+```
+
+也就是说，ext文件系统，包括ext2、ext3、ext4都会默认预留5%的磁盘空间，留给root用户维护系统或者记录系统关键日志的时候使用(比如磁盘使用空间已经100%的情况下的处理)，这也就是导致普通用户无法使用部分磁盘空间的原因了。
 
 
-# 如果关闭预留空间
+# 如何关闭预留空间
 
-以另外一套环境为例：
+对于操作系统，这个预留是有意义的，但对于存储（比如ceph-osd ext4 data空间），如果还有5%的预留，空间就浪费了，如何关闭这个预留空间呢？ 以另外一套环境为例：
 
 通过tune2fs 可以关闭文件系统空间的预留
 

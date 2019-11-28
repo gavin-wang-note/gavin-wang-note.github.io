@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2019-11-27T18:46:33+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">魔法键重启Linux机器</title><link href="http://172.17.73.80:4000/2019/11/27/reboot-host/" rel="alternate" type="text/html" title="魔法键重启Linux机器" /><published>2019-11-27T00:00:00+08:00</published><updated>2019-11-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/27/reboot-host</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/27/reboot-host/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2019-11-28T09:45:46+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">魔法键重启Linux机器</title><link href="http://172.17.73.80:4000/2019/11/27/reboot-host/" rel="alternate" type="text/html" title="魔法键重启Linux机器" /><published>2019-11-27T00:00:00+08:00</published><updated>2019-11-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/27/reboot-host</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/27/reboot-host/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;啥？ 重启Linux机器，无非通过下列几种常见命令：&lt;/p&gt;
 
@@ -1862,11 +1862,27 @@ HVM domU
 
 &lt;h1 id=&quot;意图&quot;&gt;意图&lt;/h1&gt;
 
-&lt;p&gt;默认预留5%的磁盘空间，留给root用户维护系统或者记录系统关键日志的时候使用(比如磁盘使用空间已经100%的情况下的处理)，这也就是导致普通用户无法使用部分磁盘空间的原因了。&lt;/p&gt;
+&lt;p&gt;看一下man手册：&lt;/p&gt;
 
-&lt;h1 id=&quot;如果关闭预留空间&quot;&gt;如果关闭预留空间&lt;/h1&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;-m reserved-blocks-percentage
+Specify the percentage of the filesystem blocks reserved for the
+super-user.   This  avoids  fragmentation, and allows root-owned
+daemons, such as syslogd(8), to continue to  function  correctly
+after non-privileged processes are prevented from writing to the
+filesystem.  The default percentage is 5%.
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;以另外一套环境为例：&lt;/p&gt;
+&lt;p&gt;也就是说，ext文件系统，包括ext2、ext3、ext4都会默认预留5%的磁盘空间，留给root用户维护系统或者记录系统关键日志的时候使用(比如磁盘使用空间已经100%的情况下的处理)，这也就是导致普通用户无法使用部分磁盘空间的原因了。&lt;/p&gt;
+
+&lt;h1 id=&quot;如何关闭预留空间&quot;&gt;如何关闭预留空间&lt;/h1&gt;
+
+&lt;p&gt;对于操作系统，这个预留是有意义的，但对于存储（比如ceph-osd ext4 data空间），如果还有5%的预留，空间就浪费了，如何关闭这个预留空间呢？ 以另外一套环境为例：&lt;/p&gt;
 
 &lt;p&gt;通过tune2fs 可以关闭文件系统空间的预留&lt;/p&gt;
 
