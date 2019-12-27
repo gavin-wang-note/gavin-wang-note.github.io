@@ -1,4 +1,108 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2019-11-28T22:16:55+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">魔法键重启Linux机器</title><link href="http://172.17.73.80:4000/2019/11/27/reboot-host/" rel="alternate" type="text/html" title="魔法键重启Linux机器" /><published>2019-11-27T00:00:00+08:00</published><updated>2019-11-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/27/reboot-host</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/27/reboot-host/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2019-12-27T18:20:26+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">iSCSI多路径配置</title><link href="http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode/" rel="alternate" type="text/html" title="iSCSI多路径配置" /><published>2019-12-27T00:00:00+08:00</published><updated>2019-12-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode</id><content type="html" xml:base="http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;配置iSCSI多路径，可以增加HA（高可用性）&lt;/p&gt;
+
+&lt;p&gt;本文以Ubuntu 14.04为示例，在安装了multipath-tools工具后，以此节点作为client去挂载iSCSI设备，将multipath默认active-standy修改为rond-robing&lt;/p&gt;
+
+&lt;h1 id=&quot;iscsi多路径配置client端&quot;&gt;iSCSI多路径配置（client端）&lt;/h1&gt;
+
+&lt;h2 id=&quot;未设置多路径之前&quot;&gt;未设置多路径之前&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~# multipath -ll
+2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
+size=10T features='0' hwhandler='0' wp=rw
+|-+- policy='round-robin 0' prio=1 status=active
+| `- 11:0:0:0 sdd 8:48  active ready running
+|-+- policy='round-robin 0' prio=1 status=enabled
+| `- 14:0:0:0 sdg 8:96  active ready running
+|-+- policy='round-robin 0' prio=1 status=enabled
+| `- 15:0:0:0 sdh 8:112 active ready running
+|-+- policy='round-robin 0' prio=1 status=enabled
+| `- 13:0:0:0 sdf 8:80  active ready running
+`-+- policy='round-robin 0' prio=1 status=enabled
+  `- 12:0:0:0 sde 8:64  active ready running
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;修改multipathconf&quot;&gt;修改multipath.conf&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~# cat /etc/multipath.conf 
+blacklist {
+        devnode &quot;^(rbd)[0-9]*&quot;
+        devnode &quot;^zd[0-0]*&quot;
+#       devnode &quot;*&quot;
+}
+
+defaults {
+        getuid_callout  &quot;/lib/udev/scsi_id --whitelisted --replace-whitespace --device=/dev/%n&quot;
+        path_grouping_policy  multibus
+        path_selector         &quot;round-robin 0&quot;
+        failback               immediate
+        rr_min_io_req          32
+}
+root@host245:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;p&gt;从path_grouping_policy开始，之后的4行为新增内容&lt;/p&gt;
+
+&lt;h2 id=&quot;重启multipath-tool&quot;&gt;重启multipath-tool&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~# /etc/init.d/multipath-tools restart
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;查看设置后效果&quot;&gt;查看设置后效果&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~# multipath -ll
+2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
+size=10T features='0' hwhandler='0' wp=rw
+`-+- policy='round-robin 0' prio=1 status=active
+  |- 11:0:0:0 sdd 8:48  active ready running
+  |- 12:0:0:0 sde 8:64  active ready running
+  |- 13:0:0:0 sdf 8:80  active ready running
+  |- 14:0:0:0 sdg 8:96  active ready running
+  `- 15:0:0:0 sdh 8:112 active ready running
+root@host245:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="iSCSI" /><summary type="html">概述</summary></entry><entry><title type="html">魔法键重启Linux机器</title><link href="http://172.17.73.80:4000/2019/11/27/reboot-host/" rel="alternate" type="text/html" title="魔法键重启Linux机器" /><published>2019-11-27T00:00:00+08:00</published><updated>2019-11-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/27/reboot-host</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/27/reboot-host/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;啥？ 重启Linux机器，无非通过下列几种常见命令：&lt;/p&gt;
 
@@ -1900,108 +2004,4 @@ VMware Virtual Platform
 2
 &lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@zdc ~]# dmidecode -s system-product-name
 HVM domU
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">操作系统空间预留</title><link href="http://172.17.73.80:4000/2017/06/07/os-reserved-space/" rel="alternate" type="text/html" title="操作系统空间预留" /><published>2017-06-07T00:00:00+08:00</published><updated>2017-06-07T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2017/06/07/os-reserved-space</id><content type="html" xml:base="http://172.17.73.80:4000/2017/06/07/os-reserved-space/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;在执行df命令查看空间时，发现已使用空间与剩余空间之和，小于总空间，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/df_space.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;图上显示，可用空间81G，已使用8G，加起来是89G，但总空间是94G，少了5G?&lt;/p&gt;
-
-&lt;p&gt;这是什么原因呢？&lt;/p&gt;
-
-&lt;h1 id=&quot;mkfs-空间预留&quot;&gt;mkfs 空间预留&lt;/h1&gt;
-
-&lt;p&gt;原来mkfs的时候，默认携带 -m 参数，即默认预留5%的空间, 94G * 0.05 = 4.7G，大约是5G，与上面的计算吻合（在磁盘换算过程中由于使用的单位不同，这个有约0.02左右的误差是可能的）。&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/dumpe2fs.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;意图&quot;&gt;意图&lt;/h1&gt;
-
-&lt;p&gt;看一下man手册：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;-m reserved-blocks-percentage
-Specify the percentage of the filesystem blocks reserved for the
-super-user.   This  avoids  fragmentation, and allows root-owned
-daemons, such as syslogd(8), to continue to  function  correctly
-after non-privileged processes are prevented from writing to the
-filesystem.  The default percentage is 5%.
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;也就是说，ext文件系统，包括ext2、ext3、ext4都会默认预留5%的磁盘空间，留给root用户维护系统或者记录系统关键日志的时候使用(比如磁盘使用空间已经100%的情况下的处理)，这也就是导致普通用户无法使用部分磁盘空间的原因了。&lt;/p&gt;
-
-&lt;h1 id=&quot;如何关闭预留空间&quot;&gt;如何关闭预留空间&lt;/h1&gt;
-
-&lt;p&gt;对于操作系统，这个预留是有意义的，但对于存储（比如ceph-osd ext4 data空间），如果还有5%的预留，空间就浪费了，如何关闭这个预留空间呢？ 以另外一套环境为例：&lt;/p&gt;
-
-&lt;p&gt;通过tune2fs 可以关闭文件系统空间的预留&lt;/p&gt;
-
-&lt;p&gt;关闭前：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host244:/# df -PH
-Filesystem                                Size  Used Avail Use% Mounted on
-/dev/sdc3                                  99G  2.2G   92G   3% /
-udev                                       34G   13k   34G   1% /dev
-tmpfs                                     6.8G  5.5M  6.8G   1% /run
-none                                      5.3M     0  5.3M   0% /run/lock
-none                                       34G   37k   34G   1% /run/shm
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;关闭后：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host244:/# tune2fs -h 
-tune2fs 1.42 (29-Nov-2011)
-tune2fs: invalid option -- 'h'
-Usage: tune2fs [-c max_mounts_count] [-e errors_behavior] [-g group]
-	[-i interval[d|m|w]] [-j] [-J journal_options] [-l]
-	[-m reserved_blocks_percent] [-o [^]mount_options[,...]] [-p mmp_update_interval]
-	[-r reserved_blocks_count] [-u user] [-C mount_count] [-L volume_label]
-	[-M last_mounted_dir] [-O [^]feature[,...]]
-	[-E extended-option[,...]] [-T last_check_time] [-U UUID]
-	[ -I new_inode_size ] device
-root@host244:/# tune2fs -m 0 /dev/sdc3 
-tune2fs 1.42 (29-Nov-2011)
-Setting reserved blocks percentage to 0% (0 blocks)
-root@host244:/# df -PH
-Filesystem                                Size  Used Avail Use% Mounted on
-/dev/sdc3                                  99G  2.2G   97G   3% /
-udev                                       34G   13k   34G   1% /dev
-tmpfs                                     6.8G  5.5M  6.8G   1% /run
-none                                      5.3M     0  5.3M   0% /run/lock
-none                                       34G   37k   34G   1% /run/shm
-root@host244:/# 
 &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>

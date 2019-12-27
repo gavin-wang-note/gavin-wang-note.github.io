@@ -1,0 +1,143 @@
+<h1 id="功能描述">功能描述</h1>
+
+<p>集成monkey功能， android测试工作中常用测试脚本，以及在手工测试app端功能时，自动收集相关数据，并生成HTML报告。</p>
+
+<p><code class="highlighter-rouge">需要源码的，请发我163邮箱</code></p>
+
+<p><strong>monkey</strong><strong>稳定性测试：</strong></p>
+
+<p>（1）monkey各参数从配置文件中读取，基本涵盖monkey所有参数，可随时调整/修改配置项值；</p>
+
+<p>（2）获取logcat、traces、monkey日志，出现问题时可通知日志进行问题初步分析；</p>
+
+<p>（3）捕获JAVA异常日志，提取异常日志写入error文件，并统计异常日志</p>
+
+<p><strong>performance</strong> <strong>数据收集：</strong></p>
+
+<p>（1）获取终端设备硬件信息（Results Summary）</p>
+
+<p>（2）app平均启动时间</p>
+
+<p>（3）获取cpu、cpu load、memory、flow上下行（WIFI）信息</p>
+
+<p>（4）处理获取数据，写入文本文件，同时入库（SQLIte）</p>
+
+<p>（5）绘曲线图，并生成HTML测试报告</p>
+
+<p><strong>其他脚本：</strong></p>
+
+<p>（1）批量备份/安装/卸载APP；</p>
+
+<p>（2）kill 5037进程</p>
+
+<p>（3）获取全局cpu、mem信息并绘曲线图</p>
+
+<p>（4）获取当前activity</p>
+
+<p>（5）获取安装包名称（package_name）</p>
+
+<p>（6）获取安装包详细信息</p>
+
+<p>（7）截屏，传到本地PC</p>
+
+<p>（8）屏幕操作过程录制（要求sdk version&gt;=19）</p>
+
+<h1 id="实现方法">实现方法</h1>
+
+<p>1、采用python脚本来驱动测试；</p>
+
+<p>2、调用android SDK adb与monkey命令，进行数据采集和稳定性测试；</p>
+
+<p>3、采集数据写入文件和数据库；</p>
+
+<p>4、附带android其他小脚本，便于测试过程中使用；</p>
+
+<p>5、根据实际情况修改配置文件后进行数据采集，生成静态HTML报告，数据一目了然</p>
+
+<h1 id="目录结构">目录结构</h1>
+
+<p>代码目录结构：</p>
+
+<p><img class="shadow" src="/img/in-post/app_performance_code_tree.png" width="400" /></p>
+
+<h1 id="性能数据收集使用指南">性能数据收集使用指南</h1>
+
+<h2 id="测试准备">测试准备</h2>
+
+<h3 id="1配置文件">1、配置文件</h3>
+
+<p>只需保证配置文件内容正确即可。</p>
+
+<p>配置文件存放在src/config/目录下，名称是：config.ini。配置文件各参数介绍，请参考下图：</p>
+
+<p><img class="shadow" src="/img/in-post/config_ini.png" width="1200" /></p>
+
+<h3 id="2sqlite数据库表设计说明">2、SQLIte数据库表设计说明</h3>
+
+<p><img class="shadow" src="/img/in-post/table_desc.png" width="1200" /></p>
+
+<h3 id="3创建表sql语句">3、创建表SQL语句</h3>
+
+<p><img class="shadow" src="/img/in-post/sqlite_create_tab.png" width="1200" /></p>
+
+<h3 id="4涉及的第三方模块">4、涉及的第三方模块</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>模块名称</th>
+      <th>安装命令</th>
+      <th>模块说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>progressbar</td>
+      <td>pip  install progressbar</td>
+      <td>进度条</td>
+    </tr>
+    <tr>
+      <td>configobj</td>
+      <td>pip install configobj</td>
+      <td>读取配置文件</td>
+    </tr>
+    <tr>
+      <td>matplotlib</td>
+      <td>pip  install matplotlib</td>
+      <td>绘图使用</td>
+    </tr>
+    <tr>
+      <td>dateuti</td>
+      <td>pip install python-dateutil</td>
+      <td>绘图使用</td>
+    </tr>
+    <tr>
+      <td>numpy</td>
+      <td>pip  install numpy</td>
+      <td>绘图使用</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="性能数据收集代码执行">性能数据收集代码执行</h2>
+
+<p>执行src目录下run_performance.py，即可进行性能数据的收集工作，在数据收集期间，请手工进行app端的功能测试，这样的数据采集才具有意义。</p>
+
+<h2 id="monkey稳定性测试">Monkey稳定性测试</h2>
+
+<p>src目录下，执行run_monkey.py，可调用monkey命令进行稳定性测试，产生的日志信息记录在report目录下。</p>
+
+<p><strong>说明：</strong></p>
+
+<p>可在进行monkey稳定性过程中，进行性能数据收集操作，这样采集的数据为monkey稳定性测试期间被测app的性能数据。</p>
+
+<h2 id="测试报告查看">测试报告查看</h2>
+
+<p>测试报告在report目录下Performance_Results.html文件，部分截图如下：</p>
+
+<p><img class="shadow" src="/img/in-post/app_performance_html_view.png" width="1200" /></p>

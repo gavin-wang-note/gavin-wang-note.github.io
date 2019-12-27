@@ -1,0 +1,84 @@
+---
+layout:     post
+title:      "iSCSI多路径配置"
+subtitle:   "Config iSCSI multipath"
+date:       2019-12-27
+author:     "Gavin"
+catalog:    true
+tags:
+    - Linux
+    - iSCSI
+---
+
+# 概述
+
+配置iSCSI多路径，可以增加HA（高可用性）
+
+本文以Ubuntu 14.04为示例，在安装了multipath-tools工具后，以此节点作为client去挂载iSCSI设备，将multipath默认active-standy修改为rond-robing
+
+
+# iSCSI多路径配置（client端）
+
+## 未设置多路径之前
+
+```
+root@host245:~# multipath -ll
+2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
+size=10T features='0' hwhandler='0' wp=rw
+|-+- policy='round-robin 0' prio=1 status=active
+| `- 11:0:0:0 sdd 8:48  active ready running
+|-+- policy='round-robin 0' prio=1 status=enabled
+| `- 14:0:0:0 sdg 8:96  active ready running
+|-+- policy='round-robin 0' prio=1 status=enabled
+| `- 15:0:0:0 sdh 8:112 active ready running
+|-+- policy='round-robin 0' prio=1 status=enabled
+| `- 13:0:0:0 sdf 8:80  active ready running
+`-+- policy='round-robin 0' prio=1 status=enabled
+  `- 12:0:0:0 sde 8:64  active ready running
+```
+
+## 修改multipath.conf 
+
+```
+root@host245:~# cat /etc/multipath.conf 
+blacklist {
+        devnode "^(rbd)[0-9]*"
+        devnode "^zd[0-0]*"
+#       devnode "*"
+}
+
+defaults {
+        getuid_callout  "/lib/udev/scsi_id --whitelisted --replace-whitespace --device=/dev/%n"
+        path_grouping_policy  multibus
+        path_selector         "round-robin 0"
+        failback               immediate
+        rr_min_io_req          32
+}
+root@host245:~# 
+```
+
+说明：
+
+从path_grouping_policy开始，之后的4行为新增内容
+
+## 重启multipath-tool
+
+```
+root@host245:~# /etc/init.d/multipath-tools restart
+```
+
+## 查看设置后效果
+
+```
+root@host245:~# multipath -ll
+2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
+size=10T features='0' hwhandler='0' wp=rw
+`-+- policy='round-robin 0' prio=1 status=active
+  |- 11:0:0:0 sdd 8:48  active ready running
+  |- 12:0:0:0 sde 8:64  active ready running
+  |- 13:0:0:0 sdf 8:80  active ready running
+  |- 14:0:0:0 sdg 8:96  active ready running
+  `- 15:0:0:0 sdh 8:112 active ready running
+root@host245:~# 
+```
+
