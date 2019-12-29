@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2019-12-27T18:25:01+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">iSCSI多路径配置</title><link href="http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode/" rel="alternate" type="text/html" title="iSCSI多路径配置" /><published>2019-12-27T00:00:00+08:00</published><updated>2019-12-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode</id><content type="html" xml:base="http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2019-12-29T17:29:01+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">iSCSI多路径配置</title><link href="http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode/" rel="alternate" type="text/html" title="iSCSI多路径配置" /><published>2019-12-27T00:00:00+08:00</published><updated>2019-12-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode</id><content type="html" xml:base="http://172.17.73.80:4000/2019/12/27/iscsi-modify-multipath-mode/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;配置iSCSI多路径，可以增加HA（高可用性）&lt;/p&gt;
 
@@ -102,7 +102,569 @@ size=10T features='0' hwhandler='0' wp=rw
   |- 14:0:0:0 sdg 8:96  active ready running
   `- 15:0:0:0 sdh 8:112 active ready running
 root@host245:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="iSCSI" /><summary type="html">概述</summary></entry><entry><title type="html">魔法键重启Linux机器</title><link href="http://172.17.73.80:4000/2019/11/27/reboot-host/" rel="alternate" type="text/html" title="魔法键重启Linux机器" /><published>2019-11-27T00:00:00+08:00</published><updated>2019-11-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/27/reboot-host</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/27/reboot-host/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;确认sdx与iscsi-target关系&quot;&gt;确认sdX与iSCSI target关系&lt;/h2&gt;
+
+&lt;p&gt;现在是多路径了，如何分别出sdX对应哪个iSCSI target呢？&lt;/p&gt;
+
+&lt;p&gt;比如下面的sdf&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host243:~# lsblk
+NAME                       MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINT
+sda                          8:0    0  14.6T  0 disk  
+├─sda1                       8:1    0     8G  0 part  
+└─sda2                       8:2    0  14.6T  0 part  /data/osd.2
+sdb                          8:16   0 278.9G  0 disk  
+├─sdb1                       8:17   0   7.5M  0 part  
+├─sdb2                       8:18   0  95.4G  0 part  /
+├─sdb3                       8:19   0  26.7G  0 part  [SWAP]
+└─sdb4                       8:20   0 156.8G  0 part  
+sdc                          8:32   0  10.9T  0 disk  
+└─sdc1                       8:33   0  10.9T  0 part  
+sdd                          8:48   0     5T  0 disk  
+└─26a53c128cb536936 (dm-0) 252:0    0     5T  0 mpath 
+sde                          8:64   0     5T  0 disk  
+└─26a53c128cb536936 (dm-0) 252:0    0     5T  0 mpath 
+sdf                          8:80   0     5T  0 disk  
+└─26a53c128cb536936 (dm-0) 252:0    0     5T  0 mpath 
+sdg                          8:96   0     5T  0 disk  
+└─26a53c128cb536936 (dm-0) 252:0    0     5T  0 mpath 
+sdh                          8:112  0     5T  0 disk  
+└─26a53c128cb536936 (dm-0) 252:0    0     5T  0 mpath
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;方法如下：&lt;/p&gt;
+
+&lt;p&gt;step1、先获取 Host Number&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host243:~# multipath -ll
+26a53c128cb536936 dm-0 Bigtera ,VirtualStor_Scal
+size=5.0T features='0' hwhandler='0' wp=rw
+`-+- policy='round-robin 0' prio=1 status=active
+  |- 39:0:0:0 sdf 8:80  active ready running
+  |- 38:0:0:0 sdh 8:112 active ready running
+  |- 40:0:0:0 sdg 8:96  active ready running
+  |- 37:0:0:0 sde 8:64  active ready running
+  `- 36:0:0:0 sdd 8:48  active ready running
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;如上文所示， &lt;code class=&quot;highlighter-rouge&quot;&gt;39:0:0:0&lt;/code&gt;， 这里的39，就是Host Number， 同理，下面的38,40,37,36都是Host Number，分别对应不同的sdX分区&lt;/p&gt;
+
+&lt;p&gt;step2、根据Host Number，确认连接到哪个target&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host243:~# iscsiadm -m session -P 3
+iSCSI Transport Class version 2.0-870
+version 2.0-873
+Target: iqn.2019-12.com:lenove
+	Current Portal: 10.16.172.109:3260,1
+	Persistent Portal: 10.16.172.109:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &amp;lt;empty&amp;gt;
+		Iface Netdev: &amp;lt;empty&amp;gt;
+		SID: 10
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &amp;lt;empty&amp;gt;
+		password: ********
+		username_in: &amp;lt;empty&amp;gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 40	State: running
+		scsi40 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdg		State: running
+	Current Portal: 10.16.172.105:3260,1
+	Persistent Portal: 10.16.172.105:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &amp;lt;empty&amp;gt;
+		Iface Netdev: &amp;lt;empty&amp;gt;
+		SID: 6
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &amp;lt;empty&amp;gt;
+		password: ********
+		username_in: &amp;lt;empty&amp;gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 36	State: running
+		scsi36 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdd		State: running
+	Current Portal: 10.16.172.107:3260,1
+	Persistent Portal: 10.16.172.107:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &amp;lt;empty&amp;gt;
+		Iface Netdev: &amp;lt;empty&amp;gt;
+		SID: 7
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &amp;lt;empty&amp;gt;
+		password: ********
+		username_in: &amp;lt;empty&amp;gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 37	State: running
+		scsi37 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sde		State: running
+	Current Portal: 10.16.172.108:3260,1
+	Persistent Portal: 10.16.172.108:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &amp;lt;empty&amp;gt;
+		Iface Netdev: &amp;lt;empty&amp;gt;
+		SID: 8
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &amp;lt;empty&amp;gt;
+		password: ********
+		username_in: &amp;lt;empty&amp;gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 38	State: running
+		scsi38 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdh		State: running
+	Current Portal: 10.16.172.106:3260,1
+	Persistent Portal: 10.16.172.106:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &amp;lt;empty&amp;gt;
+		Iface Netdev: &amp;lt;empty&amp;gt;
+		SID: 9
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &amp;lt;empty&amp;gt;
+		password: ********
+		username_in: &amp;lt;empty&amp;gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 39	State: running
+		scsi39 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdf		State: running
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;比如上文中的 &lt;code class=&quot;highlighter-rouge&quot;&gt;Persistent Portal: 10.16.172.106:3260,1&lt;/code&gt;，对应的Host Number是39(&lt;code class=&quot;highlighter-rouge&quot;&gt;Host Number: 39 State: running&lt;/code&gt;)，对应的分区信息是sdf(&lt;code class=&quot;highlighter-rouge&quot;&gt;Attached scsi disk sdf          State: running&lt;/code&gt;)，说明访问sdf这个device，是通过10.16.172.106 这个IP进行访问的。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="iSCSI" /><summary type="html">概述</summary></entry><entry><title type="html">魔法键重启Linux机器</title><link href="http://172.17.73.80:4000/2019/11/27/reboot-host/" rel="alternate" type="text/html" title="魔法键重启Linux机器" /><published>2019-11-27T00:00:00+08:00</published><updated>2019-11-27T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/27/reboot-host</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/27/reboot-host/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;啥？ 重启Linux机器，无非通过下列几种常见命令：&lt;/p&gt;
 
@@ -1027,7 +1589,800 @@ git push origin master     #线上的站点是部署在master下面的
 
 &lt;p&gt;展示的HTML效果如下图所示：&lt;/p&gt;
 
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_html_report_sort.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="nose" /><summary type="html">参考资料</summary></entry><entry><title type="html">网卡丢包解决案例</title><link href="http://172.17.73.80:4000/2018/08/10/bond-package-lost/" rel="alternate" type="text/html" title="网卡丢包解决案例" /><published>2018-08-10T00:00:00+08:00</published><updated>2018-08-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2018/08/10/bond-package-lost</id><content type="html" xml:base="http://172.17.73.80:4000/2018/08/10/bond-package-lost/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_html_report_sort.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="nose" /><summary type="html">参考资料</summary></entry><entry><title type="html">Ubuntu 14.04 上部署LDAP&amp;amp;DNS Server</title><link href="http://172.17.73.80:4000/2018/09/21/install-LDAP-on-Ubuntu14.04/" rel="alternate" type="text/html" title="Ubuntu 14.04 上部署LDAP&amp;DNS Server" /><published>2018-09-21T00:00:00+08:00</published><updated>2018-09-21T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2018/09/21/install-LDAP-on-Ubuntu14.04</id><content type="html" xml:base="http://172.17.73.80:4000/2018/09/21/install-LDAP-on-Ubuntu14.04/">&lt;h1 id=&quot;安装ldap&quot;&gt;安装LDAP&lt;/h1&gt;
+
+&lt;h2 id=&quot;安装软件&quot;&gt;安装软件&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo apt-get install slapd ldap-utils&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;安装过程中会提示输入设置LDAP管理员账号密码：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_password.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这里输入了12345678。&lt;/p&gt;
+
+&lt;p&gt;再次确认密码
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_confirm_passwd.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;配置ldap&quot;&gt;配置LDAP&lt;/h1&gt;
+
+&lt;p&gt;打开’/etc/ldap/ldap.conf’文件按照以下内容配置修改:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sudo vi /etc/ldap/ldap.conf
+#
+# LDAP Defaults
+#
+
+# See ldap.conf(5) for details
+# This file should be world readable but not world writable.
+
+#BASE   dc=example,dc=com
+#URI    ldap://ldap.example.com ldap://ldap-master.example.com:666
+BASE    dc=bigtera-os,dc=com
+URI     ldap://172.16.146.134
+
+#SIZELIMIT      12
+#TIMELIMIT      15
+#DEREF          never
+
+# TLS certificates (needed for GnuTLS)
+TLS_CACERT      /etc/ssl/certs/ca-certificates.crt
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;执行以下命令配置：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo dpkg-reconfigure slapd&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;以下界面选择“NO”后按Enter继续
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_ dpkg_reconfigure_slapd.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;输入DNS domain 名称。例如bigtera-os.com&lt;/p&gt;
+
+&lt;p&gt;输入组织名称，例如bigtera-os
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_doamin.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;输入LDAP管理员的密码
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_input_passwd.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;再次确认输入LDAP管理员密码
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_input_confirm_passwd.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;选择HDB数据库
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_select_db.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;选择删除LDAP服务时自动删除数据库
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_remove_db1.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;选择删除之前的数据库
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_remove_db2.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;选择No后，LDAP服务配置且启动
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_config_auto_start.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;测试ldap服务&quot;&gt;测试LDAP服务&lt;/h1&gt;
+
+&lt;p&gt;输入”ldapsearch -x”，会看到类似以下输出:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;wyz@LDAP:~$ ldapsearch -x
+# extended LDIF
+#
+# LDAPv3
+# base &amp;lt;dc=bigtera-os,dc=com&amp;gt; (default) with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# bigtera-os.com
+dn: dc=bigtera-os,dc=com
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: bigtera-os
+dc: bigtera-os
+
+# admin, bigtera-os.com
+dn: cn=admin,dc=bigtera-os,dc=com
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: admin
+description: LDAP administrator
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 3
+# numEntries: 2
+wyz@LDAP:~$
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;查看ldap版本&quot;&gt;查看LDAP版本&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# slapd -V
+@(#) $OpenLDAP: slapd  (Ubuntu) (May 31 2017 21:52:16) $
+	buildd@lgw01-30:/build/openldap-tnOaja/openldap-2.4.31/debian/build/servers/slapd
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;ldap服务器管理&quot;&gt;LDAP服务器管理&lt;/h1&gt;
+
+&lt;p&gt;在命令行模式下管理LDAP服务器是相当困难的，所以在这里我使用了一个更简单的GUI管理工具“phpldapadmin”。&lt;/p&gt;
+
+&lt;h2 id=&quot;安装phpldapadmin&quot;&gt;安装phpldapadmin&lt;/h2&gt;
+
+&lt;p&gt;执行以下命令安装:
+&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo apt-get install phpldapadmin&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;给phpldapadmin目录创建link目录&quot;&gt;给phpldapadmin目录创建link目录&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo ln -s /usr/share/phpldapadmin/  /var/www/phpldapadmin&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;修改configphhp文件&quot;&gt;修改config.phhp文件&lt;/h2&gt;
+
+&lt;p&gt;打开‘/etc/phpldapadmin/config.phhp’文件，替换配置的名称。按照以下显示修改：
+建议先备份一下，防止修改错误。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo cp /etc/phpldapadmin/config.php /etc/phpldapadmin/bak_config.php&lt;/code&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;$servers = new Datastore();
+$servers-&amp;gt;newServer('ldap_pla');
+$servers-&amp;gt;setValue('server','host','172.16.146.134');
+$servers-&amp;gt;setValue('server','base',array('dc=bigtera-os,dc=com'));
+$servers-&amp;gt;setValue('login','auth_type','session');
+$servers-&amp;gt;setValue('login','bind_id','cn=admin,dc=bigtera-os,dc=com');
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;重启ldap服务&quot;&gt;重启LDAP服务&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sudo /etc/init.d/apache2 restart&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;打开系统80389端口&quot;&gt;打开系统80,389端口&lt;/h2&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;wyz@LDAP:~$ sudo ufw allow 80
+Rules updated
+Rules updated (v6)
+wyz@LDAP:~$ sudo ufw allow 389
+Rules updated
+Rules updated (v6)
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;登陆ldap服务端&quot;&gt;登陆LDAP服务端&lt;/h2&gt;
+
+&lt;p&gt;通过浏览器访问 &lt;code class=&quot;highlighter-rouge&quot;&gt;http://IP/phpldapadmin&lt;/code&gt;
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_login_page.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;点击登陆按钮进入登陆界面
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/lsap_auth_page.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;输入密码后点击“认证”进入系统会看到下面的界面
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_login_success.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;至此LDAP的管理服务phpldapadmin算是搭建完成了。&lt;/p&gt;
+
+&lt;h1 id=&quot;ldap简称对应&quot;&gt;LDAP简称对应&lt;/h1&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;o --  organization（组织-公司）
+ou -- organization unit（组织单元/部门）
+c --  countryName（国家）
+dc -- domainComponent（域名组件）
+sn -- suer name（真实名称）
+cn -- common name（常用名称）
+dn -- distinguished name（专有名称）
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;ldap-操作&quot;&gt;LDAP 操作&lt;/h1&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;本文简化操作，只以创建用户组和普通用户来进行文档的整理。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;创建ou&quot;&gt;创建OU&lt;/h2&gt;
+
+&lt;h3 id=&quot;create-new-entry-here&quot;&gt;Create new entry here&lt;/h3&gt;
+
+&lt;p&gt;如下图所示，点击“Create new entry here”，创建一个新条目：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_new_entry.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;create-object&quot;&gt;Create Object&lt;/h3&gt;
+&lt;p&gt;如下图所示，选择“Generic： Organisational Unit”&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_object.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;选择ou后如下图所示&quot;&gt;选择OU后，如下图所示：&lt;/h3&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_select_ou.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;create-ldap-entry&quot;&gt;Create LDAP Entry&lt;/h3&gt;
+
+&lt;p&gt;输入OU名称，例如“IT”：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_ou_entry.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;save-the-created-entry&quot;&gt;Save the created Entry&lt;/h3&gt;
+
+&lt;p&gt;点击“Commit”按钮：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_save_ou_entry.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;创建cn&quot;&gt;创建CN&lt;/h1&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;用phpldapadmin 时，不能添加UID号 和 GID 号，这是phpldapadmin的bug。解决办法是要先用ldapadd，添加用户的uidNumber，gidNumber如：&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# vi lduser1.ldif 
+# lduser1, IT, bigtera-os.com
+dn: uid=lduser1,ou=IT,dc=bigtera-os,dc=com
+uid: lduser1
+cn: lduser1
+objectClass: account
+objectClass: posixAccount
+objectClass: top
+objectClass: shadowAccount
+userPassword: 1
+shadowLastChange: 14323
+shadowMax: 99999
+shadowWarning: 7
+loginShell: /bin/bash
+uidNumber: 1105
+gidNumber: 1105
+homeDirectory: /home/lduser1
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;这里添加了一个普通账号，账号名称为lduser1.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;使用命令添加：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# ldapadd -x -D &quot;cn=admin,dc=bigtera-os,dc=com&quot; -W  -f  lduser1.ldif
+Enter LDAP Password: 
+adding new entry &quot;uid=lduser1,ou=IT,dc=bigtera-os,dc=com&quot;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;查看：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# ldapsearch -x  -b &quot;dc=bigtera-os,dc=com&quot;
+# extended LDIF
+#
+# LDAPv3
+# base &amp;lt;dc=bigtera-os,dc=com&amp;gt; with scope subtree
+# filter: (objectclass=*)
+# requesting: ALL
+#
+
+# bigtera-os.com
+dn: dc=bigtera-os,dc=com
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: bigtera-os
+dc: bigtera-os
+
+# admin, bigtera-os.com
+dn: cn=admin,dc=bigtera-os,dc=com
+objectClass: simpleSecurityObject
+objectClass: organizationalRole
+cn: admin
+description: LDAP administrator
+
+# IT, bigtera-os.com
+dn: ou=IT,dc=bigtera-os,dc=com
+objectClass: organizationalUnit
+objectClass: top
+ou: IT
+
+# lduser1, IT, bigtera-os.com
+dn: uid=lduser1,ou=IT,dc=bigtera-os,dc=com
+uid: lduser1
+cn: lduser1
+objectClass: account
+objectClass: posixAccount
+objectClass: top
+objectClass: shadowAccount
+shadowMax: 99999
+shadowWarning: 7
+loginShell: /bin/bash
+uidNumber: 1105
+gidNumber: 1105
+homeDirectory: /home/lduser1
+
+# search result
+search: 2
+result: 0 Success
+
+# numResponses: 5
+# numEntries: 4
+root@LDAP:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;账号创建好后，如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_show_account.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;至此，就可以正常使用phpldapadmin添加用户和用户组了！&lt;/p&gt;
+
+&lt;h1 id=&quot;创建posix-group&quot;&gt;创建Posix Group&lt;/h1&gt;
+
+&lt;h2 id=&quot;create-a-child-entry&quot;&gt;Create a child entry&lt;/h2&gt;
+
+&lt;p&gt;如下图所示，选择cn=admin，对其创建子条目：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_a_child_entry.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;create-object-1&quot;&gt;Create Object&lt;/h2&gt;
+
+&lt;p&gt;选择“Generic： Posix Group”，如下图所示：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_select_posix_group.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;输入组名称，如group1：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_group.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;注意：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;不要选择已经存在的账号！&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;create-ldap-entry-1&quot;&gt;Create LDAP Entry&lt;/h2&gt;
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_ldap_entry.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;save-the-entry&quot;&gt;Save the entry&lt;/h2&gt;
+
+&lt;p&gt;点击“Commit”按钮，如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_save_entry.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;新增账号&quot;&gt;新增账号&lt;/h2&gt;
+
+&lt;p&gt;Create a child entry
+    选择新创建的OU，创建子条目，如下图所示：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_new_account.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;create-object-2&quot;&gt;Create Object&lt;/h2&gt;
+
+&lt;p&gt;输入账号名称信息，比如test01。
+说明：
+    password加密算法，选择crypt.&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_crypt.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;create-ldap-entry-2&quot;&gt;Create LDAP Entry&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_create_crypt_user.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;save-entry&quot;&gt;Save entry&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_save_ou_user.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;rename-user&quot;&gt;Rename user&lt;/h1&gt;
+
+&lt;p&gt;选择新创建的账号，对其进行修改操作
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_rename01.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;将cn=test01 修改为 uid=test01
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_rename02.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;点击“Rename”后：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_rename03.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;修改loginShell，将/bin/sh修改为 /bin/bash：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_shell.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;点击“Upgrade Object”后，账号信息发送了变化：
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_show_update.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;add-attribute&quot;&gt;Add attribute&lt;/h2&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;LDAP的 user, 要加上 displayName 和 mail，因为没有这些attribute， search出来的结果会被filter掉。 标准的LDAP账号，应该是具有这些属性信息的。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;add-new-attribute&quot;&gt;Add new attribute&lt;/h3&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_attribute01.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Add DisplayName attribute&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_attribute02.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Add email attribute&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_attribute03.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;其他账号的创建，请参考“新增账号”章节。&lt;/p&gt;
+
+&lt;h1 id=&quot;phpldapadmin存在的问题&quot;&gt;phpldapadmin存在的问题&lt;/h1&gt;
+
+&lt;h2 id=&quot;cant-create-a-new-entry&quot;&gt;Can’t create a new entry&lt;/h2&gt;
+
+&lt;p&gt;现象&lt;/p&gt;
+
+&lt;p&gt;创建新实体的时候，UI右方会显示Error, trying to get a non-existant value(appearance, password_hash)&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_issue1.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;解决方法&lt;/p&gt;
+
+&lt;p&gt;将password_hash在/usr/share/phpldapadmin/lib/TemplateRender.php(第2469行)更改为password_hash_custom。&lt;/p&gt;
+
+&lt;h2 id=&quot;创建账号的时候无法选择gid&quot;&gt;创建账号的时候，无法选择gid&lt;/h2&gt;
+
+&lt;p&gt;现象&lt;/p&gt;
+
+&lt;p&gt;本文在创建CN章节有提到，操作方法请参考本文“创建CN”这章节内容。&lt;/p&gt;
+
+&lt;p&gt;解决方法&lt;/p&gt;
+
+&lt;p&gt;后台创建账号，再在phpldapadmin web界面创建group 和 账号。&lt;/p&gt;
+
+&lt;h2 id=&quot;virtual-stor-ldap-账号导入测试&quot;&gt;Virtual Stor LDAP 账号导入测试&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_issue2.png&quot; width=&quot;1200&quot; /&gt;
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_issue3.png&quot; width=&quot;1200&quot; /&gt;
+&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ldap_issue4.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;总结&quot;&gt;总结&lt;/h1&gt;
+
+&lt;p&gt;搭建的步骤按照文章的内容一步一步来操作，看似很简单，但是希望在看本教程的时候，看懂每一步再下手，不要盲目的去重复上面的事情，只有这样才能事半功倍。&lt;/p&gt;
+
+&lt;h1 id=&quot;参考文档&quot;&gt;参考文档&lt;/h1&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;    https://my.oschina.net/u/2496664/blog/801996
+    https://my.oschina.net/guol/blog/338362
+    https://www.zhukun.net/archives/7980
+    http://www.topjishu.com/8781.html
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;附录&quot;&gt;附录&lt;/h1&gt;
+
+&lt;h2 id=&quot;搭建dns-server&quot;&gt;搭建DNS Server&lt;/h2&gt;
+
+&lt;h3 id=&quot;参考文档-1&quot;&gt;参考文档&lt;/h3&gt;
+
+&lt;p&gt;https://help.ubuntu.com/14.04/serverguide/dns.html&lt;/p&gt;
+
+&lt;p&gt;这里简单记录一下内容。&lt;/p&gt;
+
+&lt;h3 id=&quot;caching-nameserver&quot;&gt;Caching Nameserver&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# cat /etc/bind/named.conf.options
+options {
+	directory &quot;/var/cache/bind&quot;;
+
+	// If there is a firewall between you and nameservers you want
+	// to talk to, you may need to fix the firewall to allow multiple
+	// ports to talk.  See http://www.kb.cert.org/vuls/id/800113
+
+	// If your ISP provided one or more IP addresses for stable 
+	// nameservers, you probably want to use them as forwarders.  
+	// Uncomment the following block, and insert the addresses replacing 
+	// the all-0's placeholder.
+
+	// forwarders {
+	// 	0.0.0.0;
+	// };
+
+       forwarders {
+                8.8.8.8;
+                172.16.146.134;
+           };
+	//========================================================================
+	// If BIND logs error messages about the root key being expired,
+	// you will need to update your keys.  See https://www.isc.org/bind-keys
+	//========================================================================
+	dnssec-validation auto;
+
+	auth-nxdomain no;    # conform to RFC1035
+	listen-on-v6 { any; };
+};
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;primary-master&quot;&gt;Primary Master&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# cat /etc/bind/named.conf.local
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include &quot;/etc/bind/zones.rfc1918&quot;;
+
+
+zone &quot;bigtera-os.com&quot; {
+	type master;
+        file &quot;/etc/bind/db.bigtera-os.com&quot;;
+};
+
+zone &quot;146.16.172.in-addr.arpa&quot; {
+        type master;
+        file &quot;/etc/bind/db.172&quot;;
+};
+root@LDAP:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# cat /etc/bind/db.bigtera-os.com 
+;
+; BIND data file for local loopback interface
+;
+$TTL	604800
+@	IN	SOA	bigtera-os.com. root.bigtera-os.com. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+	IN	A	172.16.146.134
+;
+@	IN	NS	ns.bigtera-os.com.
+@	IN	A	172.16.146.134
+@	IN	AAAA	::1
+ns	IN	A	172.16.146.134
+www	IN	A	172.16.146.134
+root@LDAP:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@LDAP:~# cat  /etc/bind/named.conf.local 
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include &quot;/etc/bind/zones.rfc1918&quot;;
+
+
+zone &quot;bigtera-os.com&quot; {
+	type master;
+        file &quot;/etc/bind/db.bigtera-os.com&quot;;
+};
+
+zone &quot;146.16.172.in-addr.arpa&quot; {
+        type master;
+        file &quot;/etc/bind/db.172&quot;;
+};
+root@LDAP:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="LDAP" /><summary type="html">安装LDAP</summary></entry><entry><title type="html">网卡丢包解决案例</title><link href="http://172.17.73.80:4000/2018/08/10/bond-package-lost/" rel="alternate" type="text/html" title="网卡丢包解决案例" /><published>2018-08-10T00:00:00+08:00</published><updated>2018-08-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2018/08/10/bond-package-lost</id><content type="html" xml:base="http://172.17.73.80:4000/2018/08/10/bond-package-lost/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;在lab进行性能测试，网络是配置的bond， active+standby模式，发现流量越大，网卡丢包越多&lt;/p&gt;
 
@@ -1448,560 +2803,4 @@ Jenkins上设置变量信息如下图所示:&lt;/p&gt;
 &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;h2 id=&quot;email中html效果&quot;&gt;Email中html效果&lt;/h2&gt;
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/email_html.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Jenkins" /><category term="Automation" /><summary type="html">概述 最近打算使用nose framework写产品自动化用例，需要与jenkins集成做CI，将测试结果以Email形式广播给大家，于是尝试搞一个html模板，将HTML测试结果以附件方式发送出去。</summary></entry><entry><title type="html">测试中常用的Linux命令汇总</title><link href="http://172.17.73.80:4000/2017/10/26/Linux-command-summary/" rel="alternate" type="text/html" title="测试中常用的Linux命令汇总" /><published>2017-10-26T00:00:00+08:00</published><updated>2017-10-26T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2017/10/26/Linux-command-summary</id><content type="html" xml:base="http://172.17.73.80:4000/2017/10/26/Linux-command-summary/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;在日常测试工作中，产品是部署在Ubuntu上的，本文罗列一些在测试过程中，常用到的一些指令。&lt;/p&gt;
-
-&lt;h1 id=&quot;批量生成文件&quot;&gt;批量生成文件&lt;/h1&gt;
-
-&lt;p&gt;方法1：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;seq 1 10  | xargs -i{} -P 10 touch file_{} &lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;10个并发来touch file&lt;/p&gt;
-
-&lt;p&gt;方法2：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;for i in {1..100}; do dd if=/dev/zero of=file_$i bs=1M count=1; done&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;这个没有并发哦~&lt;/p&gt;
-
-&lt;p&gt;方法3：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;touch file{0..9}.txt&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;相应的，创建目录、删除目录/文件（夹），都可以以此类推：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rm -rf file{0..9}&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;mkdir dir{0..9}&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;rm -rf dir{0..9}&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查找僵尸进程&quot;&gt;查找僵尸进程&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps -A -ostat,ppid,pid,cmd | grep -e '^[zZ]'&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看进程运行时间&quot;&gt;查看进程运行时间&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps -A -opid,stime,etime,args | grep XXX&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看某进程什么时候启动运行时间&quot;&gt;查看某进程什么时候启动、运行时间&lt;/h1&gt;
-
-&lt;h2 id=&quot;启动时间&quot;&gt;启动时间&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps -eo lstart&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;运行多长时间&quot;&gt;运行多长时间&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps -eo etime &lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;示例:&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps -eo pid,lstart,etime | grep 5176&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;或者&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps -p `pidof ceph-mon` -o etime,pid,cmd&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看网卡读写信息&quot;&gt;查看网卡读写信息&lt;/h1&gt;
-
-&lt;p&gt;方法1：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nfsiostat 2&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法2：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;iftop&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;或者：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;iftop -I ethX&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法3：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;sar -n DEV 2&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看cpu信息&quot;&gt;查看cpu信息&lt;/h1&gt;
-
-&lt;h2 id=&quot;查看物理cpu的个数&quot;&gt;查看物理CPU的个数&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /proc/cpuinfo |grep &quot;physical id&quot;|sort |uniq|wc -l&lt;/code&gt;
- &lt;/p&gt;
-&lt;h2 id=&quot;查看逻辑cpu的个数&quot;&gt;查看逻辑CPU的个数&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /proc/cpuinfo |grep &quot;processor&quot;|wc -l&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;或者使用nproc命令查看:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~# nproc
-32
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;查看cpu是几核&quot;&gt;查看CPU是几核&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /proc/cpuinfo |grep &quot;cores&quot;|uniq&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;查看cpu的主频&quot;&gt;查看CPU的主频&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /proc/cpuinfo |grep MHz|uniq&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;查看内存的插槽数已经使用多少插槽每条内存多大已使用内存多大&quot;&gt;查看内存的插槽数，已经使用多少插槽。每条内存多大，已使用内存多大&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dmidecode|grep -P -A5 &quot;Memory\s+Device&quot;|grep Size|grep -v Range&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;查看内存支持的最大内存容量&quot;&gt;查看内存支持的最大内存容量&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dmidecode|grep -P 'Maximum\s+Capacity'&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;查看内存的频率&quot;&gt;查看内存的频率&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dmidecode|grep -A16 &quot;Memory Device&quot;&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dmidecode|grep -A16 &quot;Memory Device&quot;|grep 'Speed'&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;vm热加盘&quot;&gt;VM热加盘&lt;/h1&gt;
-
-&lt;p&gt;虚拟机添加硬盘，无需重启，识别新硬盘&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;echo '- - -' &amp;gt; /sys/class/scsi_host/host*/scan&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看sector-size&quot;&gt;查看sector size&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /sys/block/sdX/queue/*block_size&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;如何确定盘是ssd类型的磁盘&quot;&gt;如何确定盘是SSD类型的磁盘&lt;/h1&gt;
-
-&lt;p&gt;方法1：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /sys/block/sdX/queue/rotational&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法2：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;lsblk -d -o name,rota&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;输出示例如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~/tmp# lsblk -d -o name,rota
-NAME ROTA
-sda     0
-sdb     0
-sdc     1
-sdd     1
-sde     1
-sdf     1
-sdg     1
-sdh     1
-sdi     1
-sdj     1
-sdk     1
-sdl     1
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;0 表示是SSD&lt;/li&gt;
-  &lt;li&gt;1 表示是HDD或者SAS盘&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1 id=&quot;查看分区的uuid信息&quot;&gt;查看分区的uuid信息&lt;/h1&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@nwos ~]# blkid  /dev/sdb1
-/dev/sdb1: UUID=&quot;9d7790c6-4fd9-47db-ad16-24d1025d4518&quot; TYPE=&quot;ext4&quot; 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;或者直接使用blkid指令列出所有分区的uuid&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/blkid.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;快速创建大文件&quot;&gt;快速创建大文件&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;fallocate -l 10G bigfile&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;上面这个，只能骗过ls -s, du和df&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;truncate -s 10G bigfile&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;上面这个，只能骗过ls -l&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dd of=bigfile bs=1 seek=10G count=0&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;上面这个，只能骗过ls -l&lt;/p&gt;
-
-&lt;h1 id=&quot;调出后台运行的命令&quot;&gt;调出后台运行的命令&lt;/h1&gt;
-
-&lt;p&gt;比如vi 一个文件，ctrl+z之后，进入后台, 或者在vi期间，session中断了（没有tmux）&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# vi ctdbManagerTestcaseBase.py 
-
-[1]+  Stopped  
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;ps查看：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# ps -ef | grep -i vii
-root      393866  399030  0 11:35 pts/2    00:00:00 grep --color=auto -i vii
-root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# ps -ef | grep -i vi
-root        1085       2  0 Jun21 ?        00:00:00 [dbu_evict]
-root        1111       2  0 Jun21 ?        00:00:12 [arc_user_evicts]
-root      394119  399030  0 11:35 pts/2    00:00:00 grep --color=auto -i vi
-root      412813  399030  0 10:58 pts/2    00:00:02 vi ctdbManagerTestcaseBase.py
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;如何调出这个vi命令，继续进行vi编辑？&lt;/p&gt;
-
-&lt;h2 id=&quot;step1使用jobs命令&quot;&gt;Step1、使用jobs命令&lt;/h2&gt;
-&lt;p&gt;`&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# jobs
-[1]+  Stopped                 vi ctdbManagerTestcaseBase.py
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;这里看到[1]+，如果有多个后台运行，展示类似如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@pcmxexweb etc]# jobs
-
-[1]-  Stopped                 find / -name xml
-
-[2]+  Stopped                 vi /etc/hosts
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step2执行fs-x调出来&quot;&gt;Step2、执行fs X，调出来&lt;/h2&gt;
-
-&lt;p&gt;X表示中括号里的数值，比如：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;fg 1&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;则调出find命令&lt;/p&gt;
-
-&lt;h1 id=&quot;查看所有网口的link-detected-状态&quot;&gt;查看所有网口的Link Detected 状态&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ifconfig -a | grep 'Link encap:' | grep -v lo | awk '' | xargs -I{} -t ethtool {} | grep 'Link detected'&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;输出示例：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;ethtool bond0 
-	Link detected: yes
-ethtool bond1 
-	Link detected: yes
-ethtool enp129s0f0 
-	Link detected: yes
-ethtool enp129s0f1 
-	Link detected: no
-ethtool enp130s0f0 
-	Link detected: yes
-ethtool enp130s0f1 
-	Link detected: no
-ethtool eth0 
-	Link detected: yes
-ethtool eth1 
-	Link detected: no
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;格式化对齐输出&quot;&gt;格式化对齐输出&lt;/h1&gt;
-
-&lt;p&gt;对于cat的一些内容，显示总是不对齐&lt;/p&gt;
-
-&lt;p&gt;解决方法&lt;/p&gt;
-
-&lt;p&gt;使用|column -t， 如：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat dev | column -&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;输出示例：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/cat_format.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看top-10-cpu内存的占用&quot;&gt;查看top 10 CPU、内存的占用&lt;/h1&gt;
-
-&lt;h2 id=&quot;cpu占用最多的前10个进程&quot;&gt;CPU占用最多的前10个进程：&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps auxw|head -1;ps auxw|sort -rn -k3|head -10&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;内存消耗最多的前10个进程&quot;&gt;内存消耗最多的前10个进程&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps auxw|head -1;ps auxw|sort -rn -k4|head -10&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;虚拟内存使用最多的前10个进程&quot;&gt;虚拟内存使用最多的前10个进程&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ps auxw|head -1;ps auxw|sort -rn -k5|head -10&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;统计代码行数&quot;&gt;统计代码行数&lt;/h1&gt;
-
-&lt;h2 id=&quot;find-加-wc&quot;&gt;find 加 wc&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;find . -type f -iname &quot;*.py&quot; -print0 | xargs -0 wc -l&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;这个指令比较原始，会含有注释、空格等的总计行数.&lt;/p&gt;
-
-&lt;h2 id=&quot;使用cloc进行统计&quot;&gt;使用cloc进行统计&lt;/h2&gt;
-
-&lt;p&gt;示例如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cloc /bigtera/nose_framework/src/&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/code_colc.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;pylint&quot;&gt;pylint&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pylint /home/xxx/src&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/code_pylint.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;列出目录的4种方法&quot;&gt;列出目录的4种方法&lt;/h1&gt;
-
-&lt;p&gt;方法1：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls -d */&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法2：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls -F | grep '/$'&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法3：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ls -l | grep '^d'&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法4：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;find . -type d -maxdepth 1 -print&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;查看时区&quot;&gt;查看时区&lt;/h1&gt;
-
-&lt;p&gt;方法1 date&lt;/p&gt;
-
-&lt;p&gt;输出示例:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~/tmp# date +&quot;%Z %z&quot;
-CST +0800
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;或者 date -R&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~/tmp# date -R
-Wed, 27 Nov 2019 16:59:38 +0800
-root@host245:~/tmp# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;重点在+0800，表示时区是东八区&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;方法2 timedatectl&lt;/p&gt;
-
-&lt;p&gt;输出示例:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@host245:~/tmp# timedatectl | grep 'Timezone'
-        Timezone: Asia/Shanghai (CST, +0800)
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;修改时区&quot;&gt;修改时区&lt;/h1&gt;
-
-&lt;p&gt;当系统安装好后，发现系统时区不对，如何修改呢？&lt;/p&gt;
-
-&lt;p&gt;方法1&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;tzselect&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;方法2&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;timeconfig&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;说明:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;仅限于RedHat Linux 和 CentOS&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;方法3&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dpkg-reconfigure tzdata&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;说明:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;适用于Debian&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;根据提示，选择不同的时区信息，设置成功后，需要复制文件：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cp /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;清空cache&quot;&gt;清空cache&lt;/h1&gt;
-
-&lt;p&gt;在跑fio进行读测试之前，一定要进行一次cache的清空，否则会影响fio性能测试结果的。
-cache分3种：
-1： pagecache； 2：dentries 和 inodes； 3：所有cache&lt;/p&gt;
-
-&lt;h2 id=&quot;清空内存缓存&quot;&gt;清空内存缓存&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;echo 1 &amp;gt; /proc/sys/vm/drop_caches
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;清空-pagecache&quot;&gt;清空 pagecache&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sync
-echo 1 &amp;gt; /proc/sys/vm/drop_caches
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;或者&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sync
-sysctl -w vm.drop_caches=1
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;清空-dentries-和-inodes&quot;&gt;清空 dentries 和 inodes&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sync
-echo 2 &amp;gt; /proc/sys/vm/drop_caches
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;或者&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sync
-sysctl -w vm.drop_caches=2
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;清空所有缓存pagecachedentries-和-inodes&quot;&gt;清空所有缓存（pagecache、dentries 和 inodes）&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sync
-echo 3 &amp;gt; /proc/sys/vm/drop_caches
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;或者&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sync
-sysctl -w vm.drop_caches=3
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;清空arp表&quot;&gt;清空arp表&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;arp -n|awk '/^[1-9]/{print &quot;arp -d &quot; $1}'|sh -x&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;然后 off  和 on 对应的网卡&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost sbull]# ip link set arp off dev eth0
-[root@localhost sbull]# ip link set arp on dev eth0
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;最后再查看下arp表信息&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost sbull]# arp -n
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;查看当前主机是物理机还是虚拟机&quot;&gt;查看当前主机是物理机还是虚拟机&lt;/h1&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;dmidecode -s system-product-name&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;示例：&lt;/p&gt;
-
-&lt;p&gt;物理服务器&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@JX-P-L-KVM-231 ~]# dmidecode -s system-product-name
-# SMBIOS implementations newer than version 2.7 are not
-# fully supported by this version of dmidecode.
-PowerEdge R930
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;KVM 虚拟主机&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@JX-V-L-PHP-237 ~]# dmidecode -s system-product-name
-KVM
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;VMware vSphere 虚拟主机&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@ZE-T1 ~]# dmidecode -s system-product-name
-VMware Virtual Platform
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;阿里云主机&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@zdc ~]# dmidecode -s system-product-name
-HVM domU
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/email_html.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Jenkins" /><category term="Automation" /><summary type="html">概述 最近打算使用nose framework写产品自动化用例，需要与jenkins集成做CI，将测试结果以Email形式广播给大家，于是尝试搞一个html模板，将HTML测试结果以附件方式发送出去。</summary></entry></feed>
