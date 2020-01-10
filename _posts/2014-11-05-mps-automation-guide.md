@@ -8,6 +8,8 @@ catalog:    true
 tags:
     - interface
     - Automation
+    - Unittest 
+    - Jenkins
 ---
 
 
@@ -41,7 +43,7 @@ CI：
 
 ## 实现方法
 
-* 采用python脚本来驱动测试
+* 采用python脚本来驱动测试,使用Unittest框架
 * 调用HTTP接口，采用python封装好的API
 * 测试需要的HTTP，组装字符转处理
 * 测试数据以随机数传递到各接口对应参数，确保用例独立性
