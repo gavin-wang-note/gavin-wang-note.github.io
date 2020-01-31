@@ -1,0 +1,102 @@
+---
+layout:     post
+title:      "Oracle日志"
+subtitle:   "Oracle Log"
+date:       2010-05-19
+author:     "Gavin"
+catalog:    true
+tags:
+    - oracle
+---
+
+
+# 日志分类
+
+oracle数据库日志分为告警日志（alert）和跟踪日志（trace）两类，可通过查询系统参数获取日志文件存放路径：
+
+```
+SQL> show parameter dump
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+background_core_dump                 string      partial
+background_dump_dest                 string      /opt/oracle/diag/rdbms/mmsgdb/
+                                                 mmsgdb/trace
+core_dump_dest                       string      /opt/oracle/diag/rdbms/mmsgdb/
+                                                 mmsgdb/cdump
+max_dump_file_size                   string      unlimited
+shadow_core_dump                     string      partial
+user_dump_dest                       string      /opt/oracle/diag/rdbms/mmsgdb/
+                                                 mmsgdb/trace
+```
+
+# 监控数据库的操作
+
+定期监控数据库的操作很重要，因为这样做，不仅可以提前通知管理员数据库存在的错误，让管理员提高警惕，同时也可以让管理员更好的理解数据库的操作。
+
+# 监控数据库的错误与告警
+
+使用跟踪文件和告警日志监控数据库的操作。
+
+当前oracle数据库的跟踪和告警日志以XML文件进行维护，可以使用任意编辑器来查看文本格式的告警日志，也可以使用ADRCI应用程序来查看XML格式的告警日志，同时，在ADRCI应用程序中，可以改变当前的ADR位置，也可以使用show home命令来显示所有的ADR位置，适应show alert 命令来显示告警日志，操作如下：
+
+```
+oracle@mmsg:~> whoami
+oracle
+oracle@mmsg:~> adrci
+
+ADRCI: Release 11.1.0.7.0 - Production on 星期三 5月 19 16:46:21 2010
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+ADR base = "/opt/oracle"
+adrci> show home
+ADR Homes: 
+diag/rdbms/mmsgdb/mmsgdb
+diag/tnslsnr/mmsg/listener
+adrci> show homes
+ADR Homes: 
+diag/rdbms/mmsgdb/mmsgdb
+diag/tnslsnr/mmsg/listener
+adrci> show homepath
+ADR Homes: 
+diag/rdbms/mmsgdb/mmsgdb
+diag/tnslsnr/mmsg/listener
+adrci> show alert -tail
+DIA-48449: Tail alert can only apply to single ADR home
+
+adrci> exit
+oracle@mmsg:~> oerr dia 48449
+48449, 00000, "Tail alert can only apply to single ADR home"
+// *Document: YES
+// *Cause: There are multiple homes in the current setting
+// *Action: Use command SET HOMEPATH to set a single home
+oracle@mmsg:~> adrci
+
+ADRCI: Release 11.1.0.7.0 - Production on 星期三 5月 19 16:46:57 2010
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+ADR base = "/opt/oracle"
+adrci> set homepath diag/tnslsnr/mmsg/listener
+adrci> show alert -tail
+2010-05-19 16:47:08.815000 +08:00
+19-5月 -2010 16:47:08 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=25644)) * establish * mmsgdb * 0
+2010-05-19 16:47:11.377000 +08:00
+19-5月 -2010 16:47:11 * service_update * mmsgdb * 0
+2010-05-19 16:47:13.132000 +08:00
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=35728)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=58040)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=7921)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=10131)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=21875)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=10084)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=22965)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=2304)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=15243)) * establish * mmsgdb * 0
+19-5月 -2010 16:47:13 * (CONNECT_DATA=(SID=mmsgdb)(CID=(PROGRAM=)(HOST=__jdbc__)(USER=))) * (ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.114)(PORT=3562)) * establish * mmsgdb * 0
+2010-05-19 16:47:14.379000 +08:00
+19-5月 -2010 16:47:14 * service_update * mmsgdb * 0
+adrci> exit
+oracle@mmsg:~>
+```

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Oracle 回收站介绍 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="回收站(recycle bin)介绍
+">
+    
+    <meta property="article:published_time" content="2009-11-19T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="oracle">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2009/11/19/oracle-recyclebin/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>Oracle 回收站介绍 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2009/11/19/oracle-recyclebin/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=oracle" title="oracle">oracle</a>
+                        
+                    </div>
+                    <h1>Oracle 回收站介绍</h1>
+                    
+                    <h2 class="subheading">Oracle Recyclebin Desc</h2>
+                    <span class="meta">Posted by Gavin on November 19, 2009</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="回收站recycle-bin介绍">回收站(recycle bin)介绍</h1>
+
+<p>实际上，Recycle Bin只是一个保存被drop的对象的一个数据字典表。所以，可以通过如下语句查询回收站中的信息：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre></td><td class="rouge-code"><pre>node1:oracle:mmsgdb &gt; sqlplus /nolog 
+
+SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 11月 19 10:34:34 2009
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+SQL&gt; conn wyz/wyz
+已连接。
+SQL&gt; select * from recyclebin;
+
+OBJECT_NAME                    ORIGINAL_NAME                    OPERATION
+------------------------------ -------------------------------- ---------
+TYPE                      TS_NAME                        CREATETIME
+------------------------- ------------------------------ -------------------
+DROPTIME               DROPSCN PARTITION_NAME                   CAN CAN
+------------------- ---------- -------------------------------- --- ---
+   RELATED BASE_OBJECT PURGE_OBJECT      SPACE
+---------- ----------- ------------ ----------
+BIN$eIz0mM1Ef7DgQKjA3GRWvg==$0 VPNCORP_300                      DROP
+TABLE                     WYZ                            2009-11-04:11:41:34
+2009-11-17:15:20:06   10198071                                  YES YES
+     46354       46354        46354          8
+
+已选择708行。
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>除非拥有sysdba权限，每个用户只能看到属于自己的对象。所以，对于用户来说，好像每个人都拥有自己的回收站。即使用户有删除其他schema对象的权限，也只能在recyclebin中看到属于自己的对象。</p>
+
+<h1 id="实践">实践</h1>
+
+<h2 id="查询当前回收站中数据">查询当前回收站中数据</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>node1:oracle:mmsgdb &gt; sqlplus /nolog
+
+SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 11月 19 10:45:32 2009
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+SQL&gt; conn wyz/wyz 
+已连接。
+SQL&gt; select * from recyclebin;
+
+未选定行
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上面显示回收站为空。</p>
+
+<h2 id="删除一记录">删除一记录</h2>
+
+<p>数据库用户wyz删除一条记录：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>
+SQL&gt; urop table interfaceaccount_20091117;
+
+表已删除。
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="查看回收站信息">查看回收站信息</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>SQL&gt; select object_name,original_name from recyclebin;
+
+OBJECT_NAME                    ORIGINAL_NAME
+------------------------------ --------------------------------
+BIN$eLFmxee63zrgQKjA3GR4Sw==$0 IDX_I_20091117
+BIN$eLFmxee73zrgQKjA3GR4Sw==$0 SYS_C0048264
+BIN$eLFmxee83zrgQKjA3GR4Sw==$0 INTERFACEACCOUNT_20091117
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上面显示3条记录，记录表interfaceaccount_20091117被删除时的信息。</p>
+
+<p>以下几种drop不会将相关对象放进RecycleBin：</p>
+
+<ul>
+  <li>drop tablespace： 会将RecycleBin中所有属于该tablespace的对象清除</li>
+  <li>drop user：      会将RecycleBin中所有属于该用户的对象清除</li>
+  <li>drop cluster：    会将RecycleBin中所有属于该cluster的成员对象清除</li>
+  <li>drop type：      会将RecycleBin中所有依赖该type的对象清除</li>
+</ul>
+
+<p>RecycleBin中的对象会被系统自动按照规则重命名，这是为了防止命名冲突。命名格式为：BIN$unique_id$version，其中unique_id是26个字符的对象唯一标识符，version则是对象在数据库中的版本号。</p>
+
+<h2 id="验证命名规则">验证命名规则</h2>
+
+<p>已经删除了表interfaceaccount_20091117，创建该表，再次删除一次。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre>SQL&gt; create table interfaceaccount_20091117 as select * from interfaceaccount_20091119 where 1=2;   #创建表interfaceaccount_20091117
+SQL&gt; drop table interfaceaccount_20091117;    #再次删除表interfaceaccount_20091117
+
+表已删除。
+
+SQL&gt; select object_name,original_name from recyclebin;   #查看回收站信息
+
+OBJECT_NAME                    ORIGINAL_NAME
+------------------------------ --------------------------------
+BIN$eLFmxee63zrgQKjA3GR4Sw==$0 IDX_I_20091117
+BIN$eLFmxee73zrgQKjA3GR4Sw==$0 SYS_C0048264
+BIN$eLFmxee83zrgQKjA3GR4Sw==$0 INTERFACEACCOUNT_20091117
+BIN$eLFmxefD3zrgQKjA3GR4Sw==$0 INTERFACEACCOUNT_20091117
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以看到，删除table interfaceaccount_20091117后，重建一个名为interfaceaccount_20091117的table，再次删除，其unique_id是不一样的。</p>
+
+<p>通过这种命名方式，避免了对于删除table后又重建了同名table的情况可能造成的命名冲突。</p>
+
+<h1 id="启用禁用回收站">启用/禁用回收站</h1>
+
+<p>启用或禁用回收站，通过设置初始化参数recyclebin，可以控制是否启用回收站功能，默认是开启的。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>SQL&gt; alter system set recyclebin=off;        #关闭回收站
+系统已更改。
+SQL&gt; alter system set recyclebin=on;        #开启回收站
+系统已更改。
+SQL&gt; 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>修改该参数后，重启实例生效。</p>
+
+<h1 id="查看recyclebin中的信息">查看RecycleBin中的信息</h1>
+
+<p>前面已经提及，即使用：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>SQL&gt; select object_name,original_name from recyclebin;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或（必须是sysdba用户）：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>SQL&gt; select owner,synonym_name,table_owner,table_name from dba_synonyms where synonym_name='RECYCLEBIN';
+
+OWNER                          SYNONYM_NAME
+------------------------------ ------------------------------
+TABLE_OWNER                    TABLE_NAME
+------------------------------ ------------------------------
+PUBLIC                         RECYCLEBIN
+SYS                            USER_RECYCLEBIN
+
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>SQL&gt; show recyclebin 
+ORIGINAL NAME    RECYCLEBIN NAME                OBJECT TYPE  DROP TIME
+---------------- ------------------------------ ------------ -------------------
+INTERFACEACCOUNT BIN$eLFmxefD3zrgQKjA3GR4Sw==$0 TABLE        2009-11-19:10:58:22
+_20091117
+INTERFACEACCOUNT BIN$eLFmxee83zrgQKjA3GR4Sw==$0 TABLE        2009-11-19:10:49:00
+_20091117
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="清除recyclebin中的对象">清除RecycleBin中的对象</h1>
+
+<p>Oracle10g提供了回收站功能，回收站类似Windows的回收站，是个虚拟的容器。回收站的东西多了，自然需要清除：</p>
+
+<p>自oracle 10g之后，oracle提供了purge来执行清除recyclebin的功能。</p>
+
+<p>purge table table_name可以清除指定的table，这里的table_name既可以是table原来的名字，也可以是回收站中按规则自动命名的名字。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+</pre></td><td class="rouge-code"><pre>SQL&gt; show recyclebin 
+ORIGINAL NAME    RECYCLEBIN NAME                OBJECT TYPE  DROP TIME
+---------------- ------------------------------ ------------ -------------------
+INTERFACEACCOUNT BIN$eLFmxefD3zrgQKjA3GR4Sw==$0 TABLE        2009-11-19:10:58:22
+_20091117
+INTERFACEACCOUNT BIN$eLFmxee83zrgQKjA3GR4Sw==$0 TABLE        2009-11-19:10:49:00
+_20091117
+
+SQL&gt;  purge table  INTERFACEACCOUNT_20091117;
+
+表已清除。
+
+SQL&gt; purge table BIN$eLFmxee83zrgQKjA3GR4Sw==$0;            
+purge table BIN$eLFmxee83zrgQKjA3GR4Sw==$0
+                                      *
+第 1 行出现错误:
+ORA-00933: SQL 命令未正确结束
+
+
+SQL&gt; purge table "BIN$eLFmxefD3zrgQKjA3GR4Sw==$0";  #需要加引号
+
+表已清除。
+
+SQL&gt;
+
+Purge tablespace tablespace_name user user_name则可以清除Recycle中属于指定tablespace和指定user的所有对象。
+node1:oracle:mmsgdb &gt; sqlplus '/as sysdba'
+
+SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 11月 19 11:34:04 2009
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from dba_tablespace_usage_metrics;  #查看表空间信息
+
+TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
+------------------------------ ---------- --------------- ------------
+MMSC                                 4088           12800      31.9375
+MMSG                                 4864          128000          3.8
+SYSAUX                              35440         4194302   .844955847
+SYSTEM                              63648         4194302    1.5174873
+TEMP                                    0         4194302            0
+UNDOTBS1                              816         4194302   .019454965
+USERS                                 128         4194302   .003051759
+WYZ                                  6008           12800      46.9375
+YJH                                 10064          128000       7.8625
+YKLOG_DATA                            256          256000           .1
+YKLOG_INDEX                           128          128000           .1
+
+TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
+------------------------------ ---------- --------------- ------------
+ZJUN                                 4992           25600         19.5
+
+已选择12行。
+
+SQL&gt;
+SQL&gt; select * from dba_users where username='WYZ';
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+WYZ                                    36
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+OPEN                                            25-4月 -10
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+WYZ                            WYZ_TMP                        27-10月-09
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+DEFAULT                        DEFAULT_CONSUMER_GROUP
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+10G 11G  N
+
+USERNAME                          USER_ID PASSWORD
+------------------------------ ---------- ------------------------------
+ACCOUNT_STATUS                   LOCK_DATE      EXPIRY_DATE
+-------------------------------- -------------- --------------
+DEFAULT_TABLESPACE             TEMPORARY_TABLESPACE           CREATED
+------------------------------ ------------------------------ --------------
+PROFILE                        INITIAL_RSRC_CONSUMER_GROUP
+------------------------------ ------------------------------
+EXTERNAL_NAME
+--------------------------------------------------------------------------------
+PASSWORD E
+-------- -
+
+
+SQL&gt;
+
+SQL&gt; purge tablespace wyz user wyz;   #第一个wyz为表空间名称，第二个wyz为数据库用户名
+表空间已清除。
+
+Purge recyclebin可以清除执行该命令的用户所能看到的所有recyclebin对象。也就是普通用户能清除属于自己的对象，而sysdba用户则能清除所有recyclebin中的对象。
+SQL&gt; purge recyclebin;
+回收站已清空。
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>另外，purge index可以清除index对象。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre></td><td class="rouge-code"><pre>SQL&gt; select object_name,original_name,type from recyclebin;
+
+OBJECT_NAME                    ORIGINAL_NAME
+------------------------------ --------------------------------
+TYPE
+-------------------------
+BIN$eLIogOtK7vDgQKjA3GRztA==$0 INTERFACEACCOUNT_20091117
+TABLE
+
+BIN$eLIogOtS7vDgQKjA3GRztA==$0 IDX_I_20091103
+INDEX
+
+BIN$eLIogOtT7vDgQKjA3GRztA==$0 SYS_C0019958
+INDEX
+
+
+OBJECT_NAME                    ORIGINAL_NAME
+------------------------------ --------------------------------
+TYPE
+-------------------------
+BIN$eLIogOtU7vDgQKjA3GRztA==$0 INTERFACEACCOUNT_20091103
+TABLE
+
+
+SQL&gt;
+SQL&gt; purge index IDX_I_20091103;
+
+索引已清除。
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果出现</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>SQL&gt; purge index IDX_I_20091103;
+第 1 行出现错误:
+ORA-00604: 递归 SQL 级别 1 出现错误
+ORA-02429: 无法删除用于强制唯一/主键的索引
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这里由于IDX_I_20091103是table主键的索引，所以无法单独清除。可直接清除回收站：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>SQL&gt; purge recyclebin;
+回收站已清空。
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="还原recyclebin中的对象">还原RecycleBin中的对象</h1>
+
+<p>使用Flashback table来还原过被删除的table。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre></td><td class="rouge-code"><pre>SQL&gt; flashback table  INTERFACEACCOUNT_20091117  to before drop rename to INTERFACEACCOUNT_wyztest;
+
+闪回完成。
+
+SQL&gt; select object_name,original_name,type from recyclebin;
+
+OBJECT_NAME                    ORIGINAL_NAME
+------------------------------ --------------------------------
+TYPE
+-------------------------
+BIN$eLIogOtT7vDgQKjA3GRztA==$0 SYS_C0019958
+INDEX
+
+BIN$eLIogOtU7vDgQKjA3GRztA==$0 INTERFACEACCOUNT_20091103
+TABLE
+
+
+SQL&gt;
+闪回完成。闪回是oracle11g的亮点。
+SQL&gt; desc INTERFACEACCOUNT_wyztest;
+ 名称                                      是否为空? 类型
+ ----------------------------------------- -------- ----------------------------
+ MODULETYPE                                NOT NULL NUMBER(38)
+ MODULEID                                  NOT NULL NUMBER(38)
+ ACCOUNTDATANAME                           NOT NULL VARCHAR2(64)
+ STARTDATETIME                             NOT NULL VARCHAR2(14)
+ STOPDATETIME                              NOT NULL VARCHAR2(14)
+ ACCOUNT                                   NOT NULL NUMBER(38)
+
+SQL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果多次删除同名的table，则使用上面的语句还原的是最后一个被删除的INTERFACEACCOUNT_20091117表，这里也可以使用RecycleBin给table的名字来做还原。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>SQL&gt; flashback table " BIN$eLIogOtU7vDgQKjA3GRztA==$0" to before drop rename to wyz_test_2009-11-19;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2009/11/18/oracle-account-lock/" data-toggle="tooltip" data-placement="top" title="Oracle账号被锁--ORA-28000">
+                        Previous<br>
+                        <span>Oracle账号被锁--ORA-28000</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2010/03/19/oracle-Permission-denied-for-not-oracle-user/" data-toggle="tooltip" data-placement="top" title="Oracle案例--非DBA用户连接oracle，报权限不允许">
+                        Next<br>
+                        <span>Oracle案例--非DBA用户连接oracle，报权限不允许</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0052" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0116" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="13">Linux</a>
+        
+                <a data-sort="0120" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="9">Automation</a>
+        
+                <a data-sort="0123" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="6">nose</a>
+        
+                <a data-sort="0125" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="3">S3</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="3">awk</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="2">Jenkins</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2009/11/19/oracle-recyclebin";
+    var disqus_url = "http://172.17.73.80:4000/2009/11/19/oracle-recyclebin/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2020
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>

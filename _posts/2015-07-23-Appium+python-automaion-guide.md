@@ -320,12 +320,10 @@ pip install Appium-Python-Client
 <img class="shadow" src="/img/in-post/appium_client_setup.png" width="1200">
 
 
-
 如果系统中已经安装过了，再次进行安装时，会出现类似如下界面所展示的信息：
 
 <img class="shadow" src="/img/in-post/install_nose.png" width="1200">
 
- 
 
 其他依赖包的安装
 
@@ -338,11 +336,6 @@ pip install Appium-Python-Client
 
 详见目录; pythond.3rd.lib中可执行文件，双击安装即可。
 
- 
-
- 
-
- 
 
 # Eclipse与python开发环境配置
 

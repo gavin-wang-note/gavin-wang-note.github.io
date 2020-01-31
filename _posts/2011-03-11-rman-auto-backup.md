@@ -1,12 +1,11 @@
 ---
 layout:     post
-title:      "oracle RMAN自动备份"
-subtitle:   "rman auto backup"
+title:      "Perl脚本实现oracle RMAN自动备份"
+subtitle:   "rman auto backup by Perl script"
 date:       2011-03-11
 author:     "Gavin"
 catalog:    true
 tags:
-    - rman
     - oracle
 ---
 
@@ -59,5 +58,3 @@ release channel t1;
 }
 #end
 ```
-
-

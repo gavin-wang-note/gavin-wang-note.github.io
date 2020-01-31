@@ -14,7 +14,7 @@ tags:
 
 SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。
 
-目前lab里常见的SSD，型号有S4610，S3700和NVME的，NVME的是PCI-e类型的，但interlS4600，S4610，S7300之类型号的SSD，有的设备是在RAID卡上（连接了RAID卡），但有的设备上又不在RAID卡上。如何确定这些NVME，在RAID卡和不在RAID卡上的SSD的剩余寿命呢？
+目前lab里常见的SSD，型号有S4610，S3700和NVME的，NVME的是PCI-e类型的，但intelS4600，S4610，S7300之类型号的SSD，有的设备是在RAID卡上，但有的设备上又不在RAID卡上。如何确定这些NVME，在RAID卡和不在RAID卡上的SSD的剩余寿命呢？
 
 # NVME类型的SSD的使用寿命获取
 

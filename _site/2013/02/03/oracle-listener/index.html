@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Oracle监听 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="监听作用
+">
+    
+    <meta property="article:published_time" content="2013-02-03T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="oracle">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2013/02/03/oracle-listener/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>Oracle监听 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2013/02/03/oracle-listener/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=oracle" title="oracle">oracle</a>
+                        
+                    </div>
+                    <h1>Oracle监听</h1>
+                    
+                    <h2 class="subheading">Oracle Listener</h2>
+                    <span class="meta">Posted by Gavin on February 3, 2013</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="监听作用">监听作用</h1>
+
+<p>oracle监听器是Oracle服务器软件的一个组件，它负责管理Oracle数据库和客户端之间的通讯，它在一个特定的网卡端口（默认是TCP 1521端口）上监听连接请求，并将连接转发给数据库，由两个二进制文件组成：tnslsnr和lsnrctl。其中tsnlsnr就是监听器本身，它运行在数据库服务器端，lsnrctl是监听器控制程序，用于在服务器上或远程管理监听器。与监听器相关的还有两个配置文件：sqlnet.ora和listener.ora。tnslsnr启动时就会读取这两个配置文件中的信息，如端口号，数据库服务名。</p>
+
+<p>简而言之，oracle监听主要用来监听客户端向数据库服务器端提出的连接请求，是基于服务器端的服务，那么它也只存在于数据库服务器端，进行监听器的设置也是在数据库服务器端完成的。当conn建立连接以后，listener就没有用了，不会再用到了。</p>
+
+<h1 id="lsnrctl监听命令详解">lsnrctl监听命令详解</h1>
+
+<p>监听命令是lsnrctl</p>
+
+<p>Oracle用户登陆终端，输入lsnrctl，如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>oracle@mmsg1:~&gt; lsnrctl
+
+LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 11-8月 -2010 10:12:17
+
+Copyright (c) 1991, 2008, Oracle.  All rights reserved.
+
+欢迎来到LSNRCTL, 请键入"help"以获得信息。
+
+LSNRCTL&gt; help
+以下操作可用
+星号 (*) 表示修改符或扩展命令: 
+
+start                 stop                 status              
+services              version             reload              
+save_config          trace                spawn               
+change_password     quit                 exit                
+set*                   show*               
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="启动指定的监听">启动指定的监听</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt;start
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>或者</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>oracle@mmsg1:~&gt; lsnrctl start
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="停止指定的监听">停止指定的监听</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt;stop
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或者</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>oracle@mmsg1:~&gt; lsnrctl stop
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="查看监听状态">查看监听状态</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt;status
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>或者</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>oracle@mmsg1:~&gt; lsnrctl status
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>显示监听器的状态。Status命令显示监听器是不是活动的，日志与跟踪文件的位置，监听器已经持续运行了多长时间，以及监听器所监听的任务。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre>LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 11-8月 -2010 10:29:05
+
+Copyright (c) 1991, 2008, Oracle.  All rights reserved.
+
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.167)(PORT=1521)))
+LISTENER 的 STATUS
+------------------------
+别名                      LISTENER
+版本                      TNSLSNR for Linux: Version 11.1.0.7.0 - Production
+启动日期                  11-8月 -2010 08:56:47
+正常运行时间              0 天 1 小时 32 分 18 秒
+跟踪级别                  err
+安全性                    ON: Local OS Authentication
+SNMP                      OFF
+监听程序参数文件          /opt/oracle/product/11g/network/admin/listener.ora
+监听程序日志文件          /opt/oracle/diag/tnslsnr/mmsg1/listener/alert/log.xml
+监听程序跟踪文件          /opt/oracle/diag/tnslsnr/mmsg1/listener/trace/ora_9828_47108097237856.trc
+监听端点概要...
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=10.137.49.167)(PORT=1521)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=EXTPROC1521)))
+服务摘要..
+服务 "PLSExtProc" 包含 1 个例程。
+  例程 "PLSExtProc", 状态 UNKNOWN, 包含此服务的 1 个处理程序...
+服务 "mmsgdb" 包含 1 个例程。
+  例程 "mmsgdb", 状态 UNKNOWN, 包含此服务的 1 个处理程序...
+命令执行成功
+oracle@mmsg1:~&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>列举监听器的服务信息，比如这些服务是否有任何专用的预生成服务器进程或与之相关的调度进程，以及每个服务已有多少连接被接受或拒绝。这种方法用来检查一个监听器是否在监听一个指定服务。</p>
+
+<h2 id="service">service</h2>
+
+<p>列出服务的一个汇总表及为每个协议服务处理程序所建立和拒绝的连接信息个数。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; service  
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.167)(PORT=1521)))
+服务摘要..
+服务 "PLSExtProc" 包含 1 个例程。
+  例程 "PLSExtProc", 状态 UNKNOWN, 包含此服务的 1 个处理程序...
+    处理程序:
+      "DEDICATED" 已建立:0 已被拒绝:0
+         LOCAL SERVER
+服务 "mmsgdb" 包含 1 个例程。
+  例程 "mmsgdb", 状态 UNKNOWN, 包含此服务的 1 个处理程序...
+    处理程序:
+      "DEDICATED" 已建立:0 已被拒绝:0
+         LOCAL SERVER
+命令执行成功
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="version">version</h2>
+
+<p>显示oracle net软件与协议适配器的版本</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; version
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.167)(PORT=1521)))
+TNSLSNR for Linux: Version 11.1.0.7.0 - Production
+        TNS for Linux: Version 11.1.0.7.0 - Production
+        Unix Domain Socket IPC NT Protocol Adaptor for Linux: Version 11.1.0.7.0 - Production
+        Oracle Bequeath NT Protocol Adapter for Linux: Version 11.1.0.7.0 - Production
+        TCP/IP NT Protocol Adapter for Linux: Version 11.1.0.7.0 - Production,,
+命令执行成功
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="reload">reload</h2>
+
+<p>重新装入监听器，重新读取listener.ora文件，但不关闭监听器。如果该文件发生了变化，重新刷新监听器。</p>
+
+<h2 id="save_config">save_config</h2>
+
+<p>当从lsnrctl工具中对listener.ora文件进行了修改时，复制一个叫做listener.bak的listener.ora的文件</p>
+
+<h2 id="trace">trace</h2>
+
+<p>打开监听器的跟踪特性</p>
+
+<h2 id="change_password">change_password</h2>
+
+<p>允许用户修改关闭监听器所需要的密码</p>
+
+<h2 id="quit">quit</h2>
+
+<p>退出lsnrctl实用工具</p>
+
+<h2 id="exit">exit</h2>
+
+<p>退出lsnrctl实用工具</p>
+
+<h1 id="set">set*</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>SNRCTL&gt; set
+The following operations are available after set
+An asterisk (*) denotes a modifier or extended command:
+
+password                       rawmode                     
+displaymode                    trc_file                    
+trc_directory                  trc_level                   
+log_file                        log_directory               
+log_status                     current_listener            
+inbound_connect_timeout     startup_waittime            
+save_config_on_stop          dynamic_registration        
+
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="password">password</h3>
+
+<p>指定在lsnrctl命令行工具中执行管理任务所需要的密码</p>
+
+<h2 id="rawmode">rawmode</h2>
+
+<p>指定原始模式，默认为OFF。</p>
+
+<h2 id="displaymode">displaymode</h2>
+
+<p>指定服务显示模式，默认设置为：NORMAL。</p>
+
+<h2 id="trc_file">trc_file</h2>
+
+<p>指定监听器跟踪信息的位置。默认设置是$ORACLE_HOME\network\trace\listener.trc</p>
+
+<h2 id="trc_directory">trc_directory</h2>
+
+<p>指定trace文件路径，默认设置为：$ORALCE_BASE/ diag/tnslsnr/hostname/ listener/trace。</p>
+
+<h2 id="trc_level">trc_level</h2>
+
+<p>跟踪级别 ，OFF - 未启用跟踪功能。OFF 为默认设置。</p>
+
+<p>其中，0和1  ：off
+      2和3  ：err
+      4和5  ：user
+      6~10   ：admin</p>
+
+<p>示例:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; set trc_level 1
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 off
+LSNRCTL&gt; set trc_level 2
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 err
+命令执行成功
+LSNRCTL&gt; set trc_level 3
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 err
+命令执行成功
+LSNRCTL&gt; set trc_level 4
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 user
+命令执行成功
+LSNRCTL&gt; set trc_level 5
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 user
+命令执行成功
+LSNRCTL&gt; set trc_level 6
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 admin
+命令执行成功
+LSNRCTL&gt; set trc_level 7
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 admin
+命令执行成功
+LSNRCTL&gt; set trc_level 8
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 admin
+命令执行成功
+LSNRCTL&gt; set trc_level 9
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 admin
+命令执行成功
+LSNRCTL&gt; set trc_level 10
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 admin
+命令执行成功
+LSNRCTL&gt; set trc_level 0
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
+STRAYEAGLE 参数 "trc_level" 设为 off
+命令执行成功
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="log_file">log_file</h2>
+
+<p>指定监听日志文件名，默认为：$ORACLE_BASE/ diag/tnslsnr/hostname/ listener/alert/log.xml。</p>
+
+<h2 id="log_directory">log_directory</h2>
+
+<p>指定监听日志文件存放路径，默认为：$ORACLE_BASE/ diag/tnslsnr/hostname/ listener/alert</p>
+
+<h2 id="log_status">log_status</h2>
+
+<p>指定一个监听器将把日志信息写到哪里。这个参数在默认的情况下是ON,并默认为%oracle_home%\network\log\listener.log</p>
+
+<h2 id="current_listener">current_listener</h2>
+
+<p>显示当前监听器名称。</p>
+
+<h2 id="inbound_connect_timeout">inbound_connect_timeout</h2>
+
+<p>定义监听器在一个会话得到启动时将等待的有效响应时间。默认设置为10秒。</p>
+
+<h2 id="startup_waittime">startup_waittime</h2>
+
+<p>定义监听器在响应lsnrctl命令行工具中的一条status命令之前将等待多长时间。</p>
+
+<h2 id="save_config_on_stop">save_config_on_stop</h2>
+
+<p>指定在一个lsnrctl会话期内所发生的修改在退出时是否应该被保存起来。</p>
+
+<h1 id="show">show*</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show     
+The following operations are available after show
+An asterisk (*) denotes a modifier or extended command:
+
+rawmode                     displaymode                 
+rules                       trc_file                    
+trc_directory               trc_level                   
+log_file                    log_directory               
+log_status                  current_listener            
+inbound_connect_timeout     startup_waittime            
+snmp_visible                save_config_on_stop         
+dynamic_registration        
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="rawmode-1">rawmode</h2>
+
+<p>显示关于status和service的较详细信息（当他们设置成on时）值为ON或OFF</p>
+
+<h2 id="displaymode-1">displaymode</h2>
+
+<p>把lsnrctl工具的显示模式设置成raw、compact、normal或verbose</p>
+
+<p>服务显示模式为NORMAL</p>
+
+<h2 id="rules">rules</h2>
+
+<p>过滤规则</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show rules
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+No filtering rules currently in effect.
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="trc_file-1">trc_file</h2>
+
+<p>指定监听器跟踪信息的位置。默认设置是$ORACLE_HOME\network\trace\listener.trc</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show  trc_file   
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "trc_file" set to ora_4825_47881906824032.trc
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="trc_directory-1">trc_directory</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show trc_directory
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "trc_directory" set to /opt/oracle/diag/tnslsnr/node1/listener/trace
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="trc_level-1">trc_level</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show trc_level
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "trc_level" set to off
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="log_file-1">log_file</h2>
+
+<p>指定一个监听器将把日志信息写到哪里。这个参数在默认的情况下是ON,并默认为%oracle_home%\network\log\listener.log</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show log_file
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "log_file" set to /opt/oracle/diag/tnslsnr/node1/listener/alert/log.xml
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="log_directory-1">log_directory</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show log_directory
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "log_directory" set to /opt/oracle/diag/tnslsnr/node1/listener/alert
+The command completed successfully
+LSNRCTL&gt; 
+log_status
+LSNRCTL&gt; show log_status
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "log_status" set to ON
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="current_listener-1">current_listener</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show current_listener
+Current Listener is LISTENER
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="inbound_connect_timeout-1">inbound_connect_timeout</h2>
+
+<p>定义监听器在一个会话得到启动时将等待的有效响应时间。默认设置为60秒。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show inbound_connect_timeout
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "inbound_connect_timeout" set to 60
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="startup_waittime-1">startup_waittime</h2>
+
+<p>定义监听器在响应lsnrctl命令行工具中的一条status命令之前将等待多长时间。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show startup_waittime
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "startup_waittime" set to 0
+The command completed successfully
+LSNRCTL&gt;
+snmp_visible
+LSNRCTL&gt; show snmp_visible
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "snmp_visible" set to OFF
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="save_config_on_stop-1">save_config_on_stop</h2>
+
+<p>指定在一个lsnrctl会话期内所发生的修改在退出时是否应该被保存起来。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>LSNRCTL&gt; show save_config_on_stop
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
+LISTENER parameter "save_config_on_stop" set to OFF
+The command completed successfully
+LSNRCTL&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="使用监听与数据库建立连接的另一种方式">使用监听与数据库建立连接的另一种方式</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>sqlplus mmsg/mmsg@10.137.49.119:1521/mmsgdb 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="客户端如何通过监听与server建立连接">客户端如何通过监听与server建立连接</h1>
+
+<p>sqlnet.ora文件内容</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>NAMES.DIRECTORY_PATH= (TNSNAMES,HOSTNAME)
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>当你输入sqlplus mmsg/mmsg@mmsgdb的时候</p>
+
+<p>1． 查询sqlnet.ora看看名称的解析方式，发现是TNSNAME</p>
+
+<p>2． 则查询tnsnames.ora文件，从里边找mmsgdb的记录，并且找到主机名，端口和service_name</p>
+
+<p>3． 如果listener进程没有问题的话，建立与listener进程的连接。</p>
+
+<p>4． 根据不同的服务器模式如专用服务器模式或者共享服务器模式，listener采取接下去的动作。默认是专用服务器模式，没有问题的话客户端就连接上了数据库的server process。</p>
+
+<p>5． 这时候网络连接已经建立，listener进程的历史使命也就完成了。</p>
+
+<h1 id="几种连接用到的命令形式">几种连接用到的命令形式</h1>
+
+<p>1.sqlplus / as sysdba 这是典型的操作系统认证，不需要listener进程</p>
+
+<p>2.sqlplus sys/passwd as sysdba 这种连接方式只能连接本机数据库，同样不需要listener进程</p>
+
+<p>3.sqlplus sys/passwd@dbname  as sysdba 这种方式需要listener进程处于可用状态。最普遍的通过网络连接。</p>
+
+<p>以上连接方式使用sys用户或者其他通过密码文件验证的用户都不需要数据库处于可用状态，操作系统认证也不需要数据库可用，普通用户因为是数据库认证，所以数据库必需处于open状态。</p>
+
+<h1 id="监听注册">监听注册</h1>
+
+<p>注册就是将数据库作为一个服务注册到监听程序。</p>
+
+<p>客户端不需要知道数据库名和实例名，只需要知道该数据库对外提供的服务名就可以申请连接到数据库。这个服务名可能与实例名一样，也有可能不一样。</p>
+
+<h2 id="当监听的端口非1521时候如何使得监听进行动态注册">当监听的端口非1521时候，如何使得监听进行动态注册</h2>
+
+<p>通过修改参数local_listener 进行。</p>
+
+<h3 id="方法一">方法一</h3>
+
+<p>可以设置local_listener=listener，前提条件是将lsnrctl.ora文件中的listener信息添加到tnsnames.ora文件中，因为pmon进程动态注册监听时会通过读取tnsname.ora文件相关信息</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>alter system set local_listener=listener;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>添加lsnrctl.ora文件内容到tnsnames.ora文件中。</p>
+
+<h3 id="方法二">方法二</h3>
+
+<p>可以设置local_listener参数为lister.ora文件中的address和address_list</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>alter system set local_listener = '(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.37)(PORT=1522))';
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="如何判断监听是否已注册">如何判断监听是否已注册</h2>
+
+<p>通过查看监听当前状态，根据如下红色加粗部分信息判别：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre></td><td class="rouge-code"><pre>oracle@GW_8:~&gt; lsnrctl status
+
+LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 01-2月 -2013 11:59:06
+
+Copyright (c) 1991, 2008, Oracle.  All rights reserved.
+
+正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=IPC)(KEY=EXTPROC1521)))
+LISTENER 的 STATUS
+------------------------
+别名                      LISTENER
+版本                      TNSLSNR for Linux: Version 11.1.0.7.0 - Production
+启动日期                  29-1月 -2013 10:05:29
+正常运行时间              3 天 1 小时 53 分 36 秒
+跟踪级别                  off
+安全性                    ON: Local OS Authentication
+SNMP                      OFF
+监听程序参数文件          /opt/oracle/product/11g/network/admin/listener.ora
+监听程序日志文件          /opt/oracle/diag/tnslsnr/GW_8/listener/alert/log.xml
+监听端点概要...
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=ipc)(KEY=EXTPROC1521)))
+  (DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=10.41.16.50)(PORT=1521)))
+服务摘要..
+服务 "mmsgdb" 包含 1 个例程。
+  例程 "mmsgdb", 状态 READY, 包含此服务的 1 个处理程序...
+服务 "mmsgdb_XPT" 包含 1 个例程。
+  例程 "mmsgdb", 状态 READY, 包含此服务的 1 个处理程序...
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>说明：</p>
+
+<ul>
+  <li>监听分静态注册与动态注册，注册过程由oracle的PMON进程完成，PMON进程仅默认对1521端口的监听进行注册，非1521端口无法自动注册。</li>
+</ul>
+
+<h1 id="local_listener与remote_listener">local_listener与remote_listener</h1>
+
+<p><img class="shadow" src="/img/in-post/oracle_listener_remote_listener.png" width="1200" /></p>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2013/02/01/oracle-sql-plus/" data-toggle="tooltip" data-placement="top" title="Oracle SQL*Plus">
+                        Previous<br>
+                        <span>Oracle SQL*Plus</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2013/03/10/oracle-tablespace/" data-toggle="tooltip" data-placement="top" title="Oracle表空间管理">
+                        Next<br>
+                        <span>Oracle表空间管理</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0052" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0116" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="13">Linux</a>
+        
+                <a data-sort="0120" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="9">Automation</a>
+        
+                <a data-sort="0123" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="6">nose</a>
+        
+                <a data-sort="0125" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="3">S3</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="3">awk</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="2">Jenkins</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2013/02/03/oracle-listener";
+    var disqus_url = "http://172.17.73.80:4000/2013/02/03/oracle-listener/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2020
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>

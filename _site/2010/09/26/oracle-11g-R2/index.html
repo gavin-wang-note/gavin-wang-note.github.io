@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Oracle 11g R2安装过程中碰到的问题汇总 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="oracle 11g R2安装介质包
+">
+    
+    <meta property="article:published_time" content="2010-09-26T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="oracle">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2010/09/26/oracle-11g-R2/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>Oracle 11g R2安装过程中碰到的问题汇总 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2010/09/26/oracle-11g-R2/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=oracle" title="oracle">oracle</a>
+                        
+                    </div>
+                    <h1>Oracle 11g R2安装过程中碰到的问题汇总</h1>
+                    
+                    <h2 class="subheading">Oracle 11g R2 issue summary</h2>
+                    <span class="meta">Posted by Gavin on September 26, 2010</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="oracle-11g-r2安装介质包">oracle 11g R2安装介质包</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>文件名称</th>
+      <th>大小（字节）</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_1of7.zip</td>
+      <td>1358,454,646</td>
+      <td>database安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_2of7.zip</td>
+      <td>1142,195,302</td>
+      <td>database安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_3of7.zip</td>
+      <td>979,195,792</td>
+      <td>grid安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_4of7.zip</td>
+      <td>659,229,728</td>
+      <td>client安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_5of7.zip</td>
+      <td>616,473,105</td>
+      <td>gateways安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_6of7.zip</td>
+      <td>479,890,040</td>
+      <td>examples</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_7of7.zip</td>
+      <td>113,915,106</td>
+      <td>deinstall</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>说明：</p>
+<ul>
+  <li>Database安装介质，用于安装数据库，即数据库server端；</li>
+  <li>Grid安装介质，用户安装grid，管理ASM；</li>
+  <li>Client安装介质，用于安装oracle客户端；</li>
+  <li>Gateways安装介质，用于安装网关，应用比较少；</li>
+  <li>Examples安装介质，用户安装现成的示例演示数据库，供研究学习使用；</li>
+  <li>Deinstall安装介质，用户卸载数据库，从R2开始，dbca不在提供卸载功能。</li>
+</ul>
+
+<h1 id="遇见问题与解决过程">遇见问题与解决过程</h1>
+
+<h2 id="问题1安装grid报错">问题1、安装grid报错</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>grid@linux173:~/oraInventory/grid&gt; ./ runInstaller
+You do not have sufficient permissions to access the inventory '/home/oracle/oraInventory'. Installation cannot continue. It is required that the primary group of the install user is same as the inventory owner group. 
+Make sure that the install user is part of the inventory owner group and restart the installer.: Permission denied
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>原因：</p>
+
+<p>根据提示信息，当前安装用户grid，不具有对目录“/home/oracle/oraInventory”拥有足够的写权限（sufficient permissions to access），修改方向也是根据提示信息来解决：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>Installation cannot continue. It is required that the primary group of the install user is same as the inventory owner group.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>进入/home/oracle目录，修改oraInventory目录的属主为grid.oinstall，再执行runInstaller命令进行安装grid操作。</p>
+
+<h2 id="问题2安装数据库软件介质报错">问题2、安装数据库软件，介质报错</h2>
+
+<p>原因：</p>
+
+<p>database介质包错误，即zip压缩包不完整。</p>
+
+<p>使用unzip命令解压zip包，虽然报错，但解压操作会继续进行，将报错信息淹没，unzip命令解压完成后并不最终汇总报错信息，如果不查看解压过程日志是无法发现压缩包问题的。</p>
+
+<p>unzip命令解压介质包，报错信息如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre>  inflating: database/stage/Components/oracle.javavm.companion/11.2.0.3.0/1/DataFiles/filegroup2.jar  
+   creating: database/stage/Components/oracle.jdk/
+   creating: database/stage/Components/oracle.jdk/1.5.0.30.03/
+   creating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/
+   creating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/
+  inflating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/filegroup4.jar  
+  inflating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/filegroup5.jar  
+  inflating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/filegroup3.jar  
+  error:  invalid compressed data to inflate
+file #1808:  bad zipfile offset (local header sig):  799288453
+file #1809:  bad zipfile offset (local header sig):  800322303
+   creating: database/stage/Components/oracle.ordim.server/
+   creating: database/stage/Components/oracle.ordim.server/11.2.0.3.0/
+   creating: database/stage/Components/oracle.ordim.server/11.2.0.3.0/1/
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>建议使用jar命令解压zip包，因为jar命令在解压过程中，一旦遇见包错误，会立即终止继续解压操作，方便用户查看介质是否存在问题。此问题就是通过jar命令解压zip包发现的。</p>
+
+<h2 id="问题3默认监听未注册">问题3、默认监听未注册</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+</pre></td><td class="rouge-code"><pre>grid@linux173:~&gt; crsctl stat res -t
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.LISTENER.lsnr
+               ONLINE  INTERMEDIATE linux173                 Not All Endpoints R 
+                                                             egistered           
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  ONLINE       linux173
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>原因：</p>
+
+<p>R2存在两个监听，一个是默认监听，一个是业务数据监听，信息如下：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>监听名称</th>
+      <th>默认端口</th>
+      <th>管理者</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LISTENER</td>
+      <td>1521</td>
+      <td>grid</td>
+    </tr>
+    <tr>
+      <td>LISTENER_ORA</td>
+      <td>自定义</td>
+      <td>oracle</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>其中，（OS级）grid用户管理默认监听LISTENER；（OS级）oracle用户管理业务监听，端口自定义，但不能使用1521端口。</p>
+
+<p>遇见这个问题，首先查看grid的默认监听文件，确认默认监听中端口与当前crs中是否一致。通过listener.ora文件中端口与crs中启用的端口（可通过netstat –an过滤1521端口，查看1521是否处于监听状态），经相互对比，默认监听文件中端口是1522，crs中是1521，说明有人修改过默认监听配置文件中端口，导致crs中与监听配置文件中不一致。</p>
+
+<p>解决过程如下：</p>
+
+<p>1、修改默认监听配置文件中监听端口为1521；</p>
+
+<p>2、停掉has中默认监听资源（crsctl stop res ora.LISTENER.lsnr）</p>
+
+<p>3、从has中删掉默认监听资源（srvctl remove listener -l LISTENER）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="rouge-code"><pre>grid@linux173:~&gt; crsctl stat res -t
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  INTERMEDIATE linux173
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>结果显示是没有默认监听资源的，已经成功删除.</p>
+
+<p>4、重新创建默认监听（srvctl add listener -l LISTENER -o $ORACLE_HOME）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+</pre></td><td class="rouge-code"><pre>grid@linux173:~&gt; srvctl add listener -l LISTENER -o $ORACLE_HOME
+grid@linux173:~&gt; crsctl stat res -t                             
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.LISTENER.lsnr
+               OFFLINE OFFLINE      linux173                                     
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  ONLINE       linux173 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>5、启动默认监听（crsctl start res ora.LISTENER.lsnr）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>grid@linux173:~&gt; crsctl start res ora.LISTENER.lsnr
+CRS-2672: Attempting to start 'ora.LISTENER.lsnr' on 'linux173'
+CRS-2676: Start of 'ora.LISTENER.lsnr' on 'linux173' succeeded
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>6、查看默认监听状态</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+</pre></td><td class="rouge-code"><pre>grid@linux173:~&gt;  crsctl stat res -t                
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.LISTENER.lsnr
+               ONLINE  ONLINE       linux173                                     
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  ONLINE       linux173                                     
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="问题4通过别名登录数据库报错">问题4、通过别名登录数据库报错</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+</pre></td><td class="rouge-code"><pre>oracle@linux173:~/product/11gR2/db/network/admin&gt; sqlplus websvc/websvc@infoxdb
+
+SQL*Plus: Release 11.2.0.3.0 Production on Fri Nov 16 19:56:22 2012
+
+Copyright (c) 1982, 2011, Oracle.  All rights reserved.
+
+ERROR:
+ORA-12154: TNS:could not resolve the connect identifier specified
+
+
+Enter user-name: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+Enter user-name: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+SP2-0157: unable to CONNECT to ORACLE after 3 attempts, exiting SQL*Plus
+oracle@linux173:~/product/11gR2/db/network/admin&gt; 
+使用infoxdb别名登录，报错；不使用别名登录（sqlplus websvc/websvc），则可正常登录成功。
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>解决方法：</p>
+
+<p>1、首先tnsping infoxdb，查看oracle scan通讯效果</p>
+
+<p>Tnsping结果显示，报TNS中地址错误，手工检查了tns文件，尚未发现问题；</p>
+
+<p>2、将备机中tns文件ftp到主机对应目录下，通过diff命令进行tns文件对比</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre>oracle@linux173:~/product/11gR2/db/network/admin&gt; diff  wyz/listener.ora  ./listener.ora        
+8a9
+&gt; 
+15a17
+&gt; 
+oracle@linux173:~/product/11gR2/db/network/admin&gt; diff  wyz/tnsnames.ora  ./tnsnames.ora 
+2a3
+&gt; 
+5c6
+&lt;     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.41.16.52)(PORT = 1522)
+---
+&gt;     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.41.16.52)(PORT = 1522))
+13a15,16
+&gt; 
+&gt; 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上述命令发现tns文件存在语法错误，少个括号。</p>
+
+<p>对于tns文件问题，眼睛往往看不出差异，而且oracle并没有提供相关命令供用户检测tns或监听文件的合法性，只能人为的手工的进行检查，而人为手工检查往往存在已经的马虎性，往往解决不了细节上的小问题。</p>
+
+<h2 id="问题5短信db60版本刷库报ora-01756-和ora-02291错误">问题5、短信DB60版本刷库报ORA-01756 和ORA-02291错误</h2>
+
+<p>短信DB60版本直接在Release2数据库上刷库，报错信息大致如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre>ERROR:
+ORA-01756: quoted string not properly terminated
+
+
+
+Comment created.
+
+
+Comment created.
+
+
+Table created.
+
+ERROR:
+ORA-01756: quoted string not properly terminated
+
+
+
+insert into MENUINFO_SMS (MENUID, ParentMenuID, DESCRIPTION, MENUURL, ISSHOW, IDORDER, TARGET, KEYNAME, PicURL, MaskID) Values (200209,200200,'计费号码限定','/sms/chargeparty/doQuery.do',null,200209,'','MENU.CHARGEPARTY','',47)
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (WEBSVC.FK_MENUID_SELF_REF) violated - parent
+key not found
+
+
+ERROR:
+ORA-01756: quoted string not properly terminated
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>原因：</p>
+
+<p>通过vi一些sql文件，发现里面中文出现乱码，通过设置环境变量中语言解决：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>setenv NLS_LANG "SIMPLIFIED CHINESE"
+setenv LANG en_US
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="问题6db60刷库时报ora-12899错误">问题6、DB60刷库时，报ORA-12899错误</h2>
+
+<p>原因：</p>
+
+<p>表ConfItemLangRes_SMS中ConfigName字段属性长度过小（varchar(60)），而相应的values值超过了该字段的属性范围。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>create table ConfItemLangRes_SMS  (
+   InnerIndex           INTEGER                          not null,
+   ConfItemIndex        INTEGER,
+   LanguageName         varchar(10)                      not null,
+   ConfigName           varchar(60)                      not null,
+   ConfigDesc           varchar(500),
+   constraint PK_CONFITEMLANGRES_SMS primary key (InnerIndex)
+)
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>修改该字段属性，扩大长度解决问题：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>ConfigName           varchar(96)                      not null,
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="问题7usm安装oracle-11g-release2问题">问题7、USM安装oracle 11g Release2问题</h2>
+
+<p>表象</p>
+
+<p>USM执行R2安装任务，报错：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>2012-11-20 10:23:27 [ERROR] [1]: Execute ha_node_conf.sh on primary failed
+2012-11-20 10:23:27 [ERROR] []: The /home/inst-ora/ha-conf/ha.sh is executed faild ....
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>解决过程：</p>
+
+<p>usm版本信息如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>usm:/ataeinst # /opt/dms/bin/atae_version
+[DMS]
+version=ATAE USM V100R002C31
+patch=
+builddate=201211160851
+[USMAS]
+version=ATAE USM V100R002C31
+patch=
+builddate=201211160851
+[IPA]
+version=ATAE USM V100R002C31
+patch=
+builddate=201211160851
+[SOLUTION]
+version=ATAE SOLUTION V100R002C31
+patch=
+builddate=201211160851
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上述报错的日志信息，是USM界面提供，该日志信息来自主机/var/adm/autoinstall/logs目录下install_script.sh.log文件，不具有参考价值。</p>
+
+<p>先了解一下USM的大致工作过程与原理：部署任务页面添加部署任务，一旦提交部署任务，在usm端会生成一个配置文件（name.properties文件，如安装oralceR2时候的配置文件为ora11gR2_x64.properties），该文件以key=value方式存储页面中配置的数据；usm执行任务的时候，将配置文件，脚本等资料存放到执行任务的单板上，通过ftp、ssh等方式执行相关shell脚本进行任务的安装，多采用静默安装方式进行安装操作。安装过程产生的日志，在/var/adm/autoinstall/logs目录下，在任务执行过程中可参考日志，根据日志定位问题，这就是为何说USM界面中显示的日志不具有参考价值的原因所在。</p>
+
+<p>其实此次安装报错，根据日志分析了下，如下：</p>
+
+<p>日志报错，信息片断如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre>+ '[' X/dev/sdb '!=' X ']'
++ '[' -e /dev/sdb ']'
+++ ls -l /dev/disk/by-id
++++ basename /dev/sdb
+++ grep scsi
+++ awk '{print $9}'
+++ grep -w 'sdb$'
++ DISK_DBFILE_SCSI=/dev/disk/by-id/
++ '[' /dev/disk/by-id/ == /dev/disk/by-id/ ']'
++ error_exit 'Get device /dev/sdb scsi num failed.'
++ wlogf '[ERROR]:Get device /dev/sdb scsi num failed.'
+++ date '+%Y-%m-%d %H:%M:%S '
++ timestr='2012-11-20 10:23:22 '
++ echo 2012-11-20 10:23:22 '[ERROR]:Get device /dev/sdb scsi num failed.'
++ store_logfile
++ '[' -e /var/adm/autoinstall/logs/ora11gR2_x64_PRIMARY_20121120102316.log ']'
++ scp /var/adm/autoinstall/logs/ora11gR2_x64_PRIMARY_20121120102316.log 10.41.16.173:/var/adm/autoinstall/logs/
++ exit 1
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上述报错日志，对应的shell脚本片断如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>/iso/ora11gR2_x64/ha-conf|ha_node_conf.sh，内容片断如下：
+if [ "X$DISK_DBFILE" != "X" ]
+then
+    [ -e "$DISK_DBFILE" ] || error_exit "The device $DISK_DBFILE is not exist."
+    DISK_DBFILE_SCSI="/dev/disk/by-id/"$( ls -l /dev/disk/by-id | grep -w "$(basename $DISK_DBFILE)$" | grep scsi | awk '{print $9}')
+    [ $DISK_DBFILE_SCSI == "/dev/disk/by-id/" ] &amp;&amp; error_exit "Get device $DISK_DBFILE scsi num failed."
+    echo "ln -f -s $DISK_DBFILE_SCSI /dev/diskgroup/dg_ora       "  &gt;&gt;/etc/init.d/linkraw_oracle.sh 
+fi
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这里的变量$DISK_DBFILE读文件（/etc/ora11gR2_x64.properties）获取，红色加粗部分，表示过滤分区对应的scsi信息，变量$(basename $DISK_DBFILE)$也是读自文件/etc/ora11gR2_x64.properties，从这里可以知道，脚本要求共享存储scsi对应的分区名称在主备机上必须保持一致，例如：主机上scsi名称为scsi-360022a110003135eb02707d900000003，对应的分区名称为sdb，那边，在备机上，scsi名称为scsi-360022a110003135eb02707d900000003的，对应的分区也必须为sdb，如果不为sdb，这里即使在主机上安装grid成功了，到备机上因无法获取sdb分区而导致脚本执行失败，一旦脚本执行失败，如果安装任务中设置了卸载操作，则执行回滚脚本进行环境的清理，包括主备机的环境的清理。</p>
+
+<p>分析至此，发现USM31版本中的脚本，要求主备机外挂存储scsi对应分区名称必须要保持一致，这样grid才能正常进行安装，脚本不至于报错退出以致回滚。而scsi与分区对应关系，是存储与操作系统映射时候产生的文件，这个文件即使编辑了，系统并不承认编辑后的文件，即非法文件，一旦重启机器，系统会自动还原整个by-id目录以及该目录下文件，所以，想通过修改by-id目录下链接规避分区名称不一致问题，此路行不通。</p>
+
+<p>可通过如下方法解决：</p>
+
+<p>既然是通过读取.properties文件获取配置安装配置信息，那么，在主机进行grid安装时，如主机中scsi-360022a110003135eb02707d900000003对应sdg分区，部署任务中就填写value为sdg分区，当主机正在进行grid安装，备机尚未进行grid安装时候，root用户登录备机，修改备机上的ora11gR2_x64.properties 文件，将文件中对应的value修改为sdb，从而规避了USMC31版本的一个缺陷。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+</pre></td><td class="rouge-code"><pre>gw249:/home # more /etc/ora11gR2_x64.properties
+#
+#Fri Nov 23 16:44:42 CST 2012
+node_count.0.PRVIP=
+REDOGROUP_NUM=3
+ORACLE_BASE=/home/oracle
+FLOATIP=
+USMAS.SOFTWARE.ID=ora11gR2_x64
+SCAN_PORT=1525
+SYSTEM_SIZE=2G
+LOGDISK=/dev/sdf
+PRIMARY_PUBIP=10.41.16.185
+GRID_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+TEMP_SIZE=6G
+ORACLE_OWNER=oracle
+UNINSTALL_COMPONENT.0=\ 
+INSTALL_TYPE=2
+GRID_OWNER=grid
+SYSAUX_SIZE=2G
+SLAVE_PUBIP=10.41.16.249
+node_count.0.VIP=
+LANGUAGE=ZHS16GBK
+UNINSTALL=yes
+DB_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+INDEXDISK=/dev/sde
+GRID_HOME=/home/oracrs/product/11gR2/grid
+SCANIP=
+CTLFILE_NUM=3
+SLAVE_ROOT_PASSWD_encrypt=I4SZtfrINcexo7CdV4+RUQ\=\=
+node_count.NUMBER=1
+ORACLE_HOME_DIRECTORY=/home/oracle
+node_count.0.PUBIP=
+REDOFILE_SIZE=1000M
+PRIMARY_PRVIP=192.168.100.244
+ASMSYS_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+DATADISK=/dev/sdd
+GRID_BASE=/home/oracrs/base
+USER_LISTENER_PORT=1526
+EXCUTETIMEOFTIMEJOB_RAC=
+UNDO_SIZE=6G
+ORACLE_SID=infoxdb
+SLAVE_PRVIP=192.168.100.247
+PRIMARY_ROOT_PASSWD_encrypt=I4SZtfrINcexo7CdV4+RUQ\=\=
+ORACLE_HOME=/home/oracle/product/11gR2/db
+DBFILEDISK=/dev/sde
+ORACLE_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+grid_basic_parameter.node_count.NUMBER=1
+GRID_HOME_DIRECTORY=/home/grid
+UNINSTALL_COMPONENT.NUMBER=1
+node_count.0.ROOT_PASSWD_encrypt=GfNigSAbW5XN08daE0VA6w\=\=
+OCRVOTINGDISK=/dev/sde
+USERS_SIZE=1G
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2010/09/24/oracle-sql-load/" data-toggle="tooltip" data-placement="top" title="Oracle数据导入之SQL Load">
+                        Previous<br>
+                        <span>Oracle数据导入之SQL Load</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2010/09/27/oracle-modify-instance-name-and-DB-name/" data-toggle="tooltip" data-placement="top" title="Oracle案例--修改数据库实例名和数据库名">
+                        Next<br>
+                        <span>Oracle案例--修改数据库实例名和数据库名</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0052" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0116" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="13">Linux</a>
+        
+                <a data-sort="0120" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="9">Automation</a>
+        
+                <a data-sort="0123" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="6">nose</a>
+        
+                <a data-sort="0125" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="3">S3</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="3">awk</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="2">Jenkins</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2010/09/26/oracle-11g-R2";
+    var disqus_url = "http://172.17.73.80:4000/2010/09/26/oracle-11g-R2/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2020
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>

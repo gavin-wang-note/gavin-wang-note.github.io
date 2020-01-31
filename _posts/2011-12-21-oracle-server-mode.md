@@ -1,0 +1,220 @@
+---
+layout:     post
+title:      "Oracle专有服务器与共享服务器模式"
+subtitle:   "Oracle Server mode"
+date:       2011-12-21
+author:     "Gavin"
+catalog:    true
+tags:
+    - oracle
+---
+
+
+# 名词解释
+
+
+专有服务器模式（DEDICATED）：一个客户端连接对应一个服务器进程。
+
+共享服务器模式（SHARE）：多个客户端连接对应一个服务器进程，服务器端存在一个进程调度器来管理。
+
+说明：
+
+* 共享服务器模式,必须使用net services.也就是必须配置tns信息（即使客户端与服务端为同一台机器，也要配置TNS,且通过IPC协议进行通讯）。它适合用于高并发，事务量小，如果此时采用了共享模式，可以大大减少由于高度并发对于ORACLE服务器的资源消耗。
+
+# 模式说明
+
+## 专有服务器模式
+
+每次在对Oracle进行访问的时候，Oracle服务器的Listener会得到这个访问请求，然后会为这个访问创建一个新的进程来进行服务。所以说，对于每一个客户端的访问，都会生成一个新的进程进行服务，是一种类似一对一的映射关系。这种连接模式的一个很重要的特点就是UGA（用户全局域）是存储在PGA（进程全局域）中的，这个特性也很好的说明了当前用户的内存空间是按照进程来进行分配的。
+
+
+## 共享服务器模式
+
+类似一种在程序编写时常用到的连接池（pool）的概念。采用这种模式的话，在数据库的初始化的时候就会创建一批服务器连接的进程，然后把这些连接进程放入一个连接池来进行管理。初始化的池中的进程数量在数据库初始化建立的时候是可以手动设置的。在连接建立的时候，Listener首先接收到客户端的建立连接的请求，然后Listener去生成一个叫做调度器(dipatcher)的进程与客户端进行连接。调度器把客户端的请求放在SGA（系统全局域）的一个请求队列中，然后再共享服务器连接池中查找有无空闲的连接，然后让这个空闲的服务器进行处理。处理完毕以后再把处理结果放在SGA的相应队列中。调度器通过查询相应队列，得到返回结果，再返回给客户端。这种连接模式的优点在于服务器进程的数量可以得到控制，不大可能出现因为连接人数过多而造成服务器内存崩溃。但是由于增加了复杂度以及请求相应队列，性能上有所下降。
+
+# 优缺点比较
+
+## 专有服务器模式的优缺点
+
+### 优点
+
+* 每个用户都有一个连接，不至于有的应用占着连接造成别的客户的请求给挂起了；
+* 数据库处理性能较高。
+
+### 缺点
+
+* 内存管理上，此种模式随着用户连接数的增加而消耗更多的系统CPU与内存。
+
+因为随着连接数的增加，每增加一个连接，就要分配一份PGA，如果增加10000个连接，那就是10000个PGA要提供，内存很容易吃爆掉,而共享连接方式优点在于连接数.
+
+## 共享服务器模式优缺点
+
+
+### 优点
+
+* 减少了实例中的进程数
+* 增加了更多并发用户的数量
+* 实现动态负载均衡
+* 减少了空闲服务器进程数量
+* 降低了对内存的使用
+
+### 缺点
+
+* 共享服务器的代码路径比专用服务器长，所以它天生就比专用服务器慢；
+* 存在人为死锁的可能，因为它是串行的，只要一个连接阻塞，则该服务器进程上的所有用户都被阻塞，并且极可能死锁；
+* 存在独占事务的可能，因为如果一个会话的事务运行时间过长，它独占共享资源，其它用户只能等待，而专用服务器，每个客户端是一个会话；
+* 共享服务器模式限制了某些数据库特性，例如：不能单独启动和关闭实例，不能进行介质恢复。
+
+# 共享服务初始化参数的一些说明
+
+## shared_servers
+
+指定了当instance 启动的时候share_servers启动的数量（可通过shared server process查看），不要将这个参数设置得太大，否者启动数据库instance 的时候就会花更多时间,Oracle启动过后会根据负载来动态调整shared_servers。如果为0，表示数据库没有启动共享服务模式。 这个参数是配置shared server 必须的，而且只有这个参数是必须的。
+
+修改参数：
+
+```
+alter system set shared_servers=1;
+```
+
+## max_shared_servers
+
+ORACLE在同一个时刻最大能够使用的share_servers数量，不要将这个参数设置小于 shared_servers，如果动态修改shared_servers大于max_shared_servers，ORACLE会覆盖max_shared_servers的值，此时你需要修改max_shared_servers，同时也不能大于processes的值。这个参数是为了给占用很大资源操作而设的(批处理)，为了预留一些process 给DBA任务(rman备份)。
+
+## shared_server_sesions
+
+指定了总共允许的的 shared server session 的数量。如果设置了这个参数，那么就不要将这个值超过sessions，如果没有设置这个值，那么只要还有空闲的session,就可以被使用。设置这个值是为专有连接预留 user sessions的。
+
+## dispatchers（调度进程
+
+配置 dispatcher process 。如果不设置这个参数，只要设置了shared_servers，oracle 也会自动设置一个基于tcp协议的dispatcher。
+还需要查看操作系统支持一个dispatcher能处理多少个connections
+
+```
+SQL> select * from v$dispatcher;
+```
+
+## max_dispatchers
+
+设置同一时刻能够同时运行的最多的dispatchers的数量，必须大于等于 dispatchers ，小于processes。这个参数也会被dispatchers覆盖。
+
+# 关闭调度进程
+
+## 1、首先要查询到DISPATCHERS的NAME： 
+
+```
+SELECT NAME,NETWORK FROM V$DISPATCHER;
+```
+
+## 2、然后关闭调度进程
+
+```
+ALTER SYSTEM SHUTDOWN IMMEDIATE 'D000'; 
+```
+
+# 关闭共享模式
+
+将 shared_servers 参数置为0（alter system set shared_servers=0;），那么所有以共享方式连接到数据库都不能成功，但是未释放的共享连接会继续 保持连接，直到断开。
+如果将 shared_servers 和 max_shared_servers 都设为0（alter system set max_shared_servers=0;），那么共享连接将被终结。所有的共享方式连接都断开了的话，就可以使用 ```alter system set dispatcher=''; ```将dispatcher清除，防止下次启动数据库又打开了共享连接方式。
+    
+# 判断oracle是共享模式还是专用模式的方法
+
+## 1. 参数查询
+
+```
+show parameter shared_server; (注：8i应为：show parameter mts_servers;)
+SQL> show parameter shared_server;
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+max_shared_servers                   integer     0  
+shared_server_sessions               integer     
+shared_servers                       integer     0  --为0表示专用模式
+```
+
+## 2. 查看v$session 视图
+
+```
+SQL> select username,server,program from v$session where username is not null;
+
+USERNAME     SERVER    PROGRAM
+--------- --------- -------------------
+GWM            NONE    
+SYS            SHARED        plsqldev.exe
+SYS            SHARED        plsqldev.exe
+SYS            DEDICATED     sqlplus.exe  --专用模式
+```
+
+# 3. 查看监听： lsnrctl service
+
+```
+oracle@RAC10:~> lsnrctl service
+
+LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 21-12月-2011 17:23:47
+
+Copyright (c) 1991, 2008, Oracle.  All rights reserved.
+
+Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.73.14)(PORT=1521)))
+Services Summary...
+Service "smsgdb" has 2 instance(s).
+  Instance "smsgdb", status UNKNOWN, has 1 handler(s) for this service...
+    Handler(s):
+      "DEDICATED" established:0 refused:0
+         LOCAL SERVER
+  Instance "smsgdb", status READY, has 1 handler(s) for this service...
+    Handler(s):
+      "DEDICATED" established:436931 refused:0 state:ready
+         LOCAL SERVER
+Service "smsgdb_XPT" has 1 instance(s).
+  Instance "smsgdb", status READY, has 1 handler(s) for this service...
+    Handler(s):
+      "DEDICATED" established:436931 refused:0 state:ready
+         LOCAL SERVER
+The command completed successfully
+```
+
+## 4. 查看TNSNAMES.ora 文件。如：
+
+```
+oracle@RAC10:~/product/11g/db_1/network/admin> more tnsnames.ora
+# tnsnames.ora Network Configuration File: /opt/oracle/product/11g/db_1/network/admin/tnsnames.ora
+# Generated by Oracle configuration tools.
+
+SMSGDB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = RAC10)(PORT = 1521))
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 10.137.73.14)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = smsgdb)
+    )
+  )
+```
+
+这里是以DEDICATED 专用模式连接 telemt 实例。写上 (SERVER = SHARED) 则是使用共享服务器模式，但是这时shared_server_process需要打开（即oracle服务器的shared_servers参数要设置为共享模式），要不然会出错连不上oracle(ora-12520:TNS:监听程序无法为请求的服务器类型找到可用的处理程序)。
+
+要是这段放空没写，那么系统会根据服务器模式自动调节，不过根据实测结果，就算服务器是定义成共享服务器模式，shared_server_process没打开的情况下，在v$session中查到的连接依然是SERVER = DEDICATED。所以基本上我们这段话都是可以放空着不写的，但是有时候要连上我们的共享服务器模式的数据库，放空有可能系统认为要用共享服务器方式去连，因此最好声明 SERVER = DEDICATED 采用专用服务器方式去连接。
+
+在数据库启动的时候，如果没有指定shared_servers，但是设置了dispatchers，那么ORACLE就认为启动了shared server ，并且设置shared_servers为1。 在数据库启动的时候，没有设置shared_servers,也没有设置dispatchers，即使以后修改了dispatchers，也不能启动shared server，必须重新启动数据库。
+
+# 模式的选择
+
+具体的来说，在以下应用情景下，可以选择采用共享服务器模式。
+
+## 1. 前台客户端数量比较多
+
+当大量用户需要连接到数据库并且需要有效的使用可用的系统资源的时候，则需要考虑采用共享服务器模式。具体的来说，像现在采用的一些客户端/服务器端模式的网络应用软件，如ERP系统等等。一方面因为用户人数比较多;另一方面企业由于资金有限，所以购置的是一般的服务器。这些服务器由于硬件方面的一些限制，如数据库系统与前台应用服务器采用统一台服务器。所以往往要求数据库能够充分使用硬件资源，以减少两者之间的冲突。
+
+在这种情况下，往往采用共享式的服务器模式，比较合适。
+
+## 2. 服务器内存限制比较大
+
+共享服务器模式下，当连接用户增加时，其内存使用率增加不会很多。因为他们共享一个服务器进程。所以，从这一个角度讲，共享服务器模式可以减少内存的使用。但在专用服务器模式下，内存的使用几乎与用户的数量成比例增加。
+
+所以，用户若在一些老的服务器上部署Oracle数据库的话，因为其主板对内存的升级有所限制，所以，为了得到一个不错的数据库性能，往往采用共享服务器模式。如此，即时同时访问数据库的用户有所增加，其内存也不会有多大的影响。可以大大的降低内存的压力。
+
+## 3. 某些特定功能要求采用共享服务器模式
+
+虽然说，共享服务器模式与专用服务器模式在大部分情况下，都是通用的，支持Oracle数据库系统的大部分功能。但是，某一些特定的功能，仍然需要数据库管理员在共享服务器模式下，才能够启用。比较典型的，如Oracle数据库服务器的连接共享、连接集中与负载均衡技术等等。他们必须在共享模式下才能够运行。
+
+负载均衡用来在群集环境下实现多机共享数据库，以保证应用的高可用性。同时可以自动实现并行处理以及均分负载，还能够实现数据库在故障时的容错和无断点恢复。所以，在一些对于性能与稳定性要求比较高的应用场景中，如银行中，往往都会采用负载均衡技术。此时，数据库管理员在配置数据库的时候，就需要考虑采用共享服务器模式。
