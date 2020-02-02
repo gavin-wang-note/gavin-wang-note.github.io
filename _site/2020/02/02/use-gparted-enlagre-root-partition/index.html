@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="利用gparted扩展根分区 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="前言
+">
+    
+    <meta property="article:published_time" content="2020-02-02T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="Linux">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2020/02/02/use-gparted-enlagre-root-partition/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>利用gparted扩展根分区 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2020/02/02/use-gparted-enlagre-root-partition/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=Linux" title="Linux">Linux</a>
+                        
+                    </div>
+                    <h1>利用gparted扩展根分区</h1>
+                    
+                    <h2 class="subheading">Use gparted to enlagre root partition</h2>
+                    <span class="meta">Posted by Gavin on February 2, 2020</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="前言">前言</h1>
+
+<p>lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。</p>
+
+<p>后台通过VMware vSphere Client扩大了这个分区空间（扩大到60G）：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>root@ubuntu-16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   20G  0 disk /iso
+sdb      8:16   0   60G  0 disk 
+├─sdb1   8:17   0   16G  0 part /
+├─sdb2   8:18   0    1K  0 part 
+└─sdb5   8:21   0    4G  0 part [SWAP]
+sr0     11:0    1 1024M  0 rom  
+root@ubuntu-16:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>但这多出的40G，如何分配给根/分区么？</p>
+
+<h1 id="环境准备">环境准备</h1>
+
+<p>为此，准备了一个测试环境，进行/分区扩容验证。</p>
+
+<p>安装Ubuntu16.04，系统分区是60G的容量：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   60G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+├─sda2   8:2    0    1K  0 part 
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1 1024M  0 rom  
+root@ubuntu16:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>成功安装后，关机，通过VMware vSphere Client扩大vdisk空间，从60G扩大到80G：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+├─sda2   8:2    0    1K  0 part 
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1  873M  0 rom  
+root@ubuntu16:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>并在根目录下，创建了一个文件，计算md5值：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# echo 'check' &gt; test.txt 
+root@ubuntu16:/# md5sum test.txt 
+5e9b13ce8f6c99f3f510756be58d15fe  test.txt
+root@ubuntu16:/# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="安装gparted">安装gparted</h1>
+
+<p>因为要使用gparted来进行根分区的扩容，需要安装gparted；如果已经安装了，忽略此步骤。</p>
+
+<p><code class="highlighter-rouge">apt-get install gparted</code></p>
+
+<p>如果后面使用XManager还有问题，可以在此ubuntu节点上安装如下一个工具：</p>
+
+<p><code class="highlighter-rouge">apt install x11-xserver-utils</code></p>
+
+<h1 id="通过xmanager访问此节点">通过XManager访问此节点</h1>
+
+<p>!!!说明!!!：</p>
+
+<ul>
+  <li>因为本文一开始是摸索着来解决扩容问题，走了一个弯路，即通过XManager来展示gparted界面，尝试扩展分区，但是失败了，此路不通。本文记录了这个操作，证实在正在运行的系统里直接运行gparted是没法扩展分区的，正确的开始步骤，请从“借助gparted live ISO进行修改”开始(正确的步骤里，用不到XManager工具，即不需要安装它;走弯路的步骤才需要安装它)！！</li>
+</ul>
+
+<p>需要找一台Windows安装XManager，非本文重点，忽略。</p>
+
+<h2 id="xmanager上创建一个xstart">XManager上创建一个XStart</h2>
+
+<p>新建一个XStart，输入此节点的IP地址、root账号和密码，以及需要执行的命令（gparted），保存即可。之后点击这个新建的XStart，会出现有一个auth文件没有，关掉后重新打开这个XStart再次登录即可。</p>
+
+<p>如果直接在终端执行gparted命令时，会出现如下错误：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# gparted
+
+(gpartedbin:2462): Gtk-WARNING **: cannot open display:
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="查看进入gparted界面效果">查看进入gparted界面效果</h2>
+
+<p>成功通过XStart进入可视化界面后，会看到已经使用的空间都带有锁标记，如下图所示：</p>
+
+<p><img class="shadow" src="/img/in-post/gparted_lock.png" width="1200" /></p>
+
+<p>这时是不能对分区进行操作的，网上有人说需要先卸载（unmount）或者停止（swapoff），然后才能进行Resize操作。</p>
+
+<h3 id="尝试swapoff">尝试swapoff</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# swapoff -a
+root@ubuntu16:/# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+└─sda5   8:5    0  975M  0 part 
+sr0     11:0    1  873M  0 rom  
+root@ubuntu16:/# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上面显示已经swapoff了，此时重新进入gparted界面，显示如下：</p>
+
+<p><img class="shadow" src="/img/in-post/swapoff_root_lock.png" width="1200" /></p>
+
+<p>尝试对根分区进行容量扩展，发现没法扩展；尝试先umount，发现也没法umount掉这个根分区，因为会显示为Busy（其实想想，如果umount掉了，系统都没法使用了吧，更不用谈当前gparted操作了），从这里，基本上把swapoff和umount两条路给堵死了，说明行不通。</p>
+
+<p>还有人说用制作Ubuntu启动U盘试用模式下进行的，不过我的环境是虚机，就没尝试这个方法。</p>
+
+<p>先还原环境吧，swapon回来；</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# swapon -a
+root@ubuntu16:/# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1  873M  0 rom  
+root@ubuntu16:/# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="借助gparted-live-iso进行修改">借助gparted live ISO进行修改</h2>
+
+<p>上面的尝试，说明了gparted可以调整分区大小，且支持无损，但是对于/根目录的分区无法调整，但是它提供ISO工具，可以启动后进行调整。</p>
+
+<p>下载了一个gparted-live-0.29.0-1-amd64.iso，下载链接：</p>
+
+<p>链接：https://pan.baidu.com/s/1I_JWP7-HKHfNM44mlt6Vow 提取码：moq4</p>
+
+<h3 id="修改vm启动顺序">修改VM启动顺序</h3>
+
+<p>在将gparted-live-0.29.0-1-amd64.iso作为VM “CD/DVD设备”条件下，重新启动VM，进入BIOS界面，设置操作如下图所示：</p>
+
+<p><img class="shadow" src="/img/in-post/vm_set_BIOS.png" width="800" /></p>
+
+<p>进入Boot页面，使用“-/+”按钮，将“CD-ROM Driver”设置为第一启动顺序，保存后退出，如下图所示：</p>
+
+<p><img class="shadow" src="/img/in-post/change-boot-order.png" width="800" /></p>
+
+<h3 id="使用-gparted-live-安装介质启动你的系统">使用 GParted Live 安装介质启动你的系统</h3>
+
+<p>VM重新开机后，会弹出如下界面：</p>
+
+<p><img class="shadow" src="/img/in-post/boot-gparted.png" width="800" /></p>
+
+<p>这里选择 “GParted Live (Default settings)” ，并敲击回车按键。</p>
+
+<h3 id="键盘选择">键盘选择</h3>
+
+<p>默认情况下，它选择第二个选项，按下回车即可。</p>
+
+<p><img class="shadow" src="/img/in-post/package_configuration.png" width="800" /></p>
+
+<h3 id="语言选择">语言选择</h3>
+
+<p>默认情况下，它选择 “33” 美国英语，按下回车即可。</p>
+
+<p><img class="shadow" src="/img/in-post/language_set.png" width="800" /></p>
+
+<h3 id="模式选择图形用户界面或命令行">模式选择（图形用户界面或命令行)</h3>
+
+<p>默认情况下，它选择 “0” 图形用户界面模式，按下回车即可。</p>
+
+<p><img class="shadow" src="/img/in-post/mode_select.png" width="800" /></p>
+
+<h3 id="加载-gparted-live-屏幕">加载 GParted Live 屏幕</h3>
+
+<p>现在，GParted Live 屏幕已经加载，它显示我以前创建的分区列表:</p>
+
+<p><img class="shadow" src="/img/in-post/gparted_show_all_partitions.png" width="800" /></p>
+
+<h3 id="删除系统磁盘非根分区">删除系统磁盘非根分区</h3>
+
+<p>这里系统磁盘对应分区是sda，下面有swap分区（sda2， sda5），需要删除sda2和sda5，因为只有连续的分区才能合并（未分配的分区中间间隔着sda2和sda5）。</p>
+
+<h3 id="合并分区">合并分区</h3>
+
+<p>选择根分区，点击“Resize/Move”，将20G空闲空间合并到sda1分区。</p>
+
+<h3 id="重新创建swap分区并格式化为linux-swap">重新创建swap分区，并格式化为linux-swap</h3>
+
+<p>这里新建一个分区，文件系统选择linux-swap，并格式化为swap分区</p>
+
+<h3 id="生效设置">生效设置</h3>
+
+<p>进行了上面的操作后，点击“Apply”等待生效，gparted处理过程如下图所示：</p>
+
+<p><img class="shadow" src="/img/in-post/gparted_apply.png" width="800" /></p>
+
+<p>成功后，会在界面上显示”complete“字样</p>
+
+<p>然后VM断连GParted Live 安装介质，重启启动VM，VM在启动过程中会出现如下信息(稍微等待一点时间即可，无需人工干预)：</p>
+
+<p><img class="shadow" src="/img/in-post/vm_start_status.png" width="800" /></p>
+
+<h3 id="效果确认">效果确认</h3>
+
+<p>最终效果如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   79G  0 part /
+└─sda2   8:2    0    1G  0 part 
+sr0     11:0    1 1024M  0 rom  
+root@ubuntu16:~# 
+root@ubuntu16:/# cat test.txt 
+check
+root@ubuntu16:/# md5sum test.txt 
+5e9b13ce8f6c99f3f510756be58d15fe  test.txt
+root@ubuntu16:/# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>文件md5值，在扩容前后一样.</p>
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2020/01/22/user-modinfo-get-driver-version-used-by-kernel/" data-toggle="tooltip" data-placement="top" title="利用modinfo查看kernel使用的driver版本">
+                        Previous<br>
+                        <span>利用modinfo查看kernel使用的driver版本</span>
+                        </a>
+                    </li>
+                    
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0053" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0116" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="14">Linux</a>
+        
+                <a data-sort="0121" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="9">Automation</a>
+        
+                <a data-sort="0124" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="6">nose</a>
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="3">S3</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="3">awk</a>
+        
+                <a data-sort="0127" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="2">Jenkins</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0128" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2020/02/02/use-gparted-enlagre-root-partition";
+    var disqus_url = "http://172.17.73.80:4000/2020/02/02/use-gparted-enlagre-root-partition/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2020
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>

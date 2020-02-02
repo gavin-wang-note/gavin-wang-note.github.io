@@ -1,4 +1,294 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-01-31T19:53:07+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">获取SSD寿命</title><link href="http://172.17.73.80:4000/2020/01/22/get-ssd-life-span/" rel="alternate" type="text/html" title="获取SSD寿命" /><published>2020-01-22T00:00:00+08:00</published><updated>2020-01-22T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/01/22/get-ssd-life-span</id><content type="html" xml:base="http://172.17.73.80:4000/2020/01/22/get-ssd-life-span/">&lt;h1 id=&quot;前言&quot;&gt;前言&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-02-02T16:00:20+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">利用gparted扩展根分区</title><link href="http://172.17.73.80:4000/2020/02/02/use-gparted-enlagre-root-partition/" rel="alternate" type="text/html" title="利用gparted扩展根分区" /><published>2020-02-02T00:00:00+08:00</published><updated>2020-02-02T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/02/02/use-gparted-enlagre-root-partition</id><content type="html" xml:base="http://172.17.73.80:4000/2020/02/02/use-gparted-enlagre-root-partition/">&lt;h1 id=&quot;前言&quot;&gt;前言&lt;/h1&gt;
+
+&lt;p&gt;lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。&lt;/p&gt;
+
+&lt;p&gt;后台通过VMware vSphere Client扩大了这个分区空间（扩大到60G）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu-16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   20G  0 disk /iso
+sdb      8:16   0   60G  0 disk 
+├─sdb1   8:17   0   16G  0 part /
+├─sdb2   8:18   0    1K  0 part 
+└─sdb5   8:21   0    4G  0 part [SWAP]
+sr0     11:0    1 1024M  0 rom  
+root@ubuntu-16:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;但这多出的40G，如何分配给根/分区么？&lt;/p&gt;
+
+&lt;h1 id=&quot;环境准备&quot;&gt;环境准备&lt;/h1&gt;
+
+&lt;p&gt;为此，准备了一个测试环境，进行/分区扩容验证。&lt;/p&gt;
+
+&lt;p&gt;安装Ubuntu16.04，系统分区是60G的容量：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   60G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+├─sda2   8:2    0    1K  0 part 
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1 1024M  0 rom  
+root@ubuntu16:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;成功安装后，关机，通过VMware vSphere Client扩大vdisk空间，从60G扩大到80G：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+├─sda2   8:2    0    1K  0 part 
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1  873M  0 rom  
+root@ubuntu16:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;并在根目录下，创建了一个文件，计算md5值：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:/# echo 'check' &amp;gt; test.txt 
+root@ubuntu16:/# md5sum test.txt 
+5e9b13ce8f6c99f3f510756be58d15fe  test.txt
+root@ubuntu16:/# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;安装gparted&quot;&gt;安装gparted&lt;/h1&gt;
+
+&lt;p&gt;因为要使用gparted来进行根分区的扩容，需要安装gparted；如果已经安装了，忽略此步骤。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;apt-get install gparted&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;如果后面使用XManager还有问题，可以在此ubuntu节点上安装如下一个工具：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;apt install x11-xserver-utils&lt;/code&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;通过xmanager访问此节点&quot;&gt;通过XManager访问此节点&lt;/h1&gt;
+
+&lt;p&gt;!!!说明!!!：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;因为本文一开始是摸索着来解决扩容问题，走了一个弯路，即通过XManager来展示gparted界面，尝试扩展分区，但是失败了，此路不通。本文记录了这个操作，证实在正在运行的系统里直接运行gparted是没法扩展分区的，正确的开始步骤，请从“借助gparted live ISO进行修改”开始(正确的步骤里，用不到XManager工具，即不需要安装它;走弯路的步骤才需要安装它)！！&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;需要找一台Windows安装XManager，非本文重点，忽略。&lt;/p&gt;
+
+&lt;h2 id=&quot;xmanager上创建一个xstart&quot;&gt;XManager上创建一个XStart&lt;/h2&gt;
+
+&lt;p&gt;新建一个XStart，输入此节点的IP地址、root账号和密码，以及需要执行的命令（gparted），保存即可。之后点击这个新建的XStart，会出现有一个auth文件没有，关掉后重新打开这个XStart再次登录即可。&lt;/p&gt;
+
+&lt;p&gt;如果直接在终端执行gparted命令时，会出现如下错误：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:/# gparted
+
+(gpartedbin:2462): Gtk-WARNING **: cannot open display:
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;查看进入gparted界面效果&quot;&gt;查看进入gparted界面效果&lt;/h2&gt;
+
+&lt;p&gt;成功通过XStart进入可视化界面后，会看到已经使用的空间都带有锁标记，如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/gparted_lock.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这时是不能对分区进行操作的，网上有人说需要先卸载（unmount）或者停止（swapoff），然后才能进行Resize操作。&lt;/p&gt;
+
+&lt;h3 id=&quot;尝试swapoff&quot;&gt;尝试swapoff&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:/# swapoff -a
+root@ubuntu16:/# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+└─sda5   8:5    0  975M  0 part 
+sr0     11:0    1  873M  0 rom  
+root@ubuntu16:/# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;上面显示已经swapoff了，此时重新进入gparted界面，显示如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/swapoff_root_lock.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;尝试对根分区进行容量扩展，发现没法扩展；尝试先umount，发现也没法umount掉这个根分区，因为会显示为Busy（其实想想，如果umount掉了，系统都没法使用了吧，更不用谈当前gparted操作了），从这里，基本上把swapoff和umount两条路给堵死了，说明行不通。&lt;/p&gt;
+
+&lt;p&gt;还有人说用制作Ubuntu启动U盘试用模式下进行的，不过我的环境是虚机，就没尝试这个方法。&lt;/p&gt;
+
+&lt;p&gt;先还原环境吧，swapon回来；&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:/# swapon -a
+root@ubuntu16:/# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   59G  0 part /
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1  873M  0 rom  
+root@ubuntu16:/# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;借助gparted-live-iso进行修改&quot;&gt;借助gparted live ISO进行修改&lt;/h2&gt;
+
+&lt;p&gt;上面的尝试，说明了gparted可以调整分区大小，且支持无损，但是对于/根目录的分区无法调整，但是它提供ISO工具，可以启动后进行调整。&lt;/p&gt;
+
+&lt;p&gt;下载了一个gparted-live-0.29.0-1-amd64.iso，下载链接：&lt;/p&gt;
+
+&lt;p&gt;链接：https://pan.baidu.com/s/1I_JWP7-HKHfNM44mlt6Vow 提取码：moq4&lt;/p&gt;
+
+&lt;h3 id=&quot;修改vm启动顺序&quot;&gt;修改VM启动顺序&lt;/h3&gt;
+
+&lt;p&gt;在将gparted-live-0.29.0-1-amd64.iso作为VM “CD/DVD设备”条件下，重新启动VM，进入BIOS界面，设置操作如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/vm_set_BIOS.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;进入Boot页面，使用“-/+”按钮，将“CD-ROM Driver”设置为第一启动顺序，保存后退出，如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/change-boot-order.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;使用-gparted-live-安装介质启动你的系统&quot;&gt;使用 GParted Live 安装介质启动你的系统&lt;/h3&gt;
+
+&lt;p&gt;VM重新开机后，会弹出如下界面：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/boot-gparted.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;这里选择 “GParted Live (Default settings)” ，并敲击回车按键。&lt;/p&gt;
+
+&lt;h3 id=&quot;键盘选择&quot;&gt;键盘选择&lt;/h3&gt;
+
+&lt;p&gt;默认情况下，它选择第二个选项，按下回车即可。&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/package_configuration.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;语言选择&quot;&gt;语言选择&lt;/h3&gt;
+
+&lt;p&gt;默认情况下，它选择 “33” 美国英语，按下回车即可。&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/language_set.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;模式选择图形用户界面或命令行&quot;&gt;模式选择（图形用户界面或命令行)&lt;/h3&gt;
+
+&lt;p&gt;默认情况下，它选择 “0” 图形用户界面模式，按下回车即可。&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/mode_select.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;加载-gparted-live-屏幕&quot;&gt;加载 GParted Live 屏幕&lt;/h3&gt;
+
+&lt;p&gt;现在，GParted Live 屏幕已经加载，它显示我以前创建的分区列表:&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/gparted_show_all_partitions.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;删除系统磁盘非根分区&quot;&gt;删除系统磁盘非根分区&lt;/h3&gt;
+
+&lt;p&gt;这里系统磁盘对应分区是sda，下面有swap分区（sda2， sda5），需要删除sda2和sda5，因为只有连续的分区才能合并（未分配的分区中间间隔着sda2和sda5）。&lt;/p&gt;
+
+&lt;h3 id=&quot;合并分区&quot;&gt;合并分区&lt;/h3&gt;
+
+&lt;p&gt;选择根分区，点击“Resize/Move”，将20G空闲空间合并到sda1分区。&lt;/p&gt;
+
+&lt;h3 id=&quot;重新创建swap分区并格式化为linux-swap&quot;&gt;重新创建swap分区，并格式化为linux-swap&lt;/h3&gt;
+
+&lt;p&gt;这里新建一个分区，文件系统选择linux-swap，并格式化为swap分区&lt;/p&gt;
+
+&lt;h3 id=&quot;生效设置&quot;&gt;生效设置&lt;/h3&gt;
+
+&lt;p&gt;进行了上面的操作后，点击“Apply”等待生效，gparted处理过程如下图所示：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/gparted_apply.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;成功后，会在界面上显示”complete“字样&lt;/p&gt;
+
+&lt;p&gt;然后VM断连GParted Live 安装介质，重启启动VM，VM在启动过程中会出现如下信息(稍微等待一点时间即可，无需人工干预)：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/vm_start_status.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;效果确认&quot;&gt;效果确认&lt;/h3&gt;
+
+&lt;p&gt;最终效果如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ubuntu16:~# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk 
+sda      8:0    0   80G  0 disk 
+├─sda1   8:1    0   79G  0 part /
+└─sda2   8:2    0    1G  0 part 
+sr0     11:0    1 1024M  0 rom  
+root@ubuntu16:~# 
+root@ubuntu16:/# cat test.txt 
+check
+root@ubuntu16:/# md5sum test.txt 
+5e9b13ce8f6c99f3f510756be58d15fe  test.txt
+root@ubuntu16:/# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;文件md5值，在扩容前后一样.&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">前言</summary></entry><entry><title type="html">获取SSD寿命</title><link href="http://172.17.73.80:4000/2020/01/22/get-ssd-life-span/" rel="alternate" type="text/html" title="获取SSD寿命" /><published>2020-01-22T00:00:00+08:00</published><updated>2020-01-22T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/01/22/get-ssd-life-span</id><content type="html" xml:base="http://172.17.73.80:4000/2020/01/22/get-ssd-life-span/">&lt;h1 id=&quot;前言&quot;&gt;前言&lt;/h1&gt;
 
 &lt;p&gt;SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。&lt;/p&gt;
 
@@ -4849,104 +5139,4 @@ root@fireware:~#
 
 &lt;p&gt;命令如下：&lt;/p&gt;
 
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;echo &quot;b&quot; &amp;gt; /proc/sysrq-trigger&lt;/code&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">nose测试用例编写规则基本要求</title><link href="http://172.17.73.80:4000/2019/11/21/write-nose-test-case-role/" rel="alternate" type="text/html" title="nose测试用例编写规则基本要求" /><published>2019-11-21T00:00:00+08:00</published><updated>2019-11-21T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/11/21/write-nose-test-case-role</id><content type="html" xml:base="http://172.17.73.80:4000/2019/11/21/write-nose-test-case-role/">&lt;h2 id=&quot;用例编写基本规则要求&quot;&gt;&lt;strong&gt;用例编写基本规则要求&lt;/strong&gt;&lt;/h2&gt;
-
-&lt;h3 id=&quot;1test_xxxxpy尽量避免逻辑操作纯粹是function的调用&quot;&gt;1、test_xxxx.py尽量避免逻辑操作，纯粹是function的调用&lt;/h3&gt;
-
-&lt;h3 id=&quot;2测试用例的名称携带上testlink对应测试用例的编号&quot;&gt;2、测试用例的名称，携带上TestLink对应测试用例的编号&lt;/h3&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/test_link_case_no.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;test_9143_same_daemon_different_signal， 对应TestLink的用例为：&lt;/p&gt;
-
-&lt;p&gt;Sc-9143:Same daemon, different signal core file)&lt;/p&gt;
-
-&lt;h3 id=&quot;3测试用例的__doc__不得含有中文字符&quot;&gt;3、测试用例的__doc__，不得含有中文字符&lt;/h3&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;p&gt;​    “”” Sc-9143:Same daemon，different signal core file “””&lt;/p&gt;
-
-&lt;p&gt;这里的逗号，是中文符号，会导致用例报错：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/doc_error.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;4避免测试用例之间存在依赖关系&quot;&gt;4、避免测试用例之间存在依赖关系&lt;/h3&gt;
-
-&lt;p&gt;（1）每个测试suite中的测试用例互相不依赖；&lt;/p&gt;
-
-&lt;p&gt;（2）测试suite中的用例，尽可能避免依赖关系&lt;/p&gt;
-
-&lt;p&gt;如TestLink中上一个用例是创建，下一个用例是删除，则合并这两个用例为一个自动化测试用例。&lt;/p&gt;
-
-&lt;h3 id=&quot;5日志记录对齐要求&quot;&gt;5、日志记录对齐要求&lt;/h3&gt;
-
-&lt;p&gt;日志记录，执行动作的记录，开头增加[Action]；检查动作的记录，开头增加[Check];&lt;/p&gt;
-
-&lt;p&gt;断言记录的log，开头增加[ERROR]； 操作成功的log，开头增加[SUCCESS]； 不需要检查点的，开头增加[Skip]；&lt;/p&gt;
-
-&lt;p&gt;具体要求如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Prepare]&lt;/strong&gt; &lt;strong&gt;后面跟2&lt;/strong&gt;&lt;strong&gt;个空格；&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Action]&lt;/strong&gt; &lt;strong&gt;后面跟3&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Start]&lt;/strong&gt; &lt;strong&gt;后面跟4&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Check]&lt;/strong&gt; &lt;strong&gt;后面跟4&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Success]&lt;/strong&gt; &lt;strong&gt;后面跟2&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Skip]&lt;/strong&gt; &lt;strong&gt;后面跟5&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;debug&lt;/strong&gt;&lt;strong&gt;级别的log&lt;/strong&gt;&lt;strong&gt;，内容前面跟2&lt;/strong&gt;&lt;strong&gt;个-&lt;/strong&gt;&lt;strong&gt;，之后&lt;/strong&gt; &lt;strong&gt;再加2&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;assert&lt;/strong&gt;&lt;strong&gt;中，[ERROR]&lt;/strong&gt; &lt;strong&gt;后面跟2&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;6用例的执行顺序&quot;&gt;6、用例的执行顺序&lt;/h3&gt;
-
-&lt;p&gt;执行 nosetests -s 可看到调用顺序，用例执行顺序，根据ASSII进行排序，在用例有关联情况下，需要对用例名称增加数字编号，人为的干预用例执行顺序，比如test_1_xxx, test_2_yyy。&lt;/p&gt;
-
-&lt;h3 id=&quot;7代码规范要求&quot;&gt;7、代码规范要求&lt;/h3&gt;
-
-&lt;p&gt;执行pylint，确保检查结果分值=10&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pylint -r y testcasebase/Virtual_Storage/vs_user.py --rcfile=./pylintrc
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;MESSAGE_TYPE 有如下几种：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;(C) 惯例。违反了编码风格标准&lt;/li&gt;
-  &lt;li&gt;(R) 重构。写得非常糟糕的代码。&lt;/li&gt;
-  &lt;li&gt;(W) 警告。某些 Python 特定的问题。&lt;/li&gt;
-  &lt;li&gt;(E) 错误。很可能是代码中的错误。&lt;/li&gt;
-  &lt;li&gt;(F) 致命错误。阻止 Pylint 进一步运行的错误&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&quot;8用例文件权限&quot;&gt;8、用例文件权限&lt;/h3&gt;
-
-&lt;p&gt;&lt;strong&gt;统一使用644&lt;/strong&gt;&lt;strong&gt;权限&lt;/strong&gt;，否则默认情况下无法被nosetests search到，自然就不会被执行到，因为nosetesst默认只查找644权限的文件。&lt;/p&gt;
-
-&lt;h3 id=&quot;9避免在class与setup_class之间做比较重的动作&quot;&gt;9、避免在class与setup_class之间做比较重的动作&lt;/h3&gt;
-
-&lt;p&gt;比如下文中的RRS用例 test_remote_replication_tasks.py（下文代码是一个不可取的代码，这里仅做示例用）&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/bad_eg.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在class TestReplicationTask 与setup_class之间，启用了RRS服务、创建了S3账号并创建bucket，最后上传了一些object到bucket中。正常情况下，这部分动作应该是在用例被执行之前要做的，然后会立刻执行setup_class中的动作，接着执行用例，最后teardown。实际上，在run.py 去执行所有测试用例的时候， 在init完所有的class之后（即创建完session后），会先执行所有test_xx.py中定义在class 与 setup_class之间的所有动作， 这也无可厚非，但是，由于约束了用例的执行顺序，case_2_Accounts 会优先于 case_5_Remote_DR被执行，而case_2_Accounts里将其他pool设置为S3 pool的动作，这势必会清理掉在执行run.py init结束后所创建的所有bucket与bucket下的object，到case_5_Remote_DR被执行时，曾经创建的bucket与bucket下的object早已不复存在，自然case_5_Remote_DR下面的相关用例就会失败。&lt;/p&gt;
-
-&lt;p&gt;故而，建议：&lt;/p&gt;
-
-&lt;p&gt;避免在class与setup_class之间做比较重的动作。对于较重的动作，放在setup_class中，好处有2：&lt;/p&gt;
-
-&lt;p&gt;（1）避免被其他class import时做更多、更重的动作&lt;/p&gt;
-
-&lt;p&gt;（2）避免用例suite间前后有依赖关系，给用例排查带来难度&lt;/p&gt;
-
-&lt;h3 id=&quot;10用例文件名称用例中定义变量名称全局唯一&quot;&gt;10、用例文件名称、用例中定义变量名称全局唯一&lt;/h3&gt;
-
-&lt;p&gt;对于测试用例中定义的变量，诸如文件夹名称、子目录名称、名称、名称、名称、名称、用例执行过程中产生的文件的名称等等，要保持全局唯一，即所有用例中不出现同名的文件名、目录名、名等。当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Automation" /><category term="nose" /><summary type="html">用例编写基本规则要求</summary></entry></feed>
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;echo &quot;b&quot; &amp;gt; /proc/sysrq-trigger&lt;/code&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
