@@ -934,7 +934,7 @@ VM 的确被重启了，所有执行用例的进程都不在了：
 
 增加--proces-restartworker 可以避免内存泄露，但 run.py 是有携带这个参数的，没看到效果。目前推测是**失败的用例较多导致**的，也许提高用例的成功率，能够解决这个问题，持续跟踪该问题。
 
-7、apache2 服务异常，导致 ConnectionError，Cannot assign requested address
+## 7、apache2 服务异常，导致 ConnectionError，Cannot assign requested address
 
 <img class="shadow" src="/img/in-post/apache_error.png" width="600">
 
