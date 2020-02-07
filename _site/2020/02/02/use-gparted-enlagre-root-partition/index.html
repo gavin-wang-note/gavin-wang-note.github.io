@@ -373,101 +373,7 @@ root@ubuntu16:/# md5sum test.txt
 root@ubuntu16:/# 
 </pre></td></tr></tbody></table></code></pre></div></div>
 
-<h1 id="安装gparted">安装gparted</h1>
-
-<p>因为要使用gparted来进行根分区的扩容，需要安装gparted；如果已经安装了，忽略此步骤。</p>
-
-<p><code class="highlighter-rouge">apt-get install gparted</code></p>
-
-<p>如果后面使用XManager还有问题，可以在此ubuntu节点上安装如下一个工具：</p>
-
-<p><code class="highlighter-rouge">apt install x11-xserver-utils</code></p>
-
-<h1 id="通过xmanager访问此节点">通过XManager访问此节点</h1>
-
-<p>!!!说明!!!：</p>
-
-<ul>
-  <li>因为本文一开始是摸索着来解决扩容问题，走了一个弯路，即通过XManager来展示gparted界面，尝试扩展分区，但是失败了，此路不通。本文记录了这个操作，证实在正在运行的系统里直接运行gparted是没法扩展根分区的，正确的开始步骤，请从“借助gparted live ISO进行修改”开始(正确的步骤里，用不到XManager工具，即不需要安装它;走弯路的步骤才需要安装它)！！</li>
-</ul>
-
-<p>需要找一台Windows安装XManager，非本文重点，忽略。</p>
-
-<h2 id="xmanager上创建一个xstart">XManager上创建一个XStart</h2>
-
-<p>新建一个XStart，输入此节点的IP地址、root账号和密码，以及需要执行的命令（gparted），保存即可。之后点击这个新建的XStart，会出现有一个auth文件没有，关掉后重新打开这个XStart再次登录即可。</p>
-
-<p>如果直接在终端执行gparted命令时，会出现如下错误：</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# gparted
-
-(gpartedbin:2462): Gtk-WARNING **: cannot open display:
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<h2 id="查看进入gparted界面效果">查看进入gparted界面效果</h2>
-
-<p>成功通过XStart进入可视化界面后，会看到已经使用的空间都带有锁标记，如下图所示：</p>
-
-<p><img class="shadow" src="/img/in-post/gparted_lock.png" width="1200" /></p>
-
-<p>这时是不能对分区进行操作的，网上有人说需要先卸载（unmount）或者停止（swapoff），然后才能进行Resize操作。</p>
-
-<h3 id="尝试swapoff">尝试swapoff</h3>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# swapoff -a
-root@ubuntu16:/# lsblk
-NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-fd0      2:0    1    4K  0 disk 
-sda      8:0    0   80G  0 disk 
-├─sda1   8:1    0   59G  0 part /
-└─sda5   8:5    0  975M  0 part 
-sr0     11:0    1  873M  0 rom  
-root@ubuntu16:/# 
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<p>上面显示已经swapoff了，此时重新进入gparted界面，显示如下：</p>
-
-<p><img class="shadow" src="/img/in-post/swapoff_root_lock.png" width="1200" /></p>
-
-<p>尝试对根分区进行容量扩展，发现没法扩展；尝试先umount，发现也没法umount掉这个根分区，因为会显示为Busy（其实想想，如果umount掉了，系统都没法使用了吧，更不用谈当前gparted操作了），从这里，基本上把swapoff和umount两条路给堵死了，说明行不通。</p>
-
-<p>还有人说用制作Ubuntu启动U盘试用模式下进行的，不过我的环境是虚机，就没尝试这个方法。</p>
-
-<p>先还原环境吧，swapon回来；</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# swapon -a
-root@ubuntu16:/# lsblk
-NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
-fd0      2:0    1    4K  0 disk 
-sda      8:0    0   80G  0 disk 
-├─sda1   8:1    0   59G  0 part /
-└─sda5   8:5    0  975M  0 part [SWAP]
-sr0     11:0    1  873M  0 rom  
-root@ubuntu16:/# 
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<h2 id="借助gparted-live-iso进行修改">借助gparted live ISO进行修改</h2>
+<h1 id="借助gparted-live-iso进行修改">借助gparted live ISO进行修改</h1>
 
 <p>上面的尝试，说明了gparted可以调整分区大小，且支持无损，但是对于/根目录的分区无法调整，但是它提供ISO工具，可以启动后进行调整。</p>
 
@@ -574,6 +480,104 @@ root@ubuntu16:/#
 </pre></td></tr></tbody></table></code></pre></div></div>
 
 <p>文件md5值，在扩容前后一样.</p>
+
+<h1 id="是否还有其他方法">是否还有其他方法？</h1>
+
+<p>网上有人说在OS里安装gparted，直接执行gparted来扩展分区，下文将验证其可行性。</p>
+
+<h2 id="安装gparted">安装gparted</h2>
+
+<p>因为要使用gparted来进行根分区的扩容，需要安装gparted；如果已经安装了，忽略此步骤。</p>
+
+<p><code class="highlighter-rouge">apt-get install gparted</code></p>
+
+<p>如果后面使用XManager还有问题，可以在此ubuntu节点上安装如下一个工具：</p>
+
+<p><code class="highlighter-rouge">apt install x11-xserver-utils</code></p>
+
+<h2 id="通过xmanager访问此节点">通过XManager访问此节点</h2>
+
+<p>需要找一台Windows安装XManager，非本文重点，忽略。</p>
+
+<h3 id="xmanager上创建一个xstart">XManager上创建一个XStart</h3>
+
+<p>新建一个XStart，输入此节点的IP地址、root账号和密码，以及需要执行的命令（gparted），保存即可。之后点击这个新建的XStart，会出现有一个auth文件没有，关掉后重新打开这个XStart再次登录即可。</p>
+
+<p>如果直接在终端执行gparted命令时，会出现如下错误：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# gparted
+
+(gpartedbin:2462): Gtk-WARNING **: cannot open display:
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="查看进入gparted界面效果">查看进入gparted界面效果</h3>
+
+<p>成功通过XStart进入可视化界面后，会看到已经使用的空间都带有锁标记，如下图所示：</p>
+
+<p><img class="shadow" src="/img/in-post/gparted_lock.png" width="1200" /></p>
+
+<p>这时是不能对分区进行操作的，网上有人说需要先卸载（unmount）或者停止（swapoff），然后才能进行Resize操作。</p>
+
+<h4 id="尝试swapoff">尝试swapoff</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# swapoff -a
+root@ubuntu16:/# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk
+sda      8:0    0   80G  0 disk
+├─sda1   8:1    0   59G  0 part /
+└─sda5   8:5    0  975M  0 part
+sr0     11:0    1  873M  0 rom
+root@ubuntu16:/#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>上面显示已经swapoff了，此时重新进入gparted界面，显示如下：</p>
+
+<p><img class="shadow" src="/img/in-post/swapoff_root_lock.png" width="1200" /></p>
+
+<p>尝试对根分区进行容量扩展，发现没法扩展；尝试先umount，发现也没法umount掉这个根分区，因为会显示为Busy（其实想想，如果umount掉了，系统都没法使用了吧，更不用谈当前gparted操作了），从这里，基本上
+把swapoff和umount两条路给堵死了，说明行不通。</p>
+
+<p>还有人说用制作Ubuntu启动U盘试用模式下进行的，不过我的环境是虚机，就没尝试这个方法。</p>
+
+<p>先还原环境吧，swapon回来；</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>root@ubuntu16:/# swapon -a
+root@ubuntu16:/# lsblk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+fd0      2:0    1    4K  0 disk
+sda      8:0    0   80G  0 disk
+├─sda1   8:1    0   59G  0 part /
+└─sda5   8:5    0  975M  0 part [SWAP]
+sr0     11:0    1  873M  0 rom
+root@ubuntu16:/#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="结论">结论</h2>
+
+<p>直接通过gparted，只能对非根分区进行扩容/缩容，如果想对根分区进行扩容/缩容，可以通过gparted live ISO进行。</p>
+
 
 
                 <hr style="visibility: hidden;">
