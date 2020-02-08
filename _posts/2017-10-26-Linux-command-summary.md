@@ -172,6 +172,7 @@ sdl     1
 
 * 0 表示是SSD
 * 1 表示是HDD或者SAS盘
+* 如SSD是在RAID卡上，此方法不适用，需要借助Megacli(e.g:```MegaCli ldpdinfo aall```)来确认
 
 # 查看分区的uuid信息
 
