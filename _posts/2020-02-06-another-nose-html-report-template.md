@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "Nose html report 模块调整"
+title:      "Nose html report 模板调整"
 subtitle:   "Adjust nose html report template"
 date:       2020-02-06
 author:     "Gavin"
@@ -11,7 +11,7 @@ tags:
 
 # 概述
 
-网上找到了nose-html-report的另外一个模块，样式看着还可以，做了一些修改和调整，更契合自己的审美需要，现放出来.
+网上找到了nose-html-report的另外一个模板，样式看着还可以，做了一些修改和调整，更契合自己的审美需要，现放出来.
 
 如果要使用，可以放在nose-html-report的安装包里，或者安装好nose-html-report后，替换掉：
 
