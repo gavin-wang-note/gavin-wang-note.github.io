@@ -2382,6 +2382,159 @@ if __name__ == "__main__":
 
 # 与Jenkins结合
 
-非本文重点，此处省略，直接上一张Jenkins运行后产生从Allure报告图吧:
+非本文重点，此处省略。
 
-<img class="shadow" src="/img/in-post/jenkins_allure.png" width="1200">
+附带脚本
+
+此脚本放在jenkins账号的email-templates目录下:
+
+```
+jenkins@ubuntu-16:~/email-templates$ pwd
+/var/lib/jenkins/email-templates
+jenkins@ubuntu-16:~/email-templates$ ls -l
+total 20
+-rw-rw-r-- 1 jenkins jenkins  5697 Mar 27 16:57 allure-report.groovy
+-rw-rw-r-- 1 jenkins jenkins 10764 Jun 17  2019 email-template.groovy
+jenkins@ubuntu-16:~/email-templates$
+```
+
+allure-report.groovy文件内容如下：
+
+```
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<style type="text/css">
+/*base css*/
+    body
+    {
+      margin: 0px;
+      padding: 15px;
+    }
+
+    body, td, th
+    {
+      font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Tahoma, sans-serif;
+      font-size: 10pt;
+    }
+
+    th
+    {
+      text-align: left;
+    }
+
+    h1
+    {
+      margin-top: 0px;
+    }
+    a
+    {
+      color:#4a72af
+    }
+/*div styles*/
+
+.status{background-color:<%= 
+            build.result.toString() == "SUCCESS" ? 'green' : 'red' %>;font-size:28px;font-weight:bold;color:white;width:720px;height:52px;margin-bottom:18px;text-align:center;vertical-align:middle;border-collapse:collapse;background-repeat:no-repeat}
+.status .info{color:white!important;text-shadow:0 -1px 0 rgba(0,0,0,0.3);font-size:32px;line-height:36px;padding:8px 0}
+</style>
+<body>
+<div class="content round_border">
+                <div class="status">
+                        <p class="info">pytest automation build <%= build.result.toString().toLowerCase() %></p>
+                </div>
+                <!-- status -->
+                        <table>
+                                <tbody>
+                                        <tr>
+                                                <th>Project:</th>
+                                                <td>${project.name}</td>
+                                        </tr>
+                                        <tr>
+                                                <th>Build ${build.displayName}:</th>
+                                                <td><a
+                                                        href="${rooturl}${build.url}">${rooturl}${build.url}</a></td>
+                                        </tr>
+                                        <tr>
+                                                <th>Product Version:</th>
+                                                <td><%=build.environment['PRODUCT_VERSION']%></td>
+                                        </tr>
+                                        <tr>
+                                                <th>Date of build:</th>
+                                                <td>${it.timestampString}</td>
+                                        </tr>
+                                        <tr>
+                                                <th>Build duration:</th>
+                                                <td>${build.durationString}</td>
+                                        </tr>
+                                        <tr>
+                                                <td colspan="2">&nbsp;</td>
+                                        </tr>
+                                </tbody>
+
+                        </table>
+                <!-- main -->
+        <% def artifacts = build.artifacts
+            if(artifacts != null && artifacts.size() > 0) { %>
+
+                        <b>Build Artifacts:</b>
+                        <ul>
+            <%          artifacts.each() { f -> %>
+                <li><a href="${rooturl}${build.url}artifact/${f}">${f}</a></li>
+            <%          } %>
+                        </ul>
+        <% } %>
+  <!-- artifacts -->
+
+<% 
+  lastAllureReportBuildAction = build.getAction(ru.yandex.qatools.allure.jenkins.AllureReportBuildAction.class)
+  lastAllureBuildAction = build.getAction(ru.yandex.qatools.allure.jenkins.AllureBuildAction.class)
+
+  if (lastAllureReportBuildAction) {
+    allureResultsUrl = "${rooturl}${build.url}allure"
+    allureLastBuildSuccessRate = String.format("%.2f", lastAllureReportBuildAction.getPassedCount() * 100f / lastAllureReportBuildAction.getTotalCount())
+  }
+%>
+<% if (lastAllureReportBuildAction) { %>
+<h2>Allure Results</h2>
+<table>
+            <tbody>
+                        <tr>
+                            <th>Total Allure tests run:</th>
+                            <td><a href="${allureResultsUrl}">${lastAllureReportBuildAction.getTotalCount()}</a></td>
+                        </tr>
+                        <tr>
+                            <th><span style="color: #000000; background-color: #ffff00;">Failed:</span></th>
+                            <td><span style="color: #000000; background-color: #ffff00;">${lastAllureReportBuildAction.getFailedCount()} </span></td>
+                        </tr>
+                        <tr>
+                            <th><span style="color: #000000; background-color: #008000;">Passed:</span></th>
+                            <td><span style="color: #000000; background-color: #008000;">${lastAllureReportBuildAction.getPassedCount()} </span></td>
+                        </tr>
+                        <tr>
+                            <th><span style="color: #000000; background-color: #3366ff;">Skipped:</span></th>
+                            <td><span style="color: #000000; background-color: #3366ff;">${lastAllureReportBuildAction.getSkipCount()} </span></td>
+                        </tr>
+                        <tr>
+                            <th><span style="color: #000000; background-color: #ff0000;">Broken:</span></th>
+                            <td><span style="color: #000000; background-color: #ff0000;">${lastAllureReportBuildAction.getBrokenCount()} </span></td>
+                        </tr>
+                        <tr>
+                            <th>Success rate: </th>
+                            <td>${allureLastBuildSuccessRate}%  </td>
+                        </tr>
+
+            </tbody>
+</table>
+<img lazymap="${allureResultsUrl}/graphMap" src="${allureResultsUrl}/graph" alt="Allure results trend"/>
+<% } %>                  
+  <!-- content -->
+  <!-- bottom message -->
+</body>
+```
+
+说明：
+    脚本内容中有一个PRODUCT_VERSION变量，通过‘Inject environment vairables’来定义。
+<img class="shadow" src="/img/in-post/env_variables.png" width="800">
+
+上一张Jenkins运行后发email报告图吧:
+
+<img class="shadow" src="/img/in-post/jenkins_allure.png" width="800">
+
