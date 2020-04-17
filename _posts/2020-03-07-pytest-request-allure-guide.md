@@ -2532,7 +2532,8 @@ allure-report.groovy文件内容如下：
 
 说明：
     脚本内容中有一个PRODUCT_VERSION变量，通过‘Inject environment vairables’来定义。
-<img class="shadow" src="/img/in-post/env_variables.png" width="800">
+
+<img class="shadow" src="/img/in-post/inject_env_variables.png" width="800">
 
 上一张Jenkins运行后发email报告图吧:
 
