@@ -11,26 +11,26 @@
     <meta name="theme-color" content="#000000">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="Oracle案例--错误码之ORA-21561 - Gavin的博客 | Gavin Blog">
+    <meta property="og:title" content="更改pip&easy_install默认安装源 - Gavin的博客 | Gavin Blog">
     
     <meta property="og:type" content="article">
-    <meta property="og:description" content="ORA-21561  OID generation failed 案例
+    <meta property="og:description" content="概述
 ">
     
-    <meta property="article:published_time" content="2011-11-07T00:00:00Z">
+    <meta property="article:published_time" content="2020-05-05T00:00:00Z">
     
     
     <meta property="article:author" content="Gavin">
     
     
-    <meta property="article:tag" content="oracle">
+    <meta property="article:tag" content="JBOD">
     
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/2011/11/07/oracle-troubleshoot-ORA-21561/">
+    <meta property="og:url" content="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
-    <title>Oracle案例--错误码之ORA-21561 - Gavin的博客 | Gavin Blog</title>
+    <title>更改pip&easy_install默认安装源 - Gavin的博客 | Gavin Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -39,7 +39,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/2011/11/07/oracle-troubleshoot-ORA-21561/">
+    <link rel="canonical" href="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -251,13 +251,13 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/archive/?tag=oracle" title="oracle">oracle</a>
+                        <a class="tag" href="/archive/?tag=JBOD" title="JBOD">JBOD</a>
                         
                     </div>
-                    <h1>Oracle案例--错误码之ORA-21561</h1>
+                    <h1>更改pip&easy_install默认安装源</h1>
                     
-                    <h2 class="subheading">Oracle error code troubleshoot--ORA-21561</h2>
-                    <span class="meta">Posted by Gavin on November 7, 2011</span>
+                    <h2 class="subheading">Change pip&easy_install installation source</h2>
+                    <span class="meta">Posted by Gavin on May 5, 2020</span>
                 </div>
             </div>
         </div>
@@ -283,34 +283,251 @@
                 <!-- Multi-Lingual -->
                 
 
-				<h1 id="ora-21561--oid-generation-failed-案例">ORA-21561  OID generation failed 案例</h1>
+				<h1 id="概述">概述</h1>
 
-<h2 id="问题">问题</h2>
+<p>pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介绍如何解决这些问题。</p>
 
-<p>AIX平台，创建oracle数据库实例时，报ORA-21561 OID创建失败</p>
+<p>说明：</p>
 
-<h2 id="解决">解决</h2>
+<ul>
+  <li>本文以Ubuntu OS为例进行文档描述。</li>
+</ul>
 
-<p>修改/etc/hosts文件，添加本机IP与机器名。</p>
+<h1 id="pip-与easy_install">pip 与easy_install</h1>
+
+<p>这两个都是Python的包管理工具，简单来说pip是easy_install的升级版，推荐优先使用pip。</p>
+
+<p>如果python通过源码setup.py文件进行安装，如python setup.py install xxx，那么其安装所依赖包的下载镜像源的配置文件为easy_install的配置，所以即便修改了pip的下载镜像配置文件(e.g:~/.pip/pip.conf)是没有效果的，要修改~/.pydistutils.cfg才能起作用，具体方式在下文说明。</p>
+
+<h1 id="国内安装源">国内安装源</h1>
+
+<h2 id="安装源列表">安装源列表</h2>
+
+<ul>
+  <li>阿里：https://mirrors.aliyun.com/pypi/simple</li>
+  <li>豆瓣：http://pypi.douban.com/simple/</li>
+  <li>清华大学：https://pypi.tuna.tsinghua.edu.cn/simple</li>
+  <li>中国科学技术大学： https://pypi.mirrors.ustc.edu.cn/simple</li>
+  <li>华中理工大学： http://pypi.hustunique.com/simple</li>
+  <li>山东理工大学： http://pypi.sdutlinux.org/simple</li>
+</ul>
+
+<h2 id="测速">测速</h2>
+
+<p>阿里:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>root@pytest-70-97:~# ping -c 3 aliyun.com
+PING aliyun.com (140.205.60.46) 56(84) bytes of data.
+64 bytes from 140.205.60.46: icmp_seq=1 ttl=44 time=9.64 ms
+64 bytes from 140.205.60.46: icmp_seq=2 ttl=44 time=8.91 ms
+64 bytes from 140.205.60.46: icmp_seq=3 ttl=44 time=9.25 ms
+
+--- aliyun.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 8.917/9.272/9.647/0.318 ms
+root@pytest-70-97:~#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>豆瓣:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>root@pytest-70-97:~# ping -c 3 douban.com
+PING douban.com (154.8.131.171) 56(84) bytes of data.
+64 bytes from 154.8.131.171: icmp_seq=1 ttl=49 time=25.7 ms
+64 bytes from 154.8.131.171: icmp_seq=2 ttl=49 time=26.3 ms
+64 bytes from 154.8.131.171: icmp_seq=3 ttl=49 time=25.8 ms
+
+--- douban.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 25.784/25.981/26.344/0.256 ms
+root@pytest-70-97:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>清华大学:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>root@pytest-70-97:~# ping -c 3 tuna.tsinghua.edu.cn
+PING tuna.tsinghua.edu.cn (101.6.6.172) 56(84) bytes of data.
+64 bytes from 101.6.6.172: icmp_seq=1 ttl=47 time=33.8 ms
+64 bytes from 101.6.6.172: icmp_seq=2 ttl=47 time=31.3 ms
+64 bytes from 101.6.6.172: icmp_seq=3 ttl=47 time=31.4 ms
+
+--- tuna.tsinghua.edu.cn ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 11045ms
+rtt min/avg/max/mdev = 31.311/32.210/33.874/1.195 ms
+root@pytest-70-97:~# 
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>中国科学技术大学:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>root@pytest-70-97:~# ping -c 3 ustc.edu.cn
+PING ustc.edu.cn (202.38.64.246) 56(84) bytes of data.
+64 bytes from 202.38.64.246: icmp_seq=1 ttl=49 time=16.6 ms
+64 bytes from 202.38.64.246: icmp_seq=2 ttl=49 time=16.2 ms
+64 bytes from 202.38.64.246: icmp_seq=3 ttl=49 time=16.5 ms
+
+--- ustc.edu.cn ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 11025ms
+rtt min/avg/max/mdev = 16.204/16.465/16.602/0.212 ms
+root@pytest-70-97:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>华中理工大学:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>root@pytest-70-97:~# ping -c 3 hustunique.com
+PING hustunique.com (129.211.140.244) 56(84) bytes of data.
+64 bytes from 129.211.140.244: icmp_seq=1 ttl=53 time=10.4 ms
+64 bytes from 129.211.140.244: icmp_seq=2 ttl=53 time=10.1 ms
+64 bytes from 129.211.140.244: icmp_seq=3 ttl=53 time=10.3 ms
+
+--- hustunique.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 11022ms
+rtt min/avg/max/mdev = 10.182/10.323/10.415/0.131 ms
+root@pytest-70-97:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>山东理工大学:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>root@pytest-70-97:~# ping -c 3 sdutlinux.org
+PING sdutlinux.org (170.178.168.203) 56(84) bytes of data.
+64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=1 ttl=51 time=182 ms
+64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=2 ttl=51 time=181 ms
+64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=3 ttl=51 time=182 ms
+
+--- sdutlinux.org ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 181.990/182.156/182.343/0.144 ms
+root@pytest-70-97:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>从ping效果上看，还是阿里更快一些，故而本文以阿里pip源为示例进行讲述。</p>
+
+<h1 id="修改pip默认安装源">修改pip默认安装源</h1>
+
+<h2 id="方法1-配置方式修改永久有效">方法1 配置方式修改（永久有效）</h2>
+
+<p>创建或修改pip.conf文件，如果文件或目录不存在，创建之</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>cd ~
+mkdir .pip
+cd .pip
+vi pip.conf
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>添加如下内容：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>[global]
+index-url=http://mirrors.aliyun.com/pypi/simple/
+
+[install]
+trusted-host=mirrors.aliyun.com
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="方法2-命令方式临时修改">方法2 命令方式临时修改</h2>
+
+<p><code class="highlighter-rouge">pip install -i https://mirrors.aliyun.com/pypi/simple fabric</code></p>
+
+<h1 id="更改easy_install默认安装源">更改easy_install默认安装源</h1>
+
+<p>这个主要是解决开篇提及到的pip安装有依赖包时没有使用指定的源问题。</p>
+
+<p>打开pydistutils.cfg</p>
+
+<p><code class="highlighter-rouge">vi ~/.pydistutils.cfg</code></p>
+
+<p>写入以下内容</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>[easy_install]
+index_url = https://mirrors.aliyun.com/pypi/simple
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="综述">综述</h1>
+
+<p>只有同时修改了pip 和 easy_install的默认安装源，才能彻底解决pip install时使用指定安装源。</p>
+
 
 
                 <hr style="visibility: hidden;">
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2011/10/08/oracle-troubleshooting-of-listener/" data-toggle="tooltip" data-placement="top" title="Oracle案例之监听">
+                        <a href="/2020/03/07/pytest-request-allure-guide/" data-toggle="tooltip" data-placement="top" title="pytest+request+allure自动化指南">
                         Previous<br>
-                        <span>Oracle案例之监听</span>
+                        <span>pytest+request+allure自动化指南</span>
                         </a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2011/11/20/oracle-modify-LANG/" data-toggle="tooltip" data-placement="top" title="修改oracle字符集(汉字显示为乱码)">
-                        Next<br>
-                        <span>修改oracle字符集(汉字显示为乱码)</span>
-                        </a>
-                    </li>
                     
                 </ul>
                 <hr style="visibility: hidden;">
@@ -479,8 +696,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "Gavin";
-    var disqus_identifier = "/2011/11/07/oracle-troubleshoot--ORA-21561";
-    var disqus_url = "http://172.17.73.80:4000/2011/11/07/oracle-troubleshoot-ORA-21561/";
+    var disqus_identifier = "/2020/05/05/change-pip-install-source";
+    var disqus_url = "http://172.17.73.80:4000/2020/05/05/change-pip-install-source/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

@@ -1,4 +1,235 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-04-17T18:31:06+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">pytest+request+allure自动化指南</title><link href="http://172.17.73.80:4000/2020/03/07/pytest-request-allure-guide/" rel="alternate" type="text/html" title="pytest+request+allure自动化指南" /><published>2020-03-07T00:00:00+08:00</published><updated>2020-03-07T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/03/07/pytest-request-allure-guide</id><content type="html" xml:base="http://172.17.73.80:4000/2020/03/07/pytest-request-allure-guide/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-05-05T20:14:41+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">更改pip&amp;amp;easy_install默认安装源</title><link href="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/" rel="alternate" type="text/html" title="更改pip&amp;easy_install默认安装源" /><published>2020-05-05T00:00:00+08:00</published><updated>2020-05-05T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/05/change-pip-install-source</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介绍如何解决这些问题。&lt;/p&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;本文以Ubuntu OS为例进行文档描述。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;pip-与easy_install&quot;&gt;pip 与easy_install&lt;/h1&gt;
+
+&lt;p&gt;这两个都是Python的包管理工具，简单来说pip是easy_install的升级版，推荐优先使用pip。&lt;/p&gt;
+
+&lt;p&gt;如果python通过源码setup.py文件进行安装，如python setup.py install xxx，那么其安装所依赖包的下载镜像源的配置文件为easy_install的配置，所以即便修改了pip的下载镜像配置文件(e.g:~/.pip/pip.conf)是没有效果的，要修改~/.pydistutils.cfg才能起作用，具体方式在下文说明。&lt;/p&gt;
+
+&lt;h1 id=&quot;国内安装源&quot;&gt;国内安装源&lt;/h1&gt;
+
+&lt;h2 id=&quot;安装源列表&quot;&gt;安装源列表&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;阿里：https://mirrors.aliyun.com/pypi/simple&lt;/li&gt;
+  &lt;li&gt;豆瓣：http://pypi.douban.com/simple/&lt;/li&gt;
+  &lt;li&gt;清华大学：https://pypi.tuna.tsinghua.edu.cn/simple&lt;/li&gt;
+  &lt;li&gt;中国科学技术大学： https://pypi.mirrors.ustc.edu.cn/simple&lt;/li&gt;
+  &lt;li&gt;华中理工大学： http://pypi.hustunique.com/simple&lt;/li&gt;
+  &lt;li&gt;山东理工大学： http://pypi.sdutlinux.org/simple&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;测速&quot;&gt;测速&lt;/h2&gt;
+
+&lt;p&gt;阿里:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@pytest-70-97:~# ping -c 3 aliyun.com
+PING aliyun.com (140.205.60.46) 56(84) bytes of data.
+64 bytes from 140.205.60.46: icmp_seq=1 ttl=44 time=9.64 ms
+64 bytes from 140.205.60.46: icmp_seq=2 ttl=44 time=8.91 ms
+64 bytes from 140.205.60.46: icmp_seq=3 ttl=44 time=9.25 ms
+
+--- aliyun.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 8.917/9.272/9.647/0.318 ms
+root@pytest-70-97:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;豆瓣:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@pytest-70-97:~# ping -c 3 douban.com
+PING douban.com (154.8.131.171) 56(84) bytes of data.
+64 bytes from 154.8.131.171: icmp_seq=1 ttl=49 time=25.7 ms
+64 bytes from 154.8.131.171: icmp_seq=2 ttl=49 time=26.3 ms
+64 bytes from 154.8.131.171: icmp_seq=3 ttl=49 time=25.8 ms
+
+--- douban.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 25.784/25.981/26.344/0.256 ms
+root@pytest-70-97:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;清华大学:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@pytest-70-97:~# ping -c 3 tuna.tsinghua.edu.cn
+PING tuna.tsinghua.edu.cn (101.6.6.172) 56(84) bytes of data.
+64 bytes from 101.6.6.172: icmp_seq=1 ttl=47 time=33.8 ms
+64 bytes from 101.6.6.172: icmp_seq=2 ttl=47 time=31.3 ms
+64 bytes from 101.6.6.172: icmp_seq=3 ttl=47 time=31.4 ms
+
+--- tuna.tsinghua.edu.cn ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 11045ms
+rtt min/avg/max/mdev = 31.311/32.210/33.874/1.195 ms
+root@pytest-70-97:~# 
+
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;中国科学技术大学:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@pytest-70-97:~# ping -c 3 ustc.edu.cn
+PING ustc.edu.cn (202.38.64.246) 56(84) bytes of data.
+64 bytes from 202.38.64.246: icmp_seq=1 ttl=49 time=16.6 ms
+64 bytes from 202.38.64.246: icmp_seq=2 ttl=49 time=16.2 ms
+64 bytes from 202.38.64.246: icmp_seq=3 ttl=49 time=16.5 ms
+
+--- ustc.edu.cn ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 11025ms
+rtt min/avg/max/mdev = 16.204/16.465/16.602/0.212 ms
+root@pytest-70-97:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;华中理工大学:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@pytest-70-97:~# ping -c 3 hustunique.com
+PING hustunique.com (129.211.140.244) 56(84) bytes of data.
+64 bytes from 129.211.140.244: icmp_seq=1 ttl=53 time=10.4 ms
+64 bytes from 129.211.140.244: icmp_seq=2 ttl=53 time=10.1 ms
+64 bytes from 129.211.140.244: icmp_seq=3 ttl=53 time=10.3 ms
+
+--- hustunique.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 11022ms
+rtt min/avg/max/mdev = 10.182/10.323/10.415/0.131 ms
+root@pytest-70-97:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;山东理工大学:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@pytest-70-97:~# ping -c 3 sdutlinux.org
+PING sdutlinux.org (170.178.168.203) 56(84) bytes of data.
+64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=1 ttl=51 time=182 ms
+64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=2 ttl=51 time=181 ms
+64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=3 ttl=51 time=182 ms
+
+--- sdutlinux.org ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2002ms
+rtt min/avg/max/mdev = 181.990/182.156/182.343/0.144 ms
+root@pytest-70-97:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;从ping效果上看，还是阿里更快一些，故而本文以阿里pip源为示例进行讲述。&lt;/p&gt;
+
+&lt;h1 id=&quot;修改pip默认安装源&quot;&gt;修改pip默认安装源&lt;/h1&gt;
+
+&lt;h2 id=&quot;方法1-配置方式修改永久有效&quot;&gt;方法1 配置方式修改（永久有效）&lt;/h2&gt;
+
+&lt;p&gt;创建或修改pip.conf文件，如果文件或目录不存在，创建之&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;cd ~
+mkdir .pip
+cd .pip
+vi pip.conf
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;添加如下内容：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[global]
+index-url=http://mirrors.aliyun.com/pypi/simple/
+
+[install]
+trusted-host=mirrors.aliyun.com
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;方法2-命令方式临时修改&quot;&gt;方法2 命令方式临时修改&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pip install -i https://mirrors.aliyun.com/pypi/simple fabric&lt;/code&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;更改easy_install默认安装源&quot;&gt;更改easy_install默认安装源&lt;/h1&gt;
+
+&lt;p&gt;这个主要是解决开篇提及到的pip安装有依赖包时没有使用指定的源问题。&lt;/p&gt;
+
+&lt;p&gt;打开pydistutils.cfg&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;vi ~/.pydistutils.cfg&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;写入以下内容&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[easy_install]
+index_url = https://mirrors.aliyun.com/pypi/simple
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;综述&quot;&gt;综述&lt;/h1&gt;
+
+&lt;p&gt;只有同时修改了pip 和 easy_install的默认安装源，才能彻底解决pip install时使用指定安装源。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="JBOD" /><summary type="html">概述</summary></entry><entry><title type="html">pytest+request+allure自动化指南</title><link href="http://172.17.73.80:4000/2020/03/07/pytest-request-allure-guide/" rel="alternate" type="text/html" title="pytest+request+allure自动化指南" /><published>2020-03-07T00:00:00+08:00</published><updated>2020-03-07T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/03/07/pytest-request-allure-guide</id><content type="html" xml:base="http://172.17.73.80:4000/2020/03/07/pytest-request-allure-guide/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;之前一直用nose完成了产品的1000多个自动化用例，再来学习一下pytest。&lt;/p&gt;
 
@@ -515,7 +746,7 @@ log_date_format=%Y-%m-%d %H:%M:%S
 
 &lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/allure_report_show_timestamp.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
 
-&lt;h2 id=&quot;allure-html-report中出现32m0m之类的符号&quot;&gt;Allure html report中出现[[32m、[0m之类的符号&lt;/h2&gt;
+&lt;h2 id=&quot;allure-html-report中出现32m0m之类的符号&quot;&gt;Allure html report中出现[32m、[0m之类的符号&lt;/h2&gt;
 
 &lt;p&gt;如下图所示：&lt;/p&gt;
 
@@ -4479,6 +4710,29 @@ jenkins@ubuntu-16:~/email-templates$
 125
 126
 127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
 &lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;cp&quot;&gt;&amp;lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.1//EN&quot; &quot;http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd&quot;&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;style &lt;/span&gt;&lt;span class=&quot;na&quot;&gt;type=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;text/css&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;c&quot;&gt;/*base css*/&lt;/span&gt;
@@ -4570,6 +4824,12 @@ jenkins@ubuntu-16:~/email-templates$
     &lt;span class=&quot;na&quot;&gt;allureLastBuildSuccessRate = &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;String.format(&quot;%.2f&quot;,&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lastAllureReportBuildAction&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getPassedCount&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;100f&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;/&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lastAllureReportBuildAction&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;getTotalCount&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;())&lt;/span&gt;
   &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt;
 &lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;pylintResultsUrl = &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${rooturl}${build.url}violations&quot;&lt;/span&gt;
+&lt;span class=&quot;na&quot;&gt;coberturaResultsUrl = &lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${rooturl}${build.url}cobertura&quot;&lt;/span&gt;
+&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
+
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;lastAllureReportBuildAction&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;h2&amp;gt;&lt;/span&gt;Allure Results&lt;span class=&quot;nt&quot;&gt;&amp;lt;/h2&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;table&amp;gt;&lt;/span&gt;
@@ -4601,7 +4861,24 @@ jenkins@ubuntu-16:~/email-templates$
 
             &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tbody&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;/table&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;img&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lazymap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${allureResultsUrl}/graphMap&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${allureResultsUrl}/graph&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;alt=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Allure results trend&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/br&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;font&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;size=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;b&amp;gt;&lt;/span&gt;&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&lt;/span&gt;Pylint history trend&lt;span class=&quot;nt&quot;&gt;&amp;lt;/b&amp;gt;&amp;lt;/font&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/br&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;img&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lazymap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${pylintResultsUrl}&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${pylintResultsUrl}/graph&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;alt=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;pylint&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/br&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;font&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;size=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;b&amp;gt;&lt;/span&gt;&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&lt;/span&gt;Code Coverage history trend&lt;span class=&quot;nt&quot;&gt;&amp;lt;/b&amp;gt;&amp;lt;/font&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/br&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;img&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;lazymap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${coberturaResultsUrl}/graphMap&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;src=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${coberturaResultsUrl}/graph&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;/&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;nt&quot;&gt;&amp;lt;/br&amp;gt;&lt;/span&gt;
 &lt;span class=&quot;nt&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;%&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;                  
   &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- content --&amp;gt;&lt;/span&gt;
   &lt;span class=&quot;c&quot;&gt;&amp;lt;!-- bottom message --&amp;gt;&lt;/span&gt;
@@ -4827,7 +5104,7 @@ jenkins@ubuntu-16:~/email-templates$
     &lt;span class=&quot;n&quot;&gt;bucket&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;create_bucket&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bucket_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;c1&quot;&gt;# thread_pool_input_object(max_time)
 &lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;multi_procress_pool_input_object&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;max_time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="JBOD" /><summary type="html">前言</summary></entry><entry><title type="html">Nose html report 模板调整</title><link href="http://172.17.73.80:4000/2020/02/06/another-nose-html-report-template/" rel="alternate" type="text/html" title="Nose html report 模板调整" /><published>2020-02-06T00:00:00+08:00</published><updated>2020-02-06T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/02/06/another-nose-html-report-template</id><content type="html" xml:base="http://172.17.73.80:4000/2020/02/06/another-nose-html-report-template/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Keepalive" /><summary type="html">前言</summary></entry><entry><title type="html">Nose html report 模板调整</title><link href="http://172.17.73.80:4000/2020/02/06/another-nose-html-report-template/" rel="alternate" type="text/html" title="Nose html report 模板调整" /><published>2020-02-06T00:00:00+08:00</published><updated>2020-02-06T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/02/06/another-nose-html-report-template</id><content type="html" xml:base="http://172.17.73.80:4000/2020/02/06/another-nose-html-report-template/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;网上找到了nose-html-report的另外一个模板，样式看着还可以，做了一些修改和调整，更契合自己的审美需要，现放出来.&lt;/p&gt;
 
@@ -7672,2110 +7949,4 @@ Starting Ceph osd.1 on 1.1.1.245...
 starting osd.1 at :/0 osd_data /data/osd.1 /dev/disk/by-partlabel/g-osd2-0-journal
 root@node245:~# 
 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">前言</summary></entry><entry><title type="html">基于Nose Framework做产品自动化</title><link href="http://172.17.73.80:4000/2019/12/31/SEG-team-nose-automation-documentation/" rel="alternate" type="text/html" title="基于Nose Framework做产品自动化" /><published>2019-12-31T00:00:00+08:00</published><updated>2019-12-31T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2019/12/31/SEG-team-nose-automation-documentation</id><content type="html" xml:base="http://172.17.73.80:4000/2019/12/31/SEG-team-nose-automation-documentation/">&lt;h1 id=&quot;前言&quot;&gt;前言&lt;/h1&gt;
-
-&lt;p&gt;自2018-05-01提交第一个commit以来，在不影响正常测试工作release版本情况下，断断续续的持续了1年8个月的自动化开发在今天(2019-12-31)收尾了，总测试用例数为1310个，一路走来深有感慨。。。。。。&lt;/p&gt;
-
-&lt;p&gt;虽然收尾了，但后期版本功能发生变化，或者用例开发过程中有一些bug未考虑到导致用例执行失败的，还是需要对用例进行修改、优化，总之，一个产品自动化的完善，需要一个循序渐进的过程，持之以恒，总会渐变渐好！&lt;/p&gt;
-
-&lt;p&gt;本文记录了在开发产品自动化期间(Base on Ubuntu12.04)，所需要的一些条件、碰到的问题、注意事项等，如果想了解Nose framework的具体使用，请参考Nose官网吧，官网有详细的guide。&lt;/p&gt;
-
-&lt;h1 id=&quot;必要的安装升级修改&quot;&gt;必要的安装/升级/修改&lt;/h1&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;在线安装，所以存储节点要配置 dns server；&lt;/li&gt;
-  &lt;li&gt;本章节的如下操作，无需手动安装，只需要执行 run.py，自动完成本章节的所有安装动作。本章节仅为了记录要安装哪些模块、插件、修改等信息。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;1非产品os-作为客户端需要安装的软件&quot;&gt;1、非产品OS 作为客户端需要安装的软件&lt;/h2&gt;
-
-&lt;p&gt;本章节以 ubuntu 为例，其他类型的 OS，不做考虑，且 OS 并不是我们的产品。&lt;/p&gt;
-
-&lt;p&gt;需要安装 multipath-tools， fio，openssh-server（支持 ssh 指令）， open-iscsi（支持 iscsiadm指令）， NFS  和 CIFS。 上述软件安装指令如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;apt-get install open-iscsi
-apt-get install openssh-server apt-get install multipath-tools apt-get install fio
-apt-get install cifs-utils
-apt-get install nfs-kernel-server
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;如果客户端是官方的Ubuntu，那肯定是没有安装 NFS 和 CIFS 的，mount NFS/CIFS 会出问题：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@nose-ubuntu:/mnt# mount -t nfs 10.16.172.246:/vol/nose_nas /mnt/test mount: wrong fs type, bad option, bad superblock on 10.16.172.246:/vol/nose_nas,
-missing codepage or helper program, or other error (for several filesystems (e.g. nfs, cifs) you might need a /sbin/mount.&amp;lt;type&amp;gt; helper program)
-
-In some cases useful info is found in syslog - try dmesg | tail or so.
-
-
-root@nose-ubuntu:/mnt# mount -t cifs //10.16.172.246/nose_nas_src /mnt/test/ mount: wrong fs type, bad option, bad superblock on //10.16.172.246/nose_nas_src,
-missing codepage or helper program, or other error (for several filesystems (e.g. nfs, cifs) you might
-need a /sbin/mount.&amp;lt;type&amp;gt; helper program)
-
-In some cases useful info is found in syslog - try dmesg | tail or so.
-
-root@nose-ubuntu:/mnt# dmesg | tail
-[  141.523611] device-mapper: multipath: Failing path 65:0. [ 141.638465] device-mapper: multipath: Failing path 65:32. [ 141.638545] device-mapper: multipath: Failing path 65:112. [ 141.687588] device-mapper: multipath: Failing path 65:112. 
-[846862.989111] FS-Cache: Loaded
-[846862.997304] RPC: Registered named UNIX socket transport module. [846862.997307] RPC: Registered udp transport module. [846862.997308] RPC: Registered tcp transport module.
-[846862.997309] RPC: Registered tcp NFSv4.1 backchannel transport module.
-[846863.007999] FS-Cache: Netfs 'nfs' registered for caching
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;所以需要进行安装，成功安装后，内容如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@nose:~# dpkg -l | grep nfs
-ii  libnfs4:amd64                        1.10.0-7.0+854+6b837f908                   amd64        NFS client library (shared library)
-ii  libnfsidmap2:amd64                   0.25-5                                     amd64        NFS idmapping library
-ii  nfs-common                           1:1.2.8-6ubuntu1.2                         amd64        NFS support files common to client and server
-ii  nfs-kernel-server                    1:1.2.8-6ubuntu1.2                         amd64        support for NFS kernel server
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;目前 run.py 有做检查，但不进行安装，具体安装操作，尚需手动执行。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;2安装python-pip&quot;&gt;2、安装python-pip&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;apt-get install python-pip
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;3升级requests模块&quot;&gt;3、升级requests模块&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pip install --upgrade --ignore-installed requests --index-url=https://pypi.python.org/simple
-
-root@44:/var/cache/apt/archives# pip install --upgrade --ignore-installed requests --index-url=https://pypi.python.org/simple
-Downloading/unpacking requests
-  Downloading requests-2.18.4.tar.gz (126Kb): 126Kb downloaded
-  Running setup.py egg_info for package requests
-    
-    warning: no files found matching 'NOTICE'
-Downloading/unpacking chardet&amp;gt;=3.0.2,&amp;lt;3.1.0 (from requests)
-  Downloading chardet-3.0.4.tar.gz (1.9Mb): 1.9Mb downloaded
-  Running setup.py egg_info for package chardet
-    
-    warning: no files found matching 'requirements.txt'
-Downloading/unpacking idna&amp;gt;=2.5,&amp;lt;2.7 (from requests)
-  Downloading idna-2.6.tar.gz (135Kb): 135Kb downloaded
-  Running setup.py egg_info for package idna
-    
-    warning: no previously-included files matching '*.pyc' found under directory 'tools'
-    warning: no previously-included files matching '*.pyc' found under directory 'tests'
-Downloading/unpacking urllib3&amp;gt;=1.21.1,&amp;lt;1.23 (from requests)
-  Downloading urllib3-1.22.tar.gz (226Kb): 226Kb downloaded
-  Running setup.py egg_info for package urllib3
-    
-    warning: no previously-included files matching '*' found under directory 'docs/_build'
-Downloading/unpacking certifi&amp;gt;=2017.4.17 (from requests)
-  Downloading certifi-2018.4.16.tar.gz (149Kb): 149Kb downloaded
-  Running setup.py egg_info for package certifi
-    
-Installing collected packages: requests, chardet, idna, urllib3, certifi
-  Found existing installation: requests 1.2.3
-    Uninstalling requests:
-      Successfully uninstalled requests
-  Running setup.py install for requests
-    
-    warning: no files found matching 'NOTICE'
-  Found existing installation: chardet 2.0.1
-    Uninstalling chardet:
-      Successfully uninstalled chardet
-  Running setup.py install for chardet
-    
-    warning: no files found matching 'requirements.txt'
-    Installing chardetect script to /usr/local/bin
-  Running setup.py install for idna
-    
-    warning: no previously-included files matching '*.pyc' found under directory 'tools'
-    warning: no previously-included files matching '*.pyc' found under directory 'tests'
-  Found existing installation: urllib3 1.6
-    Uninstalling urllib3:
-      Successfully uninstalled urllib3
-  Running setup.py install for urllib3
-    
-    warning: no previously-included files matching '*' found under directory 'docs/_build'
-  Running setup.py install for certifi
-    
-Successfully installed requests chardet idna urllib3 certifi
-Cleaning up...
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;request模块，目前仅有wechat告警有使用到，升级不会对存储节点中python lib带来额外影响。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;4安装configobj模块&quot;&gt;4、安装configobj模块&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pip install configobj
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;5使用html-报告&quot;&gt;5、使用html 报告&lt;/h2&gt;
-
-&lt;p&gt;参考资料: &lt;code class=&quot;highlighter-rouge&quot;&gt;https://pypi.org/project/nose-html-reporting/&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;安装命令：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pip install nose-html-reporting
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;6安装nose&quot;&gt;6、安装nose&lt;/h2&gt;
-
-&lt;p&gt;存储节点系统安装好后自带nose，无需安装、升级。&lt;/p&gt;
-
-&lt;h2 id=&quot;7修改nose_html_reportinginitpy&quot;&gt;7、修改nose_html_reporting/&lt;strong&gt;init&lt;/strong&gt;.py&lt;/h2&gt;
-
-&lt;p&gt;如果不修改，会报如下错误：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/modify_nose_html_report_init.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;解决方法：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;vi /usr/local/lib/python2.7/dist-packages/nose_html_reporting-0.2.3-py2.7.egg/nose_html_reporting/__init__.py&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;修改 &lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/local/lib/python2.7/dist-packages/nose_html_reporting-0.2.3-py2.7.egg/nose_html_reporting目录下__init__.py，&lt;/code&gt;
-将203行 &lt;code class=&quot;highlighter-rouge&quot;&gt;lstrip_blocks=True&lt;/code&gt;注释掉，并删除掉产生的pyc文件。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@44:/home/nose_test/src# cd /usr/local/lib/python2.7/dist-packages/nose_html_reporting/
-root@44:/usr/local/lib/python2.7/dist-packages/nose_html_reporting# rm __init__.pyc
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;修过__init__.py操作无需人工干预，run.py脚本中已经有修过动作。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;8安装nose-testconfig&quot;&gt;8、安装nose-testconfig&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pip install nose-testconfig --index-url=https://pypi.python.org/simple
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;这个模块是nose的插件，用户用例执行时，接受用户指定的自定义循环执行用例的次数，必须安装。&lt;/p&gt;
-
-&lt;h2 id=&quot;9安装关键字高亮plugin&quot;&gt;9、安装关键字高亮plugin&lt;/h2&gt;
-
-&lt;p&gt;参考资料&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;https://gitee.com/walkingnine/colorunit
-https://pypi.org/project/colorama/#files
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;需要安装如下这个包：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;colorama-0.3.9.tar.gz
-walkingnine-colorunit.gz
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;安装上面安装包后，源码有问题，需要修改一些东西，这里是修改好了后，重新打了安装包。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;特别说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;测试用例中不需要添加下列步骤中内容，只要在nosetests执行用例的时候，使用–with-colorunit参数即可。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;import nose; 
-from colorunit import ColorUnit
-  和：
-if __name__ == '__main__':
-    nose.main(addplugins = [ColorUnit()])
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;10用例进度&quot;&gt;10、用例进度&lt;/h2&gt;
-
-&lt;p&gt;参考资料&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;https://github.com/erikrose/blessings
-https://github.com/erikrose/nose-progressive
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;源码要求依赖nose 1.2.x，目前产品Ubuntu 14.04自带nose 版本是1.1.2，所以更改了源码版本要求，并重新打包，无需再次修过，直接安装python_3rd_lib目录下对应安装包即可。&lt;/p&gt;
-
-&lt;h2 id=&quot;11pylint执行报错&quot;&gt;11、pylint执行报错&lt;/h2&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_pylint_error.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;原因:&lt;/p&gt;
-
-&lt;p&gt;未安装pylint， 解决方法：&lt;/p&gt;
-
-&lt;p&gt;进入nose_framework/python_3rd_lib/，解压pylint-1.7.6.tar.gz，进入解压缩目录，重新进行pylint的安装：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;cd pylint-1.7.6
-python setup.py install
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;nose的日常使用&quot;&gt;nose的日常使用&lt;/h1&gt;
-
-&lt;h2 id=&quot;1常用参数介绍&quot;&gt;1、常用参数介绍&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;-v : debug模式，看到具体执行情况，推荐大家执行时用这个选项。
--s : nose会捕获标准输出，调试的print代码默认不会打印。
-   nosetest -s 可打开output输出，否则全部通过时不打印stdout。
-   
--x : 一旦case失败立即停止，不执行后续case
--w : 指定一个目录运行测试。目录可以是相对路径或绝对路径.
---tests : 默认情况下，nosetests会执行所有的测试用例，若想单独只执行一个case，
-       执行nosetest --tests 后跟要测试的文件(nosetests后面直接跟文件名，其实也可以
-       直接运行该case。
---collect-only :  nosetests --collect-only -v，不运行程序，只是搜集并输出各个case的名称。
---processes ： 需要安装插件，--processes=20， 并发执行用例，解决用例总体执行时间
---with-progressive： 需要安装插件，实时展示用例执行进度
---with-colorunit ： 需要安装插件，用例执行结果展示的stdout，以颜色高亮展示
---with-html ： 需要安装插件，且需要和--html-report结合起来使用。这个插件，生成HTML
-             格式的测试报告，该测试报告，是以report2.jinja2作为模板。 如果要指定自
-             定义模板，可以使用--html-report-template参数，示例如下：
---with-colorunit --with-html --html-report=../report/sds.html --html-report-template=/usr/local/lib/python2.7/dist-packages/nose_html_reporting/templates/report2.jinja2
-
---tc : 需要安装插件，指定用例运行次数，目前参数名称写死：runs，示例：--tc=runs:20
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;2工具nosetools的使用&quot;&gt;2、工具nose.tools的使用&lt;/h2&gt;
-
-&lt;h3 id=&quot;打标签&quot;&gt;打标签&lt;/h3&gt;
-
-&lt;p&gt;打标签的好处是，可以执行带有某些特定tag的用例，这里用tag，是借用了RF的概念，示例如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;from nose.plugins.attrib import attr
-@attr('slow')
-def test_big_download():
-    pass
-
-@attr(speed='slow')
-def test_big_download():
-    pass
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;执行的时候，带上 -a参数：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -a '!slow'&lt;/code&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;是否测试&quot;&gt;是否测试&lt;/h3&gt;
-
-&lt;p&gt;测试脚本中引入：&lt;code class=&quot;highlighter-rouge&quot;&gt;from nose.tools import nottest,istest&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;1）不测试的方法：方法名上加修饰器@nottest；&lt;/p&gt;
-
-&lt;p&gt;2）指定为测试方法：方法名上加修饰器@istest（方法名无需符合命名规则）&lt;/p&gt;
-
-&lt;h3 id=&quot;断言&quot;&gt;断言&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&amp;gt;&amp;gt;&amp;gt; from nose import tools
-&amp;gt;&amp;gt;&amp;gt; dir(tools)
-['TimeExpired', '__all__', '__builtins__', '__doc__', '__file__', '__name__', '__package__', '__path__', 'assert_almost_equal', 'assert_almost_equals', 'assert_dict_contains_subset', 'assert_dict_equal', 'assert_equal', 'assert_equals', 'assert_false', 'assert_greater', 'assert_greater_equal', 'assert_in', 'assert_is', 'assert_is_instance', 'assert_is_none', 'assert_is_not', 'assert_is_not_none', 'assert_items_equal', 'assert_less', 'assert_less_equal', 'assert_list_equal', 'assert_multi_line_equal', 'assert_not_almost_equal', 'assert_not_almost_equals', 'assert_not_equal', 'assert_not_equals', 'assert_not_in', 'assert_not_is_instance', 'assert_not_regexp_matches', 'assert_raises', 'assert_raises_regexp', 'assert_regexp_matches', 'assert_sequence_equal', 'assert_set_equal', 'assert_true', 'assert_tuple_equal', 'eq_', 'istest', 'make_decorator', 'nontrivial', 'nontrivial_all', 'nottest', 'ok_', 'raises', 'set_trace', 'timed', 'trivial', 'trivial_all', 'with_setup']
-&amp;gt;&amp;gt;&amp;gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;nose-setupteardown-介绍&quot;&gt;nose setUP/tearDown 介绍&lt;/h1&gt;
-
-&lt;p&gt;nose里面有多种可用的setup和teardown&lt;/p&gt;
-
-&lt;h2 id=&quot;1package级别的&quot;&gt;1、Package级别的&lt;/h2&gt;
-
-&lt;p&gt;写在init.py文件里包装&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;def setup_package():
-    pass
-
-def teardown_package():
-    pass
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;2module级别的&quot;&gt;2、Module级别的&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;def setup_module():
-    pass
-
-def teardown_module():
-    pass
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;3class级别的&quot;&gt;3、Class级别的&lt;/h2&gt;
-
-&lt;p&gt;包装class,所以只执行一次&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@Scaler03:~# cat class_method.py
-class TestClass():
-    @classmethod
-    def setup_class(cls):
-        print &quot;class method setup&quot;
-        
-    @classmethod
-    def teardown_class(cls):
-        print &quot;class method teardown&quot;
-        
-    
-    def test1(self):
-        print &quot;test1&quot;
-
-    def test2(self):
-        print &quot;test2&quot;
-
-    def test3(self):
-        print &quot;test3&quot;
-root@Scaler03:~#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;执行结果&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_eg01.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在nose中，不需要写类，只写函数可能就足够了，所以直接在一个文件中写:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@Scaler03:~# cat nose_method_setup.py
-def setup():
-    print &quot;setup&quot;
-
-def teardown():
-    print &quot;teardown&quot;
-
-def test_xxx():
-    print &quot;this is test xxx&quot;
-
-def test_yyy():
-    print &quot;this is test yyy&quot;
-
-root@Scaler03:~#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;类似的，也是对整个文件而言，效果同上，测试结果如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_eg02.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;4class方法级别&quot;&gt;4、Class方法级别&lt;/h2&gt;
-
-&lt;p&gt;包装每一个test方法，所以每一个test函数的前后都会执行。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node97:/home/nose_framework/src/testcase/Function_Test/case_2_Accounts# cat ../../../testcasebase/Account/wyz.py
-#!/usr/bin/env python
-# -*- coding:UTF-8 -*-
-
-from __future__ import unicode_literals
-
-import logging
-
-
-from common.testcasebase import TestBase
-
-
-class WYZManager(TestBase):
-    &quot;&quot;&quot;  account manager test case base class  &quot;&quot;&quot;
-
-    def __init__(self):
-        super(WYZManager, self).__init__()
-root@node97:/home/nose_framework/src/testcase/Function_Test/case_2_Accounts# cat wyz_test.py
-#!/usr/bin/env python
-
-
-from testcasebase.Account.wyz import WYZManager
-
-
-class TestNose(WYZManager):
-    def setUp(self):
-       print &quot;\nsetup&quot;
-
-    def tearDown(self):
-        print(&quot;teardown&quot;)
-
-    def test_case1(self):
-        &quot;&quot;&quot;  case 1  &quot;&quot;&quot;
-        print(&quot;this is test case 1&quot;)
-
-    def test_case2(self):
-        &quot;&quot;&quot;  case 2  &quot;&quot;&quot;
-        print(&quot;this is test case 2&quot;)
-
-    def test_case3(self):
-        &quot;&quot;&quot;  case 3  &quot;&quot;&quot;
-        print(&quot;this is test case 3&quot;)
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;执行结果：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_eg03.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;从执行结果可以看出，测试类中的setUp 和 tearDown，会在每个测试用例中调用，即每个测试用例执行前，都会执行一次setUp，用例执行结束后，会执行tearDown。&lt;/p&gt;
-
-&lt;h2 id=&quot;5包装某个函数&quot;&gt;5、包装某个函数&lt;/h2&gt;
-
-&lt;p&gt;测试函数也可定义setup和teardown属性，它们将会在测试函数开始和结束的时候运行。还可以使用@with_setup装饰器，该方式尤其适用于在相同的模块中的许多方法需要相同的setup操作&lt;/p&gt;
-
-&lt;p&gt;示例：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@Scaler03:~# cat fun_nose_setup.py
-from nose.tools import with_setup
-
-def setup_func():
-    print &quot;set up test fixtures\n&quot;
- 
-def teardown_func():
-    print &quot;tear down test fixtures\n&quot;
- 
-@with_setup(setup_func, teardown_func)
-def test1():
-    print &quot;test1&quot;
-    
-@with_setup(setup_func, teardown_func)
-def test2():
-    print &quot;test2&quot;
-    
-    
-@with_setup(setup_func, teardown_func)
-def test3():
-    print &quot;test3&quot;    
-root@Scaler03:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;执行结果&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_eg04.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;用例编写规则要求&quot;&gt;用例编写规则要求&lt;/h1&gt;
-
-&lt;p&gt;1、test_xxxx.py尽量避免逻辑操作，纯粹是function的调用&lt;/p&gt;
-
-&lt;p&gt;2、测试用例的名称，建议携带上用例的编号&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/test_link_case_no.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;test_9143_same_daemon_different_signal， 对应TestLink的用例为：&lt;code class=&quot;highlighter-rouge&quot;&gt;Sc-9143:Same daemon, different signal core file&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;3、测试用例的__doc__，不得含有中文字符&lt;/p&gt;
-
-&lt;p&gt;例如：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;&quot;&quot;&quot;  Sc-9143:Same daemon，different signal core file  &quot;&quot;&quot;&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;这里的逗号，是中文符号，会导致用例报错：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/doc_error.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;4、用例__doc__内容，以TestLink中名称为准&lt;/p&gt;
-
-&lt;p&gt;对于SEG自己增加的测试用例，需要以[SEG]开头， 参考如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_case_doc.png&quot; width=&quot;400&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;5、避免测试用例之间存在依赖关系&lt;/p&gt;
-
-&lt;p&gt;（1）每个测试suite中的测试用例互相不依赖；&lt;/p&gt;
-
-&lt;p&gt;（2）测试suite中的用例，尽可能避免依赖关系&lt;/p&gt;
-
-&lt;p&gt;如TestLInke中上一个用例是创建，下一个用例是删除，则合并这两个用例为一个自动化测试用例。&lt;/p&gt;
-
-&lt;p&gt;6、日志记录对齐要求&lt;/p&gt;
-
-&lt;p&gt;执行动作的记录，开头增加[Action]；检查动作的记录，开头增加[Check];&lt;/p&gt;
-
-&lt;p&gt;断言记录的log，开头增加[ERROR]； 操作成功的log，开头增加[SUCCESS]； 不需要检查点的，开头增加[Skip]；&lt;/p&gt;
-
-&lt;p&gt;具体要求如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Prepare]&lt;/strong&gt; &lt;strong&gt;后面跟2&lt;/strong&gt;&lt;strong&gt;个空格；&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Action]&lt;/strong&gt; &lt;strong&gt;后面跟3&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Start]&lt;/strong&gt; &lt;strong&gt;后面跟4&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Check]&lt;/strong&gt; &lt;strong&gt;后面跟4&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Success]&lt;/strong&gt; &lt;strong&gt;后面跟2&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;[Skip]&lt;/strong&gt; &lt;strong&gt;后面跟5&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;debug&lt;/strong&gt;&lt;strong&gt;级别的log&lt;/strong&gt;&lt;strong&gt;，内容前面跟2&lt;/strong&gt;&lt;strong&gt;个-&lt;/strong&gt;&lt;strong&gt;，之后&lt;/strong&gt; &lt;strong&gt;再加2&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;strong&gt;assert&lt;/strong&gt;&lt;strong&gt;中，[ERROR]&lt;/strong&gt; &lt;strong&gt;后面跟2&lt;/strong&gt;&lt;strong&gt;个空格&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;7、用例的执行顺序&lt;/p&gt;
-
-&lt;p&gt;执行 nosetests -s 可看到调用顺序， 用例执行顺序，根据ASSII进行排序，在用例有关联情况下，需要对用例名称增加数字编号，来人为的干预用例执行顺序，比如test_1_xxx, test_2_yyy。&lt;/p&gt;
-
-&lt;p&gt;8、代码规范要求&lt;/p&gt;
-
-&lt;p&gt;执行pylint，确保检查结果分值=10&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pylint -r y testcasebase/Virtual_Storage/vs_user.py --rcfile=./pylintrc&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;MESSAGE_TYPE 有如下几种：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;(C) 惯例。违反了编码风格标准&lt;/li&gt;
-  &lt;li&gt;(R) 重构。写得非常糟糕的代码。&lt;/li&gt;
-  &lt;li&gt;(W) 警告。某些 Python 特定的问题。&lt;/li&gt;
-  &lt;li&gt;(E) 错误。很可能是代码中的错误。&lt;/li&gt;
-  &lt;li&gt;(F) 致命错误。阻止 Pylint 进一步运行的错误&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;9、用例文件权限&lt;/p&gt;
-
-&lt;p&gt;统一使用 644 权限，否则默认情况下无法被 nosetests search 到，自然就不会被执行到，因为 nosetesst 默认只查找 644 权限的文件。&lt;/p&gt;
-
-&lt;p&gt;10、避免在 class 与 setup_class 之间做比较重的动作&lt;/p&gt;
-
-&lt;p&gt;比如下文中的 RRS 用例 test_remote_replication_tasks.py（下文代码是一个不可取的代码， 这里仅做示例用）&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/bad_eg.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在class TestReplicationTask 与setup_class 之间，启用了RRS 服务、创建了S3 账号并创建bucket， 最后上传了一些 object 到 bucket 中。正常情况下，这部分动作应该是在用例被执行之前要做的，然后会立刻执行 setup_class 中的动作，接着执行用例，最后 teardown。实际上，在run.py  去执行所有测试用例的时候， 在 init 完所有的 class 之后（即创建完 session 后），会 先执行所有 test_xx.py 中定义在 class  与 setup_class 之间的所有动作， 这也无可厚非，但是，由于约束了用例的执行顺序，case_2_Accounts 会优先于 case_5_Remote_DR 被执行， 而 case_2_Accounts 里将其他 pool 设置为 S3 pool 的动作，这势必会清理掉在执行 run.py init 结束后所创建的所有 bucket 与 bucket 下的 object，到 case_5_Remote_DR 被执行时，曾经创建的 bucket 与 bucket 下的 object 早已不复存在，自然 case_5_Remote_DR 下面的相关用例就会失败。&lt;/p&gt;
-
-&lt;p&gt;故而，建议：&lt;/p&gt;
-
-&lt;p&gt;避免在 class 与setup_class 之间做比较重的动作。对于较重的动作，放在 setup_class 中， 好处有 2：&lt;/p&gt;
-
-&lt;p&gt;（1）	避免被其他 class import 时做更多、更重的动作&lt;/p&gt;
-
-&lt;p&gt;（2）	避免用例 suite 间前后有依赖关系，给用例排查带来难度&lt;/p&gt;
-
-&lt;p&gt;11、用例文件名称、用例中定义变量名称全局唯一&lt;/p&gt;
-
-&lt;p&gt;对于测试用例中定义的变量，诸如 NAS 文件夹名称、子目录名称、iSCSI target 名称、volume 名称、pool 名称、cephfs 名称、用例执行过程中产生的文件的名称等等，要保持全局唯一， 即所有用例中不出现同名的文件名、目录名、pool 名等。当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰。&lt;/p&gt;
-
-&lt;h1 id=&quot;nose的其他插件&quot;&gt;nose的其他插件&lt;/h1&gt;
-
-&lt;h2 id=&quot;1用例设定依赖关系&quot;&gt;1、用例设定依赖关系&lt;/h2&gt;
-
-&lt;p&gt;需要安装 nose-dep plugin，具体操作，请参考如下链接： https://github.com/Zitrax/nose-dep&lt;/p&gt;
-
-&lt;p&gt;说明:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;这个 module 目前已经移除，本文档内容暂时留存，不删除，以作备用。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;2用例执行顺序&quot;&gt;2、用例执行顺序&lt;/h2&gt;
-
-&lt;p&gt;这里介绍插件：nose-randomly&lt;/p&gt;
-
-&lt;p&gt;可以通过 &lt;code class=&quot;highlighter-rouge&quot;&gt;pip install nose-randomly&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;进行安装，成功安装后：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_plug01.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;默认是按时间来做为随机种子来打乱用例顺序的，也可以自己定义种子。&lt;/p&gt;
-
-&lt;h1 id=&quot;配置文件说明&quot;&gt;配置文件说明&lt;/h1&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;配置文件在 src/config/autotest.config，包括但不限制于集群配置、客户端配置、AD/LDAP配置、检查周期、集群服务启用/停用等相关配置信息，全部在这个配置文件中，在运行用例前，务必确保这个配置文件的准确性。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;1autotestconfig-说明&quot;&gt;1、autotest.config 说明&lt;/h2&gt;
-
-&lt;p&gt;！！！ 这个文件的内容，需要根据被测环境进行实际修改 ！！！&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[CLUSTER]	
-root_pass = &quot;p@ssw0rd&quot;	# 被测集群 root 密码，务必要正确
-ssh_port = 22
-cluster_name = NOSE	# 被测集群名称，仅适用于新建集群情况下；在已有集群下跑用例，不用改
-osd_device = sdb	# 哪个分区被用于创建 OSD，仅适用于全新安装系统后 nose 自动创建集群
-public_iface = ens160		# public interface 网口名称，务必要正确
-storage_iface = ens192	# storage interface 网口名称，务必要正确
-rep_no = 2	# 集群副本数，默认 2 副本ntp_server_ip = 202.120.2.101 # NTP server 地址dns_ip = 172.17.75.100 # DNS IP 地 址
-storage_ips = &quot;10.10.1.97 10.10.1.98 10.10.1.99&quot; # 存储节点 storage 网络，以单个空格分割
-public_ips = &quot;172.17.75.97 172.17.75.98 172.17.75.99&quot; # 存储节点 public 网络，以单个空格分割
-forth_node_storage_ip = &quot;10.10.10.249&quot;  # 第四个节点的storage ip地址
-license =
-&quot;3TYRSI-7IA0OW-109QON-LAZ8RV-27AICZ-FQBB3U-DLJW2P,3TYY0Z-Y3MUPS-0QRA8N-B5A8MT-7KOI1V-D9 T0RD-18X7QLW,3TZ49H-OOZOQO-1H5HY2-BAD4SB-236PNQ-VXNNGG-IY0LEH&quot; # 这里是 Controller
-license
-
-[LOGING]
-host = https://localhost:8080	# 访问存储 UI 的地址，无须修改
-user_id= admin	# 访问 UI 的管理员账号
-password = 1	# 访问 UI 的管理员账号对应的密码
-
-[AD/LDAP]
-ad_server_addr = 172.17.75.231	# AD 的相关设置
-port = 389
-ad_base_dns = &quot;DC=hype,DC=com&quot;
-ad_admin_account = &quot;hype\Administrator&quot; 
-ad_admin_passwd = &quot;Trend#123&quot; 
-ad_search_dn = &quot;CN=Users,DC=hype,DC=com&quot; 
-ad_acl_folder = 'Shares'
-ad_acl_user = 'zhangsan' 
-ad_acl_user_passwd = 'bigtera@123' 
-ac_guest_folder = 'Guest'
-
-ldap_server_addr = 172.17.75.199	# LDAP 的相关设置
-ldap_base_dns = &quot;dc=bigtera-os,dc=com&quot; ldap_admin_account = &quot;cn=admin,dc=bigtera-os,dc=com&quot; ldap_admin_passwd = &quot;12345678&quot;
-ldap_search_dn = &quot;dc=bigtera-os,dc=com&quot;
-
-[TAKEOVERIP]
-# ctdb takeover ip
-takeover_ips = &quot;172.17.73.91/24 172.17.73.92/24 172.17.73.93/24&quot; #GW 接管 IP 地址，以空格分割
-
-# S3 takeover IP
-s3_takeover_ips = &quot;172.17.73.94/24,94 172.17.73.95/24,95 172.17.73.96/24,96&quot; # S3 的接管
-IP 地址，以空格分割，格式必须是 IP/掩码位数
-
-[SNMP]	# 这部分只要产品不发生变化，这里就不需要更改
-mib_id = &quot;.2.25.31690.11968.43142.4581.44107.2.42453.50459&quot;
-snmp_cluster_number = &quot;.1.1&quot;
-snmp_product_name = &quot;.1.2&quot;
-snmp_product_version = &quot;.1.3&quot;
-snmp_fsid = &quot;.1.4&quot;
-snmp_cluster_health = &quot;.1.5&quot;
-snmp_cluster_disk_total_size = &quot;.1.6&quot;
-snmp_cluster_disk_user_size = &quot;.1.7&quot;
-snmp_read_io = &quot;.1.8&quot;
-snmp_write_io = &quot;.1.9&quot;
-
-esxi_vm_host_name = 'SEG_nose_client(!!!Do not power off it!!!)' # nose client 在 ESXi 侧
- 
-ipmi_ip = &quot;172.17.75.221&quot;	# nose client 是物理机（对应上面的 white_list_ip 参数），这个物理机的IPMI 地址
-ipmi_user = 'ADMIN'	# IPMI 的系统管理员账号名称
-ipmi_user_passwd = 'ADMIN'	# IPMI 系统管理员账号的密码 
-
-[BACKUP] # nose 用例执行过程中备份文件的存档目录，这里不需要修改
-backup_base_path = &quot;/tmp/nose_backup/&quot;
-ezs3_log_backup = &quot;/tmp/nose_backup/log_ezs3/&quot;
-test_case_output_path = &quot;/tmp/nose_backup/test_case_output&quot;
-
-[RETRY]
-retry_interval = 5 # 间隔 5 秒尝试一次，做 check 或 mount 之类的动作
-retry_timeout = 40 # 总共尝试次数，默认 40 次
-
-[DAEMON_SERVICE]	# 服务的重启、停止相关动作，不同版本的操作系统指令不一样
-# restart or stop or start deamon service
-restart_ezmonitor = &quot;/etc/init.d/ezmonitor restart&quot;
-restart_csmonitor = &quot;/etc/init.d/csmonitor restart&quot;
-restart_ezfs_agent = &quot;/etc/init.d/ezfs-agent restart&quot;
-restart_ezfs_recycle_flusher = &quot;/etc/init.d/ezfs-recycle-flusher restart&quot;
-restart_eziscsi = &quot;/etc/init.d/eziscsi restart&quot;
-restart_eziscsi_rbd_clean = &quot;/etc/init.d/eziscsi-rbd-cleaner restart&quot;
-restart_apache = &quot;/etc/init.d/apache2 restart&quot;
-restart_rgw = &quot;/etc/init.d/radosgw restart&quot;
-restart_smart_monitor = &quot;/etc/init.d/ezs3-smart-monitor restart&quot;
-restart_ezs3_agent = &quot;/etc/init.d/ezs3-agent restart&quot;
-
-restart_ctdb = &quot;/etc/init.d/ctdb restart&quot;
-start_ctdb = &quot;/etc/init.d/ctdb start&quot;
-stop_ctdb = &quot;/etc/init.d/ctdb stop&quot;
-
-restart_multipath_tool = &quot;/etc/init.d/multipath-tools restart&quot;
-restart_resolvconf = &quot;/etc/init.d/resolvconf restart&quot;
-
-# For ceph service
-ceph_start = &quot;/etc/init.d/ceph start&quot;
-start_mon = &quot;/etc/init.d/ceph start mon&quot;
-start_mds = &quot;/etc/init.d/ceph start mds&quot;
-start_osd = &quot;/etc/init.d/ceph start osd&quot;
-start_all_osd = &quot;/etc/init.d/ceph -a start osd&quot;
-start_all_mon = &quot;/etc/init.d/ceph -a start mon&quot;
-start_all_mds = &quot;/etc/init.d/ceph -a start mds&quot;
-# # Start all of ceph service on all node(osd, mon and mds)
-start_all_ceph_service = &quot;/etc/init.d/ceph -a start&quot;
-
-restart_mon = &quot;/etc/init.d/ceph restart mon&quot;
-restart_mds = &quot;/etc/init.d/ceph restart mds&quot;
-
-stop_mon = &quot;/etc/init.d/ceph stop mon&quot;
-stop_mds = &quot;/etc/init.d/ceph stop mds&quot;
-stop_osd = &quot;/etc/init.d/ceph stop osd&quot;
-
-start_assign_osd = &quot;/etc/init.d/ceph start osd.&quot;
-stop_assign_osd = &quot;/etc/init.d/ceph stop osd.&quot;
-
-# # For keepalived
-stop_keepalived = &quot;/etc/init.d/keepalived stop&quot;
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;2logconfig-说明&quot;&gt;2、log.config 说明&lt;/h2&gt;
-
-&lt;p&gt;！！！ 这个文件的内容，无需更改 ！！！&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;#logger.conf
-###############################################
-[loggers]
-keys=root
-[logger_root]
-level=DEBUG
-handlers=hand01
-###############################################
-[handlers]
-keys=hand01
-[handler_hand01]
-class=StreamHandler
-level=ERROR
-formatter=form02
-args=(sys.stdout,)
-
-[handler_hand02]
-class=FileHandler
-level=DEBUG
-formatter=form01
-args=('nose_autotest.log','w')
-###############################################
-[formatters]
-keys=form01,form02
-[formatter_form01]
-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(message)s
-datefmt=%a, %d %b %Y %H:%M:%S
-[formatter_form02]
-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(message)s
-# format=%(name)-12s: %(levelname)-8s %(message)s
-datefmt=
-###############################################
-[nosetests]
-verbosity=2
-logging-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(message)s
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;测试用例的执行&quot;&gt;测试用例的执行&lt;/h1&gt;
-
-&lt;h2 id=&quot;1执行某个test-suite&quot;&gt;1、执行某个test suite&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -v -x testcase/test_account.py:ManagerAccount --with-html --html-report=../report/nose.html --html-report-template=/usr/local/lib/python2.7/dist-packages/nose_html_reporting/templates/report2.jinja2&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;这里的ManagerAccount， 是test_account.py的一个class。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;2执行指定测试用例&quot;&gt;2、执行指定测试用例&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -v -x testcase/test_account.py:TestManagerAccount.test_add_user_success --with-html --html-report=../report/nose.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;这里的test_add_user_success， 是具体的测试用例，表明这个用例是test_account.py文件中TestManagerAccount类下的用例&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;3执行多个测试用例测试集合&quot;&gt;3、执行多个测试用例/测试集合&lt;/h2&gt;
-
-&lt;p&gt;如果是执行不同测试集合中的不同用例，示例如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -v --with-progressive --with-html --html-report=../report/test.html testcase/Function_Test/case_4_Virtual_Storages/NAS/test_NAS_general_management.py:TestN ASGeneral.test_434_create_nfs_cifs_folder testcase/Function_Test/case_7_Statistics_Logs/test_query_export_log.py:TestLogs.test_74
-5_4_query_log_by_category_node_management&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;4多进程并发测试&quot;&gt;4、多进程并发测试&lt;/h2&gt;
-
-&lt;p&gt;携带参数–processes， 如–processes=2&lt;/p&gt;
-
-&lt;p&gt;可以缩短测试时间，同时，要一并携带上 –process-restartworker和 –process-timeout参数，–process-timeout数值要比较大（单位：秒），否则可能会出现内存泄露。&lt;/p&gt;
-
-&lt;p&gt;示例如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -v -x --tc=runs:3 --process-restartworker --process-timeout=100000 --processes=5 testcase/Function_Test/case_4_Virtual_Storages/NAS/test_samba_account.py&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;5dry-run&quot;&gt;5、dry-run&lt;/h2&gt;
-
-&lt;p&gt;只列出要执行哪些用例&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests --collect-only  -v&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;6运行不同模块下不同用例&quot;&gt;6、运行不同模块下不同用例&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -v -x --tests=testcase/test_account.py:ManagerAccount,testcase/test_mds.py:restart_mds --with-html --html-report=../report/nose.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;7用例执行时关键字高亮&quot;&gt;7、用例执行时关键字高亮&lt;/h2&gt;
-
-&lt;p&gt;使用前面安装的colurunit plugin，用例执行时带上参数–with-colorunit&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests --with-colorunit -s -x -v --with-html --html-report=../report/nose_all_cases.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;8用例执行显示进度&quot;&gt;8、用例执行显示进度&lt;/h2&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests --with-progressive --with-colorunit -s -x -v --with-html --html-report=../report/nose_all_cases.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;输出示例：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_eg04.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;这里源码有个问题，同时使用高亮和进度，会导致高亮和进度在用例执行结果信息输出时，两部分信息展示混杂在一起，已经修改源码解决，安装后无需做任何调整。&lt;/p&gt;
-
-&lt;h2 id=&quot;9循环运行用例&quot;&gt;9、循环运行用例&lt;/h2&gt;
-
-&lt;p&gt;携带runs参数，并制定循环执行的次数，如果不携带该参数，默认不循序，即只运行一次（特殊用例除外，比如账号中只创建、删除，不做检查，最后做一轮检查的场景）。&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -s -x -v --with-progressive --with-colorunit --with-html --html-report=../report/sds.html testcase/Function_Test/case_4_Virtual_Storages/NAS/test_samba_account.py:TestSambaAccount.test_add_delete_samab_user_no_check --tc=runs:50&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;说明:&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;如果不指定runs，默认不循环，即只执行用例一次（Code写死）。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1 id=&quot;编写用例碰到的问题&quot;&gt;编写用例碰到的问题&lt;/h1&gt;
-
-&lt;h2 id=&quot;1用例无法生成-html-report&quot;&gt;1、用例无法生成 html report&lt;/h2&gt;
-
-&lt;p&gt;Jenkins 或者手动执行用例无法生成 html report&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_report_error.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;原因：&lt;/p&gt;
-
-&lt;p&gt;任意一个测试用例存在UnicodeDecodeError assert 错误，都会导致html 报告的无法生成。&lt;/p&gt;
-
-&lt;p&gt;解决方法：&lt;/p&gt;
-
-&lt;p&gt;找出有 UnicodeDecodeError 断言错误的用例，往往是测试中文相关的测试用例，解决UnicodeDecodeError。&lt;/p&gt;
-
-&lt;h2 id=&quot;2用例执行失败提示-nose_html_reporting-adderror-init__-takes-at-least-3-arguments-2-given&quot;&gt;2、用例执行失败，提示 nose_html_reporting addError init__() takes at least 3 arguments (2 given)&lt;/h2&gt;
-
-&lt;p&gt;堆栈信息显示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_report_error2.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;这个原因，往往是测试用例编写上出了问题，可以通过增加 log 或执行 pylint 来检查一下。&lt;/p&gt;
-
-&lt;h2 id=&quot;3用例文件权限问题&quot;&gt;3、用例文件权限问题&lt;/h2&gt;
-
-&lt;p&gt;如下图所示，测试用例文件的权限不能是 755，建议统一设置为 644，否则用例无法被nosetest 查找到，也就不会被执行到（nose 默认情况下并不测试那些拥有可执行权限的文件）。&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_primession01.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;如果要执行可以加上 –exe, 如 nosetests –exe, 或者去掉可执行属性chmod 644 xxx.py&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_primession02.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;4用例多轮调测成功后方可提交代码&quot;&gt;4、用例多轮调测成功后方可提交代码&lt;/h2&gt;
-
-&lt;p&gt;下面的示例指令：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests -v --tc=runs:1 --with-xunit --traverse-namespace --process-restartworker
---process-timeout=432000 --processes=10 --with-coverage
---cover-package=/home/nose_framework/src/ --cover-inclusive --with-progressive
---with-colorunit --with-html --html-report=/home/nose_framework/src/../report/rrs.html -c config/log.config
-/home/nose_framework/src/testcase/Function_Test/case_5_Remote_DR/test_remote_replication_tasks.py&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;是完整的调测某一个suite 下的所有 case 指令， 第一遍整体调试没有问题后，将–tc=runs:1 调整成 –tc=runs:2， 再次执行用例，确保所有用例都是成功的，而且 html report 也成功生成 ， 方 可 提 交 测 试 代 码 ， ！ ！ ！ 请 务 必 这 样 做 ！ ！ ！ （ 参 考test_9339_reupload_onject_to_bucket_after_new_s3_pool）。&lt;/p&gt;
-
-&lt;h2 id=&quot;5用例执行期间vm-被重启&quot;&gt;5、用例执行期间，VM 被重启&lt;/h2&gt;
-
-&lt;p&gt;下图为用例执行卡在了凌晨 01:28:32&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_vm_boot01.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;查看对应时间点的 node：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_vm_boot02.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;VM 的确被重启了，所有执行用例的进程都不在了：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_vm_boot03.png&quot; width=&quot;500&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;因 VM 使用 converger 提供的 LUN， converger 环境在那个时间点前后并没有异常；对应 ESXi
-在那个时间点前有一个告警：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_vm_boot04.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;除此之外，并未发现其他问题，即这个自动重启的原因未知。&lt;/p&gt;
-
-&lt;p&gt;后来在 ESXi 对应 VM 目录下，vmware.log 文件中：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_vm_boot05.png&quot; width=&quot;600&quot; /&gt;
-&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_vm_boot06.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;根 据 VMWare KB 的 解 释 ： &lt;code class=&quot;highlighter-rouge&quot;&gt;https://kb.vmware.com/s/article/2000542 kern panic&lt;/code&gt;，导致虚机被重启。&lt;/p&gt;
-
-&lt;p&gt;目前尚无有效解决方法，先放大内存看看（从 4G 调整为 6G）&lt;/p&gt;
-
-&lt;h2 id=&quot;6执行用例的存储节点vmnose-占用过多内存&quot;&gt;6、执行用例的存储节点（VM），nose 占用过多内存&lt;/h2&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_memory_leak.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;由于现在用例数比较多，nose 运行时间长，目前尚不知在何种状况下导致 nose 占用了过多的内存。根据官方提供的资料：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_memory_leak2.png&quot; width=&quot;300&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;增加–proces-restartworker 可以避免内存泄露，但 run.py 是有携带这个参数的，没看到效果。目前推测是&lt;strong&gt;失败的用例较多导致&lt;/strong&gt;的，也许提高用例的成功率，能够解决这个问题，持续跟踪该问题。&lt;/p&gt;
-
-&lt;h2 id=&quot;7apache2-服务异常导致-connectionerrorcannot-assign-requested-address&quot;&gt;7、apache2 服务异常，导致 ConnectionError，Cannot assign requested address&lt;/h2&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/apache_error.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;这里发现对应节点的 apache2 service 已经不存在了，导致后续用例全部失败，暂时未知具体原因，目前想到的规避方法如下：&lt;/p&gt;
-
-&lt;p&gt;方法 1：修改 http_session.py 中 HTTP session header 中 Connection，由‘keep-alive’调整为‘close’， 同时，在发起 HTTP request 后，sleep 0.01 秒。&lt;/p&gt;
-
-&lt;p&gt;方法 2：需要增加一个 watchdog，来拉起 apache 服务。&lt;/p&gt;
-
-&lt;p&gt;目前上述两个方法暂时未动手，这里先记录一下，如果未来还会发生，再来处理。&lt;/p&gt;
-
-&lt;p&gt;2019-05-28 再次发生：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/apache_error2.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;apache2 进程全部退出&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/apache_exit_log.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;目前对 http_session.py 做如下调整：&lt;/p&gt;
-
-&lt;p&gt;(1)将 HTTP session header 中 Connection，由‘keep-alive’调整为‘close’&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/keep_alive.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;(2)捕获 ConnectionError 异常，并重启 apache2 服务&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/connection_exception.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;2019-10-10:&lt;/p&gt;
-
-&lt;p&gt;鉴于之前的修复，问题再次发生，现在 http_session.py 增加如下内容：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;requests.adapters.DEFAULT_RETRIES = 5 # 增加重连次数
-self.session.keep_alive = False # 关闭多余连接
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;但问题依然存在。&lt;/p&gt;
-
-&lt;p&gt;2019-10-11:&lt;/p&gt;
-
-&lt;p&gt;再次修复，删除&lt;code class=&quot;highlighter-rouge&quot;&gt;requests.adapters.DEFAULT_RETRIES = 5&lt;/code&gt;,将 &lt;code class=&quot;highlighter-rouge&quot;&gt;session.keep_alive = False&lt;/code&gt; 放在 http_request 函数里，继续观察一下吧，下次问题再次发生时候，执行 netstat -tn 或者netstat | grep -c tcp，来查看是否是有太多处于”TIME_WAIT” 状态的 TCP 连接导致问题的发生； 如果是， 需要考虑优化下当前 automation 创建 session、使用session 问题了。&lt;/p&gt;
-
-&lt;h2 id=&quot;8规避logretate-使得apache-reload-导致发送-http-request-后台返回-500&quot;&gt;8、规避logretate 使得apache reload 导致发送 HTTP request 后台返回 500&lt;/h2&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/backend_return_500.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在00:17 前后，会发生Logrotate，其中有一步apache reload，假如此刻恰巧有发送HTTP request，此时 apache  服务状态异常，后台返回 500 错误码。 为了规避这个问题，自动化做了特殊处理，即在发送 HTTP 请求时，hard code 去判断此刻是否是 00:16，如果是，等待150 秒进行规避。&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/skip_logrotate.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;9规避client-mount-san-device-出现-already-mounted-or-busy&quot;&gt;9、规避client mount SAN device 出现 already mounted or busy&lt;/h2&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/mount_busy.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;如上图所示，当 nose 日志显示客户端 mount 出现 device already mounted or busy 状况时， 会影响后续几个用例的正常执行。&lt;/p&gt;
-
-&lt;p&gt;目前尚未找到解决方法，只能重启机器，但是此种情况下，reboot or reboot -f 指令往往失效，只能硬重启。&lt;/p&gt;
-
-&lt;p&gt;目前解决方法是：&lt;/p&gt;
-
-&lt;p&gt;无论客户端是 VM 还是物理机，&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;（1）	执行 run.py 时，重启一次 Client；&lt;/li&gt;
-  &lt;li&gt;（2）	当 mount SAN device 出现 device already mounted or busy，重启一次 Client&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;对于 VM，通过 ssh 跳转到 ESXi 执行，所以 ESXi 需要开启 SSH 服务&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;vim-cmd vmsvc/power.off {vm_id}&amp;amp;&amp;amp; vim-cmd vmsvc/power.on {vm_id}&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;对于物理机，通过执行 ipmitool 命令还 power reset 一下，达到重启机器的目的：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ipmitool -I lanplus -H {客户端 IP 地址} -U{管理员账号} -P {管理员账号密码} power reset	&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;注意事项&quot;&gt;注意事项&lt;/h1&gt;
-
-&lt;h2 id=&quot;1vm-系统分区磁盘大小要大于-140g&quot;&gt;1、VM 系统分区磁盘大小要大于 140G&lt;/h2&gt;
-
-&lt;p&gt;在创建 VM 分配磁盘大小时，需要系统对应磁盘的分区大小是 140G，之所以有这个要求，是因为需要使用操作系统的一个子分区（比如 sda4）作为 cephfs 的 cache，如果 total size 是 32G，那 sda4 只有几百 M，无法满足 cache size 最低是 10G 的要求。鉴于此，通过 PXE 自动安装 VM 对应的配置文件 nose_70_97-99，osdisksize 要设置成 140：&lt;/p&gt;
-
-&lt;p&gt;经验证，如果设置成 128G， 则 sda4 是 6G， 设置成 256， sda4 是 134G&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;sda	8:0	0	256G 0 disk
-├─sda1	8:1		0	7M	0 part
-├─sda2	8:2		0	95.4G 0 part /
-├─sda3	8:3		0	26.7G 0 part [SWAP]
-└─sda4	8:4		0	134G	0 part
-sdb	8:16	0		32G	0 disk
-sdc	8:32	0		32G	0 disk
-sdd	8:48	0		32G	0 disk
-sde	8:64	0		32G	0 disk
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;在 os disk size 是 140G 的情况下，确保 sda4（18G）有超过 10G 的空间大小。&lt;/p&gt;
-
-&lt;h2 id=&quot;2测试用例不要在第一个或最后一个节点上执行&quot;&gt;2、测试用例不要在第一个或最后一个节点上执行&lt;/h2&gt;
-
-&lt;p&gt;有一些 S3 takeover IP 的用例，会执行 reboot 或 ifdown 第一个或最后一个节点的 public和storage NIC，故而，避免在第一个或最后一个节点上执行用例。目前 run.py 脚本有做约束性检查。&lt;/p&gt;
-
-&lt;h2 id=&quot;3客户端存在-dsa-key&quot;&gt;3、客户端存在 dsa key&lt;/h2&gt;
-
-&lt;p&gt;在配置文件中设置的white_list_ip，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/key_1.png&quot; width=&quot;300&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;white_list_ip 这台机器所在的/root/.ssh/目录下，需要存在 id_dsa.pub 这个文件：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/key_2.png&quot; width=&quot;300&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;如果不存在，需要执行下来命令来产生：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;ssh-keygen -t dsa&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;只所以需要这个 key 的原因，是 RRS automation 需要从远端获取这个 sshkey，否则会导致RRS SSH KEY 这部分相关用例失败（test_remote_SSH_keys.py）。&lt;/p&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;这部分操作，无需人工干预，已经放到run.py 脚本中了。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;4客户端启用-multi-path&quot;&gt;4、客户端启用 multi-path&lt;/h2&gt;
-
-&lt;p&gt;如果默认没有启用，在确保安装了 multipath-tool 的情况下，将下列命令写入/etc/rc.local
-&lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/init.d/multipath-tools start&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;上述命令，需要书写在exit 0 前面。&lt;/p&gt;
-
-&lt;h2 id=&quot;5客户端定期重启&quot;&gt;5、客户端定期重启&lt;/h2&gt;
-
-&lt;p&gt;由于当前客户端是一台 VM，建议用例执行前重启一下这台VM，主要目的在于:&lt;/p&gt;
-
-&lt;h3 id=&quot;1释放无效的-dm-设备&quot;&gt;1、释放无效的 dm 设备&lt;/h3&gt;
-
-&lt;p&gt;！！！此条适用于所有 nose automation 的 client，无论是物理机还是 VM ！！！&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/dm_device1.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;对于上图，除了 27d7e5983bd6f7dc5 对应的 dm 设备是有效的，其他的 dm 设备都是无效的，一旦这个 client login 一个 iSCSI LUN 后，如果 map 到了上面一个已经存在的 dm 设备， mkfs 的时候会报类似如下的错误：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/dev/dm-2 is apparently in use by the system; will not make a filesystem here!&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;尝试使用 dmsetup remove -f device_name 指令去删除，命令卡住，&lt;strong&gt;目前尚无解决方法， 只能重启机器&lt;/strong&gt;，重启后恢复正常：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/dm_device2.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;另外，在 kernen.log 中发现很多的“BUG: unable to handle kernel NULL pointer dereference at (null)”，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/dm_device3.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;不确定这个野指针是否导致 dm 设备的残留。&lt;/p&gt;
-
-&lt;h3 id=&quot;2释放资源避免客户端响应过慢&quot;&gt;2、释放资源，避免客户端响应过慢&lt;/h3&gt;
-
-&lt;p&gt;如果客户端是物理机，可忽略重启操作。设置脚本：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@NoseClient:/usr/local/bin# cat /usr/local/bin/reboot_machine.sh #!/bin/bash
-
-reboot -f root@NoseClient:/usr/local/bin#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;每天凌晨3 点（Jenkins 是每天3:20 执行用例，因为这个时刻ISO 正好从台北同步到南京LAB， 当然也可自由设定执行时间）进行 VM 的重启动作：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@NoseClient:/usr/local/bin# cat /etc/cron.d/reboot_machine PATH=/bin:/usr/bin:/sbin
-
-1 3 * * * root bash /usr/local/bin/reboot_machine.sh &amp;gt;/dev/null 2&amp;gt;&amp;amp;1 root@NoseClient:/usr/local/bin#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;6能编写但需要延迟编写的用例增加-raise-skiptest&quot;&gt;6、能编写但需要延迟编写的用例，增加 raise SkipTest&lt;/h2&gt;
-
-&lt;p&gt;比如在写Folder quota 这部分的测试用例，里面有 RRS 和 pool quota 相关的几个case， 因 RRS 或 pool quota 相关 class base 尚未具备，可以标记这部分用例为skip 状态，这样做的目的是避免不加skip 而在将来被忽略掉，导致这部分用例并没有编写。&lt;/p&gt;
-
-&lt;p&gt;主要目的:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;1、意在提醒 skip 状态的用例要在将来被完成&lt;/li&gt;
-  &lt;li&gt;2、某些用例只适用于物理机，VM 无法验证，增加判断，对于 VM 要 skip&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;skip 示例请参考如下链接：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;http://swordstyle.com/func_test_tutorial/part_one/extra_skip_test.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;class TestFolderQuota(ShareFolderManager): @loop_run()
-def test_1090_folder_quota_less_than_pool_quota(self):
-&quot;&quot;&quot; Sc-1090:Folder quota &amp;lt; Pool Quota [limited by folder quota] &quot;&quot;&quot; raise SkipTest
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;7base-class-里禁止函数名称含有-test&quot;&gt;7、base class 里，禁止函数名称含有 test&lt;/h2&gt;
-
-&lt;p&gt;nose 运行用例的时候，根据正则匹配测试用例，会匹配到含有 test 的函数，会认为这个函数是一个测试用例，故而要避免此种情况的发生，test 可以使用单词examination 代替。&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/skip_start_test.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;8创建vs-时pool-名称必须以nose-开头&quot;&gt;8、创建VS 时，pool 名称必须以nose 开头&lt;/h2&gt;
-
-&lt;p&gt;目前是 hard code 的限制，否则对 pool 的一些检验会无法通过。&lt;/p&gt;
-
-&lt;h2 id=&quot;9ad-侧存在一个-shares-和-guest-共享目录&quot;&gt;9、AD 侧存在一个 Shares 和 Guest 共享目录&lt;/h2&gt;
-
-&lt;p&gt;目前是 hard code 的限制：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/hard_code1.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在 NAS migration 用例里，涉及到 Windows Server 提供的 folder，目前写在 config 中：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/hard_code2.png&quot; width=&quot;300&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;10esxi-开启-ssh-服务&quot;&gt;10、ESXi 开启 SSH 服务&lt;/h2&gt;
-
-&lt;p&gt;如果 client 是ESXi 上的一台 VM，则需要 ESXi 开启 SSH 服务，因为需要通过 ssh ESXi， 执行重启 VM 操作。&lt;/p&gt;
-
-&lt;h1 id=&quot;测试结果展示&quot;&gt;测试结果展示&lt;/h1&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;用例执行过程中产生日志文件和生成一个HTML格式的测试报告，日志文件名称（默认：nose_autotest.log）在src/config/ autotest.config中配置，以及打印的日志级别（默认：DEBUG）， 也在这个配置文件中设置。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;1屏显输出信息&quot;&gt;1、屏显输出信息&lt;/h2&gt;
-
-&lt;p&gt;示例：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;root@node98:/home/nose_framework/src# nosetests -s -x -v --processes=10  --with-progressive --with-colorunit --with-html --html-report=../report/sds.html testcase/Function_Test/case_2_Accounts/test_SDS_admin_account_settings.py&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/display_01.png&quot; width=&quot;600&quot; /&gt;
-——————————————————-  中间内容省略  ———————————————–
-&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/display_02.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;2自动化产生的日志文件&quot;&gt;2、自动化产生的日志文件&lt;/h2&gt;
-
-&lt;p&gt;日志文件路径：report/ nose_autotest.log，内容示例如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_log_file.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;3html测试报告&quot;&gt;3、HTML测试报告&lt;/h2&gt;
-
-&lt;p&gt;html 测试报告默认路径为：report/ all_test_cases.html，示例如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_report_show.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;绿色： 表明用例执行成功， Success状态&lt;/li&gt;
-  &lt;li&gt;橙色： 表明用例执行失败， Fail状态&lt;/li&gt;
-  &lt;li&gt;红色： 表明用例执行发生错误， Error状态&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;点击左下角的“Full log raw output”， 展示用例执行期间记录的日志信息，如果出错，也会将异常详细信息记录下来：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_fail_log.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;nose存在的问题&quot;&gt;Nose存在的问题&lt;/h1&gt;
-
-&lt;h2 id=&quot;1nose-memory-leak&quot;&gt;1、nose memory leak&lt;/h2&gt;
-
-&lt;p&gt;目前nose是执行在存储节点上，对于VM而言，赋予VM的VMemory并不是很大，而nosetests有时候占用70%以上的内存，引发集群异常，此种状况的发生，会导致VM内存不足，没法保证集群正常运行。&lt;/p&gt;
-
-&lt;p&gt;这点，本文之前的章节有提及到，怀疑问题的发生点，在于过多的测试用例执行失败，引发nose 要capture过多的信息放在memory里。&lt;/p&gt;
-
-&lt;h2 id=&quot;2nose-crash&quot;&gt;2、nose crash&lt;/h2&gt;
-
-&lt;p&gt;此问题在2019-12-19 00:52:31 左右发生，直接导致nose崩溃，终止用例的执行。&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_crash01.png&quot; width=&quot;600&quot; /&gt;
-&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_crash02.png&quot; width=&quot;600&quot; /&gt;
-&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_crash03.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;产品成功检测到nosetests core dump了。&lt;/p&gt;
-
-&lt;h1 id=&quot;代码分支介绍&quot;&gt;代码分支介绍&lt;/h1&gt;
-
-&lt;p&gt;Master是6.3， 其他分支以具体版本号创建分支。 Master分支目前暂停用例编写/更新。&lt;/p&gt;
-
-&lt;h1 id=&quot;与jenkins结合&quot;&gt;与jenkins结合&lt;/h1&gt;
-
-&lt;h2 id=&quot;用到的jenkins插件&quot;&gt;用到的jenkins插件&lt;/h2&gt;
-
-&lt;p&gt;Jenkins拥有丰富的第三方插件，可以用来帮助我们完成各种各样的雪球。下列是本文中用到的几个插件：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Junit Plugin: 用来展示nose框架生成的单元测试报表&lt;/li&gt;
-  &lt;li&gt;Cobertura Plugin：用来展示Python代码测试覆盖率报表&lt;/li&gt;
-  &lt;li&gt;Violations：用来展示Python静态代码审查报表，支持pylint、jslint等&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;jenkins的job配置&quot;&gt;jenkins的job配置&lt;/h2&gt;
-
-&lt;p&gt;下文以 nose-7.0 project为示例。&lt;/p&gt;
-
-&lt;h3 id=&quot;1创建credentials&quot;&gt;1）创建Credentials&lt;/h3&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins1.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins2.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins3.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;2设置remote-ssh&quot;&gt;2）设置remote ssh&lt;/h3&gt;
-
-&lt;p&gt;进入jenkisn–系统管理–系统设置界面，在“SSH remote hosts”处，新增新的ssh remote hosts，并进行check connection，如下图所示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins4.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;连接测试成功后，保存退出。&lt;/p&gt;
-
-&lt;h2 id=&quot;3配置nose-70-project&quot;&gt;3）配置nose-7.0 project&lt;/h2&gt;
-
-&lt;h3 id=&quot;general&quot;&gt;General&lt;/h3&gt;
-
-&lt;p&gt;进入nose-7.0 project，设置如下：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins5.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;源码管理&quot;&gt;源码管理&lt;/h3&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins6.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;下载到 /work/automation-test/nose_7.0/nose_framework/&lt;/p&gt;
-
-&lt;h3 id=&quot;构建触发器&quot;&gt;构建触发器&lt;/h3&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins7.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;构建环境&quot;&gt;构建环境&lt;/h3&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins8.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;需要执行的脚本命令如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;# delete report on 234
-cd /var/lib/jenkins/jobs/nose_7.0/workspace;
-rm -rf report;
-sleep 2;
-
-# install VM
-sshpass -p 1 ssh -p 22 172.17.75.235 -l root &quot;/root/batch_install_vs/batch_install_vs.py /root/batch_install_vs/config/nose/nose_70_97-99&quot;
-
-# scp code to VM
-cd /work/automation-test/nose_7.0/nose_framework;
-rm -rf build.properties;
-rm -rf report;
-cd jenkins;chmod a+x *;
-ssh-keygen -f &quot;/var/lib/jenkins/.ssh/known_hosts&quot; -R 172.17.75.98;
-./rsync_nose.sh 172.17.75.98 root p@ssw0rd
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins9.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;相关命令如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;cd /work/automation-test/nose_7.0/nose_framework/jenkins; 
-./rsync_report.sh 172.17.75.98 root p@ssw0rd;
-./jenkins_build_properties.sh
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;外部变量的使用：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins10.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;路径设置为：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/work/automation-test/nose_7.0/nose_framework/build.properties&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;这里使用Inject environment variables的目的，是为了发送邮件内容中，展示任务是从什么时间开始、什么时间点结束，用例执行成功、失败等情况，以及被测试版本信息。&lt;/p&gt;
-
-&lt;h3 id=&quot;构建后操作&quot;&gt;构建后操作&lt;/h3&gt;
-
-&lt;p&gt;发送邮件:&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins11.png&quot; width=&quot;600&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;HTML内容如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;title&amp;gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;h2&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #5e9ca0; text-align: center;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-            Note:(This email generated by system automatically, please do not reply!)
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/h2&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;table&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;class=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;editorDemoTable&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;height: 549px; width: 811px;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;thead&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #3498db; text-align: center; width: 801px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;colspan=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;h2&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;SEG V7.0 NOSE Automation Test Result&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/h2&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #3498db; width: 801px; text-align: left;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;colspan=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Build Information&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/thead&amp;gt;&lt;/span&gt;
-            &lt;span class=&quot;nt&quot;&gt;&amp;lt;tbody&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Test Result&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;ul&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Total Cases:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; ${TEST_COUNTS}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000; background-color: #008000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Pass&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; Cases:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; ${TEST_PASS}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000; background-color: #ffff00;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Fail&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt;Cases:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; ${TEST_FAIL}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000; background-color: #3366ff;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Skip&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; Cases:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; ${TEST_SKIP}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000; background-color: #ff0000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Error Cases:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; ${TEST_ERROR}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Product Version&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;$PRODUCT_VERSION&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        Time Consuming
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;From ($START_TIME) To ($END_TIME)&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Project Name&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;$PROJECT_NAME&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Build Number&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;$BUILD_NUMBER&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Build Status&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;$BUILD_STATUS&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Trigger Reason&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;${CAUSE}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #3498db; width: 801px; text-align: left;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;colspan=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;2&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Test Information&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; border-color: gray; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Build&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt;Result&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; border-color: gray; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;title=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Build Result&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${BUILD_URL}console&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;${BUILD_URL}&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; border-color: gray; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Build Log&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; border-color: gray; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;title=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Build Log&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${BUILD_URL}console&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;${BUILD_URL}console&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;tr&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; border-color: gray; width: 150px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Log&lt;span class=&quot;ni&quot;&gt;&amp;amp;amp;&lt;/span&gt;Report&lt;span class=&quot;nt&quot;&gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;td&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;background-color: #beedc7; border-color: gray; width: 643px;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;nowrap=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;nowrap&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;br&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;ul&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Test Report:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;title=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Test Report&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${BUILD_URL}testReport&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;${BUILD_URL}testReport&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Pylint Violations Report:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;title=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Pylint Violations Report&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${BUILD_URL}violations&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;${BUILD_URL}violations&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;li&amp;gt;&lt;/span&gt;
-                                &lt;span class=&quot;nt&quot;&gt;&amp;lt;span&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;Cobertura Coverage Report:&lt;span class=&quot;ni&quot;&gt;&amp;amp;nbsp;&amp;amp;nbsp;&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;&amp;lt;a&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;style=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;color: #000000;&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;title=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Cobertura Coverage Report&quot;&lt;/span&gt; &lt;span class=&quot;na&quot;&gt;href=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;${BUILD_URL}cobertura&quot;&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;&amp;gt;&lt;/span&gt;${BUILD_URL}cobertura&lt;span class=&quot;nt&quot;&gt;&amp;lt;/a&amp;gt;&amp;lt;/span&amp;gt;&lt;/span&gt;
-                            &lt;span class=&quot;nt&quot;&gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
-                        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/ul&amp;gt;&lt;/span&gt;
-                    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/td&amp;gt;&lt;/span&gt;
-                &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tr&amp;gt;&lt;/span&gt;
-             &lt;span class=&quot;nt&quot;&gt;&amp;lt;/tbody&amp;gt;&lt;/span&gt;
-        &lt;span class=&quot;nt&quot;&gt;&amp;lt;/table&amp;gt;&lt;/span&gt;
-    &lt;span class=&quot;nt&quot;&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
-&lt;span class=&quot;nt&quot;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;邮件附件信息&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins12.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在Attachment处，填写如下附件路径信息：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;report/create_cluster.html,report/setup_cluster.html,report/all_test_cases.html,report/nose_autotest.log&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;设置Publish JUnit test result report&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins13.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;设置Publish Cobertura coverage report&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins14.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;设置 Report Violation&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins15.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;在pylint处，录入report/pylint&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins16.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h3 id=&quot;4部分命令记录&quot;&gt;4）部分命令记录&lt;/h3&gt;
-
-&lt;p&gt;这部分命令，已经写入到run.py中，如果想手动单独执行，可以参考如下命令&lt;/p&gt;
-
-&lt;h4 id=&quot;生成nosetestsxml&quot;&gt;生成nosetests.xml&lt;/h4&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;nosetests --tc=runs:1 --with-xunit --traverse-namespace --with-coverage --cover-package=/home/nose_framework/src --cover-inclusive --with-progressive --with-colorunit --with-html --html-report=../report/all_case.html&lt;/code&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;生成coveragexml&quot;&gt;生成coverage.xml&lt;/h4&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;python -m coverage xml --include=/home/nose_framework/src*&lt;/code&gt;&lt;/p&gt;
-
-&lt;h4 id=&quot;pylint&quot;&gt;pylint&lt;/h4&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;cd /home/nose_framework/src
-
-pylint --rcfile=.pylintrc -f parseable -d I0011,R0801 * | tee pylint.out
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h4 id=&quot;效果图&quot;&gt;效果图&lt;/h4&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins17.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;1、右侧，pylint，显示代码规范质量曲线图&lt;/li&gt;
-  &lt;li&gt;2、点击” Code Coverage” 查看测试代码覆盖率&lt;/li&gt;
-  &lt;li&gt;3、点击 “最新测试结果”，查看具体的HTML测试报告&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h5 id=&quot;测试代码覆盖率&quot;&gt;测试代码覆盖率&lt;/h5&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins18.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h5 id=&quot;html展示用例测试结果&quot;&gt;HTML展示用例测试结果&lt;/h5&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins19.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h5 id=&quot;邮件接收人接收到的邮件信息&quot;&gt;邮件接收人接收到的邮件信息&lt;/h5&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins20.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;h1 id=&quot;jenkins-碰到的问题&quot;&gt;Jenkins 碰到的问题&lt;/h1&gt;
-
-&lt;h2 id=&quot;1无法正常发送邮件&quot;&gt;1、无法正常发送邮件&lt;/h2&gt;
-
-&lt;p&gt;test邮件是OK的，但是每次build的结果，无法正常发送邮件，console信息显示：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins21.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;问题解决方法&lt;/p&gt;
-
-&lt;p&gt;这个问题是Jenkins管理用户的一个问题，它可以自动从git或者svn读取用户信息以及邮件（如果git等中设置了的话）， 但它不又不创建Jenkins上的用户，所以你可以在pepole列表上看到有用户名，但在jenkins的用户列表上又没有该用户。&lt;/p&gt;
-
-&lt;p&gt;修复的方法也比较简单，就是用admin登陆jenkins，帮所有people列表上的用户设置一下默认密码（自己约定）并保存，则会创建相应的jenkins用户了，这样用户就都是registrered用户了。&lt;/p&gt;
-
-&lt;p&gt;详请参考：&lt;code class=&quot;highlighter-rouge&quot;&gt;https://www.oschina.net/question/3567295_2246136&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;2console-信息出现颜色值&quot;&gt;2、Console 信息出现颜色值&lt;/h2&gt;
-
-&lt;p&gt;如下图所示&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins22.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;上图中的“[32m[1m”即为颜色值，不太美观，改进之。&lt;/p&gt;
-
-&lt;p&gt;Jenkins 有 一 个 插 件 AnsiColor， 详 请 参 考 ： &lt;code class=&quot;highlighter-rouge&quot;&gt;https://www.jianshu.com/p/12083063957b?utm_campaign=maleskine&amp;amp;utm_content=note&amp;amp;ut m_medium=seo_notes&amp;amp;utm_source=recommendation&lt;/code&gt;&lt;/p&gt;
-
-&lt;p&gt;安装成功并重启Jenkins 服务后，在 Build Environment 处，选择“Color ANSI Console Output”，并设置“ANSI color map”为 xterm 即可：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins23.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;效果图：&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nose_jenkins24.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Automation" /><category term="nose" /><summary type="html">前言</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">前言</summary></entry></feed>

@@ -417,7 +417,7 @@ log_date_format=%Y-%m-%d %H:%M:%S
 
 
 
-## Allure html report中出现[[32m、[0m之类的符号
+## Allure html report中出现[32m、[0m之类的符号
 
 如下图所示：
 
@@ -2492,6 +2492,12 @@ allure-report.groovy文件内容如下：
     allureLastBuildSuccessRate = String.format("%.2f", lastAllureReportBuildAction.getPassedCount() * 100f / lastAllureReportBuildAction.getTotalCount())
   }
 %>
+
+<%
+pylintResultsUrl = "${rooturl}${build.url}violations"
+coberturaResultsUrl = "${rooturl}${build.url}cobertura"
+%>
+
 <% if (lastAllureReportBuildAction) { %>
 <h2>Allure Results</h2>
 <table>
@@ -2523,7 +2529,24 @@ allure-report.groovy文件内容如下：
 
             </tbody>
 </table>
+
+<br>
 <img lazymap="${allureResultsUrl}/graphMap" src="${allureResultsUrl}/graph" alt="Allure results trend"/>
+</br>
+
+<br>
+<font size=4><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Pylint history trend</b></font>
+</br>
+<br>
+<img lazymap="${pylintResultsUrl}" src="${pylintResultsUrl}/graph" alt="pylint"/>
+</br>
+
+<br>
+<font size=4><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Code Coverage history trend</b></font>
+</br>
+<br>
+<img lazymap="${coberturaResultsUrl}/graphMap" src="${coberturaResultsUrl}/graph"/>
+</br>
 <% } %>                  
   <!-- content -->
   <!-- bottom message -->
