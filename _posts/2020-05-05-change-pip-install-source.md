@@ -190,6 +190,13 @@ index_url = https://mirrors.aliyun.com/pypi/simple
 ```
 
 
+# 安装测试
+
+读取了requirements.txt(pip install -r requirements.txt)，安装效果如下：
+
+<img class="shadow" src="/img/in-post/pip_install_test.png" width="1200">
+
+发现已经不在使用python官方源了，换成了阿里的源。
 
 # 综述
 
