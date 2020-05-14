@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="API获取Jenkins构建信 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2020-05-08T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="Jenkins">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2020/05/08/get-jenkins-information/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>API获取Jenkins构建信 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2020/05/08/get-jenkins-information/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=Jenkins" title="Jenkins">Jenkins</a>
+                        
+                    </div>
+                    <h1>API获取Jenkins构建信</h1>
+                    
+                    <h2 class="subheading">Call API to get Jenkins build information</h2>
+                    <span class="meta">Posted by Gavin on May 8, 2020</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p>Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。</p>
+
+<h1 id="详述">详述</h1>
+
+<p>本文参考jenkins-rest库，将API根据获取的资源类型不同分为6个类别。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>API类型</strong></th>
+      <th><strong>说明</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>JobsAP</td>
+      <td>任务管理（任务信息、创建、修改）</td>
+    </tr>
+    <tr>
+      <td>OBPluginManagerAPI</td>
+      <td>插件管理（插件信息、安装插件）</td>
+    </tr>
+    <tr>
+      <td>QueueAPI</td>
+      <td>任务队列相关（队列状态）</td>
+    </tr>
+    <tr>
+      <td>StatisticsAPI</td>
+      <td>Jenkins统计信息</td>
+    </tr>
+    <tr>
+      <td>CrumbIssuerAPI</td>
+      <td>系统哈希值信息（用于防御CSRF攻击）</td>
+    </tr>
+    <tr>
+      <td>SystemAPI</td>
+      <td>Jenkins系统状态（版本、路径）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="术语定义">术语定义</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>名词</strong></th>
+      <th><strong>说明</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>job</td>
+      <td>任务</td>
+    </tr>
+    <tr>
+      <td>payload</td>
+      <td>在POST请求中提交的数据</td>
+    </tr>
+    <tr>
+      <td>{optionalFolderPath}</td>
+      <td>可选参数：任务所在目录的路径</td>
+    </tr>
+    <tr>
+      <td>{project_name}</td>
+      <td>必须参数：任务名称</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>注意:</p>
+
+<ul>
+  <li>在 GET/POST 时需要附加 HTTP 认证才能访问 API</li>
+  <li>本文使用的数据结构可以在 jenkins-rest/domain 中查看详细定义</li>
+</ul>
+
+<h2 id="jobs-相关-api">Jobs 相关 API</h2>
+
+<h3 id="job-info-获取任务信息">job-info 获取任务信息</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/api/json</code></p>
+
+<p>返回类型：JobInfo</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+      <th> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>description</td>
+      <td>String</td>
+      <td>描述</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>name</td>
+      <td>String</td>
+      <td>项目名称</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>url</td>
+      <td>boolean</td>
+      <td>路径</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>buildable</td>
+      <td>String</td>
+      <td>是否可构建</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>builds</td>
+      <td>List<BuildInfo></BuildInfo></td>
+      <td>构建记录</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>lastBuild</td>
+      <td>BuildInfo</td>
+      <td>上次构建记录</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="build-info-获取构筑信息">build-info 获取构筑信息</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/{number}/api/json</code></p>
+
+<p>返回类型：BuildInfo</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>artifacts</td>
+      <td>List<Artifact></Artifact></td>
+      <td>artifacts</td>
+    </tr>
+    <tr>
+      <td>actions</td>
+      <td>Lis<Action></Action></td>
+      <td>actions</td>
+    </tr>
+    <tr>
+      <td>building</td>
+      <td>boolean	路径</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>description</td>
+      <td>String</td>
+      <td>描述</td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="create-使用-xml-文件创建任务">create 使用 XML 文件创建任务</h3>
+
+<p>从 XML 文件中加载任务配置并创建任务</p>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/createItem</code></p>
+
+<h4 id="参数">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>name	任务名称</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>payload	XML配置文件</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：RequestStatus</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>value</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>errors</td>
+      <td>List<Error></Error></td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="get-config-获取任务配置文件">get-config 获取任务配置文件</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml</code></p>
+
+<p>返回类型： String</p>
+
+<h3 id="update-config-更新任务配置文件">update-config 更新任务配置文件</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml</code></p>
+
+<h4 id="参数-1">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>payload</td>
+      <td>XML配置文件</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="get-description-获取任务描述">get-description 获取任务描述</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description</code></p>
+
+<p>返回类型：String</p>
+
+<h3 id="set-description-设置任务描述">set-description 设置任务描述</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description</code></p>
+
+<h4 id="参数-2">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>description</td>
+      <td>描述</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="delete-删除任务">delete 删除任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/doDelete</code></p>
+
+<p>返回类型：RequestStatus</p>
+
+<h3 id="enable允许任务">enable允许任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/enable</code></p>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="disable-禁止任务">disable 禁止任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/disable</code></p>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="build-构建">build 构建</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/build</code></p>
+
+<p>返回类型： IntegerResponse</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>value</td>
+      <td>Integer</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>errors</td>
+      <td>List<Error></Error></td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="build-with-params--使用参数创建任务">build-with-params  使用参数创建任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/buildWithParameters</code></p>
+
+<h4 id="参数-3">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>payload</td>
+      <td>Map&lt;String, List<String>&gt; properties</String></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型： IntegerResponse</p>
+
+<h3 id="last-build-number-获取上次构建序号">last-build-number 获取上次构建序号</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildNumber</code></p>
+
+<p>返回类型：Integer</p>
+
+<h3 id="last-build-timestamp-获取上次构建时间戳">last-build-timestamp 获取上次构建时间戳</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildTimestamp</code></p>
+
+<p>返回类型：String</p>
+
+<h3 id="progressive-text-获取构建控制台输出">progressive-text 获取构建控制台输出</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/logText/progressiveText</code></p>
+
+<p>返回类型：ProgressiveText</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>text</td>
+      <td>String</td>
+      <td>控制台输出</td>
+    </tr>
+    <tr>
+      <td>size</td>
+      <td>Integer</td>
+      <td>字数</td>
+    </tr>
+    <tr>
+      <td>hasMoreData</td>
+      <td>Boolean</td>
+      <td>是否有更多数据</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="crumbissuer-系统哈希值信息用于防御csrf攻击">CrumbIssuer 系统哈希值信息（用于防御CSRF攻击）</h3>
+
+<ul>
+  <li>CrumbIssuerApi</li>
+  <li>path: /crumbIssuer/api/xml</li>
+</ul>
+
+<h4 id="crumb">crumb</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/crumbIssuer/api/xml?{key}={value}</code></p>
+
+<h5 id="参数-4">参数</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>xpath</td>
+      <td>concat(//crumbRequestField,”:”,//crumb)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：Crumb</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>value</td>
+      <td>String</td>
+    </tr>
+    <tr>
+      <td>errors</td>
+      <td>List<Error></Error></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="pluginmanager-插件管理插件信息安装插件">PluginManager 插件管理（插件信息、安装插件）</h3>
+
+<ul>
+  <li>PluginManagerApi</li>
+  <li>path: /pluginManager</li>
+</ul>
+
+<h4 id="plugins-插件列表">plugins 插件列表</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/pluginManager/api/json</code></p>
+
+<p>返回类型：List<Plugin></Plugin></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>active</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>backupVersion	String</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>bundled</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>deleted</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>downgradable</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>enabled</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>longName</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="installnecessaryplugins-安装插件">installNecessaryPlugins 安装插件</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/pluginManager/installNecessaryPlugins</code></p>
+
+<h4 id="参数-5">参数</h4>
+
+<p><code class="highlighter-rouge">payload: &lt;jenkins&gt;&lt;install plugin="{pluginID}"/&gt;&lt;/jenkins&gt;</code></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{pluginID}</td>
+      <td>要安装的插件ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：RequestStatus</p>
+
+<h3 id="queue-任务队列相关队列状态">Queue 任务队列相关（队列状态）</h3>
+
+<ul>
+  <li>QueueApi</li>
+  <li>path: /queue</li>
+</ul>
+
+<h4 id="queue-所有任务队列信息">queue 所有任务队列信息</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/queue/api/json</code></p>
+
+<p>返回类型：List<QueueItem></QueueItem></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>blocked</td>
+      <td>Boolean</td>
+      <td>是否阻塞</td>
+    </tr>
+    <tr>
+      <td>buildable</td>
+      <td>Boolean</td>
+      <td>是否可构建</td>
+    </tr>
+    <tr>
+      <td>id</td>
+      <td>Integer</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>inQueueSince</td>
+      <td>Long</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>params</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td>任务参数</td>
+    </tr>
+    <tr>
+      <td>task</td>
+      <td>Task</td>
+      <td>Task中包含任务名称和URL</td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="item-任务队列信息">item 任务队列信息</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/queue/item/{queueId}/api/json</code></p>
+
+<h4 id="参数-6">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{queueId}</td>
+      <td>任务队列ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：QueueItem</p>
+
+<h3 id="cancel-取消任务队列-">cancel 取消任务队列 |</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/cancelItem?id={id}</code></p>
+
+<h4 id="参数-7">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{id}</td>
+      <td>任务队列ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：RequestStatus</p>
+
+<h3 id="statistics-统计信息">Statistics 统计信息</h3>
+
+<ul>
+  <li>StatisticsApi</li>
+  <li>path: /</li>
+</ul>
+
+<h4 id="overall-load">overall-load</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/overallLoad/api/json</code></p>
+
+<p>返回类型：OverallLoad</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>availableExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>busyExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>connectingExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>definedExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>idleExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>onlineExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>queueLength</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>totalExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>totalQueueLength</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="system-系统信息">System 系统信息</h4>
+
+<ul>
+  <li>path: /</li>
+</ul>
+
+<p>返回类型：SystemInfo</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>hudsonVersion</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>jenkinsVersion</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>jenkinsSession</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>instanceIdentity</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>sshEndpoint</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>server</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="举几个例子">举几个例子</h1>
+
+<h2 id="获取jenkins-job状态">获取jenkins job状态</h2>
+
+<p><code class="highlighter-rouge">oot@node248:~# curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/api/xml --user jenkins:1</code></p>
+
+<p>结果示例如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&lt;freeStyleBuild _class='hudson.model.FreeStyleBuild'&gt;&lt;action _class='hudson.model.CauseAction'&gt;&lt;cause _class='hudson.model.Cause$UserIdCause'&gt;&lt;shortDescription&gt;Started by user jenkins&lt;/shortDescription&gt;&lt;userId&gt;jenkins&lt;/userId&gt;&lt;userName&gt;jenkins&lt;/userName&gt;&lt;/cause&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.util.BuildData'&gt;&lt;buildsByBranchName&gt;&lt;refsremotesoriginmaster _class='hudson.plugins.git.util.Build'&gt;&lt;buildNumber&gt;68&lt;/buildNumber&gt;&lt;marked&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/marked&gt;&lt;revision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/revision&gt;&lt;/refsremotesoriginmaster&gt;&lt;/buildsByBranchName&gt;&lt;lastBuiltRevision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/lastBuiltRevision&gt;&lt;remoteUrl&gt;git@10.1.12.10:yunzeng_wang/pytest_framework.git&lt;/remoteUrl&gt;&lt;scmName&gt;&lt;/scmName&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.GitTagAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.violations.ViolationsBuildAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;artifact&gt;&lt;displayPath&gt;allure-report.zip&lt;/displayPath&gt;&lt;fileName&gt;allure-report.zip&lt;/fileName&gt;&lt;relativePath&gt;allure-report.zip&lt;/relativePath&gt;&lt;/artifact&gt;&lt;building&gt;false&lt;/building&gt;&lt;displayName&gt;#68&lt;/displayName&gt;&lt;duration&gt;87155647&lt;/duration&gt;&lt;estimatedDuration&gt;85209450&lt;/estimatedDuration&gt;&lt;fullDisplayName&gt;pytest_7.0 #68&lt;/fullDisplayName&gt;&lt;id&gt;68&lt;/id&gt;&lt;keepLog&gt;false&lt;/keepLog&gt;&lt;number&gt;68&lt;/number&gt;&lt;queueId&gt;343&lt;/queueId&gt;&lt;result&gt;UNSTABLE&lt;/result&gt;&lt;timestamp&gt;1588762417068&lt;/timestamp&gt;&lt;url&gt;http://172.12.12.234:8080/job/pytest_7.0/68/&lt;/url&gt;&lt;builtOn&gt;&lt;/builtOn&gt;&lt;changeSet _class='hudson.plugins.git.GitChangeSetList'&gt;&lt;kind&gt;git&lt;/kind&gt;&lt;/changeSet&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/shengdan061&lt;/absoluteUrl&gt;&lt;fullName&gt;shengdan061&lt;/fullName&gt;&lt;/culprit&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/yunzeng_wang&lt;/absoluteUrl&gt;&lt;fullName&gt;yunzeng_wang&lt;/fullName&gt;&lt;/culprit&gt;&lt;/freeStyleBuild&gt;root@node248:~#
+root@node248:~#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="获取某一个构建版本号为56的构建结果">获取某一个构建版本号为56的构建结果</h2>
+
+<p><code class="highlighter-rouge">curl http://172.12.12.234:8080/job/pytest_7.0/56/api/xml --user jenkins:1</code></p>
+
+<h2 id="获取最后一次构建的版本号">获取最后一次构建的版本号：</h2>
+
+<p><code class="highlighter-rouge">curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/buildNumber --user jenkins:1</code></p>
+
+<h2 id="获取某个项目所有构建版本号的结果">获取某个项目所有构建版本号的结果</h2>
+
+<p><code class="highlighter-rouge">curl http://172.12.12.234:8080/job/pytest_7.0/api/xml --user jenkins:1</code></p>
+
+<p>说明：</p>
+
+<ul>
+  <li>以上pytest_7.0为项目名称，jenkins:1是访问jenkins server的账号和密码</li>
+</ul>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2020/05/06/megacli-use-guide/" data-toggle="tooltip" data-placement="top" title="Megacli详解">
+                        Previous<br>
+                        <span>Megacli详解</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2020/05/13/pipeline-parallel-job/" data-toggle="tooltip" data-placement="top" title="Jenkins部署pipeline并发执行pytst自动化用例">
+                        Next<br>
+                        <span>Jenkins部署pipeline并发执行pytst自动化用例</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0060" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0123" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="14">Linux</a>
+        
+                <a data-sort="0125" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="12">Automation</a>
+        
+                <a data-sort="0132" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0133" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="4">Jenkins</a>
+        
+                <a data-sort="0133" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0134" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="3">S3</a>
+        
+                <a data-sort="0134" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="3">awk</a>
+        
+                <a data-sort="0134" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="2">JBOD</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="2">Megacli</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2020/05/08/get-jenkins-information";
+    var disqus_url = "http://172.17.73.80:4000/2020/05/08/get-jenkins-information/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2020
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>

@@ -1,4 +1,2389 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-05-06T14:39:39+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">更改pip&amp;amp;easy_install默认安装源</title><link href="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/" rel="alternate" type="text/html" title="更改pip&amp;easy_install默认安装源" /><published>2020-05-05T00:00:00+08:00</published><updated>2020-05-05T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/05/change-pip-install-source</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-05-14T15:57:45+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">Jenkins部署pipeline并发执行pytst自动化用例</title><link href="http://172.17.73.80:4000/2020/05/13/pipeline-parallel-job/" rel="alternate" type="text/html" title="Jenkins部署pipeline并发执行pytst自动化用例" /><published>2020-05-13T00:00:00+08:00</published><updated>2020-05-13T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/13/pipeline-parallel-job</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/13/pipeline-parallel-job/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;目前现有自动化用例数比较多了，在free style jenkins project中顺次执行，耗时1天左右，很明显，耗时太久，急需用例能够并发执行，从而实现节约时间。&lt;/p&gt;
+
+&lt;p&gt;本文介绍如何通过pipeline project，实现现有用例执行流程的改造，实现并发执行。&lt;/p&gt;
+
+&lt;h1 id=&quot;改造涉及内容&quot;&gt;改造涉及内容&lt;/h1&gt;
+
+&lt;p&gt;针对当前automation project，需要做如下内容调整：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;(1) run.py中，提取出reboot client，生成pylint数据操作&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;(2) Jenkins节点中email-templates发送email内容groovy脚本调整&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;(3) 测试代码config目录下autotest.conf，含有多个，命名格式为autotest_ip.conf&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;(4) 测试代码jenkins目录下生成build properties文件，以及rsync脚本要做修改，主要是路径问题&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;p&gt;第(1)点： 以前用例是顺次执行的，只需要执行一次，一旦调整成并发后，存在每个执行node均会执行一次的情况；&lt;/p&gt;
+
+&lt;p&gt;第(3)点： 每个执行用例的集群节点，需要mv autotest_ip.conf为autotest.conf&lt;/p&gt;
+
+&lt;p&gt;第(4)点:  free style与pipeline的jenkins project，所需要的workspace与jobspace是不一样的&lt;/p&gt;
+
+&lt;h1 id=&quot;需要jenkins安装的插件&quot;&gt;需要Jenkins安装的插件&lt;/h1&gt;
+
+&lt;p&gt;Warnings，pipeline相关插件，具体安装本文忽略。&lt;/p&gt;
+
+&lt;h1 id=&quot;改造过程&quot;&gt;改造过程&lt;/h1&gt;
+
+&lt;h2 id=&quot;流程示意图&quot;&gt;流程示意图&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_parallel_circuit.png&quot; width=&quot;800&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;jenkins-project配置&quot;&gt;Jenkins project配置&lt;/h2&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_config1.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_config2.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_config3.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_config4.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_config5.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_project_config6.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;pipelint-jenkinsfile&quot;&gt;pipelint Jenkinsfile&lt;/h2&gt;
+
+&lt;p&gt;新增了Jenlinsfile，具体内容示例参考如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;err&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;groovy&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;ip_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;IPS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;','&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;ips_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip_list&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cluster1_ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip_list&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cluster2_ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ip_list&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+
+&lt;span class=&quot;kt&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cluster_ip&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;${cluster1_ip} ${cluster2_ip}&quot;&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;pipeline&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;any&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;options&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;timestamps&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;n&quot;&gt;stages&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;cm&quot;&gt;/* IP check */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;IP Cheeck&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&quot;
+                                if [[ ${ips_size} != 6 ]]; then
+                                    echo &quot;IPS is not enough, but give (${ips_size}) nodes to run case&quot;
+                                    exit 1
+                                fi
+                            &quot;&quot;&quot;&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                       &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;cm&quot;&gt;/* Install VM by PVE */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Initialize&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&quot;
+                            #!/bin/bash -xe
+                            echo &quot;Call batch_install_vs.py to install ISO.&quot;
+                            sshpass -p 1 ssh -p 22 17.1.1.235 -l root \${BAT_INSTALL}
+                            &quot;&quot;&quot;&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;cm&quot;&gt;/* Get code */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Checkout&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;retry&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;activity:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;time:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;60&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;unit:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'MINUTES'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;n&quot;&gt;checkout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'GitSCM'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;branches:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;name:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GIT_BRANCH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]],&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;browser:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'GitLab'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;repoUrl:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GIT_WEB&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;version:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'12.8'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;doGenerateSubmoduleConfigurations:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;extensions:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;
+                                    &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'CleanBeforeCheckout'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;deleteUntrackedNestedRepositories:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt;
+                                    &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'SubmoduleOption'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;recursiveSubmodules:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt;
+                                    &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'GitLFSPull'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;],&lt;/span&gt;
+                                    &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;$class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'PruneStaleBranch'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
+                                &lt;span class=&quot;o&quot;&gt;],&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;submoduleCfg:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[],&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;userRemoteConfigs:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;url:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;GIT_URL&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;cm&quot;&gt;/* scp code to nodes */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Scp&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;                            
+                            &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&quot;
+                            #!/bin/bash -xe
+                            cd \${WORK_SPACE};
+                            rm -rf build.properties;
+                            rm -rf report;
+                            cd jenkins;
+                            chmod a+x *;
+                            for each_ip in ${cluster_ip}
+                                do
+                                    echo &quot;Scp code to node : \${each_ip}&quot;
+                                    ssh-keygen -f '/var/lib/jenkins/.ssh/known_hosts' -R \${each_ip};
+                                    ./rsync_pytest.sh \${WORK_SPACE} \${each_ip} root p@ssw0rd
+                                    sleep 1
+                                done
+                            &quot;&quot;&quot;&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;// Parallel Stage&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Parallel Stage'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;failFast&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;parallel&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Run test case on Cluster1'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Run test case on node : ${cluster1_ip}&quot;&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sshpass -p p@ssw0rd ssh -p 22 -l root ${cluster1_ip} \'cd ${CODE_DIR};python run.py -t testcase/Function_Test/case_02_Accounts/test_02_account_ad.py\'&quot;&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;${err}&quot;&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'exit 1'&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Run test case on Cluster2'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                            &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Run test case on node : ${cluster2_ip}&quot;&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;sshpass -p p@ssw0rd ssh -p 22 -l root ${cluster2_ip} \'cd ${CODE_DIR};cp config/autotest_106.config config/autotest.config;python run.py -t testcase/Function_Test/case_02_Accounts/test_03_account_ldap.py\'&quot;&lt;/span&gt;
+
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;catch&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;err&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;${err}&quot;&lt;/span&gt;
+                                &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'exit 1'&lt;/span&gt;
+                            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;cm&quot;&gt;/*
+                stage('Run test case on Cluster3 : ${cluster3_ip}') {
+                    steps {
+                        script {
+                            try {
+                                echo &quot;Run test case on node : ${cluster3_ip}&quot;
+                                sh &quot;sshpass -p p@ssw0rd ssh -p 22 -l root 172.17.75.96 uname -r&quot;
+                            }catch(err){
+                                echo &quot;${err}&quot;
+                                sh 'exit 1'
+                            }
+                        }
+
+
+                    }
+                }
+                stage('Run test case on Cluster4 : ${cluster4_ip}') {
+                    steps {
+                        script {
+                            try {
+                                echo &quot;Run test case on node : ${cluster4_ip}&quot;
+                                sh &quot;sshpass -p p@ssw0rd ssh -p 22 -l root 172.17.75.96 uname -r&quot;
+                            }catch(err){
+                                echo &quot;${err}&quot;
+                                sh 'exit 1'
+                            }
+                        }
+
+
+                    }
+                }
+                stage('Run test case on Cluster5 : ${cluster5_ip}') {
+                    steps {
+                        script {
+                            try {
+                                echo &quot;Run test case on node : ${cluster5_ip}&quot;
+                                sh &quot;sshpass -p p@ssw0rd ssh -p 22 -l root 172.17.75.96 uname -r&quot;
+                            }catch(err){
+                                echo &quot;${err}&quot;
+                                sh 'exit 1'
+                            }
+                        }
+
+
+                    }
+                }
+                */&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;cm&quot;&gt;/* Merge report */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Merge Report&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;sh&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&quot;
+                        #!/bin/bash -xe
+                        cd \${WORK_SPACE}/jenkins;
+                        for each_ip in ${cluster_ip}
+                            do
+                                echo &quot;Scp report from : (\${each_ip}) to jenkins node&quot;
+                                ./rsync_report.sh \${each_ip} root p@ssw0rd \${REPORT_DIR} \${WORK_SPACE} \${JOB_SPACE};
+                                ./jenkins_build_properties.sh \${WORK_SPACE}
+                            done
+                        &quot;&quot;&quot;&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Allure Report&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;([&lt;/span&gt;
+                            &lt;span class=&quot;nl&quot;&gt;includeProperties:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                            &lt;span class=&quot;nl&quot;&gt;jdk:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                            &lt;span class=&quot;nl&quot;&gt;properties:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[],&lt;/span&gt;
+                            &lt;span class=&quot;nl&quot;&gt;reportBuildPolicy:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ALWAYS'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                            &lt;span class=&quot;nl&quot;&gt;results:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;path:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'report/json'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;
+                       &lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;cm&quot;&gt;/* Publish Cobertura Coverage Report */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Publish Cobertura Coverage Report&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                       &lt;span class=&quot;n&quot;&gt;cobertura&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;([&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;autoUpdateHealth:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;autoUpdateStability:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;coberturaReportFile:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'report/coverage.xml'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;conditionalCoverageTargets:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'70, 0, 0'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;failUnhealthy:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;failUnstable:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;lineCoverageTargets:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'80, 0, 0'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;maxNumberOfBuilds:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;methodCoverageTargets:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'80, 0, 0'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;onlyStable:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;sourceEncoding:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'ASCII'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                               &lt;span class=&quot;nl&quot;&gt;zoomCoverageChart:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;
+                       &lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;cm&quot;&gt;/* Generate pylint Report */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'Code Quality Check'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;Run pylint code style check&quot;&lt;/span&gt;
+        		    &lt;span class=&quot;c1&quot;&gt;// Ignore pylint comments via &quot;-d C&quot;&lt;/span&gt;
+                    &lt;span class=&quot;cm&quot;&gt;/*
+        		    sh &quot;&quot;&quot;
+        		    	. .venv/bin/activate
+        			    pylint -d C -f parseable ${SOURCE_ROOT} --exit-zero | tee ${PYLINT_REPORT}
+        		    &quot;&quot;&quot;
+                    */&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        	&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        	&lt;span class=&quot;n&quot;&gt;post&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
+                &lt;span class=&quot;n&quot;&gt;always&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; 
+                       &lt;span class=&quot;c1&quot;&gt;// Requires Warnings plugin since Violations plugin is deprecated&lt;/span&gt;
+        			   &lt;span class=&quot;c1&quot;&gt;// http://wiki.jenkins-ci.org/x/G4CGAQ&lt;/span&gt;
+        			   &lt;span class=&quot;n&quot;&gt;warnings&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;canComputeNew:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;canResolveRelativePaths:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;false&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;canRunOnFailed:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;categoriesPattern:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;defaultEncoding:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;excludePattern:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;healthy:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;includePattern:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;messagesPattern:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;parserConfigurations:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt;&lt;span class=&quot;nl&quot;&gt;parserName:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'PyLint'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;pattern:&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;report/pylint.out&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]],&lt;/span&gt; &lt;span class=&quot;nl&quot;&gt;unHealthy:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;''&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+        &lt;span class=&quot;cm&quot;&gt;/* Send Email */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;stage&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;Send Email&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;agent&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;master&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;steps&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;script&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+                        &lt;span class=&quot;cm&quot;&gt;/*
+                        build_status = sh (
+                            script: &quot;&quot;&quot;curl http://127.0.0.1:8080/job/${JOB_NAME}/lastBuild/api/json | json_pp | grep result | sed 's/   \&quot;result&quot; : \&quot;//g' | sed 's/&quot;,//g'&quot;&quot;&quot;,
+                            returnStdout: true
+                            ).trim()
+                        echo &quot;build status  ${build_status}&quot;
+                       */&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;emailext&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;([&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;attachLog:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;attachmentsPattern:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'report/cgi_response_elapsed_time.txt,report/pytest_autotest.log.gz'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;body:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'${SCRIPT, template=&quot;allure-pipeline-report.groovy&quot;}'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;compressLog:&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;postsendScript:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$DEFAULT_POSTSEND_SCRIPT'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;presendScript:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$DEFAULT_PRESEND_SCRIPT'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;replyTo:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$PROJECT_DEFAULT_REPLYTO'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;subject:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'${JOB_NAME} - ${BUILD_DISPLAY_NAME}'&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt;
+                                &lt;span class=&quot;nl&quot;&gt;to:&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'user01@bigtera.com.cn user02@bigtera.com.cn user03@bigtera.com.cn'&lt;/span&gt;
+                       &lt;span class=&quot;o&quot;&gt;])&lt;/span&gt;
+                    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+                &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;email-template&quot;&gt;email template&lt;/h2&gt;
+
+&lt;p&gt;Jenkins server处，对应的email template内容参考如下:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;jenkins@ubuntu-16:~/email-templates$ cat allure-pipeline-report.groovy 
+&amp;lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML 1.1//EN&quot; &quot;http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd&quot;&amp;gt;
+&amp;lt;style type=&quot;text/css&quot;&amp;gt;
+/*base css*/
+    body
+    {
+      margin: 0px;
+      padding: 15px;
+    }
+
+    body, td, th
+    {
+      font-family: &quot;Lucida Grande&quot;, &quot;Lucida Sans Unicode&quot;, Helvetica, Arial, Tahoma, sans-serif;
+      font-size: 10pt;
+    }
+
+    th
+    {
+      text-align: left;
+    }
+
+    h1
+    {
+      margin-top: 0px;
+    }
+    a
+    {
+      color:#4a72af
+    }
+/*div styles*/
+
+.status{background-color:&amp;lt;%= 
+            build.result.toString() == &quot;SUCCESS&quot; ? 'green' : 'red' %&amp;gt;;font-size:28px;font-weight:bold;color:white;width:720px;height:52px;margin-bottom:18px;text-align:center;vertical-align:middle;border-collapse:collapse;background-repeat:no-repeat}
+.status .info{color:white!important;text-shadow:0 -1px 0 rgba(0,0,0,0.3);font-size:32px;line-height:36px;padding:8px 0}
+&amp;lt;/style&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;div class=&quot;content round_border&quot;&amp;gt;
+                &amp;lt;div class=&quot;status&quot;&amp;gt;
+                        &amp;lt;p class=&quot;info&quot;&amp;gt;pytest automation build &amp;lt;%= build.result.toString().toLowerCase() %&amp;gt;&amp;lt;/p&amp;gt;
+                &amp;lt;/div&amp;gt;
+                &amp;lt;!-- status --&amp;gt;
+                        &amp;lt;table&amp;gt;
+                                &amp;lt;tbody&amp;gt;
+                                        &amp;lt;tr&amp;gt;
+                                                &amp;lt;th&amp;gt;Project:&amp;lt;/th&amp;gt;
+                                                &amp;lt;td&amp;gt;${project.name}&amp;lt;/td&amp;gt;
+                                        &amp;lt;/tr&amp;gt;
+                                        &amp;lt;tr&amp;gt;
+                                                &amp;lt;th&amp;gt;Build ${build.displayName}:&amp;lt;/th&amp;gt;
+                                                &amp;lt;td&amp;gt;&amp;lt;a
+                                                        href=&quot;${rooturl}${build.url}&quot;&amp;gt;${rooturl}${build.url}&amp;lt;/a&amp;gt;&amp;lt;/td&amp;gt;
+                                        &amp;lt;/tr&amp;gt;
+                                        &amp;lt;tr&amp;gt;
+                                                &amp;lt;th&amp;gt;Product Version:&amp;lt;/th&amp;gt;
+                                                &amp;lt;td&amp;gt;&amp;lt;%=build.environment['PRODUCT_VERSION']%&amp;gt;&amp;lt;/td&amp;gt;
+                                        &amp;lt;/tr&amp;gt;
+                                        &amp;lt;tr&amp;gt;
+                                                &amp;lt;th&amp;gt;Date of build:&amp;lt;/th&amp;gt;
+                                                &amp;lt;td&amp;gt;${it.timestampString}&amp;lt;/td&amp;gt;
+                                        &amp;lt;/tr&amp;gt;
+                                        &amp;lt;tr&amp;gt;
+                                                &amp;lt;th&amp;gt;Build duration:&amp;lt;/th&amp;gt;
+                                                &amp;lt;td&amp;gt;${build.durationString}&amp;lt;/td&amp;gt;
+                                        &amp;lt;/tr&amp;gt;
+                                        &amp;lt;tr&amp;gt;
+                                                &amp;lt;td colspan=&quot;2&quot;&amp;gt;&amp;amp;nbsp;&amp;lt;/td&amp;gt;
+                                        &amp;lt;/tr&amp;gt;
+                                &amp;lt;/tbody&amp;gt;
+
+                        &amp;lt;/table&amp;gt;
+                &amp;lt;!-- main --&amp;gt;
+        &amp;lt;% def artifacts = build.artifacts
+            if(artifacts != null &amp;amp;&amp;amp; artifacts.size() &amp;gt; 0) { %&amp;gt;
+
+                        &amp;lt;b&amp;gt;Build Artifacts:&amp;lt;/b&amp;gt;
+                        &amp;lt;ul&amp;gt;
+            &amp;lt;%          artifacts.each() { f -&amp;gt; %&amp;gt;
+                &amp;lt;li&amp;gt;&amp;lt;a href=&quot;${rooturl}${build.url}artifact/${f}&quot;&amp;gt;${f}&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;
+            &amp;lt;%          } %&amp;gt;
+                        &amp;lt;/ul&amp;gt;
+        &amp;lt;% } %&amp;gt;
+  &amp;lt;!-- artifacts --&amp;gt;
+
+&amp;lt;% 
+  lastAllureReportBuildAction = build.getAction(ru.yandex.qatools.allure.jenkins.AllureReportBuildAction.class)
+  lastAllureBuildAction = build.getAction(ru.yandex.qatools.allure.jenkins.AllureBuildAction.class)
+
+  if (lastAllureReportBuildAction) {
+    allureResultsUrl = &quot;${rooturl}${build.url}allure&quot;
+    allureLastBuildSuccessRate = String.format(&quot;%.2f&quot;, lastAllureReportBuildAction.getPassedCount() * 100f / lastAllureReportBuildAction.getTotalCount())
+  }
+%&amp;gt;
+
+&amp;lt;%
+pylintResultsUrl = &quot;${build.environment['JOB_URL']}warnings50/trendGraph&quot;
+coberturaResultsUrl = &quot;${rooturl}${build.url}cobertura&quot;
+%&amp;gt;
+
+&amp;lt;% if (lastAllureReportBuildAction) { %&amp;gt;
+&amp;lt;h2&amp;gt;Allure Results&amp;lt;/h2&amp;gt;
+&amp;lt;table&amp;gt;
+            &amp;lt;tbody&amp;gt;
+                        &amp;lt;tr&amp;gt;
+                            &amp;lt;th&amp;gt;Total Allure tests run:&amp;lt;/th&amp;gt;
+                            &amp;lt;td&amp;gt;&amp;lt;a href=&quot;${allureResultsUrl}&quot;&amp;gt;${lastAllureReportBuildAction.getTotalCount()}&amp;lt;/a&amp;gt;&amp;lt;/td&amp;gt;
+                        &amp;lt;/tr&amp;gt;
+                        &amp;lt;tr&amp;gt;
+                            &amp;lt;th&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #ffff00;&quot;&amp;gt;Failed:&amp;lt;/span&amp;gt;&amp;lt;/th&amp;gt;
+                            &amp;lt;td&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #ffff00;&quot;&amp;gt;${lastAllureReportBuildAction.getFailedCount()} &amp;lt;/span&amp;gt;&amp;lt;/td&amp;gt;
+                        &amp;lt;/tr&amp;gt;
+                        &amp;lt;tr&amp;gt;
+                            &amp;lt;th&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #008000;&quot;&amp;gt;Passed:&amp;lt;/span&amp;gt;&amp;lt;/th&amp;gt;
+                            &amp;lt;td&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #008000;&quot;&amp;gt;${lastAllureReportBuildAction.getPassedCount()} &amp;lt;/span&amp;gt;&amp;lt;/td&amp;gt;
+                        &amp;lt;/tr&amp;gt;
+                        &amp;lt;tr&amp;gt;
+                            &amp;lt;th&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #3366ff;&quot;&amp;gt;Skipped:&amp;lt;/span&amp;gt;&amp;lt;/th&amp;gt;
+                            &amp;lt;td&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #3366ff;&quot;&amp;gt;${lastAllureReportBuildAction.getSkipCount()} &amp;lt;/span&amp;gt;&amp;lt;/td&amp;gt;
+                        &amp;lt;/tr&amp;gt;
+                        &amp;lt;tr&amp;gt;
+                            &amp;lt;th&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #ff0000;&quot;&amp;gt;Broken:&amp;lt;/span&amp;gt;&amp;lt;/th&amp;gt;
+                            &amp;lt;td&amp;gt;&amp;lt;span style=&quot;color: #000000; background-color: #ff0000;&quot;&amp;gt;${lastAllureReportBuildAction.getBrokenCount()} &amp;lt;/span&amp;gt;&amp;lt;/td&amp;gt;
+                        &amp;lt;/tr&amp;gt;
+                        &amp;lt;tr&amp;gt;
+                            &amp;lt;th&amp;gt;Success rate: &amp;lt;/th&amp;gt;
+                            &amp;lt;td&amp;gt;${allureLastBuildSuccessRate}%  &amp;lt;/td&amp;gt;
+                        &amp;lt;/tr&amp;gt;
+
+            &amp;lt;/tbody&amp;gt;
+&amp;lt;/table&amp;gt;
+
+&amp;lt;br&amp;gt;
+&amp;lt;img lazymap=&quot;${allureResultsUrl}/graphMap&quot; src=&quot;${allureResultsUrl}/graph&quot; alt=&quot;Allure results trend&quot;/&amp;gt;
+&amp;lt;/br&amp;gt;
+
+&amp;lt;br&amp;gt;
+&amp;lt;font size=4&amp;gt;&amp;lt;b&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;Pylint history trend&amp;lt;/b&amp;gt;&amp;lt;/font&amp;gt;
+&amp;lt;/br&amp;gt;
+&amp;lt;br&amp;gt;
+&amp;lt;img src=&quot;${pylintResultsUrl}/png?url=PRIORITY&quot;/&amp;gt;
+&amp;lt;/br&amp;gt;
+
+&amp;lt;br&amp;gt;
+&amp;lt;font size=4&amp;gt;&amp;lt;b&amp;gt;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;&amp;amp;nbsp;Code Coverage history trend&amp;lt;/b&amp;gt;&amp;lt;/font&amp;gt;
+&amp;lt;/br&amp;gt;
+&amp;lt;br&amp;gt;
+&amp;lt;img lazymap=&quot;${coberturaResultsUrl}/graphMap&quot; src=&quot;${coberturaResultsUrl}/graph&quot;/&amp;gt;
+&amp;lt;/br&amp;gt;
+&amp;lt;% } %&amp;gt;                  
+  &amp;lt;!-- content --&amp;gt;
+  &amp;lt;!-- bottom message --&amp;gt;
+&amp;lt;/body&amp;gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;运行效果&quot;&gt;运行效果&lt;/h2&gt;
+
+&lt;p&gt;Jenkins pipeline project流程图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_Process_rendering.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Jenkins send email效果图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_send_email1.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/pipeline_send_email2.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Jenkins" /><category term="pipeline" /><category term="pytest" /><summary type="html">概述</summary></entry><entry><title type="html">API获取Jenkins构建信</title><link href="http://172.17.73.80:4000/2020/05/08/get-jenkins-information/" rel="alternate" type="text/html" title="API获取Jenkins构建信" /><published>2020-05-08T00:00:00+08:00</published><updated>2020-05-08T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/08/get-jenkins-information</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/08/get-jenkins-information/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。&lt;/p&gt;
+
+&lt;h1 id=&quot;详述&quot;&gt;详述&lt;/h1&gt;
+
+&lt;p&gt;本文参考jenkins-rest库，将API根据获取的资源类型不同分为6个类别。&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;API类型&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;JobsAP&lt;/td&gt;
+      &lt;td&gt;任务管理（任务信息、创建、修改）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;OBPluginManagerAPI&lt;/td&gt;
+      &lt;td&gt;插件管理（插件信息、安装插件）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;QueueAPI&lt;/td&gt;
+      &lt;td&gt;任务队列相关（队列状态）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;StatisticsAPI&lt;/td&gt;
+      &lt;td&gt;Jenkins统计信息&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;CrumbIssuerAPI&lt;/td&gt;
+      &lt;td&gt;系统哈希值信息（用于防御CSRF攻击）&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;SystemAPI&lt;/td&gt;
+      &lt;td&gt;Jenkins系统状态（版本、路径）&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;术语定义&quot;&gt;术语定义&lt;/h2&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;名词&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;说明&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;job&lt;/td&gt;
+      &lt;td&gt;任务&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;payload&lt;/td&gt;
+      &lt;td&gt;在POST请求中提交的数据&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;{optionalFolderPath}&lt;/td&gt;
+      &lt;td&gt;可选参数：任务所在目录的路径&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;{project_name}&lt;/td&gt;
+      &lt;td&gt;必须参数：任务名称&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;注意:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在 GET/POST 时需要附加 HTTP 认证才能访问 API&lt;/li&gt;
+  &lt;li&gt;本文使用的数据结构可以在 jenkins-rest/domain 中查看详细定义&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;jobs-相关-api&quot;&gt;Jobs 相关 API&lt;/h2&gt;
+
+&lt;h3 id=&quot;job-info-获取任务信息&quot;&gt;job-info 获取任务信息&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/api/json&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：JobInfo&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+      &lt;th&gt; &lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;description&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt;描述&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;name&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt;项目名称&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;url&lt;/td&gt;
+      &lt;td&gt;boolean&lt;/td&gt;
+      &lt;td&gt;路径&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;buildable&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt;是否可构建&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;builds&lt;/td&gt;
+      &lt;td&gt;List&lt;BuildInfo&gt;&lt;/BuildInfo&gt;&lt;/td&gt;
+      &lt;td&gt;构建记录&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;lastBuild&lt;/td&gt;
+      &lt;td&gt;BuildInfo&lt;/td&gt;
+      &lt;td&gt;上次构建记录&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;……&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;build-info-获取构筑信息&quot;&gt;build-info 获取构筑信息&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/{number}/api/json&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：BuildInfo&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;artifacts&lt;/td&gt;
+      &lt;td&gt;List&lt;Artifact&gt;&lt;/Artifact&gt;&lt;/td&gt;
+      &lt;td&gt;artifacts&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;actions&lt;/td&gt;
+      &lt;td&gt;Lis&lt;Action&gt;&lt;/Action&gt;&lt;/td&gt;
+      &lt;td&gt;actions&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;building&lt;/td&gt;
+      &lt;td&gt;boolean	路径&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;description&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt;描述&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;……&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;create-使用-xml-文件创建任务&quot;&gt;create 使用 XML 文件创建任务&lt;/h3&gt;
+
+&lt;p&gt;从 XML 文件中加载任务配置并创建任务&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/createItem&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数&quot;&gt;参数&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;key&lt;/th&gt;
+      &lt;th&gt;value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;name	任务名称&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;payload	XML配置文件&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：RequestStatus&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;value&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;errors&lt;/td&gt;
+      &lt;td&gt;List&lt;Error&gt;&lt;/Error&gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;get-config-获取任务配置文件&quot;&gt;get-config 获取任务配置文件&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型： String&lt;/p&gt;
+
+&lt;h3 id=&quot;update-config-更新任务配置文件&quot;&gt;update-config 更新任务配置文件&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数-1&quot;&gt;参数&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;payload&lt;/td&gt;
+      &lt;td&gt;XML配置文件&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：Boolean&lt;/p&gt;
+
+&lt;h3 id=&quot;get-description-获取任务描述&quot;&gt;get-description 获取任务描述&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：String&lt;/p&gt;
+
+&lt;h3 id=&quot;set-description-设置任务描述&quot;&gt;set-description 设置任务描述&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数-2&quot;&gt;参数&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;key&lt;/th&gt;
+      &lt;th&gt;value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;description&lt;/td&gt;
+      &lt;td&gt;描述&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：Boolean&lt;/p&gt;
+
+&lt;h3 id=&quot;delete-删除任务&quot;&gt;delete 删除任务&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/doDelete&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：RequestStatus&lt;/p&gt;
+
+&lt;h3 id=&quot;enable允许任务&quot;&gt;enable允许任务&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/enable&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：Boolean&lt;/p&gt;
+
+&lt;h3 id=&quot;disable-禁止任务&quot;&gt;disable 禁止任务&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/disable&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：Boolean&lt;/p&gt;
+
+&lt;h3 id=&quot;build-构建&quot;&gt;build 构建&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/build&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型： IntegerResponse&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;value&lt;/td&gt;
+      &lt;td&gt;Integer&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;errors&lt;/td&gt;
+      &lt;td&gt;List&lt;Error&gt;&lt;/Error&gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;build-with-params--使用参数创建任务&quot;&gt;build-with-params  使用参数创建任务&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/buildWithParameters&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数-3&quot;&gt;参数&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;key&lt;/th&gt;
+      &lt;th&gt;value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;payload&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, List&lt;String&gt;&amp;gt; properties&lt;/String&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型： IntegerResponse&lt;/p&gt;
+
+&lt;h3 id=&quot;last-build-number-获取上次构建序号&quot;&gt;last-build-number 获取上次构建序号&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildNumber&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：Integer&lt;/p&gt;
+
+&lt;h3 id=&quot;last-build-timestamp-获取上次构建时间戳&quot;&gt;last-build-timestamp 获取上次构建时间戳&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildTimestamp&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：String&lt;/p&gt;
+
+&lt;h3 id=&quot;progressive-text-获取构建控制台输出&quot;&gt;progressive-text 获取构建控制台输出&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/logText/progressiveText&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：ProgressiveText&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;text&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt;控制台输出&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;size&lt;/td&gt;
+      &lt;td&gt;Integer&lt;/td&gt;
+      &lt;td&gt;字数&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;hasMoreData&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt;是否有更多数据&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;crumbissuer-系统哈希值信息用于防御csrf攻击&quot;&gt;CrumbIssuer 系统哈希值信息（用于防御CSRF攻击）&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;CrumbIssuerApi&lt;/li&gt;
+  &lt;li&gt;path: /crumbIssuer/api/xml&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;crumb&quot;&gt;crumb&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/crumbIssuer/api/xml?{key}={value}&lt;/code&gt;&lt;/p&gt;
+
+&lt;h5 id=&quot;参数-4&quot;&gt;参数&lt;/h5&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;key&lt;/th&gt;
+      &lt;th&gt;value&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;xpath&lt;/td&gt;
+      &lt;td&gt;concat(//crumbRequestField,”:”,//crumb)&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：Crumb&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;value&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;errors&lt;/td&gt;
+      &lt;td&gt;List&lt;Error&gt;&lt;/Error&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;pluginmanager-插件管理插件信息安装插件&quot;&gt;PluginManager 插件管理（插件信息、安装插件）&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;PluginManagerApi&lt;/li&gt;
+  &lt;li&gt;path: /pluginManager&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;plugins-插件列表&quot;&gt;plugins 插件列表&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/pluginManager/api/json&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：List&lt;Plugin&gt;&lt;/Plugin&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;active&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;backupVersion	String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;bundled&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;deleted&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;downgradable&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;enabled&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;longName&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;……&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;installnecessaryplugins-安装插件&quot;&gt;installNecessaryPlugins 安装插件&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/pluginManager/installNecessaryPlugins&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数-5&quot;&gt;参数&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;payload: &amp;lt;jenkins&amp;gt;&amp;lt;install plugin=&quot;{pluginID}&quot;/&amp;gt;&amp;lt;/jenkins&amp;gt;&lt;/code&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;{pluginID}&lt;/td&gt;
+      &lt;td&gt;要安装的插件ID&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：RequestStatus&lt;/p&gt;
+
+&lt;h3 id=&quot;queue-任务队列相关队列状态&quot;&gt;Queue 任务队列相关（队列状态）&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;QueueApi&lt;/li&gt;
+  &lt;li&gt;path: /queue&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;queue-所有任务队列信息&quot;&gt;queue 所有任务队列信息&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/queue/api/json&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：List&lt;QueueItem&gt;&lt;/QueueItem&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;blocked&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt;是否阻塞&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;buildable&lt;/td&gt;
+      &lt;td&gt;Boolean&lt;/td&gt;
+      &lt;td&gt;是否可构建&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;id&lt;/td&gt;
+      &lt;td&gt;Integer&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;inQueueSince&lt;/td&gt;
+      &lt;td&gt;Long&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;params&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt;任务参数&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;task&lt;/td&gt;
+      &lt;td&gt;Task&lt;/td&gt;
+      &lt;td&gt;Task中包含任务名称和URL&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;……&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;item-任务队列信息&quot;&gt;item 任务队列信息&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/queue/item/{queueId}/api/json&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数-6&quot;&gt;参数&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;{queueId}&lt;/td&gt;
+      &lt;td&gt;任务队列ID&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：QueueItem&lt;/p&gt;
+
+&lt;h3 id=&quot;cancel-取消任务队列-&quot;&gt;cancel 取消任务队列 |&lt;/h3&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;POST http://127.0.0.1:8080/cancelItem?id={id}&lt;/code&gt;&lt;/p&gt;
+
+&lt;h4 id=&quot;参数-7&quot;&gt;参数&lt;/h4&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;{id}&lt;/td&gt;
+      &lt;td&gt;任务队列ID&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;p&gt;返回类型：RequestStatus&lt;/p&gt;
+
+&lt;h3 id=&quot;statistics-统计信息&quot;&gt;Statistics 统计信息&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;StatisticsApi&lt;/li&gt;
+  &lt;li&gt;path: /&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&quot;overall-load&quot;&gt;overall-load&lt;/h4&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;GET http://127.0.0.1:8080/overallLoad/api/json&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回类型：OverallLoad&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;availableExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;busyExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;connectingExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;definedExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;idleExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;onlineExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;queueLength&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;totalExecutors&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;totalQueueLength&lt;/td&gt;
+      &lt;td&gt;Map&amp;lt;String, String&amp;gt;&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h4 id=&quot;system-系统信息&quot;&gt;System 系统信息&lt;/h4&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;path: /&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;返回类型：SystemInfo&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;字段&lt;/th&gt;
+      &lt;th&gt;类型&lt;/th&gt;
+      &lt;th&gt;说明&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;hudsonVersion&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;jenkinsVersion&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;jenkinsSession&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;instanceIdentity&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;sshEndpoint&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;server&lt;/td&gt;
+      &lt;td&gt;String&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h1 id=&quot;举几个例子&quot;&gt;举几个例子&lt;/h1&gt;
+
+&lt;h2 id=&quot;获取jenkins-job状态&quot;&gt;获取jenkins job状态&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;oot@node248:~# curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/api/xml --user jenkins:1&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;结果示例如下:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&amp;lt;freeStyleBuild _class='hudson.model.FreeStyleBuild'&amp;gt;&amp;lt;action _class='hudson.model.CauseAction'&amp;gt;&amp;lt;cause _class='hudson.model.Cause$UserIdCause'&amp;gt;&amp;lt;shortDescription&amp;gt;Started by user jenkins&amp;lt;/shortDescription&amp;gt;&amp;lt;userId&amp;gt;jenkins&amp;lt;/userId&amp;gt;&amp;lt;userName&amp;gt;jenkins&amp;lt;/userName&amp;gt;&amp;lt;/cause&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action _class='hudson.plugins.git.util.BuildData'&amp;gt;&amp;lt;buildsByBranchName&amp;gt;&amp;lt;refsremotesoriginmaster _class='hudson.plugins.git.util.Build'&amp;gt;&amp;lt;buildNumber&amp;gt;68&amp;lt;/buildNumber&amp;gt;&amp;lt;marked&amp;gt;&amp;lt;SHA1&amp;gt;6388b644c4405a31611f179dca6c1e485ad92aa5&amp;lt;/SHA1&amp;gt;&amp;lt;branch&amp;gt;&amp;lt;SHA1&amp;gt;6388b644c4405a31611f179dca6c1e485ad92aa5&amp;lt;/SHA1&amp;gt;&amp;lt;name&amp;gt;refs/remotes/origin/master&amp;lt;/name&amp;gt;&amp;lt;/branch&amp;gt;&amp;lt;/marked&amp;gt;&amp;lt;revision&amp;gt;&amp;lt;SHA1&amp;gt;6388b644c4405a31611f179dca6c1e485ad92aa5&amp;lt;/SHA1&amp;gt;&amp;lt;branch&amp;gt;&amp;lt;SHA1&amp;gt;6388b644c4405a31611f179dca6c1e485ad92aa5&amp;lt;/SHA1&amp;gt;&amp;lt;name&amp;gt;refs/remotes/origin/master&amp;lt;/name&amp;gt;&amp;lt;/branch&amp;gt;&amp;lt;/revision&amp;gt;&amp;lt;/refsremotesoriginmaster&amp;gt;&amp;lt;/buildsByBranchName&amp;gt;&amp;lt;lastBuiltRevision&amp;gt;&amp;lt;SHA1&amp;gt;6388b644c4405a31611f179dca6c1e485ad92aa5&amp;lt;/SHA1&amp;gt;&amp;lt;branch&amp;gt;&amp;lt;SHA1&amp;gt;6388b644c4405a31611f179dca6c1e485ad92aa5&amp;lt;/SHA1&amp;gt;&amp;lt;name&amp;gt;refs/remotes/origin/master&amp;lt;/name&amp;gt;&amp;lt;/branch&amp;gt;&amp;lt;/lastBuiltRevision&amp;gt;&amp;lt;remoteUrl&amp;gt;git@10.1.12.10:yunzeng_wang/pytest_framework.git&amp;lt;/remoteUrl&amp;gt;&amp;lt;scmName&amp;gt;&amp;lt;/scmName&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action _class='hudson.plugins.git.GitTagAction'&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action _class='hudson.plugins.violations.ViolationsBuildAction'&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;action&amp;gt;&amp;lt;/action&amp;gt;&amp;lt;artifact&amp;gt;&amp;lt;displayPath&amp;gt;allure-report.zip&amp;lt;/displayPath&amp;gt;&amp;lt;fileName&amp;gt;allure-report.zip&amp;lt;/fileName&amp;gt;&amp;lt;relativePath&amp;gt;allure-report.zip&amp;lt;/relativePath&amp;gt;&amp;lt;/artifact&amp;gt;&amp;lt;building&amp;gt;false&amp;lt;/building&amp;gt;&amp;lt;displayName&amp;gt;#68&amp;lt;/displayName&amp;gt;&amp;lt;duration&amp;gt;87155647&amp;lt;/duration&amp;gt;&amp;lt;estimatedDuration&amp;gt;85209450&amp;lt;/estimatedDuration&amp;gt;&amp;lt;fullDisplayName&amp;gt;pytest_7.0 #68&amp;lt;/fullDisplayName&amp;gt;&amp;lt;id&amp;gt;68&amp;lt;/id&amp;gt;&amp;lt;keepLog&amp;gt;false&amp;lt;/keepLog&amp;gt;&amp;lt;number&amp;gt;68&amp;lt;/number&amp;gt;&amp;lt;queueId&amp;gt;343&amp;lt;/queueId&amp;gt;&amp;lt;result&amp;gt;UNSTABLE&amp;lt;/result&amp;gt;&amp;lt;timestamp&amp;gt;1588762417068&amp;lt;/timestamp&amp;gt;&amp;lt;url&amp;gt;http://172.12.12.234:8080/job/pytest_7.0/68/&amp;lt;/url&amp;gt;&amp;lt;builtOn&amp;gt;&amp;lt;/builtOn&amp;gt;&amp;lt;changeSet _class='hudson.plugins.git.GitChangeSetList'&amp;gt;&amp;lt;kind&amp;gt;git&amp;lt;/kind&amp;gt;&amp;lt;/changeSet&amp;gt;&amp;lt;culprit&amp;gt;&amp;lt;absoluteUrl&amp;gt;http://172.12.12.234:8080/user/shengdan061&amp;lt;/absoluteUrl&amp;gt;&amp;lt;fullName&amp;gt;shengdan061&amp;lt;/fullName&amp;gt;&amp;lt;/culprit&amp;gt;&amp;lt;culprit&amp;gt;&amp;lt;absoluteUrl&amp;gt;http://172.12.12.234:8080/user/yunzeng_wang&amp;lt;/absoluteUrl&amp;gt;&amp;lt;fullName&amp;gt;yunzeng_wang&amp;lt;/fullName&amp;gt;&amp;lt;/culprit&amp;gt;&amp;lt;/freeStyleBuild&amp;gt;root@node248:~#
+root@node248:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;获取某一个构建版本号为56的构建结果&quot;&gt;获取某一个构建版本号为56的构建结果&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;curl http://172.12.12.234:8080/job/pytest_7.0/56/api/xml --user jenkins:1&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;获取最后一次构建的版本号&quot;&gt;获取最后一次构建的版本号：&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/buildNumber --user jenkins:1&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;获取某个项目所有构建版本号的结果&quot;&gt;获取某个项目所有构建版本号的结果&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;curl http://172.12.12.234:8080/job/pytest_7.0/api/xml --user jenkins:1&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;以上pytest_7.0为项目名称，jenkins:1是访问jenkins server的账号和密码&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Gavin</name></author><category term="Jenkins" /><summary type="html">概述</summary></entry><entry><title type="html">Megacli详解</title><link href="http://172.17.73.80:4000/2020/05/06/megacli-use-guide/" rel="alternate" type="text/html" title="Megacli详解" /><published>2020-05-06T00:00:00+08:00</published><updated>2020-05-06T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/06/megacli-use-guide</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/06/megacli-use-guide/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;通常，我们使用的DELL/HP/IBM三家的机架式PC级服务器阵列卡是从LSI的卡OEM出来的，DELL和IBM两家的阵列卡原生程度较高， 没有做太多封装，可以用原厂提供的阵列卡管理工具进行监控；而HP的阵列卡一般都做过封装了，因此需要使用自身特有的管理工具来监控。
+本文以几种常用的阵列卡为例，展示其阵列卡及硬盘监控的方法。&lt;/p&gt;
+
+&lt;p&gt;DELL SAS 6/iR卡，全称LSI Logic SAS1068E，只支持RAID 0, RAID 1, RAID 1+0, 不支持RAID 5等高级RAID特性，不支持阵列卡电池。
+DELL PERC PERC H700卡，全称LSI Logic MegaRAID SAS 2108，支持各种RAID级别及高级特性，可选配阵列卡电池。
+DELL PERC H310 Mini卡 ，全称LSI Logic / Symbios Logic MegaRAID SAS 2008，支持常见RAID级别，不支持高级RAID特性，不支持阵列卡电池。
+IBM ServeRAID M5014 SAS/SATA Controller卡，全称LSI Logic / Symbios Logic MegaRAID SAS 2108，支持各种RAID级别及高级特性，可选配阵列卡电池。
+IBM ServeRAID-MR10i SAS/SATA Controller卡，全称LSI Logic / Symbios Logic MegaRAID SAS 1078，支持常见RAID级别，不支持高级RAID特性，可选配阵列卡电池，这个卡其实和DELL的PERC 6/i卡是一样的，都是基于LSI MegaRAID SAS 1078基础上OEM出来的。&lt;/p&gt;
+
+&lt;p&gt;上面是几种常见的阵列卡型号，更多的可以自行查看官方的技术手册。
+下面我们要继续的是，这些阵列卡以及硬盘如何监控，阵列卡的管理也请查看官方技术手册，不在本文讨论范畴。
+一般地，支持RAID 5的卡，我们称其为阵列卡，都可以使用LSI官方提供的MegaCli工具来管理，而不支持RAID 5的卡，我们称其为SAS卡，使用lsiutil工具来管理。HP的服务器使用其特有的hpacucli工具来管理。&lt;/p&gt;
+
+&lt;h1 id=&quot;工具概述&quot;&gt;工具概述&lt;/h1&gt;
+
+&lt;h2 id=&quot;megacli工具&quot;&gt;&lt;strong&gt;MegaCli工具&lt;/strong&gt;&lt;/h2&gt;
+
+&lt;h3 id=&quot;megacli--adpallinfo--aall--查看阵列卡信息&quot;&gt;MegaCli -adpallinfo -aall — 查看阵列卡信息&lt;/h3&gt;
+
+&lt;p&gt;-a 参数指定阵列卡的编号，一般服务器上只会配一个阵列卡，因此我们通常指定为 -a0（阵列卡适配器编号，从0开始） 即可，主要关注下面几个信息：&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;状态值&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;对应含义&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Product Name : PERC  H710 Mini&lt;/td&gt;
+      &lt;td&gt;阵列卡名称&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;FW Package Build:  21.2.0-0007&lt;/td&gt;
+      &lt;td&gt;阵列卡firmware版本号，版本如果太低，建议升级以提高稳定性及性能&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;BBU : Present&lt;/td&gt;
+      &lt;td&gt;是否有配BBU电池&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;megacli--cfgdsply--aall--查看阵列配置&quot;&gt;MegaCli -cfgdsply -aall — 查看阵列配置&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;状态值&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;对应含义&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Memory: 512MB&lt;/td&gt;
+      &lt;td&gt;阵列卡cache大小，2的N次方，如果不是，说明阵列卡有异常&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Number of dedicated  Hotspares: 0&lt;/td&gt;
+      &lt;td&gt;阵列是否有专用/独享热备盘（如果有多个逻辑磁盘组/disk group，则可以指定一个硬盘用于全局热备，那么该disk group上的专用热备盘数量为0也不用担心），除了RAID  1/RAID 1+0一般不指定热备盘以外，其他几个阵列级别建议都要指定热备盘&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;State : Optimal&lt;/td&gt;
+      &lt;td&gt;阵列状态，如果不是 Optimal 就要关注了&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Current Cache  Policy: WriteBack, ReadAheadNone, Direct, Write Cache OK if Bad BBU&lt;/td&gt;
+      &lt;td&gt;阵列读写cache策略，建议写策略设置为FORCE WB，最起码是WB，预读策略可以关掉，意义不大，几乎没影响&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Disk Cache Policy :  Disabled&lt;/td&gt;
+      &lt;td&gt;硬盘cache策略，建议关闭，防止意外时数据丢失&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Current Power  Savings Policy: None&lt;/td&gt;
+      &lt;td&gt;节电策略，建议关闭&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Media Error Count:  0&lt;/td&gt;
+      &lt;td&gt;三个错误计数器，任何一个值大于100就要立刻引起关注，尤其要关注起增长速度。1T以上SATA盘，计数值不够精确，可能所有盘上该值都会大于0，一般重启就会重新清0，如果重启后还是大于0的话，赶紧报修吧。SAS盘的计数值则比较准确。&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Other Error Count:  0&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Predictive Failure  Count: 0&lt;/td&gt;
+      &lt;td&gt; &lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Firmware state:  Online, Spun Up&lt;/td&gt;
+      &lt;td&gt;查看硬盘状态，如果是unconfigured表示该硬盘未分配加入到阵列中；如果是  unconfigured(bad)表示该盘不但是未分配，而且还坏了，正是“出师未捷身先死”；如果是failed，表示该盘故障无法识别；如果是  rebuilding，表示该盘正在重建数据&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;megacli--adpbbucmd--aall--查看阵列卡电池信息&quot;&gt;MegaCli -adpbbucmd -aall — 查看阵列卡电池信息&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;状态值&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;对应含义&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Temperature: 39 C&lt;/td&gt;
+      &lt;td&gt;查看电池温度，如果相比上一次查看高出不少，就需要关注了，或者可以根据经验设置一个基线值&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Battery State:  Optimal&lt;/td&gt;
+      &lt;td&gt;电池状态，如果不是为Optimal，就需要关注了&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Charger Status:  Complete&lt;/td&gt;
+      &lt;td&gt;电池充放电状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;isSOHGood: Yes&lt;/td&gt;
+      &lt;td&gt;电池状态，如果不是为Yes，需要关注&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Relative State of  Charge: 93 %&lt;/td&gt;
+      &lt;td&gt;当前电量，当电量低于15%，或者电池坏掉时，默认都会将写策略从WB改成WT，除非设定为FORCE WB策略&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Max Error = 0 %&lt;/td&gt;
+      &lt;td&gt;电池是否有错误信息&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Next Learn time:  Tue Oct 14 22:06:50 2014&lt;/td&gt;
+      &lt;td&gt;电池充放电时间，注意这是美国时间。另外，新的阵列卡电池很多改成电容式的了，也就不需要重复充放电了&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;lsiutil工具&quot;&gt;lsiutil工具&lt;/h2&gt;
+
+&lt;p&gt;lsiutil有交互和非交互两种方式，作为监控，我们肯定选择非交互模式。想要使用交互模式的，可以根据非交互模式自行练习。&lt;/p&gt;
+
+&lt;h3 id=&quot;lsiutil--p-1--a-201200--查看硬盘计数器&quot;&gt;lsiutil -p 1 -a 20,12,0,0 — 查看硬盘计数器&lt;/h3&gt;
+
+&lt;p&gt;Invalid DWord Count 2,563 — 任何一个值大于0，都需要引起关注&lt;/p&gt;
+
+&lt;p&gt;Running Disparity Error Count 2,366&lt;/p&gt;
+
+&lt;p&gt;Loss of DWord Synch Count 0&lt;/p&gt;
+
+&lt;p&gt;Phy Reset Problem Count 0&lt;/p&gt;
+
+&lt;h3 id=&quot;lsiutil--p-1--a-211000--查看逻辑卷状态&quot;&gt;lsiutil -p 1 -a 21,1,0,0,0 — 查看逻辑卷状态&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;状态值&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;对应含义&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Volume State:  optimal, enabled&lt;/td&gt;
+      &lt;td&gt;逻辑卷健康状况&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Volume draws from  Hot Spare Pools: 0&lt;/td&gt;
+      &lt;td&gt;是否有热备&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Volume Size 139392  MB, 2 Members&lt;/td&gt;
+      &lt;td&gt;由几块硬盘组成&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Primary is PhysDisk  1 (Bus 0 Target 9)&lt;/td&gt;
+      &lt;td&gt;物理硬盘1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Secondary is  PhysDisk 0 (Bus 0 Target 3)&lt;/td&gt;
+      &lt;td&gt;物理硬盘0&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3 id=&quot;lsiutil--p-1--a-212000--查看物理硬盘状态&quot;&gt;lsiutil -p 1 -a 21,2,0,0,0 — 查看物理硬盘状态&lt;/h3&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;状态值&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;对应含义&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;PhysDisk 0 is Bus 0  Target 3&lt;/td&gt;
+      &lt;td&gt;编号&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;PhysDisk State:  online&lt;/td&gt;
+      &lt;td&gt;状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Error Count 13,  Last Error: Command = 28h, Key = 3, ASC/ASCQ = 11h/00h&lt;/td&gt;
+      &lt;td&gt;错误计数器，大于0的话，就需要引起关注&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2 id=&quot;hpacucli工具&quot;&gt;hpacucli工具&lt;/h2&gt;
+
+&lt;p&gt;hpacucli工具查看阵列、硬盘、电池信息，其实就只要一条指令：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;hpacucli ctrl all show config detail — 查看阵列详细信息、配置&lt;/strong&gt;&lt;/p&gt;
+
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;&lt;strong&gt;状态值&lt;/strong&gt;&lt;/th&gt;
+      &lt;th&gt;&lt;strong&gt;对应含义&lt;/strong&gt;&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Controller Status:  OK&lt;/td&gt;
+      &lt;td&gt;阵列卡状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Firmware Version:  1.18&lt;/td&gt;
+      &lt;td&gt;firmware版本，太低了建议升级，以提高稳定性及性能&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Cache Board  Present: True&lt;/td&gt;
+      &lt;td&gt;是否配备了cache模块&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Cache Status: OK&lt;/td&gt;
+      &lt;td&gt;cache模块状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Cache Ratio: 100%  Read / 0% Write&lt;/td&gt;
+      &lt;td&gt;cache策略，此处只有读cache，不用于写cache，因为没有bbu电池，见下方结果&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Drive Write Cache:  Disabled&lt;/td&gt;
+      &lt;td&gt;关闭磁盘cache&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Total Cache Size:  256 MB&lt;/td&gt;
+      &lt;td&gt;cache大小&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Total Cache Memory  Available: 208 MB&lt;/td&gt;
+      &lt;td&gt;实际可用cache大小，和理论cache大小不一样，说明cache模块可能有问题&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;No-Battery Write  Cache: Disabled&lt;/td&gt;
+      &lt;td&gt;关闭FORCEWB策略&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Battery/Capacitor  Count: 0&lt;/td&gt;
+      &lt;td&gt;阵列卡BBU电池数量为0，也就是没有BBU模块&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Battery/Capacitor  Status: Failed (Replace Batteries)&lt;/td&gt;
+      &lt;td&gt;阵列卡BBU电池状态，这里显示是错误状态，需要及时更换&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Array: A&lt;/td&gt;
+      &lt;td&gt;第一个乌列阵列，编号从A开始，依次是A、B、C&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Status: OK&lt;/td&gt;
+      &lt;td&gt;物理阵列状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Logical Drive: 1&lt;/td&gt;
+      &lt;td&gt;第一个逻辑卷，编号从1开始&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Fault Tolerance:  RAID 5&lt;/td&gt;
+      &lt;td&gt;第一个逻辑卷的阵列级别&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Status: OK&lt;/td&gt;
+      &lt;td&gt;第一个逻辑卷状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Caching: Enabled&lt;/td&gt;
+      &lt;td&gt;第一个逻辑卷是否启用了cache策略&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;physicaldrive  1I:1:1&lt;/td&gt;
+      &lt;td&gt;第一块物理硬盘，编号从1开始&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Status: OK&lt;/td&gt;
+      &lt;td&gt;第一块物理硬盘状态&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;Firmware Revision:  HPDA&lt;/td&gt;
+      &lt;td&gt;第一块物理硬盘firmware，如果太低，也需要及时升级，HP的硬盘每个批次都有不同的firmware&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h1 id=&quot;megacli实践&quot;&gt;Megacli实践&lt;/h1&gt;
+
+&lt;h2 id=&quot;查看有风险的盘&quot;&gt;查看有风险的盘&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -LDPDinfo -A0 |grep &quot;Device Id&quot; |awk '{print $3}' |xargs -I {} smartctl -a -d megaraid,{} /dev/sdc |grep -Ei &quot;^187|^188|^197|^198|Reallocated_Sector_Ct&quot; | xargs -I{} echo {}&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看磁盘的smart信息&quot;&gt;查看磁盘的smart信息&lt;/h2&gt;
+
+&lt;p&gt;如果磁盘在RAID卡上：&lt;/p&gt;
+
+&lt;p&gt;（1）先获取磁盘的device id&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 PDList aall&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这里的输出，会有ES信息，同时还会有device id&lt;/p&gt;
+
+&lt;p&gt;（2）根据device id，查询smart信息&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;smartctl -a -d megaraid,11 /dev/sdc&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;这里的11就是磁盘的device id，哪怕后面的/dev/sdc不存在，获取是这颗磁盘不属于sdc，也能输出正确的信息，只要device id是正确的就行。&lt;/p&gt;
+
+&lt;p&gt;如果不在RAID卡上，直接&lt;code class=&quot;highlighter-rouge&quot;&gt;smartctl -a /dev/sdc&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;手工配置初始化&quot;&gt;手工配置初始化&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -start –L0 -a0         # 快速初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -start -full –L0 -a0     # 完全初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -progdsply -L0 -a0      # 显示初始化的进度
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -abort -L0 -a0        # 结束完全初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -Abort -LALL -aALL # 忽略初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -ProgDsply -LALL -aALL
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;设置raid-cache&quot;&gt;设置RAID cache&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;/opt/MegaRAID/MegaCli/MegaCli64 -ldinfo -l1 -a0
+
+/opt/MegaRAID/MegaCli/MegaCli64 -ldsetprop cached -l1 -a0
+
+/opt/MegaRAID/MegaCli/MegaCli64 -ldinfo -l1 -a0
+
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;显示rebuid进度&quot;&gt;显示Rebuid进度&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDRbld -ShowProg -physdrv[20:2] -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看e-s&quot;&gt;查看E S&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aAll -NoLog | grep -Ei &quot;(enclosure|slot)&quot;&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看所有硬盘的状态&quot;&gt;查看所有硬盘的状态&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aAll -NoLog &lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;如果有热备，则 Firmware State会显示为hotspace&lt;/p&gt;
+
+&lt;h2 id=&quot;查看copyback进度&quot;&gt;查看copyback进度&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDCpyBk -ShowProg -PhysDrv[33:3] -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看所有virtual-disk的状态&quot;&gt;查看所有Virtual Disk的状态&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -LdPdInfo -aAll -NoLog&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;RAID Level对应关系：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;RAID Level : Primary-1, Secondary-0, RAID Level Qualifier-0	RAID 1
+RAID Level : Primary-0, Secondary-0, RAID Level Qualifier-0	RAID 0
+RAID Level : Primary-5, Secondary-0, RAID Level Qualifier-3	RAID 5
+RAID Level : Primary-1, Secondary-3, RAID Level Qualifier-0	RAID 10
+
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;在线做raid&quot;&gt;在线做Raid&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;/opt/MegaRAID/MegaCli/MegaCli64 -CfgLdAdd -r0 [0:11] WB NORA Direct CachedBadBBU -strpsz64 -a0 -NoLog
+/opt/MegaRAID/MegaCli/MegaCli64 -CfgLdAdd -r5 [12:2,12:3,12:4,12:5,12:6,12:7] WB Direct -a0 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;让硬盘led灯闪烁定位&quot;&gt;让硬盘LED灯闪烁（定位）&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;    1、  MegaCli  -AdpSetProp UseDiskActivityforLocate -1 -a0 
+    2、  MegaCli  -PdLocate  -start  –physdrv[E:S]  -a0  让硬盘LED灯闪烁
+    3、  MegaCli  -PdLocate  -stopt  –physdrv[E:S]  -a0 停掉硬盘LED灯
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;清除foreign状态&quot;&gt;清除Foreign状态&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -CfgForeign -Clear -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看raid阵列中掉线的盘&quot;&gt;查看RAID阵列中掉线的盘&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -pdgetmissing -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;替换坏掉的模块&quot;&gt;替换坏掉的模块&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -pdreplacemissing -physdrv[12:10] -Array5 -row0 -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;手动开启rebuid&quot;&gt;手动开启rebuid&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -pdrbld -start -physdrv[12:10] -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;设置hotspare&quot;&gt;设置HotSpare&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;/opt/MegaRAID/MegaCli/MegaCli64 -pdhsp -set [-Dedicated [-Array2]] [-EnclAffinity] [-nonRevertible] -PhysDrv[4:11] -a0
+/opt/MegaRAID/MegaCli/MegaCli64 -pdhsp -set [-EnclAffinity] [-nonRevertible] -PhysDrv[32：1}] -a0
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;关闭rebuild&quot;&gt;关闭Rebuild&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpAutoRbld -Dsbl -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;设置rebuild的速率&quot;&gt;设置rebuild的速率&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpSetProp RebuildRate -30 -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看raid组成员&quot;&gt;查看RAID组成员&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64  -LdPdInfo -aAll&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;强制修改raid卡由write-through到write-back-方法&quot;&gt;强制修改RAID卡由write through到write back 方法&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;opt/MegaRAID/MegaCli/MegaCli64 -LDSetProp CachedBadBBU -Lall -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;一般在没有BBU情况下， 要执行如下命令进行修改：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;/opt/MegaRAID/MegaCli/MegaCli64 -ldsetprop WB -lall -aall;
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDSetProp CachedBadBBU -Lall -aALL;
+
+/opt/MegaRAID/MegaCli/MegaCli64 ldinfo lall aall
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;查raid卡信息&quot;&gt;查raid卡信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpAllInfo -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看电池信息&quot;&gt;查看电池信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -aAll&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看raid卡日志&quot;&gt;查看raid卡日志&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -FwTermLog -Dsply -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示适配器个数&quot;&gt;显示适配器个数&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -adpCount&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示适配器时间&quot;&gt;显示适配器时间&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpGetTime –aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示所有适配器信息&quot;&gt;显示所有适配器信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpAllInfo -aAll&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示所有逻辑磁盘组信息&quot;&gt;显示所有逻辑磁盘组信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -LDInfo -LALL -aAll &lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示所有的物理信息&quot;&gt;显示所有的物理信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aAll&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看充电状态&quot;&gt;查看充电状态&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus -aALL |grep 'Charger Status'&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示bbu状态信息&quot;&gt;显示BBU状态信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示bbu容量信息&quot;&gt;显示BBU容量信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuCapacityInfo -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示bbu设计参数&quot;&gt;显示BBU设计参数&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuDesignInfo -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示当前bbu属性&quot;&gt;显示当前BBU属性&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuProperties -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;显示raid卡型号raid设置disk相关信息&quot;&gt;显示Raid卡型号，Raid设置，Disk相关信息&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-cfgdsply -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;磁盘状态的变化从拔盘到插盘的过程中&quot;&gt;磁盘状态的变化，从拔盘，到插盘的过程中&lt;/h2&gt;
+
+&lt;p&gt;Device             : Normal –&amp;gt; Damage –&amp;gt; Rebuild –&amp;gt; Normal&lt;/p&gt;
+
+&lt;p&gt;Virtual Drive      : Optimal –&amp;gt; Degraded –&amp;gt; Degraded –&amp;gt; Optimal&lt;/p&gt;
+
+&lt;p&gt;Physical Drive     : Online –&amp;gt; Failed Unconfigured –&amp;gt; Rebuild –&amp;gt; Online&lt;/p&gt;
+
+&lt;h2 id=&quot;查看物理磁盘状态&quot;&gt;查看物理磁盘状态&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDRbld -ShowProg -PhysDrv [Enclosure Device ID:Slot Number] -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Rebuild 中的物理磁盘状态中会显示：”Firmware state: Rebuild”&lt;/p&gt;
+
+&lt;h2 id=&quot;以文本进度条样式显示-rebuild-进度&quot;&gt;以文本进度条样式显示 Rebuild 进度&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-pdrbld -progdsply -physdrv[E:S] -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;屏幕显示类似下面的内容：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;Rebuild progress of physical drives...
+Enclosure:Slot         Percent Complete           Time Elps
+     032 :05   #######################87 %################*******  01:59:07
+
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;查看-raid-卡-rebuild-参数&quot;&gt;查看 RAID 卡 Rebuild 参数&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-AdpAllinfo -aALL | grep -i rebuild&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;返回结果类似下面这样&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;Rebuild Rate                             : 30%
+Auto Rebuild                             : Enabled
+Rebuild Rate                             : Yes
+Force Rebuild                            : Yes
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;设置-raid-卡-rebuild-比例为60&quot;&gt;设置 RAID 卡 Rebuild 比例为60%&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-AdpSetProp { RebuildRate -60} -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;删除全局热备&quot;&gt;删除全局热备&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-PDHSP -Rmv -PhysDrv[E:S] -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;将物理盘下线和上线&quot;&gt;将物理盘下线和上线&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDOffline/Online -PhysDrv [E:S] -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;在线添加磁盘&quot;&gt;在线添加磁盘&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-LDRecon -Start -r5 -Add -PhysDrv[E:S] -L1 -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;删除阵列&quot;&gt;删除阵列&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -CfgLdDel -L1 -a0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看磁盘缓存策略&quot;&gt;查看磁盘缓存策略&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64-LDGetProp -DskCache -LALL -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;or&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -LDGetProp -Cache -LALL -aALL&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看raid卡event-log&quot;&gt;查看raid卡event log&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpEventLog -GetEvents -f event.log -A0&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;查看megacli的log&quot;&gt;查看Megacli的log&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -fwtermlog -dsply -aALL&lt;/code&gt; ，关注里面的error/fail/warn等多个关键字&lt;/p&gt;
+
+&lt;h2 id=&quot;查看raid卡时间&quot;&gt;查看raid卡时间&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpGetTime -A0 ; date&lt;/code&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Megacli" /><summary type="html">概述</summary></entry><entry><title type="html">更改pip&amp;amp;easy_install默认安装源</title><link href="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/" rel="alternate" type="text/html" title="更改pip&amp;easy_install默认安装源" /><published>2020-05-05T00:00:00+08:00</published><updated>2020-05-05T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/05/change-pip-install-source</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/05/change-pip-install-source/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介绍如何解决这些问题。&lt;/p&gt;
 
@@ -7115,846 +9500,4 @@ root@node243:~#
     'SAMSUNG': '177',
     'SANDFORCE': '231'
 }
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">前言</summary></entry><entry><title type="html">利用modinfo查看kernel使用的driver版本</title><link href="http://172.17.73.80:4000/2020/01/22/user-modinfo-get-driver-version-used-by-kernel/" rel="alternate" type="text/html" title="利用modinfo查看kernel使用的driver版本" /><published>2020-01-22T00:00:00+08:00</published><updated>2020-01-22T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/01/22/user-modinfo-get-driver-version-used-by-kernel</id><content type="html" xml:base="http://172.17.73.80:4000/2020/01/22/user-modinfo-get-driver-version-used-by-kernel/">&lt;h1 id=&quot;前言&quot;&gt;前言&lt;/h1&gt;
-
-&lt;p&gt;Linux modinfo命令用于显示kernel模块的信息，确切讲，会显示kernel模块的对象文件，以及显示该模块的相关信息。&lt;/p&gt;
-
-&lt;h1 id=&quot;语法&quot;&gt;语法&lt;/h1&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:~# modinfo -h
-Usage:
-	modinfo [options] filename [args]
-Options:
-	-a, --author                Print only 'author'
-	-d, --description           Print only 'description'
-	-l, --license               Print only 'license'
-	-p, --parameters            Print only 'parm'
-	-n, --filename              Print only 'filename'
-	-0, --null                  Use \0 instead of \n
-	-F, --field=FIELD           Print only provided FIELD
-	-k, --set-version=VERSION   Use VERSION instead of `uname -r`
-	-b, --basedir=DIR           Use DIR as filesystem root for /lib/modules
-	-V, --version               Show version
-	-h, --help                  Show this help
-root@node243:~# 
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
-
-&lt;p&gt;今天碰到需要给技嘉设备（型号：S451-3R0）更新系统里的QLogic driver，技嘉工程师提供的文件名称为server_driver_qlogic_lan_8.18.16.0.zip，从这里可以看出版本是8.18.16.0，问题来了，我要如何知道，当前系统里QLogic版本是多少？如果版本比技嘉工程师提供的高，自然就不需要更新这个驱动；如果比这个低，那就需要了。&lt;/p&gt;
-
-&lt;h2 id=&quot;查看系统里qlogic-driver在内核中加载的模块名称&quot;&gt;查看系统里QLogic driver在内核中加载的模块名称&lt;/h2&gt;
-
-&lt;p&gt;使用的&lt;code class=&quot;highlighter-rouge&quot;&gt;lspci -vvv&lt;/code&gt;命令，下面只截取片段信息:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;3f:00.0 Ethernet controller: QLogic Corp. Device 8070 (rev 02)
-        Subsystem: Gigabyte Technology Co., Ltd Device 1000
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx+
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast &amp;gt;TAbort- &amp;lt;TAbort- &amp;lt;MAbort- &amp;gt;SERR- &amp;lt;PERR- INTx-
-        Latency: 0, Cache Line Size: 32 bytes
-        Interrupt: pin A routed to IRQ 411
-        Region 0: Memory at b7d20000 (64-bit, prefetchable) [size=128K]
-        Region 2: Memory at b7c00000 (64-bit, prefetchable) [size=1M]
-        Region 4: Memory at b7d50000 (64-bit, prefetchable) [size=64K]
-        Expansion ROM at b8680000 [disabled] [size=512K]
-        Capabilities: [40] Power Management version 3
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent=375mA PME(D0+,D1-,D2-,D3hot+,D3cold+)
-                Status: D0 NoSoftRst+ PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [50] MSI: Enable- Count=1/8 Maskable+ 64bit+
-                Address: 0000000000000000  Data: 0000
-                Masking: 00000000  Pending: 00000000
-        Capabilities: [70] Express (v2) Endpoint, MSI 00
-                DevCap: MaxPayload 512 bytes, PhantFunc 0, Latency L0s unlimited, L1 unlimited
-                        ExtTag+ AttnBtn- AttnInd- PwrInd- RBE+ FLReset+
-                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
-                        RlxdOrd- ExtTag+ PhantFunc- AuxPwr- NoSnoop+ FLReset-
-                        MaxPayload 256 bytes, MaxReadReq 512 bytes
-                DevSta: CorrErr+ UncorrErr- FatalErr- UnsuppReq+ AuxPwr+ TransPend-
-                LnkCap: Port #0, Speed 8GT/s, Width x8, ASPM not supported, Exit Latency L0s unlimited, L1 &amp;lt;8us
-                        ClockPM+ Surprise- LLActRep- BwNot-
-                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- CommClk+
-                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                LnkSta: Speed 8GT/s, Width x8, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
-                DevCap2: Completion Timeout: Range ABCD, TimeoutDis+, LTR+, OBFF Via message/WAKE#
-                DevCtl2: Completion Timeout: 50us to 50ms, TimeoutDis-, LTR-, OBFF Disabled
-                LnkCtl2: Target Link Speed: 8GT/s, EnterCompliance- SpeedDis-
-                         Transmit Margin: Normal Operating Range, EnterModifiedCompliance- ComplianceSOS-
-                         Compliance De-emphasis: -6dB
-                LnkSta2: Current De-emphasis Level: -3.5dB, EqualizationComplete+, EqualizationPhase1+
-                         EqualizationPhase2+, EqualizationPhase3+, LinkEqualizationRequest-
-        Capabilities: [b0] MSI-X: Enable+ Count=129 Masked-
-                Vector table: BAR=4 offset=00000000
-                PBA: BAR=4 offset=00001000
-        Capabilities: [d0] Vital Product Data
-                Product Name: QLogic FastLinQ QL41212H 25GbE Adapter
-                Read-only fields:
-                        [PN] Part number: AH2010406-01 02
-                        [SN] Serial number: AFE1702F15357
-                        [V0] Vendor specific: FFV8.18.01
-                        [RV] Reserved: checksum good, 4 byte(s) reserved
-                End
-        Capabilities: [100 v2] Advanced Error Reporting
-                UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
-                UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
-                UESvrt: DLP+ SDES+ TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
-                CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-                CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr+
-                                AERCap: First Error Pointer: 00, GenCap+ CGenEn- ChkCap+ ChkEn-
-        Capabilities: [148 v1] Virtual Channel
-                Caps:   LPEVC=0 RefClk=100ns PATEntryBits=1
-                Arb:    Fixed- WRR32- WRR64- WRR128-
-                Ctrl:   ArbSelect=Fixed
-                Status: InProgress-
-                VC0:    Caps:   PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
-                        Arb:    Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
-                        Ctrl:   Enable+ ID=0 ArbSelect=Fixed TC/VC=01
-                        Status: NegoPending- InProgress-
-        Capabilities: [168 v1] Device Serial Number 00-00-00-00-00-00-00-00
-        Capabilities: [178 v1] Power Budgeting &amp;lt;?&amp;gt;
-        Capabilities: [188 v1] Alternative Routing-ID Interpretation (ARI)
-                ARICap: MFVC- ACS-, Next Function: 1
-                ARICtl: MFVC- ACS-, Function Group: 0
-        Capabilities: [198 v1] #19
-        Capabilities: [1f8 v1] Transaction Processing Hints
-                Interrupt vector mode supported
-                Device specific mode supported
-                Steering table in MSI-X table
-        Capabilities: [284 v1] Latency Tolerance Reporting
-                Max snoop latency: 0ns
-                Max no snoop latency: 0ns
-        Capabilities: [28c v1] Vendor Specific Information: ID=0002 Rev=3 Len=100 &amp;lt;?&amp;gt;
-        Capabilities: [38c v1] Vendor Specific Information: ID=0001 Rev=1 Len=038 &amp;lt;?&amp;gt;
-        Capabilities: [3c4 v1] #1f
-        Capabilities: [3d0 v1] Vendor Specific Information: ID=0003 Rev=1 Len=054 &amp;lt;?&amp;gt;
-        Capabilities: [424 v1] #15
-        Kernel driver in use: qede
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;从上面信息看到，qlogic driver，被kernel加载使用的叫qede&lt;/p&gt;
-
-&lt;h2 id=&quot;查看qede版本&quot;&gt;查看qede版本&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node150:~# lsmod | grep qede
-qede                  143360  0 
-qed                   880640  1 qede
-vxlan                  40960  2 i40e,qede
-ptp                    20480  2 i40e,qede
-root@node150:~# modinfo qede
-filename:       /lib/modules/4.1.49-server/updates/dkms/qede.ko
-version:        8.33.9.0
-license:        GPL
-description:    QLogic FastLinQ 4xxxx Ethernet Driver
-srcversion:     AFABFD8F281A74624107FE7
-alias:          pci:v00001077d00008090sv*sd*bc*sc*i*
-alias:          pci:v00001077d00008070sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001664sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001656sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001654sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001644sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001636sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001666sv*sd*bc*sc*i*
-alias:          pci:v00001077d00001634sv*sd*bc*sc*i*
-depends:        ptp,vxlan,qed
-vermagic:       4.1.49-server SMP mod_unload modversions 
-parm:           debug: Default debug msglevel (uint)
-parm:           int_mode: Force interrupt mode other than MSI-X:(1 INT#x; 2 MSI) (uint)
-parm:           gro_disable: Force HW gro disable:(0 enable (default); 1 disable) (uint)
-parm:           err_flags_override: Bitmap for disabling or forcing the actions taken according to the respective error flags bits (uint)
-parm:           rdma_lag_support: RDMA Bonding support enable - preview mode (uint)
-root@node150:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;从lsmod吐出信息可以看到，当前系统中QLogic driver版本是8.33.9.0，高于技嘉工程师提供的版本，所有不需要跟新&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">前言</summary></entry><entry><title type="html">三种方式修改CentOS hostname</title><link href="http://172.17.73.80:4000/2020/01/16/modify-hostname-for-centos/" rel="alternate" type="text/html" title="三种方式修改CentOS hostname" /><published>2020-01-16T00:00:00+08:00</published><updated>2020-01-16T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/01/16/modify-hostname-for-centos</id><content type="html" xml:base="http://172.17.73.80:4000/2020/01/16/modify-hostname-for-centos/">&lt;h1 id=&quot;三种方法修改centos-hostname&quot;&gt;三种方法修改Centos hostname&lt;/h1&gt;
-
-&lt;p&gt;在CentOS7中，有三种定义的主机名:静态的（static）、瞬态的（transient）、灵活的（pretty）。“静态”主机名也称为内核主机名，是系统在启动时从/etc/hostname自动初始化的主机名。“瞬态”主机名是在系统运行时临时分配的主机名，例如，通过DHCP或mDNS服务器分配。静态主机名和瞬态主机名都遵从作为互联网域名同样的字符限制规则。而另一方面，“灵活”主机名则允许使用自由形式（包括特殊/空白字符）的主机名，以展示给终端用户。&lt;/p&gt;
-
-&lt;p&gt;本文介绍修改Centos7的hostname的几种方法。&lt;/p&gt;
-
-&lt;h2 id=&quot;方法1-hostnamectl&quot;&gt;方法1: hostnamectl&lt;/h2&gt;
-
-&lt;p&gt;通过hostnamectl来修改主机名，hostnamectl吐出来的示例信息如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost ~]# hostnamectl
-   Static hostname: localhost.localdomain
-         Icon name: computer-vm
-           Chassis: vm
-        Machine ID: 39568e567fd24d9d8bacf3010f9b0ac4
-           Boot ID: 23efb67f65454f52bbf810e807267c05
-    Virtualization: kvm
-  Operating System: CentOS Linux 7 (Core)
-       CPE OS Name: cpe:/o:centos:centos:7
-            Kernel: Linux 3.10.0-957.el7.x86_64
-      Architecture: x86-64
-[root@localhost ~]# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;修改主机名&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost ~]# hostnamectl set-hostname host76 --static
-[root@localhost ~]# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;查看修改后的效果：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost ~]# 
-[root@localhost ~]# hostnamectl
-   Static hostname: host76
-Transient hostname: localhost.localdomain
-         Icon name: computer-vm
-           Chassis: vm
-        Machine ID: 39568e567fd24d9d8bacf3010f9b0ac4
-           Boot ID: 23efb67f65454f52bbf810e807267c05
-    Virtualization: kvm
-  Operating System: CentOS Linux 7 (Core)
-       CPE OS Name: cpe:/o:centos:centos:7
-            Kernel: Linux 3.10.0-957.el7.x86_64
-      Architecture: x86-64
-[root@localhost ~]# hostname
-host76
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;方法2-修改etchostname&quot;&gt;方法2: 修改/etc/hostname&lt;/h2&gt;
-
-&lt;p&gt;直接修改/etc/hostname文件，将里面的内容删掉，直接替换成自己需要的主机名称：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost ~]# vi /etc/hostname
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[root@localhost ~]# cat /etc/hostname 
-host76
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;方法3-nmtui&quot;&gt;方法3: nmtui&lt;/h2&gt;
-
-&lt;p&gt;还可以通过nmtui进入图形界面来修改主机名。将光标通过键盘的上下键移动到“设定系统主机名”菜单处，按下回车键。&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/nmtui.png&quot; width=&quot;200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;此时，屏幕出现“设定主机名”选项卡，输入需要设定的主机名，通过键盘方向键将光标移动到“确定”处，回车键确定即可完成主机名的修改。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">三种方法修改Centos hostname</summary></entry><entry><title type="html">SSD盘符漂移导致OSD down场景模拟与恢复</title><link href="http://172.17.73.80:4000/2020/01/10/SSD-disk-partition-drift-and-recovery/" rel="alternate" type="text/html" title="SSD盘符漂移导致OSD down场景模拟与恢复" /><published>2020-01-10T00:00:00+08:00</published><updated>2020-01-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/01/10/SSD-disk-partition-drift-and-recovery</id><content type="html" xml:base="http://172.17.73.80:4000/2020/01/10/SSD-disk-partition-drift-and-recovery/">&lt;h1 id=&quot;前言&quot;&gt;前言&lt;/h1&gt;
-
-&lt;p&gt;运维团队反馈一个问题，现象是：&lt;/p&gt;
-
-&lt;p&gt;某个OSD对应的cache分区发生了变化，比如原来cache使用的分区是/dev/sde,后来还是这块盘，但分区信息不知何故，变成了/dev/sdf（产品OSD设备并不是根据分区名称来map，而是根据partlabel），最终的现象是这个OSD down了，没法启动.
-接到这个现象的反馈后，记录一下这个问题在lab的复现方法。&lt;/p&gt;
-
-&lt;h1 id=&quot;准备工作&quot;&gt;准备工作&lt;/h1&gt;
-
-&lt;h2 id=&quot;step1-osd-data盘做raid5&quot;&gt;Step1. OSD data盘做RAID5&lt;/h2&gt;
-
-&lt;h2 id=&quot;step2-重新将ssd-make-as-jbod&quot;&gt;Step2. 重新将SSD make as JBOD&lt;/h2&gt;
-
-&lt;p&gt;在Step1结束后，将在RAID卡上的SSD设置为JBOD&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -AdpSetProp -EnableJBOD -1 -aALL&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;step3-创建集群正常启用osd对应osd要选择ssd作为cache&quot;&gt;Step3. 创建集群，正常启用OSD，对应osd要选择SSD作为cache&lt;/h2&gt;
-
-&lt;p&gt;如下为node245上的data与cache 大致的map关系：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# lsblk
-NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
-sda                         8:0    0 447.1G  0 disk 
-├─sda1                      8:1    0     8G  0 part 
-├─sda2                      8:2    0 439.1G  0 part 
-│ ├─g-osd1-0-cache (dm-0) 252:0    0 380.4G  0 dm   /data/cache/g-osd1-0
-│ ├─g-osd1-0-ext4m (dm-1) 252:1    0  58.5G  0 dm   
-│ │ └─g-osd1-0 (dm-2)     252:2    0  14.6T  0 dm   /data/osd.0
-│ └─g-osd1-0-ext4j (dm-3) 252:3    0   256M  0 dm   
-└─sda3                      8:3    0  1007K  0 part 
-sdb                         8:16   0 447.1G  0 disk 
-├─sdb1                      8:17   0     8G  0 part 
-├─sdb2                      8:18   0 439.1G  0 part 
-│ ├─g-osd2-0-cache (dm-4) 252:4    0   395G  0 dm   /data/cache/g-osd2-0
-│ ├─g-osd2-0-ext4m (dm-5) 252:5    0  43.9G  0 dm   
-│ │ └─g-osd2-0 (dm-6)     252:6    0    11T  0 dm   /data/osd.1
-│ └─g-osd2-0-ext4j (dm-7) 252:7    0   256M  0 dm   
-└─sdb3                      8:19   0  1007K  0 part 
-sdc                         8:32   0  14.6T  0 disk 
-└─sdc1                      8:33   0  14.6T  0 part 
-  └─g-osd1-0 (dm-2)       252:2    0  14.6T  0 dm   /data/osd.0
-sdd                         8:48   0  10.9T  0 disk 
-└─sdd1                      8:49   0  10.9T  0 part 
-  └─g-osd2-0 (dm-6)       252:6    0    11T  0 dm   /data/osd.1
-sde                         8:64   0 278.9G  0 disk 
-├─sde1                      8:65   0   7.6M  0 part 
-├─sde2                      8:66   0  95.4G  0 part /
-├─sde3                      8:67   0  26.7G  0 part [SWAP]
-└─sde4                      8:68   0 156.8G  0 part 
-root@node245:~#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;问题复现&quot;&gt;问题复现&lt;/h1&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;本文示例的SSD为E:S为[9:1]，对应的分区信息是sdb， 对应的osd id是1&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;step1-确认好ssd所在的盘位直接从设备上拔掉紧接着再插回去&quot;&gt;Step1. 确认好SSD所在的盘位，直接从设备上拔掉，紧接着再插回去&lt;/h2&gt;
-
-&lt;p&gt;重新拔插回去的SSD，此时节点的lsblk吐出信息是：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# lsblk
-NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
-sda                         8:0    0 447.1G  0 disk 
-├─sda1                      8:1    0     8G  0 part 
-├─sda2                      8:2    0 439.1G  0 part 
-│ ├─g-osd1-0-cache (dm-0) 252:0    0 380.4G  0 dm   /data/cache/g-osd1-0
-│ ├─g-osd1-0-ext4m (dm-1) 252:1    0  58.5G  0 dm   
-│ │ └─g-osd1-0 (dm-2)     252:2    0  14.6T  0 dm   /data/osd.0
-│ └─g-osd1-0-ext4j (dm-3) 252:3    0   256M  0 dm   
-└─sda3                      8:3    0  1007K  0 part 
-sdc                         8:32   0  14.6T  0 disk 
-└─sdc1                      8:33   0  14.6T  0 part 
-  └─g-osd1-0 (dm-2)       252:2    0  14.6T  0 dm   /data/osd.0
-sdd                         8:48   0  10.9T  0 disk 
-└─sdd1                      8:49   0  10.9T  0 part 
-  └─g-osd2-0 (dm-6)       252:6    0    11T  0 dm   /data/osd.1
-sde                         8:64   0 278.9G  0 disk 
-├─sde1                      8:65   0   7.6M  0 part 
-├─sde2                      8:66   0  95.4G  0 part /
-├─sde3                      8:67   0  26.7G  0 part [SWAP]
-└─sde4                      8:68   0 156.8G  0 part 
-sdf                         8:80   0 447.1G  0 disk 
-├─sdf1                      8:81   0     8G  0 part 
-├─sdf2                      8:82   0 439.1G  0 part 
-└─sdf3                      8:83   0  1007K  0 part 
-root@node245:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;此时，发现sdb已经不见了，出现了新的分区sdf：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# gdisk /dev/sdf
-GPT fdisk (gdisk) version 0.8.8
-
-Partition table scan:
-  MBR: protective
-  BSD: not present
-  APM: not present
-  GPT: present
-
-Found valid GPT with protective MBR; using GPT.
-
-Command (? for help): 
-
-Command (? for help): p
-Disk /dev/sdf: 937703088 sectors, 447.1 GiB
-Logical sector size: 512 bytes
-Disk identifier (GUID): 7CB4C196-1B82-4190-B044-C11E96294A62
-Partition table holds up to 128 entries
-First usable sector is 34, last usable sector is 937703054
-Partitions will be aligned on 8-sector boundaries
-Total free space is 1679 sectors (839.5 KiB)
-
-Number  Start (sector)    End (sector)  Size       Code  Name
-   1            2048        16779263   8.0 GiB     8300  **g-osd2-0-journal**
-   2        16779264       937701375   439.1 GiB   8300  **g-osd2-0-ssd**
-   3              34            2047   1007.0 KiB  8300  
-
-Command (? for help): 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;可以看出，sdf分区的partlabel就是之前的名称（g-osd2-0-journal &amp;amp;&amp;amp; g-osd2-0-ssd），只是分区信息发生了变化。
-虽然不知道现场是如何发生分区突然名称更换（也许是被人为触碰，也许是被插拔，也是是其他原因，总之root cause不确定），但是碰到这种情况，如何恢复环境，先恢复业务，解决客户投诉燃眉之急，然后再来查找root cause或针对产品进行改进、优化，能够更好的适配类似问题的发生，使得能够自动恢复，减少人为干预。&lt;/p&gt;
-
-&lt;h2 id=&quot;step2-将插拔回去的ssd-make为jbod&quot;&gt;Step2. 将插拔回去的SSD make为JBOD&lt;/h2&gt;
-
-&lt;p&gt;在Step1里，盘插回去后，这块盘的状态是unconfig good，需要make as JBOD&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/MegaRAID/MegaCli/MegaCli64 -PDMakeJBOD -PhysDrv[9:1] -a0&lt;/code&gt;&lt;/p&gt;
-
-&lt;h2 id=&quot;step3-确认当前dm信息&quot;&gt;Step3. 确认当前dm信息&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# mount
-/dev/sde2 on / type ext4 (rw,errors=remount-ro)
-proc on /proc type proc (rw,noexec,nosuid,nodev)
-sysfs on /sys type sysfs (rw,noexec,nosuid,nodev)
-none on /sys/fs/cgroup type tmpfs (rw)
-none on /sys/fs/fuse/connections type fusectl (rw)
-none on /sys/kernel/debug type debugfs (rw)
-none on /sys/kernel/security type securityfs (rw)
-udev on /dev type devtmpfs (rw,mode=0755)
-devpts on /dev/pts type devpts (rw,noexec,nosuid,gid=5,mode=0620)
-tmpfs on /run type tmpfs (rw,noexec,nosuid,size=10%,mode=0755)
-none on /run/lock type tmpfs (rw,noexec,nosuid,nodev,size=5242880)
-none on /run/shm type tmpfs (rw,nosuid,nodev)
-none on /run/user type tmpfs (rw,noexec,nosuid,nodev,size=104857600,mode=0755)
-none on /sys/fs/pstore type pstore (rw)
-rpc_pipefs on /run/rpc_pipefs type rpc_pipefs (rw)
-systemd on /sys/fs/cgroup/systemd type cgroup (rw,noexec,nosuid,nodev,none,name=systemd)
-/dev/mapper/g-osd1-0 on /data/osd.0 type ext4 (rw,noatime,nodelalloc,journal_path=/dev/mapper/g-osd1-0-ext4j)
-/dev/mapper/g-osd1-0-cache on /data/cache/g-osd1-0 type ext4 (rw,noatime,nodelalloc)
-/dev/mapper/g-osd2-0 on /data/osd.1 type ext4 (rw,noatime,nodelalloc,journal_path=/dev/mapper/g-osd2-0-ext4j)
-/dev/mapper/g-osd2-0-cache on /data/cache/g-osd2-0 type ext4 (rw,noatime,nodelalloc)
-1.1.1.245,1.1.1.244,1.1.1.243:/ on /var/share/ezfs type ceph (wsize=4194304,mount_timeout=15,noshare,mds_namespace=1)
-root@node245:~# dmsetup status
-g-osd2-0-ext4m: 0 92012544 linear 
-g-osd2-0-cache: 0 828385280 linear 
-g-osd2-0-ext4j: 0 524288 linear 
-g-osd1-0: 0 31374440415 ext4meta 
-g-osd2-0: 0 23530829791 ext4meta 
-g-osd1-0-ext4m: 0 122683392 linear 
-g-osd1-0-cache: 0 797714432 linear 
-g-osd1-0-ext4j: 0 524288 linear 
-root@node245:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;这里发现，g-osd2-0对应的ext4m，ext4j之类的信息依然存在于dm设备中&lt;/p&gt;
-
-&lt;p&gt;##Step4.  接触dm设备里map关系&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# umount /dev/mapper/g-osd2-0-cache
-root@node245:~# dmsetup remove g-osd2-0-cache
-root@node245:~# umount /data/osd.1
-root@node245:~# dmsetup remove g-osd2-0
-root@node245:~# dmsetup remove g-osd2-0-ext4m
-root@node245:~# dmsetup remove g-osd2-0-ext4j
-root@node245:~# dmsetup table
-g-osd1-0: 0 31374440415 ext4meta SSD:252:1 HDD:8:33
-g-osd1-0-ext4m: 0 122683392 linear 8:2 797714432
-g-osd1-0-cache: 0 797714432 linear 8:2 0
-g-osd1-0-ext4j: 0 524288 linear 8:2 920397824
-root@node245:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;step5--重新挂载dm设备&quot;&gt;Step5.  重新挂载dm设备&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# bt-mount.py 
-root@node245:~# 
-root@node245:~# 
-root@node245:~# 
-root@node245:~# lsblk
-NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
-sda                         8:0    0 447.1G  0 disk 
-├─sda1                      8:1    0     8G  0 part 
-├─sda2                      8:2    0 439.1G  0 part 
-│ ├─g-osd1-0-cache (dm-0) 252:0    0 380.4G  0 dm   /data/cache/g-osd1-0
-│ ├─g-osd1-0-ext4m (dm-1) 252:1    0  58.5G  0 dm   
-│ │ └─g-osd1-0 (dm-2)     252:2    0  14.6T  0 dm   /data/osd.0
-│ └─g-osd1-0-ext4j (dm-3) 252:3    0   256M  0 dm   
-└─sda3                      8:3    0  1007K  0 part 
-sdc                         8:32   0  14.6T  0 disk 
-└─sdc1                      8:33   0  14.6T  0 part 
-  └─g-osd1-0 (dm-2)       252:2    0  14.6T  0 dm   /data/osd.0
-sdd                         8:48   0  10.9T  0 disk 
-└─sdd1                      8:49   0  10.9T  0 part 
-  └─g-osd2-0 (dm-6)       252:6    0    11T  0 dm   /data/osd.1
-sde                         8:64   0 278.9G  0 disk 
-├─sde1                      8:65   0   7.6M  0 part 
-├─sde2                      8:66   0  95.4G  0 part /
-├─sde3                      8:67   0  26.7G  0 part [SWAP]
-└─sde4                      8:68   0 156.8G  0 part 
-sdf                         8:80   0 447.1G  0 disk 
-├─sdf1                      8:81   0     8G  0 part 
-├─sdf2                      8:82   0 439.1G  0 part 
-│ ├─g-osd2-0-cache (dm-4) 252:4    0   395G  0 dm   /data/cache/g-osd2-0
-│ ├─g-osd2-0-ext4m (dm-5) 252:5    0  43.9G  0 dm   
-│ │ └─g-osd2-0 (dm-6)     252:6    0    11T  0 dm   /data/osd.1
-│ └─g-osd2-0-ext4j (dm-7) 252:7    0   256M  0 dm   
-└─sdf3                      8:83   0  1007K  0 part 
-root@node245:~# 
-root@node245:~# 
-root@node245:~# mount
-/dev/sde2 on / type ext4 (rw,errors=remount-ro)
-proc on /proc type proc (rw,noexec,nosuid,nodev)
-sysfs on /sys type sysfs (rw,noexec,nosuid,nodev)
-none on /sys/fs/cgroup type tmpfs (rw)
-none on /sys/fs/fuse/connections type fusectl (rw)
-none on /sys/kernel/debug type debugfs (rw)
-none on /sys/kernel/security type securityfs (rw)
-udev on /dev type devtmpfs (rw,mode=0755)
-devpts on /dev/pts type devpts (rw,noexec,nosuid,gid=5,mode=0620)
-tmpfs on /run type tmpfs (rw,noexec,nosuid,size=10%,mode=0755)
-none on /run/lock type tmpfs (rw,noexec,nosuid,nodev,size=5242880)
-none on /run/shm type tmpfs (rw,nosuid,nodev)
-none on /run/user type tmpfs (rw,noexec,nosuid,nodev,size=104857600,mode=0755)
-none on /sys/fs/pstore type pstore (rw)
-rpc_pipefs on /run/rpc_pipefs type rpc_pipefs (rw)
-systemd on /sys/fs/cgroup/systemd type cgroup (rw,noexec,nosuid,nodev,none,name=systemd)
-/dev/mapper/g-osd1-0 on /data/osd.0 type ext4 (rw,noatime,nodelalloc,journal_path=/dev/mapper/g-osd1-0-ext4j)
-/dev/mapper/g-osd1-0-cache on /data/cache/g-osd1-0 type ext4 (rw,noatime,nodelalloc)
-1.1.1.245,1.1.1.244,1.1.1.243:/ on /var/share/ezfs type ceph (wsize=4194304,mount_timeout=15,noshare,mds_namespace=1)
-/dev/mapper/g-osd2-0 on /data/osd.1 type ext4 (rw,noatime,nodelalloc,journal_path=/dev/mapper/g-osd2-0-ext4j)
-/dev/mapper/g-osd2-0-cache on /data/cache/g-osd2-0 type ext4 (rw,noatime,nodelalloc)
-root@node245:~# root@node245:~# umount /dev/mapper/g-osd2-0-cache
-ode245:~# dmsetup remove g-osd2-0-ext4j
-root@node245:~# dmsetup table
-g-osd1-0: 0 31374440415 ext4meta SSD:252:1 HDD:8:33
-g-osd1-0-ext4m: 0 122683392 linear 8:2 797714432
-g-osd1-0-cache: 0 797714432 linear 8:2 0
-g-osd1-0-ext4j: 0 524288 linear 8:2 920397824
-root@node245:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-&lt;ul&gt;
-  &lt;li&gt;经过上面的操作，对应dm map关系恢复，mount point也在&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&quot;step6--启动osd&quot;&gt;Step6.  启动OSD&lt;/h2&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:~# /etc/init.d/ceph start osd.1
-=== osd.1 === 
-Starting Ceph osd.1 on 1.1.1.245...
-starting osd.1 at :/0 osd_data /data/osd.1 /dev/disk/by-partlabel/g-osd2-0-journal
-root@node245:~# 
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">前言</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">前言</summary></entry></feed>
