@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "Jenkins部署pipeline并发执行pytst自动化用例"
+title:      "Jenkins部署pipeline并发执行pytest自动化用例"
 subtitle:   "Jenkins pipeline parallel job for pytest automation"
 date:       2020-05-13
 author:     "Gavin"

@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "API获取Jenkins构建信"
+title:      "API获取Jenkins构建信息"
 subtitle:   "Call API to get Jenkins build information"
 date:       2020-05-08
 author:     "Gavin"
