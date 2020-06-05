@@ -179,6 +179,10 @@ CI：
 每次执行用例（通过执行interfaceRunner.py完成），将测试结果（report目录下Interface_TestReport.xml文件）解析、入库到SQLite  report_history表中，通过统计脚本(statInfoInfo.py)读取数据库中历史记录，以曲线图形展示用例执行成功率。
 
 
+<img class="shadow" src="/img/in-post/mps_summary.png" width="1200">
+
+<img class="shadow" src="/img/in-post/mps_case_overall_statistic.png" width="1200">
+
 
 ## 创建sqlite表相关语句
 

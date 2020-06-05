@@ -603,7 +603,7 @@ root@node244:~/my_esrally_data/data/bigtera# cat documents-2.json | head -n 6
 
 
 
-这里产生的数据，通过python script来生成（没使用thread pool并发，后期改进，目前生成一千五百万笔记录，不到3分钟），script 内容参考如下：
+这里产生的数据，通过python script来生成，script 内容参考如下：
 
 
 
@@ -616,7 +616,47 @@ import sys
 from random import choice
 from string import digits
 from string import ascii_lowercase
+from multiprocessing.pool import ThreadPool
 
+
+# data like this:
+"""
+{
+    "bucket": "bucket01",
+    "owner": {
+        "id": "user01",
+        "display_name": "user01"
+    },
+    "instance": "",
+    "meta": {
+        "expires": "",
+        "storage_class": "",
+        "content_encoding": "",
+        "mtime": "2020-05-27T03:14:57.855Z",
+        "content_language": "",
+        "custom-date": {
+            "name": "",
+            "value": ""
+        },
+        "content_type": "application/octet-stream",
+        "custom-int": {
+            "name": "",
+            "value": ""
+        },
+        "custom-string": {
+            "name": "7385228445730524",
+            "value": "8590745273515960"
+        },
+        "size": "10",
+        "content_disposition": "",
+        "etag": "e7b4c2f4a8153de9c7a070e5d6550ab1",
+        "tail_tag": "a3a5cefd-376d-421b-9080-08b98962e7c1.4520.681216"
+    },
+    "permissions": "",
+    "name": "25_1590549297.82",
+    "versioned_epoch": "0"
+}
+"""
 
 def rand_low_ascii(length=10):
     return ''.join([choice(ascii_lowercase) for i in xrange(length)])
@@ -627,23 +667,37 @@ def rand_alpha(length=9):
 
 
 def json_data():
-    src = {"bucket":"bucket01","owner":{"id":"user01","display_name":"user01"},"instance":"null","meta":{"mtime":"2020-05-2{}T{}:{}:{}.{}Z".format(rand_alpha(1), rand_alpha(2), rand_alpha(2), rand_alpha(2), rand_alpha(3)),"content_type":"application/octet-stream","custom-string":{"name":"{}".format(rand_alpha(16)),"value":"{}".format(rand_alpha(16))},"size":"{}".format(rand_alpha(3)),"etag":"e7b{}f4a{}de9c7a070e5d{}ab1".format(rand_alpha(3), rand_alpha(4), rand_alpha(4)),"tail_tag":"a3a5cefd-376d-421b-{}-08b{}e7c1.4520.{}".format(rand_alpha(4), rand_alpha(5), rand_alpha(6))},"name":"{}_{}.{}".format(rand_alpha(2), rand_alpha(10), rand_alpha(2)),"versioned_epoch":"0"}
+    src = {"bucket":"bucket01","owner":{"id":"user01","display_name":"user01"},"instance":"null","meta":{"mtime":"2020-05-2{}T1{}:2{}:3{}.{}Z".format(rand_alpha(1), rand_alpha(1), rand_alpha(1), rand_alpha(1), rand_alpha(3)),"content_type":"application/octet-stream","custom-string":{"name":"{}".format(rand_alpha(16)),"value":"{}".format(rand_alpha(16))},"size":"{}".format(rand_alpha(3)),"etag":"e7b{}f4a{}de9c7a070e5d{}ab1".format(rand_alpha(3), rand_alpha(4), rand_alpha(4)),"tail_tag":"a3a5cefd-376d-421b-{}-08b{}e7c1.4520.{}".format(rand_alpha(4), rand_alpha(5), rand_alpha(6))},"name":"{}_{}.{}".format(rand_alpha(2), rand_alpha(10), rand_alpha(2)),"versioned_epoch":"0"}
 
     return src
 
 
-def write_data(src):
+def write_data():
     with open("./documents-2.json", 'a') as f:
-        # replace ' to "
-        new_str = str(src).replace("'", '"')
-        f.write(new_str)
-        f.write('\n')
+        for i in xrange(10):
+            src = json_data()
+            # replace ' to "
+            new_str = str(src).replace("'", '"')
+            f.write(new_str)
+            f.write('\n')
+
+
+def thread_pool_input_object():
+    results = []
+    for i in xrange(20):
+        results.append(pool.apply_async(write_data, ()))
+
+    for (idx, result) in enumerate(results):
+        try:
+            r = result.get()
+        except:
+            print('[ERROR]  Failed to write data into file')
 
 
 if __name__ == '__main__':
-    for i in xrange(15000000):
-        src = json_data()
-        write_data(src)
+    # Suggest to set same as cpu processor : cat /proc/cpuinfo |grep "processor"|wc -l
+    pool = ThreadPool(processes=32)
+    thread_pool_input_object()
 ```
 
 
