@@ -96,6 +96,11 @@ root@node244:~/henry# cat roundN_10K_10Mfiles_Write.xml.in
 root@node244:~/henry#
 ```
 
+说明:
+
+这里要注意一下xml文档中的 'workload name="HM_round@@@ROUND@@@_10M_files_write_once"'，此处的workload name对应的内容，一定不能含有空格，因为后面有个shell脚本去cat archive里面的内容，脚本并没有对空格目录做转移处理，建议规避一下，避免使用空格。
+
+
 cosbench.sh内容如下:
 
 ```
@@ -115,6 +120,7 @@ ssh root@${EP1} ceph df
 for round in {1..100}
 do
     while (( $(${CLI} info |& grep PROCESSING | wc -l) >= 1 )); do
+        echo "[WARN]  Has more than one cosbench task in running status, sleep 60s"
         sleep 60
     done
 
@@ -129,6 +135,7 @@ do
     sleep 60
 
     while (( $(${CLI} info |& grep PROCESSING | wc -l) >= 1 )); do
+        echo "[WARN]  Has more than one cosbench task in running status, sleep 60s"
         sleep 60
     done
 
@@ -141,7 +148,9 @@ root@node244:~/henry#
 
 # 统计cosbench写速度
 
+
 终于到本文主题了，既然有了上面的测试script方便QA提交测试任务，那统计RGW写速度，以前写了一个python来统计，不是很通用，因为import了产品的function，一旦脱离产品环境运行cosbench，python脚本就没法执行了，今天重写了个统计cosbench写速度的shell脚本，内容如下：
+
 
 ```
 root@node244:~# cat calc_cosbench_speed.sh 
@@ -189,9 +198,7 @@ do
                 echo -e "\033[32m   Task : (${TASK_ID}-${TASK_NAME}), write total objects : (${TOTAL_OBJS}), cost time : (${COST_TIME}(s)), write speed : (${WRITE_SPEED}) \033[0m"
                 echo ""
             else
-                echo -e "\033[33m [WARN]  Task : (${TASK_ID}-${TASK_NAME}) status is not finished, but : (${TASK_STATUS}) \033[0m"
-                echo ""
-                echo -e "\033[33m [WARN]  Please pay more attention  \033[0m"
+                echo -e "\033[33m   [WARN]  Task : (${TASK_ID}-${TASK_NAME}) status is not finished, but : (${TASK_STATUS}), please pay more attention!!! \033[0m"
                 echo ""
             fi
         else
@@ -205,7 +212,7 @@ done < ${HISTORY_FILE}
 执行效果如下:
 
 ```
-root@node244:~# bash calc_cosbench_speed.sh 
+root@node244:~# ./calc_cosbench_speed.sh 
 
    Task : (w3-HM_round1_10M_files_write_once), write total objects : (1000000), cost time : (216(s)), write speed : (4629) 
 
@@ -218,7 +225,32 @@ root@node244:~# bash calc_cosbench_speed.sh
 
    Task : (w6-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (2421(s)), write speed : (2065) 
 
-root@node244:~# 
+
+   Task : (w7-HM_round1_10M_files_write_once), write total objects : (50000), cost time : (35(s)), write speed : (1428) 
+
+
+   Task : (w8-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1973(s)), write speed : (2534) 
+
+
+   Task : (w9-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1424(s)), write speed : (3511) 
+
+
+   Task : (w10-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1594(s)), write speed : (3136) 
+
+
+   Task : (w11-HM_round2_10M_files_write_once), write total objects : (5000000), cost time : (1754(s)), write speed : (2850) 
+
+   [WARN]  Task : (w12-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
+
+   [WARN]  Task : (w13-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
+
+   [WARN]  Task : (w15-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
+
+
+   Task : (w16-HM_round3_10M_files_write_once), write total objects : (5000000), cost time : (2064(s)), write speed : (2422) 
+
+
+   Task : (w17-SEG_1VM_72Threads_ONLY_W), write total objects : (9999936), cost time : (3997(s)), write speed : (2501)
 ```
 
 
