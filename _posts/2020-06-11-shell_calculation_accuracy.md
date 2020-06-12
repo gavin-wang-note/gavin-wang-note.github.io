@@ -12,7 +12,7 @@ tags:
 
 # 概述
 
-为何要写这篇问题，因为在上篇文章 <a href="https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/" target="_blank">stastic ES write speed by shell script</a>有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。
+为何要写这篇文章，因为在上篇文章 <a href="https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/" target="_blank">stastic ES write speed by shell script</a>有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。
 
 
 # 实践

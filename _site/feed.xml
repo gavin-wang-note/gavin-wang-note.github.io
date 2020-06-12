@@ -1,6 +1,466 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-06-11T10:01:40+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">shell计算精度</title><link href="http://172.17.73.80:4000/2020/06/11/shell_calculation_accuracy/" rel="alternate" type="text/html" title="shell计算精度" /><published>2020-06-11T00:00:00+08:00</published><updated>2020-06-11T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/11/shell_calculation_accuracy</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/11/shell_calculation_accuracy/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-06-12T15:09:30+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">API响应慢问题复现</title><link href="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/" rel="alternate" type="text/html" title="API响应慢问题复现" /><published>2020-06-12T00:00:00+08:00</published><updated>2020-06-12T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
-&lt;p&gt;为何要写这篇问题，因为在上篇文章 &lt;a href=&quot;http://172.17.73.80:4000/2020/06/10/stastic_ES_write_speed_by_shell_script/&quot; target=&quot;_blank&quot;&gt;stastic ES write speed by shell cript&lt;/a&gt;有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。&lt;/p&gt;
+&lt;p&gt;现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。&lt;/p&gt;
+
+&lt;h1 id=&quot;具体要求&quot;&gt;具体要求&lt;/h1&gt;
+
+&lt;p&gt;具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID card等诸多信息，如果响应时间超过预定时间，比如30s，则认为API出状况了。&lt;/p&gt;
+
+&lt;p&gt;上述过程，使用测试脚本完成，一旦响应时间超过预定时间，程序退出。&lt;/p&gt;
+
+&lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
+
+&lt;h2 id=&quot;shell&quot;&gt;shell&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat raid_api_elapsed.sh
+#!/bin/bash
+
+PUBLIC_IP=7.73.7.76
+STORAGE_IP=1.1.1.76
+TIMEOUT=30
+LOG_FILE=./raid_api_elapsed.log
+
+# Login
+login_res=`curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${PUBLIC_IP}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'`
+login_return_code=`echo ${login_res} | sed 's@{&quot;name&quot;: &quot;login&quot;, &quot;return_code&quot;: @@' | sed 's/}//'`
+
+if [ x&quot;${login_return_code}&quot; == x&quot;300&quot; ]; then
+    echo &quot;&quot;
+    echo &quot;[ERROR]  Login Failed, exit!!!&quot;
+    echo &quot;&quot;
+    exit 1
+elif [[ ${login_return_code} =~ 'session_id' ]]; then
+    echo &quot;&quot;
+    echo &quot;Login success&quot;
+    echo &quot;&quot;
+fi
+
+echo &quot;======================================================= RAID API Elapsed Time Test =======================================================&quot; | tee ${LOG_FILE}
+
+while :
+do
+    # RAID API
+    # start_time=`date +%F-%H-%M.%N`
+    start_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
+    start_time_stamp=`date -d &quot;${start_time}&quot; +%s`
+    start_mills=$((${start_time_stamp}*1000+`date &quot;+%N&quot; | sed 's/^[0]*//'`/1000000))
+
+    result_code=`curl --insecure --cookie cookie.jar --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; -s -I -m ${TIMEOUT} -w %{http_code} &quot;https://${PUBLIC_IP}:8080/system/host/${STORAGE_IP}/disk/raid&quot;`
+    end_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
+    end_time_stamp=`date -d &quot;${end_time}&quot; +%s`
+    end_mills=$((${end_time_stamp}*1000+`date &quot;+%N&quot; | sed 's/^[0]*//'`/1000000))
+
+    if [[ ${result_code} =~ '200' ]]; then
+        time_diff=`expr ${end_mills} - ${start_mills}`
+        echo &quot;${end_time}  --&amp;gt; OK, elapsed time is : (${time_diff} milliseconds), now sleep 2s&quot; | tee ${LOG_FILE}
+        sleep 2
+    elif [[ ${result_code} =~ '401'  ]]; then
+        echo &quot;[WARN]  Session timeout, login again&quot;
+        curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${PUBLIC_IP}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'
+    else
+        echo &quot;${end_time}  [ERROR]  Cost more than ${TIMEOUT}s, exit!&quot; | tee ${LOG_FILE}
+        echo &quot;&quot;
+        exit 1
+    fi
+done
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;核心是-s -I -m 10 -w %{http_code}，解释一下携带的参数信息：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;-I 仅测试HTTP头
+
+-m 10 最多查询10s
+
+-o /dev/null 屏蔽原有输出信息
+
+-s silent 模式，不输出任何东西
+
+-w %{http_code} 控制额外输出
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;python&quot;&gt;python&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat raid_api_elapsed.py 
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
+
+import sys
+import json
+import time
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+
+class HttpSession(requests.Session):
+    &quot;&quot;&quot;  http request session  &quot;&quot;&quot;
+
+    def __init__(self):
+        super(HttpSession, self).__init__()
+
+        # Not verify SSL certificate
+        self.verify = False
+
+        # timeout time
+        self.timeout = (60, 600)
+
+        # session information
+        self.session = &quot;&quot;
+
+    def login_session(self, user_id, password, public_ip):
+        &quot;&quot;&quot; Login Session &quot;&quot;&quot;
+        login_url = &quot;https://{}:8080/auth&quot;.format(public_ip)
+
+        login_data = {&quot;user_id&quot;: user_id,
+                     &quot;password&quot;: password}
+
+        self.session = requests.session()
+        self.session.keep_alive = False
+        self.session.headers.update({'Accept': 'application/json, text/javascript, */*; q=0.01'})
+        # print(&quot;[Login]    login_url: %s, login_data: %s&quot;, login_url, json.dumps(login_data))
+        response = self.session.request(&quot;POST&quot;, login_url, json=login_data, verify=False)
+
+        if response.status_code != 200:
+            print(&quot;[ERROR]  Login web error, http status code is {}&quot;.format(response.status_code))
+            sys.exit(1)
+
+        return self.session
+
+    def http_request(self, session, http_method, url, user_id, password, public_ip, params=None, data=None):
+        &quot;&quot;&quot;  Send HTTP request, support GET/POST  &quot;&quot;&quot;
+        params = {} if params is None else params
+        data = {} if data is None else data
+
+        # set SSL Verify to False
+        session.verify = False
+
+        # Set session keep alive to False
+        session.keep_alive = False
+
+        try:
+            start_time = time.time()
+            start_trans = time.localtime(start_time)
+            format_start_time = time.strftime('%Y-%m-%d %H:%M:%S.%3d', start_trans)
+
+            if &quot;cgi-bin&quot; in url:
+                # Legacy CGI
+                response = session.request(http_method, url, params=params, data=data)
+                if response.status_code == 401:
+                    session = self.login_session(user_id, password, public_ip)
+                    response = session.request(http_method, url, params=params, data=data)
+            else:
+                # Restful CGI
+                response = session.request(http_method, url, params=params, json=data)
+
+                if response.status_code == 401:
+                    session = self.login_session(user_id, password, public_ip)
+                    response = session.request(http_method, url, params=params, json=data)
+
+            elapsed_sec = response.elapsed.seconds
+            if elapsed_sec &amp;gt;= 30:
+                print(&quot;[{}]  [ERROR]  URL response elapsed time : ({}), return_text : ({})&quot;.format(format_start_time, elapsed_sec, response.text))
+                sys.exit(1)
+            else:
+                print(&quot;[{}]    URL response elapsed time : ({})&quot;.format(format_start_time, elapsed_sec))
+        except Exception as ex:
+            print(&quot;[WARN]  Session request exception : (%s)&quot;, str(ex))
+
+        return response
+
+
+def call_raid_api(user_id, password, http_method, url, public_ip, storage_ip):
+    &quot;&quot;&quot;  Call API &quot;&quot;&quot;
+    session = HttpSession()
+    login_s = session.login_session(user_id, password, public_ip)
+
+    for i in xrange(100):
+        session.http_request(login_s, http_method, url, user_id, password, public_ip) 
+
+
+if __name__ == '__main__':
+    public_ip = '7.73.7.76'
+    storage_ip = '1.1.1.76'
+    user_id = 'admin'
+    password = '1'
+    http_method = 'GET'
+    url = &quot;https://{}:8080/system/host/{}/disk/raid&quot;.format(public_ip, storage_ip)
+
+    call_raid_api(user_id, password, http_method, url, public_ip, storage_ip)
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;测试效果如下&quot;&gt;测试效果如下：&lt;/h1&gt;
+
+&lt;h2 id=&quot;shell-1&quot;&gt;shell&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# tailf raid_api_elapsed.log 
+2020-06-12 12:41:05  --&amp;gt; OK, elapsed time is : (8433 milliseconds), now sleep 2s
+2020-06-12 12:41:27  --&amp;gt; OK, elapsed time is : (8514 milliseconds), now sleep 2s
+2020-06-12 12:41:37  --&amp;gt; OK, elapsed time is : (8698 milliseconds), now sleep 2s
+2020-06-12 12:41:48  --&amp;gt; OK, elapsed time is : (8518 milliseconds), now sleep 2s
+2020-06-12 12:42:09  --&amp;gt; OK, elapsed time is : (8436 milliseconds), now sleep 2s
+2020-06-12 12:42:20  --&amp;gt; OK, elapsed time is : (8660 milliseconds), now sleep 2s
+2020-06-12 12:42:51  --&amp;gt; OK, elapsed time is : (8559 milliseconds), now sleep 2s
+2020-06-12 12:43:02  --&amp;gt; OK, elapsed time is : (8501 milliseconds), now sleep 2s
+2020-06-12 12:43:12  --&amp;gt; OK, elapsed time is : (8597 milliseconds), now sleep 2s
+2020-06-12 12:43:23  --&amp;gt; OK, elapsed time is : (8470 milliseconds), now sleep 2s
+.................................. 中间省略 ....................................
+2020-06-12 12:53:50  --&amp;gt; OK, elapsed time is : (8632 milliseconds), now sleep 2s
+2020-06-12 12:54:00  --&amp;gt; OK, elapsed time is : (8605 milliseconds), now sleep 2s
+2020-06-12 12:54:22  --&amp;gt; OK, elapsed time is : (8526 milliseconds), now sleep 2s
+2020-06-12 12:55:04  --&amp;gt; OK, elapsed time is : (8507 milliseconds), now sleep 2s
+2020-06-12 12:55:14  --&amp;gt; OK, elapsed time is : (8483 milliseconds), now sleep 2s
+2020-06-12 12:56:07  --&amp;gt; OK, elapsed time is : (8357 milliseconds), now sleep 2s
+2020-06-12 12:56:39  --&amp;gt; OK, elapsed time is : (8671 milliseconds), now sleep 2s
+2020-06-12 12:56:50  --&amp;gt; OK, elapsed time is : (8573 milliseconds), now sleep 2s
+2020-06-12 12:57:11  --&amp;gt; OK, elapsed time is : (8435 milliseconds), now sleep 2s
+2020-06-12 12:57:26  [ERROR]  Cost more than 30s, exit!
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;python-1&quot;&gt;python&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# python raid_api_elapsed.py 
+[2020-06-12 14:33:13.012]    URL response elapsed time : (8)
+[2020-06-12 14:33:22.012]    URL response elapsed time : (8)
+[2020-06-12 14:33:30.012]    URL response elapsed time : (8)
+[2020-06-12 14:33:39.012]    URL response elapsed time : (8)
+[2020-06-12 14:33:48.012]    URL response elapsed time : (8)
+[2020-06-12 14:33:56.012]    URL response elapsed time : (8)
+[2020-06-12 14:34:05.012]    URL response elapsed time : (8)
+[2020-06-12 14:34:13.012]    URL response elapsed time : (8)
+.......................... 中间省略 .........................
+[2020-06-12 14:39:30.012]    URL response elapsed time : (8)
+[2020-06-12 14:39:38.012]    URL response elapsed time : (13)
+[2020-06-12 14:39:52.012]    URL response elapsed time : (8)
+.......................... 中间省略 .........................
+[2020-06-12 14:44:19.012]    URL response elapsed time : (9)
+[2020-06-12 14:44:29.012]    URL response elapsed time : (9)
+[2020-06-12 14:44:38.012]    URL response elapsed time : (9)
+[2020-06-12 14:44:47.012]    URL response elapsed time : (8)
+[2020-06-12 14:44:55.012]    URL response elapsed time : (9)
+[2020-06-12 14:45:05.012]    URL response elapsed time : (9)
+[2020-06-12 14:45:14.012]    URL response elapsed time : (8)
+[2020-06-12 14:45:23.012]    URL response elapsed time : (8)
+[2020-06-12 14:45:31.012]    URL response elapsed time : (8)
+[2020-06-12 14:45:40.012]  [ERROR]  URL response elapsed time : (39), return_text : ({&quot;assigned&quot;: [{&quot;vd&quot;: &quot;0&quot;, &quot;current_cache_policy&quot;: &quot;WriteThrough, ReadAheadNone, Direct, No Write Cache if Bad BBU&quot;, &quot;drive_num&quot;: &quot;7&quot;, &quot;pds&quot;: [{&quot;slot&quot;: &quot;1&quot;, &quot;copyback_progress&quot;: null, &quot;other_error&quot;: 0, &quot;healthy&quot;: &quot;none&quot;, &quot;rebuild_progress&quot;: null, &quot;adapter&quot;: null, &quot;size&quot;: &quot;7.277 TB&quot;, &quot;media_error&quot;: 0, &quot;pd_type&quot;: &quot;SATA&quot;, &quot;lifetime_remaining&quot;: -1, &quot;firmware_state&quot;: &quot;Online, Spun Up&quot;, &quot;pd&quot;: &quot;0&quot;, &quot;media_type&quot;: &quot;HDD&quot;, &quot;device_id&quot;: &quot;38&quot;, &quot;smart_info&quot;: &quot;smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-server] (local build)\nCopyright (C) ....后面省略，这里展示具体的response详细信息...
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="shell" /><summary type="html">概述</summary></entry><entry><title type="html">shell计算精度</title><link href="http://172.17.73.80:4000/2020/06/11/shell_calculation_accuracy/" rel="alternate" type="text/html" title="shell计算精度" /><published>2020-06-11T00:00:00+08:00</published><updated>2020-06-11T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/11/shell_calculation_accuracy</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/11/shell_calculation_accuracy/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;为何要写这篇文章，因为在上篇文章 &lt;a href=&quot;https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/&quot; target=&quot;_blank&quot;&gt;stastic ES write speed by shell script&lt;/a&gt;有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。&lt;/p&gt;
 
 &lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
 
@@ -5292,494 +5752,4 @@ give root password for maintenance(Control-D)
 
 &lt;h1 id=&quot;小结&quot;&gt;小结&lt;/h1&gt;
 
-&lt;p&gt;报这个错误多数情况下是因为/etc/fstab文件的错误。注意一下是不是加载了外部硬盘、存储器或者是网络共享空间，在重启时没有加载上导致的。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">控制keepalive VIP漂移范围</title><link href="http://172.17.73.80:4000/2020/05/21/keepalive-contro_VIP_floating_range/" rel="alternate" type="text/html" title="控制keepalive VIP漂移范围" /><published>2020-05-21T00:00:00+08:00</published><updated>2020-05-21T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/05/21/keepalive-contro_VIP_floating_range</id><content type="html" xml:base="http://172.17.73.80:4000/2020/05/21/keepalive-contro_VIP_floating_range/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;产品有配置keepalive功能，但该功能目前仅通过priority来控制VIP在不同节点间漂移，此处的不同节点，是集群内部的所有节点。&lt;/p&gt;
-
-&lt;p&gt;我们先看看下各个节点（以3节点为例），keepalive.conf内容信息，参考如下：&lt;/p&gt;
-
-&lt;p&gt;== node243&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:/etc/keepalived# cat keepalived.conf 
-global_defs {
-    vrrp_version 3
-}
-
-vrrp_instance VRRP0 {
-    state BACKUP
-#   Specify the network interface to which the virtual address is assigned
-    interface enp5s0f0
-    virtual_router_id 89
-#   Set the value of priority lower on the backup server than on the master server
-    priority 3
-    advert_int 0.4
-    track_interface {
-        bond1
-    }
-    virtual_ipaddress {
-        12.7.3.89
-    }
-}
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;== node244&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/var/log# cat /etc/keepalived/keepalived.conf 
-global_defs {
-    vrrp_version 3
-}
-
-vrrp_instance VRRP0 {
-    state BACKUP
-#   Specify the network interface to which the virtual address is assigned
-    interface enp5s0f0
-    virtual_router_id 89
-#   Set the value of priority lower on the backup server than on the master server
-    priority 2
-    advert_int 0.4
-    track_interface {
-        bond1
-    }
-    virtual_ipaddress {
-        12.7.3.89
-    }
-}
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;== node245&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:/etc/keepalived# cat keepalived.conf 
-global_defs {
-    vrrp_version 3
-}
-
-vrrp_instance VRRP0 {
-    state BACKUP
-#   Specify the network interface to which the virtual address is assigned
-    interface bond0
-    virtual_router_id 89
-#   Set the value of priority lower on the backup server than on the master server
-    priority 1
-    advert_int 0.4
-    track_interface {
-        bond1
-    }
-    virtual_ipaddress {
-        12.7.3.89
-    }
-}
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;通过上面的配置文件，可以看出来，各个节点间的priority值不一样，仅仅是通过priority来控制VIP的漂移。&lt;/p&gt;
-
-&lt;p&gt;讲到这里，问题来了，如果客户生产环境因预算不足，只能有2个节点物理设备，按照产品部署要求，&amp;gt;=3个节点，势必会需要一台VM作为仲裁节点（不承担任何业务数据，仅启用ceph-mon参与mon election用），那就不能讲这台VM纳入keepalive VIP漂移范围了，即keepalive VIP不能落到这台VM上。&lt;/p&gt;
-
-&lt;h1 id=&quot;改进&quot;&gt;改进&lt;/h1&gt;
-
-&lt;p&gt;问题已经清晰了，那么，如何控制VIP，落在指定的设备节点上呢？&lt;/p&gt;
-
-&lt;p&gt;通过查询一些资料，更改keepalive.conf配置文件信息，可以达到预期效果：&lt;/p&gt;
-
-&lt;h2 id=&quot;更改后的keepaliveconf信息&quot;&gt;更改后的keepalive.conf信息&lt;/h2&gt;
-
-&lt;p&gt;== node243&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:/etc/keepalived# cat keepalived.conf 
-global_defs {
-   notification_email {
-   root@localhost
-   }
-   notification_email_from keepalived@localhost
-   smtp_server 127.0.0.1
-   smtp_connect_timeout 30
-   router_id node243                    #主调度器的主机名
-   vrrp_mcast_group4 224.26.1.1             #发送心跳信息的组播地址
-    
-}
-
-vrrp_instance VI_1 {
-    state MASTER                            #主调度器的初始角色
-    interface enp5s0f0                      #虚拟IP工作的网卡接口
-    virtual_router_id 89                    #虚拟路由的ID
-    priority 100                            #主调度器的选举优先级
-    advert_int 1
-    virtual_ipaddress {
-        12.7.3.89                     #虚拟IP
-    }
-}
-
-virtual_server 12.7.3.89 80 {         #LVS配置段，VIP
-    delay_loop 6
-    lb_algo rr                              #调度算法轮询
-    lb_kind DR                              #工作模式DR
-    nat_mask 255.255.252.0
-#    persistence_timeout 50                  #持久连接，在测试时需要注释，否则会在设置的时间内把请求都调度到一台RS服务器上面
-    protocol TCP
-    sorry_server 127.0.0.1 80               #Sorry server的服务器地址及端口
-    real_server 12.7.3.243 80 { 
-        weight 1 
-        HTTP_GET {                          #健康状态检测方法
-            url {
-              path /
-              status_code 200               #状态判定规则
-            }
-            connect_timeout 1
-            nb_get_retry 3
-            delay_before_retry 1
-        }
-    }
-
-    real_server 12.7.3.244 80 {
-        weight 1
-        HTTP_GET {
-            url {
-              path /
-                status_code 200
-            }
-            connect_timeout 1
-            nb_get_retry 3
-            delay_before_retry 1
-        }
-    }
-}
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;== node244&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/etc/keepalived# cat keepalived.conf 
-global_defs {
-   notification_email {
-   root@localhost
-   }
-   notification_email_from keepalived@localhost
-   smtp_server 127.0.0.1
-   smtp_connect_timeout 30
-   router_id node244                #备份调度器的主机名
-   vrrp_mcast_group4 224.26.1.1         #这个组播地址需与集群内的其他主机相同
-
-}
-
-vrrp_instance VI_1 {
-    state BACKUP                        #初始角色，备份服务器需设置为BACKUP
-    interface enp5s0f0
-    virtual_router_id 89                #虚拟路由的ID一定要和集群内的其他主机相同
-    priority 90                         #选举优先级，要比主调度器地一些
-    advert_int 1
-    virtual_ipaddress {
-        12.7.3.89
-    }
-}
-                #余下配置和主服务器相同
-virtual_server 12.7.3.89 80 {
-    delay_loop 6
-    lb_algo rr
-    lb_kind DR
-    nat_mask 255.255.252.0
-#    persistence_timeout 50              
-    protocol TCP
-    sorry_server 127.0.0.1 80
-
-    real_server 12.7.3.243 80 {
-        weight 1
-        HTTP_GET {
-            url {
-              path /
-              status_code 200
-            }
-            connect_timeout 1
-            nb_get_retry 3
-            delay_before_retry 1
-        }
-    }
-
-    real_server 12.7.3.244 80 {
-        weight 1
-        HTTP_GET {
-            url {
-              path /
-                status_code 200
-            }
-            connect_timeout 1
-            nb_get_retry 3
-            delay_before_retry 1
-        }
-    }
-}
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;== node245&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:/etc/keepalived# cat keepalived.conf 
-global_defs {}
-root@node245:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;验证效果&quot;&gt;验证效果&lt;/h2&gt;
-
-&lt;h3 id=&quot;重启所有节点的keepalive服务&quot;&gt;重启所有节点的keepalive服务&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:/etc/keepalived# onnode -p all 'systemctl restart keepalived.service'
-root@node245:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;检查syslog，是否有keepalive日常日志，以及keepalive进程是否存在。如果都没有问题，说明keepalive启动正常。&lt;/p&gt;
-
-&lt;h3 id=&quot;检查vip落在哪个node上&quot;&gt;检查VIP落在哪个node上&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
-    inet 12.7.3.89/32 scope global enp5s0f0
-root@node243:/etc/keepalived# 
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明当前VIP 12.7.3.89落在node243上，这个也符合keepalive.conf中的设定（priority=100，另外一个是90，最后一个node没有）&lt;/p&gt;
-
-&lt;h3 id=&quot;停用node243的keepalive服务&quot;&gt;停用node243的keepalive服务&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:/etc/keepalived# systemctl stop keepalived.service 
-root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
-root@node243:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;再次检查vip落在哪个node上&quot;&gt;再次检查VIP落在哪个node上&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
-root@node243:/etc/keepalived# 
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/etc/keepalived# ip a | grep '12.7.3.89'
-    inet 12.7.3.89/32 scope global enp5s0f0
-root@node244:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:/etc/keepalived# ip a | grep '12.7.3.89'
-root@node245:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;停用node244的keepalive服务&quot;&gt;停用node244的keepalive服务&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/etc/keepalived# systemctl stop keepalived.service 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;再次检查vip落在哪个node上-1&quot;&gt;再次检查VIP落在哪个node上&lt;/h3&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
-root@node243:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/etc/keepalived# ip a | grep '12.7.3.89'
-root@node244:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node245:/etc/keepalived# ip a | grep '12.7.3.89'
-root@node245:/etc/keepalived# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;结语&quot;&gt;结语&lt;/h1&gt;
-
-&lt;p&gt;至此，通过上述验证方法，可以控制住keepalive的VIP漂移到哪些指定的host上。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="keepalive" /><summary type="html">概述</summary></entry></feed>
+&lt;p&gt;报这个错误多数情况下是因为/etc/fstab文件的错误。注意一下是不是加载了外部硬盘、存储器或者是网络共享空间，在重启时没有加载上导致的。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
