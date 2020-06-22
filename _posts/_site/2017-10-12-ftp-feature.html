@@ -2,294 +2,377 @@
 <p><strong>vsftpd(very secure FTP daemon)</strong>，如果你想在你的Linux/Unix服务器上搭建一个安全、高性能、稳定性好的FTP服务器，那么vsftpd可能是你的首选应用。
 我们的客户对FTP有需求，目前只能通过手动部署、配置的方式来实现客户的要求，工作往往重复。为了规范化FTP配置流程，本文整理一下FTP的需求，以供RD参考。
 <br /><br /></p>
+
 <h1 id="基本配置">基本配置</h1>
 <p>默认如下拥有配置项：</p>
 
-<p>####(1)ftp port
-    支持默认与非默认的修改,针对对安全有特殊要求的用户
-    listen_port=<port> :设置控制连接的监听端口号，默认为21
-    connect_from_port_20=&lt;YES/NO&gt; :若为YES，则强迫FTP－DATA的数据传送使用port 20，默认YES</port></p>
+<h2 id="1ftp-port">(1)ftp port</h2>
 
-<p>####(2)Listen=yes
-    独立的VSFTPD服务器</p>
+<p>支持默认与非默认的修改,针对对安全有特殊要求的用户</p>
 
-<p>####(3)记录vsftpd的log
-    log_ftp_protocol=YES (all FTP requests and responses are logged)
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    listen_port=&lt;port&gt; :设置控制连接的监听端口号，默认为21
+    connect_from_port_20=&lt;YES/NO&gt; :若为YES，则强迫FTP－DATA的数据传送使用port 20，默认YES
+</code></pre></div></div>
+
+<h2 id="2listenyes">(2)Listen=yes</h2>
+
+<p>独立的VSFTPD服务器</p>
+
+<h2 id="3记录vsftpd的log">(3)记录vsftpd的log</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    log_ftp_protocol=YES (all FTP requests and responses are logged)
     xferlog_enable=yes  （激活上传和下传的日志）
-    xferlog_std_format=yes (使用标准的日志格式)</p>
+    xferlog_std_format=yes (使用标准的日志格式)  
+</code></pre></div></div>
 
-<p>####(4)anon_root
-     This option represents a directory  which  vsftpd  will  try  to change  into  after  an  anonymous  login.  Failure  is silently ignored.
+<h2 id="4anon_root">(4)anon_root</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    This option represents a directory  which  vsftpd  will  try  to change  into  after  an  anonymous  login.  Failure  is silently ignored.
     Default: (none)
-    留给匿名账号使用。</p>
+    留给匿名账号使用。
+</code></pre></div></div>
 
-<p>####(5)local_umask
-    default 022, 建议设置成002</p>
+<h2 id="5local_umask">(5)local_umask</h2>
 
-<p>####(6) 其他默认配置项
-    dirmessage_enable=YES
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>default 022
+</code></pre></div></div>
+
+<p>建议设置成002</p>
+
+<h2 id="6-其他默认配置项">(6) 其他默认配置项</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    dirmessage_enable=YES
     use_localtime=YES
     secure_chroot_dir=/var/run/vsftpd/empty
     pam_service_name=ftp
-    rsa_cert_file=/etc/ssl/private/vsftpd.pem  （这项可有可无，虚拟用户访问FTP Server、PAM认证时使用）</p>
+    rsa_cert_file=/etc/ssl/private/vsftpd.pem  （这项可有可无，虚拟用户访问FTP Server、PAM认证时使用）
+</code></pre></div></div>
 
 <h1 id="需求">需求</h1>
-<p>##匿名访问
-    说明：
-    基于安全考虑，禁止匿名用户启用SSL，即：
-    allow_anon_ssl=NO</p>
 
-<p>###场景1、仅有上传权限
-####vsftpd.conf需要修改的内容如下</p>
+<h2 id="匿名访问">匿名访问</h2>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anon_upload_enable=YES (开放上传权限)
-anon_mkdir_write_enable=YES（可创建目录的同时可以在此目录中上传文件）
-anon_other_write_enable=NO (匿名帐号可以有删除的权限，基于安全考虑，建议设置为NO)
-anon_root=/var/share/ezfs/shareroot/gz/ （设定匿名用户的base_home，要与/etc/passwd 中ftp用户保持一致）
-anon_umask=002
-hide_ids=YES
-no_anon_password=YES （是否询问匿名访问时输入密码）
-write_enable=yes (开放本地用户写的权限)
+<p>说明：</p>
+
+<p>基于安全考虑，禁止匿名用户启用SSL，即：<code class="highlighter-rouge">allow_anon_ssl=NO</code></p>
+
+<h3 id="场景1仅有上传权限">场景1、仅有上传权限</h3>
+
+<h4 id="vsftpdconf需要修改的内容如下">vsftpd.conf需要修改的内容如下</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anon_upload_enable=YES (开放上传权限)
+    anon_mkdir_write_enable=YES（可创建目录的同时可以在此目录中上传文件）
+    anon_other_write_enable=NO (匿名帐号可以有删除的权限，基于安全考虑，建议设置为NO)
+    anon_root=/var/share/ezfs/shareroot/gz/ （设定匿名用户的base_home，要与/etc/passwd 中ftp用户保持一致）
+    anon_umask=002
+    hide_ids=YES
+    no_anon_password=YES （是否询问匿名访问时输入密码）
+    write_enable=yes (开放本地用户写的权限)
 </code></pre></div></div>
 
-<p>####测试
-#####FTP的匿名登录一般有三种：</p>
+<h4 id="测试">测试</h4>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1、用户名：anonymous 密码：Email或者为空
-2、用户名：FTP 密码：FTP或者为空
-3、用户名：USER 密码：pass
+<h5 id="ftp的匿名登录一般有三种">FTP的匿名登录一般有三种：</h5>
+
+<ul>
+  <li>1、用户名：anonymous 密码：Email或者为空</li>
+  <li>2、用户名：FTP 密码：FTP或者为空</li>
+  <li>3、用户名：USER 密码：pass</li>
+</ul>
+
+<h5 id="出现如下错误">出现如下错误</h5>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    500 OOPS: vsftpd: refusing to run with writable root inside chroot()
 </code></pre></div></div>
 
-<p>#####出现如下错误</p>
+<h5 id="解决方法">解决方法</h5>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>500 OOPS: vsftpd: refusing to run with writable root inside chroot()
+<p>Bean 修改了vsftpd的source code，将vsftpd 校验根目录的写权限这部分code注释掉，从而规避这个问题。 记得patch 新的vsftpd deb。</p>
+
+<h3 id="场景2仅有下载权限">场景2、仅有下载权限</h3>
+
+<p>vsftpd.conf内容变更如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anonymous_enable=YES
+    anon_world_readable_only=YES
+    anon_root=/var/share/ezfs/shareroot/gz/
+    hide_ids=YES
+    no_anon_password=YES
+    local_enable=YES
 </code></pre></div></div>
 
-<p>#####解决方法
-    Bean 修改了vsftpd的source code，将vsftpd 校验根目录的写权限这部分code注释掉，从而规避这个问题。 记得patch 新的vsftpd deb。</p>
+<p>说明：</p>
 
-<p>###场景2、仅有下载权限
-vsftpd.conf内容变更如下：</p>
+<p>要注意文件夹的属性，匿名帐户是其它（other）用户来开启它的读写执行的权限</p>
+<ul>
+  <li>（R）读 – 下载</li>
+  <li>（W）写 – 上传</li>
+  <li>（X）执行 – 如果不开FTP的目录都进不去</li>
+</ul>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anonymous_enable=YES
-anon_world_readable_only=YES
-anon_root=/var/share/ezfs/shareroot/gz/
-hide_ids=YES
-no_anon_password=YES
-local_enable=YES
+<h3 id="场景3上传下载权限都有">场景3、上传、下载权限都有</h3>
+
+<p>vsftpd.conf内容变更如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anonymous_enable=YES
+    anon_umask=002
+    anon_upload_enable=YES
+    anon_mkdir_write_enable=YES
+    anon_other_write_enable=NO
+    anon_world_readable_only=YES
+    anon_root=/var/share/ezfs/shareroot/gz/
+    hide_ids=YES
+    no_anon_password=YES
+    local_enable=YES
+    write_enable=YES
 </code></pre></div></div>
 
-<p>说明：
-  要注意文件夹的属性，匿名帐户是其它（other）用户来开启它的读写执行的权限
-    （R）读 – 下载
-    （W）写 – 上传 
-    （X）执行 – 如果不开FTP的目录都进不去</p>
+<h3 id="场景4约束传输速率">场景4、约束传输速率</h3>
 
-<p>###场景3、上传、下载权限都有
-vsftpd.conf内容变更如下：</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anonymous_enable=YES
-anon_umask=002
-anon_upload_enable=YES
-anon_mkdir_write_enable=YES
-anon_other_write_enable=NO
-anon_world_readable_only=YES
-anon_root=/var/share/ezfs/shareroot/gz/
-hide_ids=YES
-no_anon_password=YES
-local_enable=YES
-write_enable=YES
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anon_max_rate=51200  （匿名用户的传输比率，单位b/s）
 </code></pre></div></div>
 
-<p>###场景4、约束传输速率</p>
+<p>作为场景1、2、3的附属配置。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anon_max_rate=51200  （匿名用户的传输比率，单位b/s） 作为场景1、2、3的附属配置。
-</code></pre></div></div>
+<h3 id="场景5更改文件上传属主">场景5、更改文件上传属主</h3>
 
-<p>###场景5、更改文件上传属主
-这个作为场景3的附属配置，一旦设置了属主，文件的umask始终是600，这样，ftp用户只有上传权限，无法下载。</p>
+<p>这个作为场景3的附属配置，一旦设置了属主，文件的umask始终是600，这样，ftp用户只有上传权限，无法下载。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>chown_uploads=YES
-chown_username=指定一个账号
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    chown_uploads=YES
+    chown_username=指定一个账号
 </code></pre></div></div>
 
 <p>说明:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>chown_uploads=YES 情况下，anon_umask 的设置失效，上传的文件的权限始终是600
+<ul>
+  <li>
+    <p>chown_uploads=YES 情况下，anon_umask 的设置失效，上传的文件的权限始终是600</p>
+  </li>
+  <li>
+    <p>chown_uploads=YES</p>
+  </li>
+  <li>
+    <ul>
+      <li>这种情况下需要设置chown_username，但是你不设置也不会报错，因为系统默认给你设置了个root用户，上传上去的文件所有会是root:ftp。无论你是否设置anon_umask，上传的文件都会是600权限，很恶心，自己能上传但是不能下载。</li>
+    </ul>
+  </li>
+  <li>
+    <ul>
+      <li>这种情况可用于公司开发文件上传，只要上传了你就不能修改。</li>
+    </ul>
+  </li>
+  <li>
+    <p>chown_uploads=NO</p>
+  </li>
+  <li>
+    <ul>
+      <li>这种情况下，通过修改anon_umask文件来控制匿名用户上传文件的权限，不过上传的文件所有者会变为ftp:ftp，也就是说这种情况下匿名用户总是可以修改自己上传的文件的，即使anon_umask=777，也是有权限的。</li>
+    </ul>
+  </li>
+  <li>
+    <ul>
+      <li>无论在哪种情况下，上传的文件是不会拥有X，即执行权限。</li>
+    </ul>
+  </li>
+</ul>
 
-chown_uploads=YES
-   这种情况下需要设置chown_username，但是你不设置也不会报错，因为系统默认给你设置了个root用户，上传上去的文件所有会是root:ftp。无论你是否设置anon_umask，上传的文件都会是600权限，很恶心，自己能上传但是不能下载。
-   这种情况可用于公司开发文件上传，只要上传了你就不能修改。
+<h1 id="普通ftp用户的上传">普通ftp用户的上传</h1>
 
-chown_uploads=NO
-    这种情况下，通过修改anon_umask文件来控制匿名用户上传文件的权限，不过上传的文件所有者会变为ftp:ftp，也就是说这种情况下匿名用户总是可以修改自己上传的文件的，即使anon_umask=777，也是有权限的。
+<h2 id="只能上传无法下载">只能上传，无法下载</h2>
 
-   无论在哪种情况下，上传的文件是不会拥有X，即执行权限。
+<p>vsftpd.conf内容变更如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anonymous_enable=NO
+    local_enable=YES
+    write_enable=YES
+    download_enable=NO
+    log_ftp_protocol=YES
+    use_sendfile=NO
+    local_umask=002
 </code></pre></div></div>
 
-<p>#普通ftp用户的上传
-##只能上传，无法下载
-vsftpd.conf内容变更如下：</p>
+<h2 id="普通ftp用户的下载">普通ftp用户的下载</h2>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anonymous_enable=NO
-local_enable=YES
-write_enable=YES
-download_enable=NO
-log_ftp_protocol=YES
-use_sendfile=NO
-local_umask=002
+<p>vsftpd.conf内容变更如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anonymous_enable=NO
+    local_enable=YES
+    write_enable=NO
+    download_enable=YES
+    log_ftp_protocol=YES
+    use_sendfile=NO
+    local_umask=002
 </code></pre></div></div>
 
-<p>##普通ftp用户的下载
-vsftpd.conf内容变更如下：</p>
+<h2 id="普通ftp用户的上传下载">普通ftp用户的上传、下载</h2>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anonymous_enable=NO
-local_enable=YES
-write_enable=NO
-download_enable=YES
-log_ftp_protocol=YES
-use_sendfile=NO
-local_umask=002
+<p>vsftpd.conf内容变更如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    anonymous_enable=NO
+    local_enable=YES
+    write_enable=YES
+    log_ftp_protocol=YES
+    use_sendfile=NO
+    local_umask=002
 </code></pre></div></div>
 
-<p>##普通ftp用户的上传、下载
-vsftpd.conf内容变更如下：</p>
+<h2 id="冻结ftp账号">冻结FTP账号</h2>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>anonymous_enable=NO
-local_enable=YES
-write_enable=YES
-log_ftp_protocol=YES
-use_sendfile=NO
-local_umask=002
-</code></pre></div></div>
+<p>vsftpd.conf内容增加如下配置项：</p>
 
-<p>##冻结FTP账号
-vsftpd.conf内容增加如下配置项：</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>userlist_enable=YES
-userlist_deny=YES
-userlist_file=xxxPATH
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    userlist_enable=YES
+    userlist_deny=YES
+    userlist_file=xxxPATH
 </code></pre></div></div>
 
 <p>同时，要将被冻结账号信息加入到userlist_file中</p>
 
-<p>###测试
-####vsftpd.conf中增加：</p>
+<h3 id="测试-1">测试</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>userlist_enable=YES
-userlist_deny=YES
-userlist_file=/etc/vsftpd.deny_list  ####然后，增加被限制账号到userlist_file中：
+<h4 id="vsftpdconf中增加">vsftpd.conf中增加</h4>
 
-echo -n "guizhou" &gt; vsftpd.deny_list
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    userlist_enable=YES
+    userlist_deny=YES
+    userlist_file=/etc/vsftpd.deny_list 
 </code></pre></div></div>
 
-<p>####最后，restart vsftp，使用client 访问FTP server：</p>
+<h4 id="然后增加被限制账号到userlist_file中">然后，增加被限制账号到userlist_file中</h4>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@631:~# ftp 172.17.59.5
-Connected to 172.17.59.5.
-220 (vsFTPd 2.3.5)
-Name (172.17.59.5:root): guizhou
-530 Permission denied.
-Login failed.
-ftp&gt;
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    echo -n "guizhou" &gt; vsftpd.deny_list
 </code></pre></div></div>
 
-<p>##约束ftp用户访问目录范围
-###原因
-如果不约束住ftp用户的访问目录范围，任其可以访问非base_home下文件，这是非常危险的。</p>
+<h4 id="最后restart-vsftp使用client-访问ftp-server">最后，restart vsftp，使用client 访问FTP server</h4>
 
-<p>###约束配置</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    root@631:~# ftp 172.17.59.5
+    Connected to 172.17.59.5.
+    220 (vsFTPd 2.3.5)
+    Name (172.17.59.5:root): guizhou
+    530 Permission denied.
+    Login failed.
+    ftp&gt;
+</code></pre></div></div>
+
+<h2 id="约束ftp用户访问目录范围">约束ftp用户访问目录范围</h2>
+
+<h3 id="原因">原因</h3>
+
+<p>如果不约束住ftp用户的访问目录范围，任其可以访问非base_home下文件，这是非常危险的。</p>
+
+<h3 id="约束配置">约束配置</h3>
 
 <p>如果设置为：</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>chroot_local_user＝YES
-chroot_list_enable=YES(这行可以没有, 也可以有)
-chroot_list_file=/etc/vsftpd.chroot_list 那么, 凡是加在文件vsftpd.chroot_list中的用户都是不受限止的用户 即, 可以浏览其主目录的上级目录.
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    chroot_local_user＝YES
+    chroot_list_enable=YES(这行可以没有, 也可以有)
+    chroot_list_file=/etc/vsftpd.chroot_list
 </code></pre></div></div>
 
-<p>所以, 如果不希望某用户能够浏览其主目录上级目录中的内容,可以如上设置, 然后在文件vsftpd.chroot_list中不添加该用户即可(此时, 在该文件中的用户都是可以浏览其主目录之外的目录的).
-或者, 设置如下：</p>
+<p>那么, 凡是加在文件vsftpd.chroot_list中的用户都是不受限止的用户</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>chroot_local_user＝NO
-chroot_list_enable=YES(这行必须要有, 否则文件
-vsftpd.chroot_list不会起作用)
-chroot_list_file=/etc/vsftpd.chroot_list 然后把所有不希望有这种浏览其主目录之上的各目录权限的用户添加到文件vsftpd.chroot_list(此时, 在该文件中的用户都是不可以浏览其主目录之外的目录的) 中即可(一行一个用户名).
+<p>即, 可以浏览其主目录的上级目录.</p>
+
+<p>所以, 如果不希望某用户能够浏览其主目录上级目录中的内容,可以如上设置, 然后在文件vsftpd.chroot_list中不添加该用户即可(此时, 在该文件中的用户都是可以浏览其主目录之外的目录的).</p>
+
+<p>或者, 设置如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    chroot_local_user＝NO
+    chroot_list_enable=YES(这行必须要有, 否则文件
+    vsftpd.chroot_list不会起作用)
+    chroot_list_file=/etc/vsftpd.chroot_list
 </code></pre></div></div>
+
+<p>然后把所有不希望有这种浏览其主目录之上的各目录权限的用户添加到文件vsftpd.chroot_list(此时, 在该文件中的用户都是不可以浏览其主目录之外的目录的)</p>
+
+<p>中即可(一行一个用户名).</p>
 
 <p>下图，为这两个参数的详细解释：
-[[文件:chroot.jpg | 1024 px]]</p>
+<img class="shadow" src="/img/in-post/ftp_parameter_desc.png" width="1200" /></p>
 
-<p>####测试
-按照上面的配置，在限制住用户只能访问bash_home情况下，会出现FTP 500错误码：</p>
+<h4 id="测试-2">测试</h4>
+<p>按照上面的配置，在限制住用户只能访问bash_home情况下，会出现FTP 500错误码：</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@scaler01:/var/share/ezfs/shareroot# ftp 172.17.59.5
-Connected to 172.17.59.5.
-220 (vsFTPd 2.3.5)
-Name (172.17.59.5:root): guizhou
-331 Please specify the password.
-Password:
-500 OOPS: vsftpd: refusing to run with writable root inside chroot()
-Login failed.
-ftp&gt; 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    root@scaler01:/var/share/ezfs/shareroot# ftp 172.17.59.5
+    Connected to 172.17.59.5.
+    220 (vsFTPd 2.3.5)
+    Name (172.17.59.5:root): guizhou
+    331 Please specify the password.
+    Password:
+    500 OOPS: vsftpd: refusing to run with writable root inside chroot()
+    Login failed.
+    ftp&gt; 
 </code></pre></div></div>
 
 <p>但如果注销掉这三个参数，则会限制住目录，一切OK。</p>
 
-<p>##限制ftp 传输速率</p>
+<h2 id="限制ftp-传输速率">限制ftp 传输速率</h2>
 
-<p>local_max_rate=5120000 （本地用户的传输比率，单位b/s ）</p>
-
-<p>##限制IP
-要求：</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>支持具体的IP、IP段、域名
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>local_max_rate=5120000 （本地用户的传输比率，单位b/s ）
 </code></pre></div></div>
 
-<p>调整的内容：
-vsftpd.conf中增加：</p>
+<h2 id="限制ip">限制IP</h2>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcp_wrappers=YES
+<p>要求：</p>
+
+<ul>
+  <li>支持具体的IP、IP段、域名</li>
+</ul>
+
+<p>调整的内容：</p>
+
+<ul>
+  <li>vsftpd.conf中增加：</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    tcp_wrappers=YES
 </code></pre></div></div>
 
 <p>同时，要修改/etc/hosts.deny  和 /etc/hosts.allow两个文件</p>
 
-<p>/etc/hosts.deny 中增加如下内容：
-    #vsftpd
-    vsftpd:ALL</p>
+<p>/etc/hosts.deny 中增加如下内容：</p>
 
-<p>/etc/hosts.allow
-    #vsftpd
-    vsftpd:172.17.59.</p>
-
-<p>###测试
-在/etc/hosts.deny 中增加如下内容：
-    #vsftpd
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    #vsftpd
     vsftpd:ALL
-在/etc/hosts.allow中增加如下内容：
+
+/etc/hosts.allow
     #vsftpd
-    vsftpd:172.19.5.</p>
+    vsftpd:172.17.59.
+</code></pre></div></div>
+
+<h3 id="测试-3">测试</h3>
+
+<p>在/etc/hosts.deny 中增加如下内容：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    #vsftpd
+    vsftpd:ALL
+</code></pre></div></div>
+
+<p>在/etc/hosts.allow中增加如下内容：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    #vsftpd
+    vsftpd:172.19.5.
+</code></pre></div></div>
 
 <p>client访问ftp server：</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@631:~# ftp 172.17.59.5
-Connected to 172.17.59.5.
-421 Service not available.
-ftp&gt; 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    root@631:~# ftp 172.17.59.5
+    Connected to 172.17.59.5.
+    421 Service not available.
+    ftp&gt; 
 </code></pre></div></div>
 
 <p>vsftpd的log显示：</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Thu Oct 12 14:46:44 2017 [pid 2] CONNECT: Client "172.17.59.8", "Connection refused: tcp_wrappers denial."
-Thu Oct 12 14:46:44 2017 [pid 2] FTP response: Client "172.17.59.8", "421 Service not available."
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    Thu Oct 12 14:46:44 2017 [pid 2] CONNECT: Client "172.17.59.8", "Connection refused: tcp_wrappers denial."
+    Thu Oct 12 14:46:44 2017 [pid 2] FTP response: Client "172.17.59.8", "421 Service not available."
 </code></pre></div></div>
 
 <p>说明：</p>
 
 <p>/etc/hosts.allow 内容格式与要求，示例如下：</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vsftpd:.hype.com
-vsftpd:172.17.59.
-vsftpd:172.17.0.0/255.255.254.0
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    vsftpd:.hype.com
+    vsftpd:172.17.59.
+    vsftpd:172.17.0.0/255.255.254.0
 </code></pre></div></div>
 
 <p>第一行表示，只有hype.com这个域里的主机允许访问vsftpd服务，注意hype.com前面的那个点(.)；</p>
@@ -298,79 +381,84 @@ vsftpd:172.17.0.0/255.255.254.0
 
 <p>第三行表示，只有172.17.0这个网段的用户允许访问vsftpd服务，注意这里不能写为172.17.0.0/24。</p>
 
-<p>##ftp TLS加密传输
-###未加密传输情况下，直接抓包：</p>
+<h2 id="ftp-tls加密传输">ftp TLS加密传输</h2>
+<h3 id="未加密传输情况下直接抓包">未加密传输情况下，直接抓包：</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1146	7.562069	172.17.59.8	172.17.59.5	FTP	74	Request: PASS 1 [[文件:capture_show.png |1024 px ]]
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    1146	7.562069	172.17.59.8	172.17.59.5	FTP	74	Request: PASS 1
 </code></pre></div></div>
+
+<p><img class="shadow" src="/img/in-post/ftp_tcpdump.png" widtgh="1200" /></p>
 
 <p>上面一行为抓包到的内容，可以明确的看出，密码为1，明文的，风险系数较高</p>
 
-<p>###先确认，vsftpd是否支持SSL认证：</p>
+<h3 id="先确认vsftpd是否支持ssl认证">先确认，vsftpd是否支持SSL认证：</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@scaler01:/etc# ldd /usr/sbin/vsftpd |grep libssl
-libssl.so.1.0.0 =&gt; /lib/x86_64-linux-gnu/libssl.so.1.0.0 (0x00007fc154eb4000) 出现类似如上信息，表明支持SSL。
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    root@scaler01:/etc# ldd /usr/sbin/vsftpd |grep libssl
+	libssl.so.1.0.0 =&gt; /lib/x86_64-linux-gnu/libssl.so.1.0.0 (0x00007fc154eb4000)
 </code></pre></div></div>
 
-<p>###生成vsftpd.pem 证书</p>
+<p>出现类似如上信息，表明支持SSL。</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@scaler01:/etc/ssl/private# openssl req -x509 -nodes -days 365 -newkey rsa:1024 \-keyout /etc/ssl/private/vsftpd.pem \-out /etc/ssl/private/vsftpd.pem
-Generating a 1024 bit RSA private key
-................++++++
-.............................++++++
-writing new private key to '/etc/ssl/private/vsftpd.pem'
------
-You are about to be asked to enter information that will be incorporated
-into your certificate request.
-What you are about to enter is what is called a Distinguished Name or a DN.
-There are quite a few fields but you can leave some blank
-For some fields there will be a default value,
-If you enter '.', the field will be left blank.
------
-Country Name (2 letter code) [AU]:CN
-State or Province Name (full name) [Some-State]:shanghai
-Locality Name (eg, city) []:nanjing
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:bigtera
-Organizational Unit Name (eg, section) []:bigtera
-Common Name (e.g. server FQDN or YOUR name) []:virtualstor
-Email Address []:virtualstor@bigtera.com.cn
+<h3 id="生成vsftpdpem-证书">生成vsftpd.pem 证书</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    root@scaler01:/etc/ssl/private# openssl req -x509 -nodes -days 365 -newkey rsa:1024 \-keyout /etc/ssl/private/vsftpd.pem \-out /etc/ssl/private/vsftpd.pem
+    Generating a 1024 bit RSA private key
+    ................++++++
+    .............................++++++
+    writing new private key to '/etc/ssl/private/vsftpd.pem'
+    -----
+    You are about to be asked to enter information that will be incorporated
+    into your certificate request.
+    What you are about to enter is what is called a Distinguished Name or a DN.
+    There are quite a few fields but you can leave some blank
+    For some fields there will be a default value,
+    If you enter '.', the field will be left blank.
+    -----
+    Country Name (2 letter code) [AU]:CN
+    State or Province Name (full name) [Some-State]:shanghai
+    Locality Name (eg, city) []:nanjing
+    Organization Name (eg, company) [Internet Widgits Pty Ltd]:bigtera
+    Organizational Unit Name (eg, section) []:bigtera
+    Common Name (e.g. server FQDN or YOUR name) []:virtualstor
+    Email Address []:virtualstor@bigtera.com.cn
+
 </code></pre></div></div>
 
 <p>vsftpd.conf的设置</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssl_enable=YES
-allow_anon_ssl=NO
-force_local_data_ssl=YES
-force_local_logins_ssl=YES
-ssl_tlsv1=YES
-ssl_sslv2=NO
-ssl_sslv3=NO
-rsa_cert_file=/etc/ssl/private/vsftpd.pem
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    ssl_enable=YES
+    allow_anon_ssl=NO
+    force_local_data_ssl=YES
+    force_local_logins_ssl=YES
+    ssl_tlsv1=YES
+    ssl_sslv2=NO
+    ssl_sslv3=NO
+    rsa_cert_file=/etc/ssl/private/vsftpd.pem
 </code></pre></div></div>
 
-<p>###测试</p>
+<h3 id="测试-4">测试</h3>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@631:~# ftp 172.17.59.5
-Connected to 172.17.59.5.
-220 (vsFTPd 2.3.5)
-Name (172.17.59.5:root): guizhou
-530 Non-anonymous sessions must use encryption.
-Login failed.
-421 Service not available, remote server has closed connection
-ftp&gt; 
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    root@631:~# ftp 172.17.59.5
+    Connected to 172.17.59.5.
+    220 (vsFTPd 2.3.5)
+    Name (172.17.59.5:root): guizhou
+    530 Non-anonymous sessions must use encryption.
+    Login failed.
+    421 Service not available, remote server has closed connection
+    ftp&gt; 
 </code></pre></div></div>
 
 <p>说明已经启用了认证，client无法访问FTP server。</p>
 
 <p>这里，可以下载flashftp工具，测试一下。
-[[文件:ftp_station_info.png |1024 px ]]
-[[文件:accept_key.png |1024 px ]]</p>
+<img class="shadow" src="/img/in-post/ftp_Accept_key.png" widtgh="1200" /></p>
 
 <p>在开启SSL认证情况下抓包：
-[[文件:capture_secret.png |1024 px ]]</p>
+<img class="shadow" src="/img/in-post/ftp_tcp_desc.png" widtgh="1200" /></p>
 
-<p>#参考文档
-    http://manpages.ubuntu.com/manpages/trusty/man5/vsftpd.conf.5.html
-    http://os.51cto.com/art/201008/221842_all.htm
-    http://viong.blog.51cto.com/844766/261354</p>
+<h1 id="参考文档">参考文档</h1>
+<p>http://manpages.ubuntu.com/manpages/trusty/man5/vsftpd.conf.5.html</p>
 
+<p>http://os.51cto.com/art/201008/221842_all.htm</p>
+
+<p>http://viong.blog.51cto.com/844766/261354</p>

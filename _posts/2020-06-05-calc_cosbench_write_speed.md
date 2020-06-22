@@ -8,6 +8,7 @@ catalog:    true
 tags:
     - cosbench
     - shell
+    - python
 ---
 
 
@@ -174,16 +175,16 @@ do
     if [[ x"$line" =~ x"Id" ]]; then
         continue
     else
-        TASK_ID=`echo $line | awk -F"," '{{print $1}}'`
-        TASK_NAME=`echo $line | awk -F"," '{{print $2}}'`
+        task_id=`echo $line | awk -F"," '{{print $1}}'`
+        task_name=`echo $line | awk -F"," '{{print $2}}'`
         TASK_STATUS=`echo $line | awk -F"," '{{print $7}}'`
-        WORK_DIR=${ARCHIVE}${TASK_ID}-${TASK_NAME}
+        work_dir=${ARCHIVE}${task_id}-${task_name}
 
-        # echo ${TASK_ID}, ${TASK_NAME}, ${TASK_STATUS}, ${WORK_DIR}
+        # echo ${task_id}, ${task_name}, ${TASK_STATUS}, ${work_dir}
 
-        if [[ -d ${WORK_DIR} ]]; then
+        if [[ -d ${work_dir} ]]; then
             if [[ x"${TASK_STATUS}" == x"finished" ]]; then
-                TOTAL_OBJS=`cat ${WORK_DIR}/driver*.csv | grep write | grep -v init | awk -F',' '{{print $3}}' | awk '{sum += $1};END {print sum}'`
+                TOTAL_OBJS=`cat ${work_dir}/driver*.csv | grep write | grep -v init | awk -F',' '{{print $3}}' | awk '{sum += $1};END {print sum}'`
                 # echo ${TOTAL_OBJS}
 
                 START_TIME=`echo $line | awk -F"," '{{print $4}}'`
@@ -192,17 +193,17 @@ do
                 END_TIME_STR=`date -d "${END_TIME}" +%s`
                 COST_TIME=`expr ${END_TIME_STR} - ${START_TIME_STR}`
                 # echo ${COST_TIME}
-                WRITE_SPEED=`expr ${TOTAL_OBJS} / ${COST_TIME}`
+                WRITE_SPEED=`echo | awk "{print (${TOTAL_OBJS} / ${COST_TIME})}"`
 
                 echo ""
-                echo -e "\033[32m   Task : (${TASK_ID}-${TASK_NAME}), write total objects : (${TOTAL_OBJS}), cost time : (${COST_TIME}(s)), write speed : (${WRITE_SPEED}) \033[0m"
+                echo -e "\033[32m   Task : (${task_id}-${task_name}), write total objects : (${TOTAL_OBJS}), cost time : (${COST_TIME}(s)), write speed : (${WRITE_SPEED}) \033[0m"
                 echo ""
             else
-                echo -e "\033[33m   [WARN]  Task : (${TASK_ID}-${TASK_NAME}) status is not finished, but : (${TASK_STATUS}), please pay more attention!!! \033[0m"
+                echo -e "\033[33m   [WARN]  Task : (${task_id}-${task_name}) status is not finished, but : (${TASK_STATUS}), please pay more attention!!! \033[0m"
                 echo ""
             fi
         else
-            echo -e "\033[31m [ERROR]   !!! Not find cosbench archive folder : ${WORK_DIR}  \033[0m"
+            echo -e "\033[31m [ERROR]   !!! Not find cosbench archive folder : ${work_dir}  \033[0m"
             exit 1
         fi
     fi
@@ -211,46 +212,85 @@ done < ${HISTORY_FILE}
 
 执行效果如下:
 
+<img class="shadow" src="/img/in-post/calc_cosbench_speed_output.png" width="1200">
+
+
+# python脚本
+
+今天（2020-06-18）使用python改写了一版，参考如下:
+
+
 ```
-root@node244:~# ./calc_cosbench_speed.sh 
+root@node244:~/75# cat calc_cosbench_speed.py 
+#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
 
-   Task : (w3-HM_round1_10M_files_write_once), write total objects : (1000000), cost time : (216(s)), write speed : (4629) 
+from __future__ import unicode_literals
 
-
-   Task : (w4-HM_round1_10M_files_write_once), write total objects : (1000000), cost time : (284(s)), write speed : (3521) 
-
-
-   Task : (w5-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1844(s)), write speed : (2711) 
-
-
-   Task : (w6-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (2421(s)), write speed : (2065) 
+import os
+import sys
+import time
 
 
-   Task : (w7-HM_round1_10M_files_write_once), write total objects : (50000), cost time : (35(s)), write speed : (1428) 
+ARCHIVE_PATH = "/root/0.4.2.c4/archive"
+HISTORY = "run-history.csv"
+
+HISTORY_FILE = ARCHIVE_PATH + os.sep + HISTORY
+
+if not os.path.exists(HISTORY_FILE):
+    print("\033[31m \n  [ERROR]  Not find path for : ({}) \033[0m \n".format(HISTORY_FILE))
+    sys.exit(1)
+
+his_content = os.popen("cat {}".format(HISTORY_FILE)).read()
+for each_line in his_content.strip().split("\n"):
+    if each_line.startswith("Id"):
+        continue
+
+    try:
+        line_list = each_line.split(',')
+        task_id = line_list[0]
+        task_name = line_list[1]
+        task_state = line_list[6].strip()
+
+        if task_state == 'finished':
+            work_dir = "{}/{}-{}".format(ARCHIVE_PATH, task_id, task_name)
+            start_time = line_list[3]
+            end_time = line_list[4]
+
+            start_time_array = time.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            end_time_array = time.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+            start_times_tamp = time.mktime(start_time_array)
+            end_times_tamp = time.mktime(end_time_array)
+            time_diff = end_times_tamp - start_times_tamp
+
+            total_objs_cmd = "cat {}/driver*.csv | grep write | grep -v init " \
+                             "| awk -F',' '{{print $3}}'".format(work_dir)
+            count_str = os.popen(total_objs_cmd).read().strip()
+            couts_str_list = count_str.split("\n")
+            couts_str_int = map(int, couts_str_list)
+            total_objs = sum(couts_str_int)
+
+            write_speed = total_objs / time_diff
+
+            print("\033[32m  Task : ({}-{}), total: ({}), elapsed : ({}s), "
+                  "speed : ({}) \033[0m\n".format(task_id, task_name, total_objs, time_diff, write_speed))
+        else:
+            print("\033[33m  [WARN]  Task : ({}-{}) status is not finished, but : ({}), "
+                  "please pay more attention \033[0m\n".format(task_id, task_name, task_state))
+
+    except Exception as ex:
+        print("\n\033[31m \n  [ERROR]  Parase file of '{}' "
+              "exception : ({}) \033[0m\n".format(HISTORY_FILE, str(ex)))
+        sys.exit(1)
 
 
-   Task : (w8-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1973(s)), write speed : (2534) 
+if __name__ == "__main__":
+    pass
 
-
-   Task : (w9-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1424(s)), write speed : (3511) 
-
-
-   Task : (w10-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1594(s)), write speed : (3136) 
-
-
-   Task : (w11-HM_round2_10M_files_write_once), write total objects : (5000000), cost time : (1754(s)), write speed : (2850) 
-
-   [WARN]  Task : (w12-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
-
-   [WARN]  Task : (w13-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
-
-   [WARN]  Task : (w15-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
-
-
-   Task : (w16-HM_round3_10M_files_write_once), write total objects : (5000000), cost time : (2064(s)), write speed : (2422) 
-
-
-   Task : (w17-SEG_1VM_72Threads_ONLY_W), write total objects : (9999936), cost time : (3997(s)), write speed : (2501)
 ```
+
+执行效果如下:
+
+<img class="shadow" src="/img/in-post/calc_cosbench_speed_output_py.png" width="1200">
 
 

@@ -174,6 +174,8 @@
                     
                     
                     
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -266,7 +268,7 @@
                     </div>
                     <h1>API响应慢问题复现</h1>
                     
-                    <h2 class="subheading">Reproduce Slow API issue</h2>
+                    <h2 class="subheading">Reproduce Slow API response issue</h2>
                     <span class="meta">Posted by Gavin on June 12, 2020</span>
                 </div>
             </div>
@@ -431,6 +433,116 @@ done
 -s silent 模式，不输出任何东西
 
 -w %{http_code} 控制额外输出
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这里还有另外一个方法:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>root@node76:~# curl --insecure --cookie cookie --header 'Accept: application/json, text/javascript, */*; q=0.01' --header 'Content-Type: application/json' -o /dev/null -s -w "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n" https://7.73.7.76:8080/system/host/1.1.1.76/disk/raid
+time_connect: 0.000
+time_starttransfer: 8.435
+time_total: 8.436
+root@node76:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以根据time_total时间来判断，此时间超过一定值，就退出。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+</pre></td><td class="rouge-code"><pre>root@node76:~# cat raid_api_elapsed2.sh 
+#!/bin/bash
+
+PUBLIC_IP=7.73.7.76
+STORAGE_IP=1.1.1.76
+TIMEOUT=30
+LOG_FILE=./raid_api_elapsed.log
+
+# Login
+login_res=`curl --insecure --cookie-jar cookie.jar -s -X POST --header "Accept: application/json, text/javascript, */*; q=0.01" --header "Content-Type: application/json" "https://${PUBLIC_IP}:8080/auth" --data '{"password": "1", "user_id": "admin"}'`
+login_return_code=`echo ${login_res} | sed 's@{"name": "login", "return_code": @@' | sed 's/}//'`
+
+if [ x"${login_return_code}" == x"300" ]; then
+    echo ""
+    echo "[ERROR]  Login Failed, exit!!!"
+    echo ""
+    exit 1
+elif [[ ${login_return_code} =~ 'session_id' ]]; then
+    echo ""
+    echo "Login success"
+    echo ""
+fi
+
+echo "======================================================= RAID API Elapsed Time Test =======================================================" | tee ${LOG_FILE}
+
+while :
+do
+    # RAID API
+    start_time=`date "+%Y-%m-%d %H:%M:%S"`
+
+    time_total=`curl --insecure --cookie cookie.jar --header "Accept: application/json, text/javascript, */*; q=0.01" --header "Content-Type: application/json" -o /dev/null -s -w "%{time_total}\n" "https://${PUBLIC_IP}:8080/system/host/${STORAGE_IP}/disk/raid"`
+    end_time=`date "+%Y-%m-%d %H:%M:%S"`
+
+    int_time_total=`echo $a | cut -d '.' -f1`
+    if [[ ${int_time_total} -lt ${TIMEOUT} ]]; then
+        echo "${end_time}  --&gt; OK, elapsed time is : (${time_total} milliseconds), now sleep 2s" | tee ${LOG_FILE}
+        sleep 2
+    elif [[ ${result_code} =~ '401'  ]]; then
+        echo "[WARN]  Session timeout, login again"
+        curl --insecure --cookie-jar cookie.jar -s -X POST --header "Accept: application/json, text/javascript, */*; q=0.01" --header "Content-Type: application/json" "https://${PUBLIC_IP}:8080/auth" --data '{"password": "1", "user_id": "admin"}'
+    else
+        echo "${end_time}  [ERROR]  Cost time : (${time_total}) is more than ${TIMEOUT}s, exit!" | tee ${LOG_FILE}
+        echo ""
+        exit 1
+    fi
+done
 </pre></td></tr></tbody></table></code></pre></div></div>
 
 <h2 id="python">python</h2>
@@ -755,6 +867,82 @@ if __name__ == '__main__':
 [2020-06-12 14:45:40.012]  [ERROR]  URL response elapsed time : (39), return_text : ({"assigned": [{"vd": "0", "current_cache_policy": "WriteThrough, ReadAheadNone, Direct, No Write Cache if Bad BBU", "drive_num": "7", "pds": [{"slot": "1", "copyback_progress": null, "other_error": 0, "healthy": "none", "rebuild_progress": null, "adapter": null, "size": "7.277 TB", "media_error": 0, "pd_type": "SATA", "lifetime_remaining": -1, "firmware_state": "Online, Spun Up", "pd": "0", "media_type": "HDD", "device_id": "38", "smart_info": "smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-server] (local build)\nCopyright (C) ....后面省略，这里展示具体的response详细信息...
 </pre></td></tr></tbody></table></code></pre></div></div>
 
+<h1 id="其他">其他</h1>
+
+<p>看了同事写的一个python版本，非常简洁，不过没有考虑session过期问题，脚本内容参考如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+</pre></td><td class="rouge-code"><pre>root@246:/home# cat c.py 
+# -*- coding: utf-8 -*-
+
+import time
+import urllib3
+import requests
+
+urllib3.disable_warnings()
+
+ip = "1.1.7.246"
+storage_ip = "1.1.1.246"
+headers = {"accept": "application/bigtera.vs.v1+json, application/json"}
+
+session = requests.Session()
+# login
+url = "https://{}:8080/auth".format(ip)
+response = session.post(
+    url, json={"user_id": "admin", "password": "1"}, headers=headers, verify=False
+)
+
+while True:
+    start = time.time()
+    # get raid info
+    url = "https://{}:8080/system/host/{}/disk/raid".format(ip, storage_ip)
+    response = session.get(url, headers=headers, verify=False)
+    end = time.time()
+    try:
+        response.raise_for_status()
+    except Exception as e:
+        print(e)
+        break
+
+    if end - start &gt; 10:
+        print("last request cost {} seconds", end - start)
+        break
+</pre></td></tr></tbody></table></code></pre></div></div>
+
 
 
                 <hr style="visibility: hidden;">
@@ -767,6 +955,13 @@ if __name__ == '__main__':
                         </a>
                     </li>
                     
+                    
+                    <li class="next">
+                        <a href="/2020/06/16/ceph_multi_tenancy/" data-toggle="tooltip" data-placement="top" title="ceph S3 多租户">
+                        Next<br>
+                        <span>ceph S3 多租户</span>
+                        </a>
+                    </li>
                     
                 </ul>
                 <hr style="visibility: hidden;">
@@ -821,112 +1016,122 @@ if __name__ == '__main__':
         </a>
         
         
-                <a data-sort="0071" 
+                <a data-sort="0074" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0128" 
+                <a data-sort="0131" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="20">Linux</a>
         
-                <a data-sort="0136" 
+                <a data-sort="0139" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="12">Automation</a>
         
-                <a data-sort="0143" 
+                <a data-sort="0146" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0143" 
+                <a data-sort="0146" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="5">shell</a>
         
-                <a data-sort="0144" 
+                <a data-sort="0147" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0144" 
+                <a data-sort="0147" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0145" 
+                <a data-sort="0148" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="3">S3</a>
         
-                <a data-sort="0145" 
+                <a data-sort="0148" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="3">awk</a>
         
-                <a data-sort="0145" 
+                <a data-sort="0148" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="3">ceph</a>
+        
+                <a data-sort="0148" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="2">Megacli</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="2">python</a>
+        
+                <a data-sort="0149" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr

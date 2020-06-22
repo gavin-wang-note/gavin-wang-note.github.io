@@ -16,42 +16,6 @@
 
 <p>7）可以做坏块监测</p>
 
-<h2 id="rman术语">RMAN术语</h2>
-
-<h3 id="backup-sets-备份集合">Backup Sets （备份集合）</h3>
-
-<p>备份集合的特性：包括一个或多个数据文件或归档日志，以oracle专有的格式保存，有一个完全的所有的备份片集合构成，构成一个完全备份或增量备份。</p>
-
-<h3 id="backup-pieces-备份片">Backup Pieces （备份片）</h3>
-
-<p>一个备份集由若干个备份片组成。每个备份片是一个单独的输出文件。一个备份片的大 小是有限制的；如果没有大小的限制， 备份集就只由一个备份片构成。备份片的大小不能 大于使用的文件系统所支持的文件长度的最大值。</p>
-
-<h3 id="image-copies-镜像备份">Image Copies 镜像备份</h3>
-
-<p>镜像备份是独立文件（数据文件、归档日志、控制文件）的备份。它很类似操作系统级 的文件备份。它不是备份集或备份片，也没有被压缩。</p>
-
-<h3 id="full-backup-sets-全备份集合">Full backup Sets 全备份集合</h3>
-
-<p>全备份是一个或多个数据文件中使用过的数据块的的备份。没有使用过的数据块是不被备份的，也就是说，oracle 进行备份集合的压缩。</p>
-
-<h3 id="incremental-backup-sets-增量备份集合">Incremental backup sets 增量备份集合</h3>
-
-<p>增量备份是指备份一个或多个数据文件的自从上一次同一级别的或更低级别的备份以来被修改过的数据块。 与完全备份相同，增量备份也进行压缩。</p>
-
-<p>File multiplexing  多工</p>
-
-<p>多个数据文件可以在一个备份集中。</p>
-
-<h3 id="recovery-catalog-resyncing-恢复目录同步">Recovery catalog resyncing 恢复目录同步</h3>
-
-<p>使用恢复管理器执行 backup、copy、restore 或者 switch 命令时，恢复目录自动进行更 新，但是有关日志与归档日志信息没有自动记入恢复目录。需要进行目录同步。使用 resync catalog命令进行同步。</p>
-
-<p>RMAN&gt; resync catalog；</p>
-
-<h3 id="incarnation-对应物">Incarnation 对应物</h3>
-
-<p>在不完全恢复完成之后，通常需要使用 resetlogs 选项来打开数据库。resetlogs 表示一个 数据库逻辑生存期的结束和另一个数据库逻辑生存期的开始。数据库的逻辑生存期也被称为 一个对应物（incarnation）。每次使用 resetlogs 选项来打开数据库后都会创建一个新的数据库 对应物。</p>
-
 <h2 id="rman备份形式">RMAN备份形式</h2>
 
 <p>RMAN备份有两种形式：</p>
@@ -140,8 +104,6 @@ list copy of archivelog all;     列出归档日志映像副本
 list incarnation of database;     列出对应物/列出数据库副本
 
 list backup summary;         概述可用的备份（B表示backup、F表示FULL、A表示archive log、S说明备份状态（A　AVAILABLE　　　X EXPIRED )
-
-  
 
 list backup by file;         按备份类型列出备份
 
@@ -289,7 +251,9 @@ release channel c1;
 
 <p>注：</p>
 
-<p>Rman默认创建的增量备份是Differential方式，如果要建立Cumulative方式的增量备份，在执行BACKUP命令时显式指定即可，例如：</p>
+<ul>
+  <li>Rman默认创建的增量备份是Differential方式，如果要建立Cumulative方式的增量备份，在执行BACKUP命令时显式指定即可，例如：</li>
+</ul>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; BACKUP INCREMENTAL LEVEL=2 CUMULATIVE DATABASE;
 </code></pre></div></div>
@@ -589,14 +553,6 @@ crosscheck backupset;
 delete noprompt obsolete;
 </code></pre></div></div>
 
-<p>SKIP 选项 说明</p>
-
-<p>SKIP INACCESSIBLE ：表示跳过不可读的文件。我们知道一些offline的数据文件只要存在于磁盘上就仍然可被读取，但是可能有些文件已经被删除或移到它处造成不可读，加上这个参数就会跳过这些文件；</p>
-
-<p>SKIP OFFLINE ：跳过offline的数据文件；</p>
-
-<p>SKIP READONLY ：跳过那些所在表空间为read-only的数据文件；</p>
-
 <p>命令执行</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg:~/rman&gt; rman target / msglog /opt/oracle/rman/bak.log cmdfile=/opt/oracle/rman/back_full.rman
@@ -728,20 +684,3 @@ RMAN&gt; crosscheck backupset;
 
 RMAN&gt; delete backupset;
 </code></pre></div></div>
-
-<h2 id="与rman备份相关的动态性能表">与RMAN备份相关的动态性能表</h2>
-
-<p>V$ARCHIVED_LOG ：   本视图包含了所有归档重做日志文件的创建情况，备份情况以及其他信息。</p>
-
-<p>V$BACKUP_CORRUPTION ：这个视图显示了RMAN在哪些备份集中发现了损坏的数据坏。在你使用BACKUP VALIDATE命令对备份集进行检查时如果发现了损坏的数据块，RMAN将在这个视图中写入记录。</p>
-
-<p>V$COPY_CORRUPTIO ：  本视图显示了哪些镜像复制备份文件已经被损坏。</p>
-
-<p>V$BACKUP_DATAFILE ： 本视图通常用来获取每个数据文件中非空白数据块的数量，从而帮助你创建出大小基本相等的备份集。另外，在视图中也包含了数据文件中损坏的数据块的信息。</p>
-
-<p>V$BACKUP_REDOLOG ：  本视图显示了在现有的备份集中有哪些归档重做日志文件。</p>
-
-<p>V$BACKUP_SET ：    本视图显示了已经创建的备份集的信息。</p>
-
-<p>V$BACKUP_PIECE ：   本视图显示了已经创建的备份片段的信息。</p>
-

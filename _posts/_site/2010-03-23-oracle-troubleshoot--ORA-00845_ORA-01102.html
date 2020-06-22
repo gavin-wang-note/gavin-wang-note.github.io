@@ -1,0 +1,156 @@
+<h1 id="ora-00845--和--ora-01102案例">ORA-00845  和  ORA-01102案例</h1>
+
+<h2 id="表象">表象</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg01:/home&gt; sqlplus "/ as sysdba"
+
+SQL*Plus: Release 11.1.0.7.0 - Production on Tue Mar 23 17:55:21 2010
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+Connected to an idle instance.
+
+SQL&gt; startup
+ORA-00845: MEMORY_TARGET not supported on this system
+SQL&gt; exit
+Disconnected
+oracle@mmsg01:/home&gt; oerr ora 00845
+00845, 00000, "MEMORY_TARGET not supported on this system"
+// *Cause: The MEMORY_TARGET parameter was not supported on this operating system or /dev/shm was not sized correctly on Linux.
+// *Action: Refer to documentation for a list of supported operating systems. Or, size /dev/shm to be at least the SGA_MAX_SIZE on each Oracle instance running on the system.
+oracle@mmsg01:/home&gt; 
+</code></pre></div></div>
+
+<h2 id="原因">原因</h2>
+
+<p>这个问题是由于设置SGA的大小超过了操作系统/dev/shm的大小：</p>
+
+<h2 id="解决方法">解决方法</h2>
+
+<p>解决这个问题只有两个方法：</p>
+
+<p>一是修改初始化参数，使得初始化参数中SGA的设置小于/dev/shm的大小；</p>
+
+<p>二是调整/dev/shm的大小。</p>
+
+<p>修改/dev/shm的大小可以通过修改/etc/fstab来实现</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mmsg01:/etc/init.d # df -k /dev/shm
+Filesystem           1K-blocks      Used Available Use% Mounted on
+shmfs                  4194304         0   4194304   0% /dev/shm                     
+
+vi /etc/fstab
+mmsg01:/etc/init.d # vi /etc/fstab
+
+/dev/disk/by-id/scsi-3600508e000000000da19d06c68ac5e0b-part2 /                    reiserfs   acl,user_xattr        1 1
+/dev/disk/by-id/scsi-3600508e000000000da19d06c68ac5e0b-part5 /home                reiserfs   acl,user_xattr        1 2
+/dev/disk/by-id/scsi-3600508e000000000da19d06c68ac5e0b-part1 swap                 swap       defaults              0 0
+proc                 /proc                proc       defaults              0 0
+sysfs                /sys                 sysfs      noauto                0 0
+debugfs              /sys/kernel/debug    debugfs    noauto                0 0
+usbfs                /proc/bus/usb        usbfs      noauto                0 0
+devpts               /dev/pts             devpts     mode=0620,gid=5       0 0
+shm                  /dev/shm             tmpfs      size=8g               0 0
+＃shmfs /dev/shm tmpfs size=4g 0
+shmfs /dev/shm tmpfs size=8g 0  #新增加的一行
+</code></pre></div></div>
+
+<p>解邦</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>umount /dev/shm
+</code></pre></div></div>
+
+<p>重新邦定</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mount /dev/shm
+</code></pre></div></div>
+
+<p>查看邦定结果</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>df -k
+mmsg01:/etc/init.d # df
+Filesystem           1K-blocks      Used Available Use% Mounted on
+/dev/sda2             41944376   4417892  37526484  11% /
+udev                   8218880       240   8218640   1% /dev
+/dev/sda5             73398648  15426492  57972156  22% /home
+shm                    8388608         0   8388608   0% /dev/shm
+</code></pre></div></div>
+
+<p>启动数据库</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg01:~/oradata/mmsgdb&gt; sqlplus / as sysdba
+
+SQL*Plus: Release 11.1.0.7.0 - Production on Tue Mar 23 20:33:20 2010
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+Connected to an idle instance.
+
+SQL&gt; startup      
+ORA-00845: MEMORY_TARGET not supported on this system
+SQL&gt; startup
+ORA-00845: MEMORY_TARGET not supported on this system
+SQL&gt; startup
+ORACLE instance started.
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2161312 bytes
+Variable Size            4429186400 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27185152 bytes
+ORA-01102: cannot mount database in EXCLUSIVE mode
+
+
+SQL&gt; 
+</code></pre></div></div>
+
+<p>出现了另外一个错误：ORA-01102</p>
+
+<p>这个错误主要是lk<SID>文件造成的，该文件位于ORALCE_HOME下的dbs目录下, 这个lk<SID>的主要作用是：</SID></SID></p>
+
+<p>说明DATABASE MOUNT上了,不用再去MOUNT了。</p>
+
+<p>具体解决ORA-01102问题的步骤：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg01:~/product/11g/dbs&gt; /sbin/fuser -u lkMMSGDB
+lkMMSGDB:            24500(oracle) 24508(oracle) 24510(oracle) 24514(oracle) 24516(oracle) 24518(oracle) 24520(oracle) 24522(oracle) 24524(oracle) 24526(oracle) 24528(oracle) 24585(oracle) 24589(oracle) 24667(oracle) 24669(oracle) 24693(oracle)
+</code></pre></div></div>
+
+<p>发现lkMMSGDB文件没有释放，使用fuser命令kill掉lkMMSGDB</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg01:~/product/11g/dbs&gt; /sbin/fuser -k lkMMSGDB 
+lkMMSGDB:            24500 24508 24510 24514 24516 24518 24520 24522 24524 24526 24528 24585 24589 24667 24669 24693
+</code></pre></div></div>
+
+<p>再去检查lkMMSGDB文件是否释放</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg01:~/product/11g/dbs&gt; /sbin/fuser -u lkMMSGDB
+</code></pre></div></div>
+
+<p>不显示任何信息，说明lkMMSGDB文件已经释放</p>
+
+<p>重新启动数据库</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg01:~/product/11g/dbs&gt; sqlplus / as sysdba
+
+SQL*Plus: Release 11.1.0.7.0 - Production on Tue Mar 23 20:41:22 2010
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+Connected to an idle instance.
+
+SQL&gt; startup 
+ORACLE instance started.
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2161312 bytes
+Variable Size            4429186400 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27185152 bytes
+Database mounted.
+Database opened.
+SQL&gt; exit
+</code></pre></div></div>
+
+<p>启动成功</p>
+

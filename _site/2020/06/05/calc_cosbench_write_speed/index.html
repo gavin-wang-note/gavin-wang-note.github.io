@@ -27,6 +27,8 @@
     
     <meta property="article:tag" content="shell">
     
+    <meta property="article:tag" content="python">
+    
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
     <meta property="og:url" content="http://172.17.73.80:4000/2020/06/05/calc_cosbench_write_speed/">
@@ -106,6 +108,8 @@
                     <li>
                         <a href="/archive/">Archive</a>
                     </li>
+                    
+                    
                     
                     
                     
@@ -262,6 +266,8 @@
                         <a class="tag" href="/archive/?tag=cosbench" title="cosbench">cosbench</a>
                         
                         <a class="tag" href="/archive/?tag=shell" title="shell">shell</a>
+                        
+                        <a class="tag" href="/archive/?tag=python" title="python">python</a>
                         
                     </div>
                     <h1>统计cosbench写速度</h1>
@@ -585,16 +591,16 @@ do
     if [[ x"$line" =~ x"Id" ]]; then
         continue
     else
-        TASK_ID=`echo $line | awk -F"," ''`
-        TASK_NAME=`echo $line | awk -F"," ''`
+        task_id=`echo $line | awk -F"," ''`
+        task_name=`echo $line | awk -F"," ''`
         TASK_STATUS=`echo $line | awk -F"," ''`
-        WORK_DIR=${ARCHIVE}${TASK_ID}-${TASK_NAME}
+        work_dir=${ARCHIVE}${task_id}-${task_name}
 
-        # echo ${TASK_ID}, ${TASK_NAME}, ${TASK_STATUS}, ${WORK_DIR}
+        # echo ${task_id}, ${task_name}, ${TASK_STATUS}, ${work_dir}
 
-        if [[ -d ${WORK_DIR} ]]; then
+        if [[ -d ${work_dir} ]]; then
             if [[ x"${TASK_STATUS}" == x"finished" ]]; then
-                TOTAL_OBJS=`cat ${WORK_DIR}/driver*.csv | grep write | grep -v init | awk -F',' '' | awk '{sum += $1};END {print sum}'`
+                TOTAL_OBJS=`cat ${work_dir}/driver*.csv | grep write | grep -v init | awk -F',' '' | awk '{sum += $1};END {print sum}'`
                 # echo ${TOTAL_OBJS}
 
                 START_TIME=`echo $line | awk -F"," ''`
@@ -603,17 +609,17 @@ do
                 END_TIME_STR=`date -d "${END_TIME}" +%s`
                 COST_TIME=`expr ${END_TIME_STR} - ${START_TIME_STR}`
                 # echo ${COST_TIME}
-                WRITE_SPEED=`expr ${TOTAL_OBJS} / ${COST_TIME}`
+                WRITE_SPEED=`echo | awk "{print (${TOTAL_OBJS} / ${COST_TIME})}"`
 
                 echo ""
-                echo -e "\033[32m   Task : (${TASK_ID}-${TASK_NAME}), write total objects : (${TOTAL_OBJS}), cost time : (${COST_TIME}(s)), write speed : (${WRITE_SPEED}) \033[0m"
+                echo -e "\033[32m   Task : (${task_id}-${task_name}), write total objects : (${TOTAL_OBJS}), cost time : (${COST_TIME}(s)), write speed : (${WRITE_SPEED}) \033[0m"
                 echo ""
             else
-                echo -e "\033[33m   [WARN]  Task : (${TASK_ID}-${TASK_NAME}) status is not finished, but : (${TASK_STATUS}), please pay more attention!!! \033[0m"
+                echo -e "\033[33m   [WARN]  Task : (${task_id}-${task_name}) status is not finished, but : (${TASK_STATUS}), please pay more attention!!! \033[0m"
                 echo ""
             fi
         else
-            echo -e "\033[31m [ERROR]   !!! Not find cosbench archive folder : ${WORK_DIR}  \033[0m"
+            echo -e "\033[31m [ERROR]   !!! Not find cosbench archive folder : ${work_dir}  \033[0m"
             exit 1
         fi
     fi
@@ -621,6 +627,12 @@ done &lt; ${HISTORY_FILE}
 </pre></td></tr></tbody></table></code></pre></div></div>
 
 <p>执行效果如下:</p>
+
+<p><img class="shadow" src="/img/in-post/calc_cosbench_speed_output.png" width="1200" /></p>
+
+<h1 id="python脚本">python脚本</h1>
+
+<p>今天（2020-06-18）使用python改写了一版，参考如下:</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -661,46 +673,104 @@ done &lt; ${HISTORY_FILE}
 37
 38
 39
-</pre></td><td class="rouge-code"><pre>root@node244:~# ./calc_cosbench_speed.sh 
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+</pre></td><td class="rouge-code"><pre>root@node244:~/75# cat calc_cosbench_speed.py 
+#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
 
-   Task : (w3-HM_round1_10M_files_write_once), write total objects : (1000000), cost time : (216(s)), write speed : (4629) 
+from __future__ import unicode_literals
+
+import os
+import sys
+import time
 
 
-   Task : (w4-HM_round1_10M_files_write_once), write total objects : (1000000), cost time : (284(s)), write speed : (3521) 
+ARCHIVE_PATH = "/root/0.4.2.c4/archive"
+HISTORY = "run-history.csv"
+
+HISTORY_FILE = ARCHIVE_PATH + os.sep + HISTORY
+
+if not os.path.exists(HISTORY_FILE):
+    print("\033[31m \n  [ERROR]  Not find path for : ({}) \033[0m \n".format(HISTORY_FILE))
+    sys.exit(1)
+
+his_content = os.popen("cat {}".format(HISTORY_FILE)).read()
+for each_line in his_content.strip().split("\n"):
+    if each_line.startswith("Id"):
+        continue
+
+    try:
+        line_list = each_line.split(',')
+        task_id = line_list[0]
+        task_name = line_list[1]
+        task_state = line_list[6].strip()
+
+        if task_state == 'finished':
+            work_dir = "{}/{}-{}".format(ARCHIVE_PATH, task_id, task_name)
+            start_time = line_list[3]
+            end_time = line_list[4]
+
+            start_time_array = time.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            end_time_array = time.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+            start_times_tamp = time.mktime(start_time_array)
+            end_times_tamp = time.mktime(end_time_array)
+            time_diff = end_times_tamp - start_times_tamp
+
+            total_objs_cmd = "cat {}/driver*.csv | grep write | grep -v init " \
+                             "| awk -F',' ''".format(work_dir)
+            count_str = os.popen(total_objs_cmd).read().strip()
+            couts_str_list = count_str.split("\n")
+            couts_str_int = map(int, couts_str_list)
+            total_objs = sum(couts_str_int)
+
+            write_speed = total_objs / time_diff
+
+            print("\033[32m  Task : ({}-{}), total: ({}), elapsed : ({}s), "
+                  "speed : ({}) \033[0m\n".format(task_id, task_name, total_objs, time_diff, write_speed))
+        else:
+            print("\033[33m  [WARN]  Task : ({}-{}) status is not finished, but : ({}), "
+                  "please pay more attention \033[0m\n".format(task_id, task_name, task_state))
+
+    except Exception as ex:
+        print("\n\033[31m \n  [ERROR]  Parase file of '{}' "
+              "exception : ({}) \033[0m\n".format(HISTORY_FILE, str(ex)))
+        sys.exit(1)
 
 
-   Task : (w5-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1844(s)), write speed : (2711) 
+if __name__ == "__main__":
+    pass
 
-
-   Task : (w6-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (2421(s)), write speed : (2065) 
-
-
-   Task : (w7-HM_round1_10M_files_write_once), write total objects : (50000), cost time : (35(s)), write speed : (1428) 
-
-
-   Task : (w8-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1973(s)), write speed : (2534) 
-
-
-   Task : (w9-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1424(s)), write speed : (3511) 
-
-
-   Task : (w10-HM_round1_10M_files_write_once), write total objects : (5000000), cost time : (1594(s)), write speed : (3136) 
-
-
-   Task : (w11-HM_round2_10M_files_write_once), write total objects : (5000000), cost time : (1754(s)), write speed : (2850) 
-
-   [WARN]  Task : (w12-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
-
-   [WARN]  Task : (w13-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
-
-   [WARN]  Task : (w15-500w_s3_246) status is not finished, but : (terminated), please pay more attention!!! 
-
-
-   Task : (w16-HM_round3_10M_files_write_once), write total objects : (5000000), cost time : (2064(s)), write speed : (2422) 
-
-
-   Task : (w17-SEG_1VM_72Threads_ONLY_W), write total objects : (9999936), cost time : (3997(s)), write speed : (2501)
 </pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>执行效果如下:</p>
+
+<p><img class="shadow" src="/img/in-post/calc_cosbench_speed_output_py.png" width="1200" /></p>
 
 
 
@@ -775,112 +845,122 @@ done &lt; ${HISTORY_FILE}
         </a>
         
         
-                <a data-sort="0071" 
+                <a data-sort="0074" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0128" 
+                <a data-sort="0131" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="20">Linux</a>
         
-                <a data-sort="0136" 
+                <a data-sort="0139" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="12">Automation</a>
         
-                <a data-sort="0143" 
+                <a data-sort="0146" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0143" 
+                <a data-sort="0146" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="5">shell</a>
         
-                <a data-sort="0144" 
+                <a data-sort="0147" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0144" 
+                <a data-sort="0147" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0145" 
+                <a data-sort="0148" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="3">S3</a>
         
-                <a data-sort="0145" 
+                <a data-sort="0148" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="3">awk</a>
         
-                <a data-sort="0145" 
+                <a data-sort="0148" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="3">ceph</a>
+        
+                <a data-sort="0148" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="2">Megacli</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="2">python</a>
+        
+                <a data-sort="0149" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0149" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
