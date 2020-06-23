@@ -11,26 +11,28 @@
     <meta name="theme-color" content="#000000">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="手动对CentoOS6 or CentoOS7做网卡绑定 - Gavin的博客 | Gavin Blog">
+    <meta property="og:title" content="快速获取Lab中哪些IPMI被使用 - Gavin的博客 | Gavin Blog">
     
     <meta property="og:type" content="article">
-    <meta property="og:description" content="前言
+    <meta property="og:description" content="概述
 ">
     
-    <meta property="article:published_time" content="2012-08-29T00:00:00Z">
+    <meta property="article:published_time" content="2020-06-23T00:00:00Z">
     
     
     <meta property="article:author" content="Gavin">
     
     
+    <meta property="article:tag" content="fping">
+    
     <meta property="article:tag" content="Linux">
     
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/2012/08/29/network-bond-by-centos/">
+    <meta property="og:url" content="http://172.17.73.80:4000/2020/06/23/get_lab_ipmi_address/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
-    <title>手动对CentoOS6 or CentoOS7做网卡绑定 - Gavin的博客 | Gavin Blog</title>
+    <title>快速获取Lab中哪些IPMI被使用 - Gavin的博客 | Gavin Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -39,7 +41,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/2012/08/29/network-bond-by-centos/">
+    <link rel="canonical" href="http://172.17.73.80:4000/2020/06/23/get_lab_ipmi_address/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -259,13 +261,15 @@
                 <div class="post-heading">
                     <div class="tags">
                         
+                        <a class="tag" href="/archive/?tag=fping" title="fping">fping</a>
+                        
                         <a class="tag" href="/archive/?tag=Linux" title="Linux">Linux</a>
                         
                     </div>
-                    <h1>手动对CentoOS6 or CentoOS7做网卡绑定</h1>
+                    <h1>快速获取Lab中哪些IPMI被使用</h1>
                     
-                    <h2 class="subheading">Network bond for Centos</h2>
-                    <span class="meta">Posted by Gavin on August 29, 2012</span>
+                    <h2 class="subheading">Fast to get IPMI IPs which are in used</h2>
+                    <span class="meta">Posted by Gavin on June 23, 2020</span>
                 </div>
             </div>
         </div>
@@ -291,13 +295,143 @@
                 <!-- Multi-Lingual -->
                 
 
-				<h1 id="前言">前言</h1>
+				<h1 id="概述">概述</h1>
 
-<p>一直使用SUSE，今天切换了一个环境做测试，是Centos6.3，发现不会对Centos做bond了，mark一下操作记录, 本操作在Centos6 和 7 都适用.</p>
+<p>Lab里有一大批设备，每个设备都配置了IPMI地址，虽然Office提供了一个在线的excel供大家编辑，但未必每个人都会定期去更新它（因为设备偶尔有进有出），时间久了就会发现excel太久。</p>
 
-<h1 id="操作步骤">操作步骤</h1>
+<p>本文不是介绍如何定期更新excel，而是如何快速获取哪些IPMI地址在使用。</p>
 
-<h2 id="1ifconfig查看网卡信息">1、ifconfig查看网卡信息</h2>
+<h1 id="实践">实践</h1>
+
+<h2 id="bash利用ping获取哪些地址被使用">bash利用ping获取哪些地址被使用</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre><span class="c">#!/bin/bash</span>
+
+<span class="k">for </span>ip <span class="k">in </span>1.72.5.<span class="o">{</span>1..255<span class="o">}</span><span class="p">;</span>
+<span class="k">do
+    </span>ping <span class="nv">$ip</span> <span class="nt">-c</span> 2 &amp;&gt; /dev/null
+    <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> <span class="nt">-eq</span> 0 <span class="o">]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="s2">"(</span><span class="nv">$ip</span><span class="s2">) is alive"</span>
+    <span class="k">fi
+done</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>看看执行耗时：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>root@node77:~# time bash ping.sh 2&gt;&amp;1 &gt;/dev/null
+
+real	12m47.366s
+user	0m0.161s
+sys	0m0.627s
+root@node77:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>在这个脚本中，每个ping是顺次独立执行的，即每个IP地址都会被ping到，每执行有ping，都会有一段最低2秒的时延（-c 2），很明显，把255给都ping一遍，起码255*2s的时间，效率太低了。</p>
+
+<h2 id="bash-改进">bash 改进</h2>
+
+<p>改进上述脚本的操作，使用并发，要想并发，可将循环体放在()&amp;中，将命令放在()，使其中的命令可作为shell的子shell来执行，而&amp;脱离当前线程，在后台继续执行，改进后如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+</pre></td><td class="rouge-code"><pre><span class="c">#!/bin/bash</span>
+
+<span class="k">for </span>ip <span class="k">in </span>1.72.5.<span class="o">{</span>1..255<span class="o">}</span><span class="p">;</span>
+<span class="k">do</span>
+<span class="o">(</span>
+    ping <span class="nv">$ip</span> <span class="nt">-c</span> 2 &amp;&gt; /dev/null
+    <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> <span class="nt">-eq</span> 0 <span class="o">]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="s2">"(</span><span class="nv">$ip</span><span class="s2">) is alive"</span>
+    <span class="k">fi</span>
+<span class="o">)</span>&amp;
+
+<span class="nb">wait
+
+</span><span class="k">done</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>看看执行耗时：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>root@node77:~# time bash ping2.sh 2&gt;&amp;1 &gt;/dev/null
+
+real	12m31.581s
+user	0m0.326s
+sys	0m0.849s
+root@node77:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>从时间上看，基本没差啊，整体上时间还是非常的久，有没有更好的办法？答案是肯定的，使用fping，但fping Linux系统不自带，需要自行安装，安装地址参考如下： <code class="highlighter-rouge">https://pkgs.org/download/fping</code></p>
+
+<h2 id="使用fping">使用fping</h2>
+
+<p>fping类似于ping，但比ping强大的多。与ping要等待某一主机连接超时或发回反馈信息不同，fping给一个主机发送完数据包后，马上给下一个主机发送数据包，实现多主机同时ping。</p>
+
+<p>看一下官方解释：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>NAME
+       fping - send ICMP ECHO_REQUEST packets to network hosts
+
+SYNOPSIS
+       fping [ options ] [ systems... ] fping6 [ options ] [ systems... ]
+
+DESCRIPTION
+       fping is a program like ping which uses the Internet Control Message Protocol (ICMP) echo request to determine if a target host is responding.  fping differs from ping in that you can specify any number of targets on the command line, or specify a file
+       containing the lists of targets to ping.  Instead of sending to one target until it times out or replies, fping will send out a ping packet and move on to the next target in a round-robin fashion.  In the default mode, if a target replies, it is noted and
+       removed from the list of targets to check; if a target does not respond within a certain time limit and/or retry limit it is designated as unreachable. fping also supports sending a specified number of pings to a target, or looping indefinitely (as in ping
+       ). Unlike ping, fping is meant to be used in scripts, so its output is designed to be easy to parse.
+
+       The binary named fping6 is the same as fping, except that it uses IPv6 addresses instead of IPv4.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>测试一下fping的效果：</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -317,123 +451,163 @@
 16
 17
 18
-</pre></td><td class="rouge-code"><pre>eth0      Link encap:Ethernet  HWaddr EC:38:8F:79:1B:F0  
-          inet addr:172.18.112.11  Bcast:172.18.112.255  Mask:255.255.255.0
-          inet6 addr: fe80::ee38:8fff:fe79:1bf0/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:2743 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:1958 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000 
-          RX bytes:689409 (673.2 KiB)  TX bytes:318047 (310.5 KiB)
-          Memory:94d00000-94e00000 
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+</pre></td><td class="rouge-code"><pre>root@node77:~# time fping -s -a -q -g 1.72.5.0/24
+1.72.5.111
+1.72.5.114
+1.72.5.115
+1.72.5.116
+1.72.5.117
+1.72.5.118
+1.72.5.124
+1.72.5.125
+1.72.5.126
+1.72.5.127
+1.72.5.128
+1.72.5.181
+1.72.5.182
+1.72.5.183
+1.72.5.195
+1.72.5.196
+1.72.5.197
+1.72.5.199
+1.72.5.202
+1.72.5.204
+1.72.5.205
+1.72.5.206
+1.72.5.207
+1.72.5.208
+1.72.5.209
+1.72.5.210
+1.72.5.211
+1.72.5.212
+1.72.5.213
+1.72.5.214
+1.72.5.215
+1.72.5.216
+1.72.5.217
+1.72.5.218
+1.72.5.220
+1.72.5.221
+1.72.5.222
+1.72.5.223
+1.72.5.229
+1.72.5.231
+1.72.5.233
+1.72.5.234
+1.72.5.235
+1.72.5.249
+1.72.5.251
+1.72.5.252
+1.72.5.253
+1.72.5.254
+1.72.5.53
+1.72.5.141
+1.72.5.144
+1.72.5.151
+1.72.5.152
+1.72.5.153
+1.72.5.154
+1.72.5.160
+1.72.5.165
+1.72.5.166
+1.72.5.167
+1.72.5.169
+1.72.5.174
+1.72.5.175
+1.72.5.176
+1.72.5.177
 
-eth1      Link encap:Ethernet  HWaddr EC:38:8F:79:1B:F1  
-          inet6 addr: fe80::ee38:8fff:fe79:1bf1/64 Scope:Link
-          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-          RX packets:38 errors:0 dropped:0 overruns:0 frame:0
-          TX packets:6 errors:0 dropped:0 overruns:0 carrier:0
-          collisions:0 txqueuelen:1000 
-          RX bytes:3564 (3.4 KiB)  TX bytes:468 (468.0 b)
-          Memory:94c00000-94d00000
+     254 targets
+      64 alive
+     190 unreachable
+       0 unknown addresses
+
+     190 timeouts (waiting for response)
+     840 ICMP Echos sent
+      64 ICMP Echo Replies received
+     714 other ICMP received
+
+ 0.15 ms (min round trip time)
+ 0.38 ms (avg round trip time)
+ 2.00 ms (max round trip time)
+       22.798 sec (elapsed real time)
+
+
+real	0m22.801s
+user	0m0.007s
+sys	0m0.077s
+root@node77:~# 
 </pre></td></tr></tbody></table></code></pre></div></div>
 
-<h2 id="2备份原网卡信息">2、备份原网卡信息</h2>
-
-<p>进入 <code class="highlighter-rouge">/etc/sysconfig/network-scripts</code>，创建backup目录，并将eth0和eth1网卡配置文件信息拷贝到新创建的backup目录下</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-</pre></td><td class="rouge-code"><pre>mkdir backup
-cp ifcfg-eth0 ifcfg-eth1 ./backup
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<h2 id="3绑定网卡">3、绑定网卡</h2>
-
-<p>修改ifcfg-bond1内容</p>
-
-<p><code class="highlighter-rouge">/etc/sysconfig/network-scripts</code>目录下，创建ifcfg-bond1文件，并添加如下内容：</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-</pre></td><td class="rouge-code"><pre>DEVICE=bond1
-BOOTPROTO=none
-ONBOOT=yes
-TYPE=Ethernet
-IPADDR=172.18.112.11
-NETMASK=255.255.255.0
-GATEWAY=172.18.112.1
-修改ifcfg-eth0和ifcfg-eth1内容
-ifcfg-eth0内容
-DEVICE=eth0
-MASTER=bond1
-SLAVE=yes
-BOOTPROTO=none
-ONBOOT=yes
-TYPE=Ethernet
-USERCTL=no
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<p>ifcfg-eth1内容</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-</pre></td><td class="rouge-code"><pre>DEVICE=eth1
-MASTER=bond1
-SLAVE=yes
-BOOTPROTO=none
-ONBOOT=yes
-TYPE=Ethernet
-USERCTL=no
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<p>修改dist.conf文件,增加如下内容</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-</pre></td><td class="rouge-code"><pre>vi /etc/modprobe.d/dist.conf
-alias bond1 bonding
-options bond1 miimon=100 mode=1
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<p>重启网卡服务</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-</pre></td><td class="rouge-code"><pre>/etc/init.d/network restart
-</pre></td></tr></tbody></table></code></pre></div></div>
-
-<h1 id="查看绑定的网卡信息">查看绑定的网卡信息</h1>
-
-<p>执行ifconfig命令</p>
-
-<p>如果ifconfig查看，并没有发现有bond1网卡信息，可通过如下方法进行解决</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-</pre></td><td class="rouge-code"><pre>service NetworkManager stop
-service network restart
-ifconfig查看bond信息
-</pre></td></tr></tbody></table></code></pre></div></div>
+<p>效率非常的高，不足23秒，而且输出的IP地址就是alive的，并增加了汇总信息，非常的直观。</p>
 
 
 
@@ -441,19 +615,12 @@ ifconfig查看bond信息
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2012/08/19/call-sqlplus-by-shell-perl/" data-toggle="tooltip" data-placement="top" title="Shell和Perl调用sqlplus的几种操作">
+                        <a href="/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency/" data-toggle="tooltip" data-placement="top" title="频繁启用&停用ES服务，出现local-fs.target failed with result dependency">
                         Previous<br>
-                        <span>Shell和Perl调用sqlplus的几种操作</span>
+                        <span>频繁启用&停用ES服务，出现local-fs.target failed with result dependency</span>
                         </a>
                     </li>
                     
-                    
-                    <li class="next">
-                        <a href="/2012/09/02/oracle-lang/" data-toggle="tooltip" data-placement="top" title="Oracle字符集">
-                        Next<br>
-                        <span>Oracle字符集</span>
-                        </a>
-                    </li>
                     
                 </ul>
                 <hr style="visibility: hidden;">
@@ -657,8 +824,8 @@ ifconfig查看bond信息
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "Gavin";
-    var disqus_identifier = "/2012/08/29/network-bond-by-centos";
-    var disqus_url = "http://172.17.73.80:4000/2012/08/29/network-bond-by-centos/";
+    var disqus_identifier = "/2020/06/23/get_lab_ipmi_address";
+    var disqus_url = "http://172.17.73.80:4000/2020/06/23/get_lab_ipmi_address/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
