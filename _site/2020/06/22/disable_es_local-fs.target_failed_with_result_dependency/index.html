@@ -1839,7 +1839,7 @@ root@node76:/var/log#
 
 <p>这里有个opt-datasearch-0.mount，而这个正好是ES data所对应的挂载点信息，说明启停ES服务时动了/etc/fstab文件了，新增或删除了/etc/fsta对应的ES挂载点信息了，依照这个思路，调整一下产品修改/etc/fstab时间点，在停用ES时，最先去修改/etc/fstab文件，然后才去执行清理zone-group、umount、formate disk，disable es等等动作，然后使用上述脚本验证了30次，问题没有再次浮现。而在调整前，几次就会复现。</p>
 
-<h1 id="结语">结语</h1>
+<h1 id="推论">推论</h1>
 
 <p>产品停用ES时：</p>
 
@@ -1895,7 +1895,22 @@ cal-fs.targetlocal-fs.target
 --
 </pre></td></tr></tbody></table></code></pre></div></div>
 
-<p>推断，local-fs.target requires <code class="highlighter-rouge">opt-datasearch-0.mount</code>，而对应挂载点出现’not found’(见开篇’systemctl –failed’的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s）</p>
+<p>推断，local-fs.target requires <code class="highlighter-rouge">opt-datasearch-0.mount</code>，而对应挂载点出现’not found’(见开篇’systemctl –failed’的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s），而local-fs.target.wants是需要/etc/fstab,这里还有个Conflicts=shutdown.target</p>
+
+<p><img class="shadow" src="/img/in-post/local-fs.target.wants.png" width="1200" /></p>
+
+<p>最终应该是触发了shutdown操作，停止了众多的服务，而被停止的服务，是依赖于local-fs.target的，以ceph-osd为示例：</p>
+
+<p><img class="shadow" src="/img/in-post/ceph-osd.target.wants.png" width="1200" /></p>
+
+<h1 id="结语">结语</h1>
+
+<p>分析至此，基本上知道问题的所在了，具体解法如下：</p>
+
+<ul>
+  <li>启用ES服务时，等ES相关的服务启用好后，最最后更改/etc/fstab文件；</li>
+  <li>停用ES服务时，第一步就是更改/etc/fstab文件。</li>
+</ul>
 
 <h1 id="参考文档">参考文档</h1>
 
@@ -1919,9 +1934,9 @@ https://www.freedesktop.org/software/systemd/man/systemd.unit.html
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy/" data-toggle="tooltip" data-placement="top" title="ceph S3 多租户中权限设置">
+                        <a href="/2020/06/16/ceph_multi_tenancy/" data-toggle="tooltip" data-placement="top" title="ceph S3 多租户">
                         Previous<br>
-                        <span>ceph S3 多租户中权限设置</span>
+                        <span>ceph S3 多租户</span>
                         </a>
                     </li>
                     
@@ -1979,122 +1994,122 @@ https://www.freedesktop.org/software/systemd/man/systemd.unit.html
         </a>
         
         
-                <a data-sort="0074" 
+                <a data-sort="0076" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0131" 
+                <a data-sort="0133" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="20">Linux</a>
         
-                <a data-sort="0139" 
+                <a data-sort="0141" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="12">Automation</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0148" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0148" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="5">shell</a>
         
-                <a data-sort="0147" 
+                <a data-sort="0149" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0147" 
+                <a data-sort="0149" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0149" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0148" 
+                <a data-sort="0150" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="3">S3</a>
         
-                <a data-sort="0148" 
+                <a data-sort="0150" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="3">awk</a>
         
-                <a data-sort="0148" 
-                    href="/archive/?tag=ceph"
-                    title="ceph"
-                    rel="3">ceph</a>
-        
-                <a data-sort="0148" 
+                <a data-sort="0150" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0149" 
-                    href="/archive/?tag=Megacli"
-                    title="Megacli"
-                    rel="2">Megacli</a>
-        
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="2">ceph</a>
+        
+                <a data-sort="0151" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=python"
                     title="python"
                     rel="2">python</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr

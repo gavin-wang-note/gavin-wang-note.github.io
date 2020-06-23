@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-06-22T15:58:33+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">频繁启用&amp;amp;停用ES服务，出现local-fs.target failed with result dependency</title><link href="http://172.17.73.80:4000/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency/" rel="alternate" type="text/html" title="频繁启用&amp;停用ES服务，出现local-fs.target failed with result dependency" /><published>2020-06-22T00:00:00+08:00</published><updated>2020-06-22T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-06-23T11:22:02+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">频繁启用&amp;amp;停用ES服务，出现local-fs.target failed with result dependency</title><link href="http://172.17.73.80:4000/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency/" rel="alternate" type="text/html" title="频繁启用&amp;停用ES服务，出现local-fs.target failed with result dependency" /><published>2020-06-22T00:00:00+08:00</published><updated>2020-06-22T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;Ubuntu16.04，产品新增了Elasticsearch功能，在测试ES服务启用过程冲，选择240G 的Intel S4510 型号的SSD一块作为ES的data：&lt;/p&gt;
 
@@ -1542,7 +1542,7 @@ root@node76:/var/log#
 
 &lt;p&gt;这里有个opt-datasearch-0.mount，而这个正好是ES data所对应的挂载点信息，说明启停ES服务时动了/etc/fstab文件了，新增或删除了/etc/fsta对应的ES挂载点信息了，依照这个思路，调整一下产品修改/etc/fstab时间点，在停用ES时，最先去修改/etc/fstab文件，然后才去执行清理zone-group、umount、formate disk，disable es等等动作，然后使用上述脚本验证了30次，问题没有再次浮现。而在调整前，几次就会复现。&lt;/p&gt;
 
-&lt;h1 id=&quot;结语&quot;&gt;结语&lt;/h1&gt;
+&lt;h1 id=&quot;推论&quot;&gt;推论&lt;/h1&gt;
 
 &lt;p&gt;产品停用ES时：&lt;/p&gt;
 
@@ -1598,7 +1598,22 @@ cal-fs.targetlocal-fs.target
 --
 &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;推断，local-fs.target requires &lt;code class=&quot;highlighter-rouge&quot;&gt;opt-datasearch-0.mount&lt;/code&gt;，而对应挂载点出现’not found’(见开篇’systemctl –failed’的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s）&lt;/p&gt;
+&lt;p&gt;推断，local-fs.target requires &lt;code class=&quot;highlighter-rouge&quot;&gt;opt-datasearch-0.mount&lt;/code&gt;，而对应挂载点出现’not found’(见开篇’systemctl –failed’的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s），而local-fs.target.wants是需要/etc/fstab,这里还有个Conflicts=shutdown.target&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/local-fs.target.wants.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;最终应该是触发了shutdown操作，停止了众多的服务，而被停止的服务，是依赖于local-fs.target的，以ceph-osd为示例：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/ceph-osd.target.wants.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;结语&quot;&gt;结语&lt;/h1&gt;
+
+&lt;p&gt;分析至此，基本上知道问题的所在了，具体解法如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;启用ES服务时，等ES相关的服务启用好后，最最后更改/etc/fstab文件；&lt;/li&gt;
+  &lt;li&gt;停用ES服务时，第一步就是更改/etc/fstab文件。&lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;h1 id=&quot;参考文档&quot;&gt;参考文档&lt;/h1&gt;
 
@@ -2130,13 +2145,7 @@ root@node76:~#
   &lt;li&gt;实现同集群中创建同名bucket和S3账号，即实现租户的数据隔离。&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;而实际应用要远比本文所示要复杂的多，比如不同tenant之间不同bucket下的数据共享，这就涉及到RGW bucket policy 设置问题了。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">什么是multi-tenancy</summary></entry><entry><title type="html">ceph S3 多租户中权限设置</title><link href="http://172.17.73.80:4000/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy/" rel="alternate" type="text/html" title="ceph S3 多租户中权限设置" /><published>2020-06-16T00:00:00+08:00</published><updated>2020-06-16T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;上篇文章介绍了ceph的multi tenancy功能，概述了同一套ceph集群下，使用tenant功能，实现不同tenant下同名s3账号，以及bucket的创建操作示例。&lt;/p&gt;
-
-&lt;p&gt;multi-tenancy实现S3对象数据的隔离，但在实际的业务环境中，业务往往要发杂的多。对于bucket，默认情况下，只有创建者才有权限进行读写操作，其他人是无法访问的。&lt;/p&gt;
-
-&lt;p&gt;本文介绍&lt;/p&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">概述</summary></entry><entry><title type="html">API响应慢问题复现</title><link href="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/" rel="alternate" type="text/html" title="API响应慢问题复现" /><published>2020-06-12T00:00:00+08:00</published><updated>2020-06-12T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;p&gt;而实际应用要远比本文所示要复杂的多，比如不同tenant之间不同bucket下的数据共享，这就涉及到RGW bucket policy 设置问题了。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">什么是multi-tenancy</summary></entry><entry><title type="html">API响应慢问题复现</title><link href="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/" rel="alternate" type="text/html" title="API响应慢问题复现" /><published>2020-06-12T00:00:00+08:00</published><updated>2020-06-12T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。&lt;/p&gt;
 
@@ -7804,4 +7813,162 @@ drwxr-xr-x 2 root root     4096 Jun  2 11:03 ./
 drwxr-xr-x 4 root root     4096 Jun  2 11:03 ../
 -rw-r--r-- 1 root root 52740698 Jun  2 13:54 rally.log
 root@node244:~/.rally/logs# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="esrally" /><summary type="html">更改pip源</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="esrally" /><summary type="html">更改pip源</summary></entry><entry><title type="html">bzip2 vs pbzip2 性能对比</title><link href="http://172.17.73.80:4000/2020/06/01/bzip2_vs_pbzip2/" rel="alternate" type="text/html" title="bzip2 vs pbzip2 性能对比" /><published>2020-06-01T00:00:00+08:00</published><updated>2020-06-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/01/bzip2_vs_pbzip2</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/01/bzip2_vs_pbzip2/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;近期使用esrally进行Elastic Search性能压测，使用script产生了原始数据，这些原始数据需要被压缩成bz2格式，如果原文件大小很大，压缩起来就非常耗时。本文介绍几种bzip2压缩操作，观察耗时情况。&lt;/p&gt;
+
+&lt;h1 id=&quot;准备测试数据&quot;&gt;准备测试数据&lt;/h1&gt;
+
+&lt;p&gt;准备10万笔记录，看看压缩耗时如何：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/mnt/disk/esrally_data/test# time wc -l documents-2.json 
+100000 documents-2.json
+
+real	0m0.025s
+user	0m0.005s
+sys	0m0.020s
+root@node244:/mnt/disk/esrally_data/test# cat documents-2.json | head -n 1
+{&quot;name&quot;: &quot;08_9837907241.49&quot;, &quot;bucket&quot;: &quot;bucket01&quot;, &quot;instance&quot;: &quot;null&quot;, &quot;meta&quot;: {&quot;custom-string&quot;: {&quot;name&quot;: &quot;1597699173358823&quot;, &quot;value&quot;: &quot;5714268441146127&quot;}, &quot;mtime&quot;: &quot;2020-05-26T19:21:32.598Z&quot;, &quot;etag&quot;: &quot;e7b647f4a3959de9c7a070e5d3093ab1&quot;, &quot;content_type&quot;: &quot;application/octet-stream&quot;, &quot;tail_tag&quot;: &quot;a3a5cefd-376d-421b-3110-08b41412e7c1.4520.862976&quot;, &quot;size&quot;: &quot;760&quot;}, &quot;owner&quot;: {&quot;display_name&quot;: &quot;user01&quot;, &quot;id&quot;: &quot;user01&quot;}, &quot;versioned_epoch&quot;: &quot;0&quot;}
+root@node244:/mnt/disk/esrally_data/test# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;压缩验证&quot;&gt;压缩验证&lt;/h1&gt;
+
+&lt;h2 id=&quot;使用默认的bzip2压缩指令&quot;&gt;使用默认的bzip2压缩指令&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/mnt/disk/esrally_data/test# time bzip2 -k documents-2.json documents-2.json.bz2
+bzip2: Input file documents-2.json.bz2 already has .bz2 suffix.
+
+real	0m8.482s
+user	0m8.454s
+sys	0m0.028s
+root@node244:/mnt/disk/esrally_data/test# ll
+total 47444
+drwxr-xr-x 2 root root     4096 Jun  2 16:01 ./
+drwxr-xr-x 5 root root     4096 Jun  2 15:55 ../
+-rw-r--r-- 1 root root 43800000 Jun  2 15:55 documents-2.json
+-rw-r--r-- 1 root root  4769476 Jun  2 15:55 documents-2.json.bz2
+root@node244:/mnt/disk/esrally_data/test# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;bzip2-使用--1-参数&quot;&gt;bzip2 使用 -1 参数&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/mnt/disk/esrally_data/test# time bzip2 -k -1 documents-2.json documents-2.json.bz2
+bzip2: Input file documents-2.json.bz2 already has .bz2 suffix.
+
+real	0m5.411s
+user	0m5.390s
+sys	0m0.020s
+root@node244:/mnt/disk/esrally_data/test# ll
+total 48020
+drwxr-xr-x 2 root root     4096 Jun  2 16:03 ./
+drwxr-xr-x 5 root root     4096 Jun  2 15:55 ../
+-rw-r--r-- 1 root root 43800000 Jun  2 15:55 documents-2.json
+-rw-r--r-- 1 root root  5357900 Jun  2 15:55 documents-2.json.bz2
+root@node244:/mnt/disk/esrally_data/test# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;bzip2-使用--9-参数&quot;&gt;bzip2 使用 -9 参数&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/mnt/disk/esrally_data/test# time bzip2 -k -9 documents-2.json documents-2.json.bz2
+bzip2: Input file documents-2.json.bz2 already has .bz2 suffix.
+
+real	0m8.053s
+user	0m8.049s
+sys	0m0.004s
+root@node244:/mnt/disk/esrally_data/test#
+root@node244:/mnt/disk/esrally_data/test# ll
+total 47444
+drwxr-xr-x 2 root root     4096 Jun  2 16:10 ./
+drwxr-xr-x 5 root root     4096 Jun  2 15:55 ../
+-rw-r--r-- 1 root root 43800000 Jun  2 15:55 documents-2.json
+-rw-r--r-- 1 root root  4769476 Jun  2 15:55 documents-2.json.bz2
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;pbzip2&quot;&gt;pbzip2&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:/mnt/disk/esrally_data/test# time pbzip2 documents-2.json -z -k -1 -f  &amp;gt; documents-2.json.bz2
+
+real	0m0.449s
+user	0m9.834s
+sys	0m0.096s
+root@node244:/mnt/disk/esrally_data/test# ll
+total 48028
+drwxr-xr-x 2 root root     4096 Jun  2 16:09 ./
+drwxr-xr-x 5 root root     4096 Jun  2 15:55 ../
+-rw-r--r-- 1 root root 43800000 Jun  2 15:55 documents-2.json
+-rw-r--r-- 1 root root  5366033 Jun  2 15:55 documents-2.json.bz2
+root@node244:/mnt/disk/esrally_data/test# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;根据pbzip2的help信息，这里没有携带-p参数，默认会自己根据当前硬件CPU核数，计算使用多少路并发，默认32&lt;/p&gt;
+
+&lt;h1 id=&quot;bzip2-vs-pbzip2性能对比&quot;&gt;bzip2 vs pbzip2性能对比&lt;/h1&gt;
+
+&lt;p&gt;使用 Compression Level -9, 压缩比率最大，但耗时会比 -1 要久，此选项是默认选项；&lt;/p&gt;
+
+&lt;p&gt;使用pzip2进行压缩，多并发情况下，压缩耗时明显要比bzip2 -1 要快。&lt;/p&gt;
+
+&lt;p&gt;孰优孰略，一目了然。&lt;/p&gt;
+
+&lt;p&gt;BTW，由于pbzip2只能压缩文件，不能对目录进行压缩，所以如果想使用pbzip2压缩目录，则需要借助tar工具。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="bzip2" /><category term="pbzip2" /><summary type="html">概述</summary></entry></feed>

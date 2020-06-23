@@ -832,7 +832,7 @@ root@node76:/var/log#
 这里有个opt-datasearch-0.mount，而这个正好是ES data所对应的挂载点信息，说明启停ES服务时动了/etc/fstab文件了，新增或删除了/etc/fsta对应的ES挂载点信息了，依照这个思路，调整一下产品修改/etc/fstab时间点，在停用ES时，最先去修改/etc/fstab文件，然后才去执行清理zone-group、umount、formate disk，disable es等等动作，然后使用上述脚本验证了30次，问题没有再次浮现。而在调整前，几次就会复现。
 
 
-# 结语
+# 推论
 
 产品停用ES时：
 
@@ -871,8 +871,21 @@ cal-fs.targetlocal-fs.target
 --
 ```
 
-推断，local-fs.target requires ```opt-datasearch-0.mount```，而对应挂载点出现'not found'(见开篇'systemctl --failed'的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s）
+推断，local-fs.target requires ```opt-datasearch-0.mount```，而对应挂载点出现'not found'(见开篇'systemctl --failed'的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s），而local-fs.target.wants是需要/etc/fstab,这里还有个Conflicts=shutdown.target
 
+<img class="shadow" src="/img/in-post/local-fs.target.wants.png" width="1200">
+
+最终应该是触发了shutdown操作，停止了众多的服务，而被停止的服务，是依赖于local-fs.target的，以ceph-osd为示例：
+
+<img class="shadow" src="/img/in-post/ceph-osd.target.wants.png" width="1200">
+
+
+# 结语
+
+分析至此，基本上知道问题的所在了，具体解法如下：
+
+* 启用ES服务时，等ES相关的服务启用好后，最最后更改/etc/fstab文件；
+* 停用ES服务时，第一步就是更改/etc/fstab文件。
 
 
 # 参考文档

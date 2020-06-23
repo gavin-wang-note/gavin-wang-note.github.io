@@ -11,26 +11,26 @@
     <meta name="theme-color" content="#000000">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="ceph S3 多租户中权限设置 - Gavin的博客 | Gavin Blog">
+    <meta property="og:title" content="UID与EUID区别 - Gavin的博客 | Gavin Blog">
     
     <meta property="og:type" content="article">
     <meta property="og:description" content="概述
 ">
     
-    <meta property="article:published_time" content="2020-06-16T00:00:00Z">
+    <meta property="article:published_time" content="2012-03-22T00:00:00Z">
     
     
     <meta property="article:author" content="Gavin">
     
     
-    <meta property="article:tag" content="ceph">
+    <meta property="article:tag" content="Megacli">
     
     
     <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy/">
+    <meta property="og:url" content="http://172.17.73.80:4000/2012/03/22/difference_of_U_EUID/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
-    <title>ceph S3 多租户中权限设置 - Gavin的博客 | Gavin Blog</title>
+    <title>UID与EUID区别 - Gavin的博客 | Gavin Blog</title>
 
     <!-- Web App Manifest -->
     <link rel="manifest" href="/pwa/manifest.json">
@@ -39,7 +39,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy/">
+    <link rel="canonical" href="http://172.17.73.80:4000/2012/03/22/difference_of_U_EUID/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -259,13 +259,13 @@
                 <div class="post-heading">
                     <div class="tags">
                         
-                        <a class="tag" href="/archive/?tag=ceph" title="ceph">ceph</a>
+                        <a class="tag" href="/archive/?tag=Megacli" title="Megacli">Megacli</a>
                         
                     </div>
-                    <h1>ceph S3 多租户中权限设置</h1>
+                    <h1>UID与EUID区别</h1>
                     
-                    <h2 class="subheading">ceph multi-tenancy of RGW bucket policy</h2>
-                    <span class="meta">Posted by Gavin on June 16, 2020</span>
+                    <h2 class="subheading">Difference of UID and EUID</h2>
+                    <span class="meta">Posted by Gavin on March 22, 2012</span>
                 </div>
             </div>
         </div>
@@ -293,11 +293,89 @@
 
 				<h1 id="概述">概述</h1>
 
-<p>上篇文章介绍了ceph的multi tenancy功能，概述了同一套ceph集群下，使用tenant功能，实现不同tenant下同名s3账号，以及bucket的创建操作示例。</p>
+<p>Linux系统中每个进程都有2个ID，分别为用户ID（UID）和有效用户ID（EUID），UID（实际用户）是一个重要的环境变量，可用于检查当前脚本是以超级用户（root）还是普通用户的身份运行。</p>
 
-<p>multi-tenancy实现S3对象数据的隔离，但在实际的业务环境中，业务往往要发杂的多。对于bucket，默认情况下，只有创建者才有权限进行读写操作，其他人是无法访问的。</p>
+<p>UID与EUID，两者之间有什么区别，本文介绍之。</p>
 
-<p>本文介绍</p>
+<h1 id="uid与euid的区别">UID与EUID的区别</h1>
+
+<h2 id="从理论上介绍一下两者区别">从理论上介绍一下两者区别</h2>
+
+<p>实际用户(UID)</p>
+
+<p>实际用户ID是指运行这个进程的用户uid。这个用户uid会被设置为父进程的实际用户ID，并且在系统调用中都不会发生改变。一般情况下，登录进程会将用户登录那个shell的实际用户ID设置为 登录用户的uid，并且这个用户所有进程的实际用户ID都会继承这个值。 超级用户可能会把实际用户 ID设置修改为任意值，但是其他用户不可以。</p>
+
+<p>有效用户</p>
+
+<p>有效用户ID是当前进程所使用的用户ID。 权限认证一般是使用这个值。 初始时，这个ID等于实际用户ID。</p>
+
+<h2 id="通过实例展示uid与euid的区别">通过实例展示UID与EUID的区别</h2>
+
+<p>先来看一段perl脚本</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>test01@node77:/home$ cat id.pl 
+#!/usr/bin/perl
+
+use warnings;
+use strict;
+
+printf "uid: %-20s euid: %-20s\n",$&lt;,$&gt;;
+printf "gid: %-20s egid: %-20s\n",$(, $);
+
+test01@node77:/home$ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>说明:</p>
+
+<p>perl里面的特殊变量$&lt;、$&gt;表示uid euid; $(、$)表示gid egid。只是，$(和$)会存储一个列表，第一位表示的才是gid和egid，这个是perl的设置，不在本文讨论范围。</p>
+
+<p>在root用户下执行，效果如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@node77:/home# perl id.pl 
+uid: 0                    euid: 0                   
+gid: 0 0                  egid: 0 0                 
+root@node77:/home# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>非root用户下执行，效果如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>test01@node77:/home$ perl id.pl 
+uid: 1000                 euid: 1000                
+gid: 1000 1000            egid: 1000 1000           
+test01@node77:/home$ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>说明：</p>
+
+<p>第一次运行的时候，使用的是超级权限(root)，所以uid=0，gid=0；</p>
+
+<p>第二次运行的时候，使用的是普通用户，uid=1000，gid=1000，由于没有使用setgid对gid进行改变，所以uid=gid。</p>
+
+<h1 id="总结">总结</h1>
+
+<ul>
+  <li>有效用户ID(euid)代表它的属主，限制进程的权限</li>
+  <li>在没有seteuid的情况下，uid=euid，guid同理</li>
+  <li>当进程以root权限调用setuid()后，root权限会被丢弃，所以root权限下，使用setuid()更加安全</li>
+</ul>
 
 
 
@@ -305,17 +383,17 @@
                 <ul class="pager">
                     
                     <li class="previous">
-                        <a href="/2020/06/16/ceph_multi_tenancy/" data-toggle="tooltip" data-placement="top" title="ceph S3 多租户">
+                        <a href="/2012/02/28/oracle-manager-tablespace/" data-toggle="tooltip" data-placement="top" title="Oracle 管理篇之表空间">
                         Previous<br>
-                        <span>ceph S3 多租户</span>
+                        <span>Oracle 管理篇之表空间</span>
                         </a>
                     </li>
                     
                     
                     <li class="next">
-                        <a href="/2020/06/22/disable_es_local-fs.target_failed_with_result_dependency/" data-toggle="tooltip" data-placement="top" title="频繁启用&停用ES服务，出现local-fs.target failed with result dependency">
+                        <a href="/2012/04/19/difference_of_who_whoami_and_so_on/" data-toggle="tooltip" data-placement="top" title="who与whoami与who an i与w的区别">
                         Next<br>
-                        <span>频繁启用&停用ES服务，出现local-fs.target failed with result dependency</span>
+                        <span>who与whoami与who an i与w的区别</span>
                         </a>
                     </li>
                     
@@ -372,122 +450,122 @@
         </a>
         
         
-                <a data-sort="0074" 
+                <a data-sort="0076" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0131" 
+                <a data-sort="0133" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="20">Linux</a>
         
-                <a data-sort="0139" 
+                <a data-sort="0141" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="12">Automation</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0148" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0146" 
+                <a data-sort="0148" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="5">shell</a>
         
-                <a data-sort="0147" 
+                <a data-sort="0149" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0147" 
+                <a data-sort="0149" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0149" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0148" 
+                <a data-sort="0150" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="3">S3</a>
         
-                <a data-sort="0148" 
+                <a data-sort="0150" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="3">awk</a>
         
-                <a data-sort="0148" 
-                    href="/archive/?tag=ceph"
-                    title="ceph"
-                    rel="3">ceph</a>
-        
-                <a data-sort="0148" 
+                <a data-sort="0150" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0149" 
-                    href="/archive/?tag=Megacli"
-                    title="Megacli"
-                    rel="2">Megacli</a>
-        
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="2">ceph</a>
+        
+                <a data-sort="0151" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=python"
                     title="python"
                     rel="2">python</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0151" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
@@ -521,8 +599,8 @@
 <script type="text/javascript">
     /* * * CONFIGURATION VARIABLES * * */
     var disqus_shortname = "Gavin";
-    var disqus_identifier = "/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy";
-    var disqus_url = "http://172.17.73.80:4000/2020/06/16/ceph_multi_tenancy_rgw_bucket_policy/";
+    var disqus_identifier = "/2012/03/22/difference_of_U_EUID";
+    var disqus_url = "http://172.17.73.80:4000/2012/03/22/difference_of_U_EUID/";
 
     (function() {
         var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
