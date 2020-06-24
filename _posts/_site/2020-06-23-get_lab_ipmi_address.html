@@ -1,0 +1,179 @@
+<h1 id="概述">概述</h1>
+
+<p>Lab里有一大批设备，每个设备都配置了IPMI地址，虽然Office提供了一个在线的excel供大家编辑，但未必每个人都会定期去更新它（因为设备偶尔有进有出），时间久了就会发现excel记录太旧了。</p>
+
+<p>本文不是介绍如何定期更新excel，而是如何快速获取哪些IPMI地址在使用。</p>
+
+<h1 id="实践">实践</h1>
+
+<h2 id="利用ping获取哪些地址被使用">利用ping获取哪些地址被使用</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="k">for </span>ip <span class="k">in </span>1.72.5.<span class="o">{</span>1..255<span class="o">}</span><span class="p">;</span>
+<span class="k">do
+    </span>ping <span class="nv">$ip</span> <span class="nt">-c</span> 2 &amp;&gt; /dev/null
+    <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> <span class="nt">-eq</span> 0 <span class="o">]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="s2">"(</span><span class="nv">$ip</span><span class="s2">) is alive"</span>
+    <span class="k">fi
+done</span>
+
+</code></pre></div></div>
+
+<p>看看执行耗时：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@node77:~# time bash ping.sh 2&gt;&amp;1 &gt;/dev/null
+
+real	12m47.366s
+user	0m0.161s
+sys	0m0.627s
+root@node77:~# 
+</code></pre></div></div>
+
+<p>在这个脚本中，每个ping是顺次独立执行的，即每个IP地址都会被ping到，每执行有ping，都会有一段最低2秒的时延（-c 2），很明显，把255给都ping一遍，起码255*2s的时间，效率太低了。</p>
+
+<h2 id="shell-改进">shell 改进</h2>
+
+<p>改进上述脚本的操作，使用并发，要想并发，可将循环体放在()&amp;中，将命令放在()，使其中的命令可作为shell的子shell来执行，而&amp;脱离当前线程，在后台继续执行，改进后如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="k">for </span>ip <span class="k">in </span>1.72.5.<span class="o">{</span>1..255<span class="o">}</span><span class="p">;</span>
+<span class="k">do</span>
+<span class="o">(</span>
+    ping <span class="nv">$ip</span> <span class="nt">-c</span> 2 &amp;&gt; /dev/null
+    <span class="k">if</span> <span class="o">[</span> <span class="nv">$?</span> <span class="nt">-eq</span> 0 <span class="o">]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="s2">"(</span><span class="nv">$ip</span><span class="s2">) is alive"</span>
+    <span class="k">fi</span>
+<span class="o">)</span>&amp;
+
+<span class="nb">wait
+
+</span><span class="k">done</span>
+</code></pre></div></div>
+
+<p>看看执行耗时：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@node77:~# time bash ping2.sh 2&gt;&amp;1 &gt;/dev/null
+
+real	12m31.581s
+user	0m0.326s
+sys	0m0.849s
+root@node77:~# 
+</code></pre></div></div>
+
+<p>从时间上看，基本没差啊，整体上时间还是非常的久，有没有更好的办法？答案是肯定的，使用fping，但fping Linux系统不自带，需要自行安装，安装地址参考如下： <code class="highlighter-rouge">https://pkgs.org/download/fping</code></p>
+
+<h2 id="使用fping">使用fping</h2>
+
+<p>fping类似于ping，但比ping强大的多。与ping要等待某一主机连接超时或发回反馈信息不同，fping给一个主机发送完数据包后，马上给下一个主机发送数据包，实现多主机同时ping。</p>
+
+<p>看一下官方解释：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NAME
+       fping - send ICMP ECHO_REQUEST packets to network hosts
+
+SYNOPSIS
+       fping [ options ] [ systems... ] fping6 [ options ] [ systems... ]
+
+DESCRIPTION
+       fping is a program like ping which uses the Internet Control Message Protocol (ICMP) echo request to determine if a target host is responding.  fping differs from ping in that you can specify any number of targets on the command line, or specify a file
+       containing the lists of targets to ping.  Instead of sending to one target until it times out or replies, fping will send out a ping packet and move on to the next target in a round-robin fashion.  In the default mode, if a target replies, it is noted and
+       removed from the list of targets to check; if a target does not respond within a certain time limit and/or retry limit it is designated as unreachable. fping also supports sending a specified number of pings to a target, or looping indefinitely (as in ping
+       ). Unlike ping, fping is meant to be used in scripts, so its output is designed to be easy to parse.
+
+       The binary named fping6 is the same as fping, except that it uses IPv6 addresses instead of IPv4.
+</code></pre></div></div>
+
+<p>测试一下fping的效果：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@node77:~# time fping -s -a -q -g 1.72.5.0/24
+1.72.5.111
+1.72.5.114
+1.72.5.115
+1.72.5.116
+1.72.5.117
+1.72.5.118
+1.72.5.124
+1.72.5.125
+1.72.5.126
+1.72.5.127
+1.72.5.128
+1.72.5.181
+1.72.5.182
+1.72.5.183
+1.72.5.195
+1.72.5.196
+1.72.5.197
+1.72.5.199
+1.72.5.202
+1.72.5.204
+1.72.5.205
+1.72.5.206
+1.72.5.207
+1.72.5.208
+1.72.5.209
+1.72.5.210
+1.72.5.211
+1.72.5.212
+1.72.5.213
+1.72.5.214
+1.72.5.215
+1.72.5.216
+1.72.5.217
+1.72.5.218
+1.72.5.220
+1.72.5.221
+1.72.5.222
+1.72.5.223
+1.72.5.229
+1.72.5.231
+1.72.5.233
+1.72.5.234
+1.72.5.235
+1.72.5.249
+1.72.5.251
+1.72.5.252
+1.72.5.253
+1.72.5.254
+1.72.5.53
+1.72.5.141
+1.72.5.144
+1.72.5.151
+1.72.5.152
+1.72.5.153
+1.72.5.154
+1.72.5.160
+1.72.5.165
+1.72.5.166
+1.72.5.167
+1.72.5.169
+1.72.5.174
+1.72.5.175
+1.72.5.176
+1.72.5.177
+
+     254 targets
+      64 alive
+     190 unreachable
+       0 unknown addresses
+
+     190 timeouts (waiting for response)
+     840 ICMP Echos sent
+      64 ICMP Echo Replies received
+     714 other ICMP received
+
+ 0.15 ms (min round trip time)
+ 0.38 ms (avg round trip time)
+ 2.00 ms (max round trip time)
+       22.798 sec (elapsed real time)
+
+
+real	0m22.801s
+user	0m0.007s
+sys	0m0.077s
+root@node77:~# 
+</code></pre></div></div>
+
+<p>效率非常的高，不足23秒，而且输出的IP地址就是alive的，并增加了汇总信息，非常的直观。</p>
+

@@ -505,6 +505,275 @@
 </span>    <span class="n">multi_procress_pool_input_object</span><span class="p">(</span><span class="n">max_time</span><span class="p">)</span>
 </pre></td></tr></tbody></table></code></pre></div></div>
 
+<p>这里由于import了产品的函数，脚本不具有通用性，修改了一下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+</pre></td><td class="rouge-code"><pre>root@node244:~# cat s3_ha.py 
+#!/usr/bin/env python
+# -*- coding:UTF-8 -*_
+
+import sys
+import time
+import boto
+import logging
+from logging import handlers
+import boto.s3.connection
+from multiprocessing.pool import ThreadPool
+from multiprocessing import Process, Value, JoinableQueue as Queue, Lock, Event
+
+
+
+class Logger(object):
+    level_relations = {
+        'debug':logging.DEBUG,
+        'info':logging.INFO,
+        'warning':logging.WARNING,
+        'error':logging.ERROR,
+        'crit':logging.CRITICAL
+    }
+
+    def __init__(self, filename, level='info', when='D', backCount=3, fmt='%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s: %(message)s'):
+        self.logger = logging.getLogger(filename)
+        format_str = logging.Formatter(fmt)  # 设置日志格式
+        self.logger.setLevel(self.level_relations.get(level)) # 设置日志级别
+        sh = logging.StreamHandler() # 往屏幕上输出
+        sh.setFormatter(format_str)  # 设置屏幕上显示的格式
+        th = handlers.TimedRotatingFileHandler(filename=filename,when=when,backupCount=backCount,encoding='utf-8') # 往文件里写入#指定间隔时间自动生成文件的处理器
+        # 实例化TimedRotatingFileHandler
+        # interval是时间间隔，backupCount是备份文件的个数，如果超过这个个数，就会自动删除，when是间隔的时间单位，单位有以下几种：
+        # S 秒
+        # M 分
+        # H 小时、
+        # D 天、
+        # W 每星期（interval==0时代表星期一）
+        # midnight 每天凌晨
+        th.setFormatter(format_str) # 设置文件里写入的格式
+        self.logger.addHandler(sh)  # 把对象加到logger里
+        self.logger.addHandler(th)
+
+pool = ThreadPool(processes=20)
+log = Logger(filename='s3_ha.log')
+
+def connect_s3(access_key, secret_key, host):
+    log.logger.info("Connection to S3")
+    conn = boto.connect_s3(
+           aws_access_key_id=access_key,
+           aws_secret_access_key=secret_key,
+           host=host,
+           is_secure=False,
+           calling_format = boto.s3.connection.OrdinaryCallingFormat(),
+          )
+
+    return conn
+
+
+def create_bucket(conn, bucket_name):
+    log.logger.info("Start to create bucket : (%s)", bucket_name)
+    try:
+        bucket = conn.create_bucket(bucket_name)
+    except:
+        bucket = conn.get_bucket(bucket_name)
+
+    return bucket
+
+
+def input_object(bucket, thread_idx, max_time):
+    log.logger.info("Start to input object")
+    for i in xrange(100000):
+        key_name = str(thread_idx) + "_" + str(i) + '_' + str(time.time())
+        start_time = time.time()
+        key = bucket.new_key(key_name)
+        key.set_contents_from_string(key_name)
+        end_time = time.time()
+        cost_time = end_time - start_time
+        # log.logger.info("--  start_time is : (%s), end_time is : (%s), cost_time is : (%s), max_time is : (%s)", start_time, end_time, cost_time, max_time)
+        if cost_time &gt; float(max_time):
+            log.logger.warn("Put object : (%s) done, but cost : (%s)s", key_name, cost_time)
+
+
+def thread_pool_input_object(max_time):
+    results = []
+    for i in xrange(20):
+        results.append(pool.apply_async(input_object, (bucket, i, max_time)))
+
+    for (idx, result) in enumerate(results):
+        try:
+            r = result.get()
+        except:
+            log.logger.exception("Failed to put s3 object")
+
+
+def multi_procress_pool_input_object(max_time):
+    worker_num = 20
+    workq = Queue()
+    put_finish_event = Event()
+    tasks = []
+    for i in xrange(worker_num):
+        t = Process(
+            target=input_object, args=(bucket, i, max_time)
+        )
+        t.daemon = True
+        t.start()
+        tasks.append(t)
+
+    workq.join()
+    put_finish_event.set()
+    for t in tasks:
+        t.join()
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print "\nusage: {} max_time\n  e.g: {} 2\n  Des: max_time is a second time\n".format(sys.argv[0], sys.argv[0])
+        sys.exit(2)
+
+    max_time = sys.argv[1]
+
+    access_key='9QK0PJ5S6TKZLEBN1QO0'
+    secret_key='iJCIMyq8Ps47SyTIUjG4Z3EAdAZ69fjfQch66VRk'
+    host = '1.6.72.80'
+    bucket_name = 's3habucket01'
+
+    conn = connect_s3(access_key, secret_key, host)
+    bucket = create_bucket(conn, bucket_name)
+    # thread_pool_input_object(max_time)
+    multi_procress_pool_input_object(max_time)
+
+root@node244:~#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+
 
                 <hr style="visibility: hidden;">
                 <ul class="pager">
@@ -577,12 +846,12 @@
         </a>
         
         
-                <a data-sort="0077" 
+                <a data-sort="0078" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0133" 
+                <a data-sort="0134" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="21">Linux</a>
@@ -590,109 +859,109 @@
                 <a data-sort="0141" 
                     href="/archive/?tag=Automation"
                     title="Automation"
-                    rel="13">Automation</a>
+                    rel="14">Automation</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0150" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0149" 
+                <a data-sort="0150" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="5">shell</a>
         
-                <a data-sort="0150" 
+                <a data-sort="0151" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0150" 
+                <a data-sort="0151" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0150" 
+                <a data-sort="0151" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0151" 
+                <a data-sort="0152" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="3">S3</a>
         
-                <a data-sort="0151" 
+                <a data-sort="0152" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="3">awk</a>
         
-                <a data-sort="0151" 
+                <a data-sort="0152" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=ceph"
                     title="ceph"
                     rel="2">ceph</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=python"
                     title="python"
                     rel="2">python</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0153" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
