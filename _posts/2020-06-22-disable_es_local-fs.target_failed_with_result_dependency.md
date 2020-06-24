@@ -469,9 +469,9 @@ def enable_es(public_ip, storage_ip, session, http_method, url, data):
         progress_url = "https://{}:8080/cgi-bin/ezs3/json/elasticsearch_role_progress".format(public_ip)
         check_progress(session, storage_ip, progress_url)
 
-        check_fstab(storage_ip)
-        check_mount_point(storage_ip)
         check_es_service_file(storage_ip)
+        check_mount_point(storage_ip)
+        check_fstab(storage_ip)
     else:
         print("[ERROR]    Enable ES service failed, backend return : ({})".format(response.text))
         sys.exit(1)
