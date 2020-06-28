@@ -294,3 +294,84 @@ if __name__ == "__main__":
 <img class="shadow" src="/img/in-post/calc_cosbench_speed_output_py.png" width="1200">
 
 
+
+# 改进
+
+(2020-06-28)在使用过程中，碰到两个问题：
+
+由于cosnbench controller log level默认是INFO，导致运行cosbench这台机器根分区空间满，引发cosbench任务卡住，不得不清理空间，三处了mission log信息，引发archive中run-history.csv文件内容有缺失，即少了某个/某些任务，导致统计脚本异常，没法继续统计后续存在的任务了
+
+修改后的脚本内容如下：
+
+```
+#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+
+from __future__ import unicode_literals
+
+import os
+import sys
+import time
+
+
+ARCHIVE_PATH = "/root/0.4.2.c4/archive"
+HISTORY = "run-history.csv"
+
+HISTORY_FILE = ARCHIVE_PATH + os.sep + HISTORY
+
+if not os.path.exists(HISTORY_FILE):
+    print("\033[31m \n  [ERROR]  Not find path for : ({}) \033[0m \n".format(HISTORY_FILE))
+    sys.exit(1)
+
+his_content = os.popen("cat {}".format(HISTORY_FILE)).read().strip()
+for each_line in his_content.split("\n"):
+    if each_line.startswith("Id"):
+        continue
+
+    try:
+        line_list = each_line.split(',')
+        task_id = line_list[0]
+        task_name = line_list[1]
+        task_state = line_list[6].strip()
+
+        if task_state == 'finished':
+            work_dir = "{}/{}-{}".format(ARCHIVE_PATH, task_id, task_name)
+            start_time = line_list[3]
+            end_time = line_list[4]
+
+            start_time_array = time.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+            end_time_array = time.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+            start_times_tamp = time.mktime(start_time_array)
+            end_times_tamp = time.mktime(end_time_array)
+            time_diff = end_times_tamp - start_times_tamp
+
+            total_objs_cmd = "cat {}/driver*.csv | grep write | grep -v init " \
+                             "| awk -F',' '{{print $3}}'".format(work_dir)
+            count_str = os.popen(total_objs_cmd).read().strip()
+            if count_str:
+                counts_str_list = count_str.split("\n")
+                counts_str_int = map(int, counts_str_list)
+                total_objs = sum(counts_str_int)
+
+                write_speed = total_objs / time_diff
+
+                print("\033[32m  Task : ({}-{}), total: ({}), elapsed : ({}s), "
+                      "speed : ({}) \033[0m".format(task_id, task_name, total_objs, time_diff, write_speed))
+            else:
+                print("\033[33m  [WARN]  Not found task : ({}-{}), please pay more attention \033[0m\n".format(task_id, task_name))
+                continue
+        else:
+            print("\033[33m  [WARN]  Task : ({}-{}) status is not finished, but : ({}), "
+                  "please pay more attention \033[0m\n".format(task_id, task_name, task_state))
+
+    except Exception as ex:
+        print("\n\033[31m \n  [ERROR]  Parase file of '{}' "
+              "exception : ({}) \033[0m\n".format(HISTORY_FILE, str(ex)))
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    pass
+
+```
+
