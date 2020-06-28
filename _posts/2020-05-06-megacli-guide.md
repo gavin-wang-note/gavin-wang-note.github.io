@@ -536,5 +536,13 @@ or
 ```/opt/MegaRAID/MegaCli/MegaCli64 -AdpGetTime -A0 ; date ```
 
 
+## Stop 一致性检查
 
+```/opt/MegaRAID/MegaCli/MegaCli64 -LDCC -stop -lall -aall ```
+
+
+
+# 参考文档
+
+```https://kamaok.org.ua/?p=2507 ```
 
