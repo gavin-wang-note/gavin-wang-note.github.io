@@ -772,6 +772,154 @@ if __name__ == "__main__":
 
 <p><img class="shadow" src="/img/in-post/calc_cosbench_speed_output_py.png" width="1200" /></p>
 
+<h1 id="改进">改进</h1>
+
+<p>(2020-06-28)在使用过程中，碰到两个问题：</p>
+
+<p>由于cosnbench controller log level默认是INFO，导致运行cosbench这台机器根分区空间满，引发cosbench任务卡住，不得不清理空间，三处了mission log信息，引发archive中run-history.csv文件内容有缺失，即少了某个/某些任务，导致统计脚本异常，没法继续统计后续存在的任务了</p>
+
+<p>修改后的脚本内容如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+</pre></td><td class="rouge-code"><pre><span class="c1">#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+
+<span class="n">ARCHIVE_PATH</span> <span class="o">=</span> <span class="s">"/root/0.4.2.c4/archive"</span>
+<span class="n">HISTORY</span> <span class="o">=</span> <span class="s">"run-history.csv"</span>
+
+<span class="n">HISTORY_FILE</span> <span class="o">=</span> <span class="n">ARCHIVE_PATH</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="o">+</span> <span class="n">HISTORY</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">HISTORY_FILE</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\033</span><span class="s">[31m </span><span class="se">\n</span><span class="s">  [ERROR]  Not find path for : ({}) </span><span class="se">\033</span><span class="s">[0m </span><span class="se">\n</span><span class="s">"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">HISTORY_FILE</span><span class="p">))</span>
+    <span class="n">sys</span><span class="o">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="n">his_content</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="s">"cat {}"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">HISTORY_FILE</span><span class="p">))</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">each_line</span> <span class="ow">in</span> <span class="n">his_content</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">each_line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">"Id"</span><span class="p">):</span>
+        <span class="k">continue</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">line_list</span> <span class="o">=</span> <span class="n">each_line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">','</span><span class="p">)</span>
+        <span class="n">task_id</span> <span class="o">=</span> <span class="n">line_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">task_name</span> <span class="o">=</span> <span class="n">line_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">task_state</span> <span class="o">=</span> <span class="n">line_list</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">task_state</span> <span class="o">==</span> <span class="s">'finished'</span><span class="p">:</span>
+            <span class="n">work_dir</span> <span class="o">=</span> <span class="s">"{}/{}-{}"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">ARCHIVE_PATH</span><span class="p">,</span> <span class="n">task_id</span><span class="p">,</span> <span class="n">task_name</span><span class="p">)</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">line_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">line_list</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+            <span class="n">start_time_array</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="s">"</span><span class="si">%</span><span class="s">Y-</span><span class="si">%</span><span class="s">m-</span><span class="si">%</span><span class="s">d </span><span class="si">%</span><span class="s">H:</span><span class="si">%</span><span class="s">M:</span><span class="si">%</span><span class="s">S"</span><span class="p">)</span>
+            <span class="n">end_time_array</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="s">"</span><span class="si">%</span><span class="s">Y-</span><span class="si">%</span><span class="s">m-</span><span class="si">%</span><span class="s">d </span><span class="si">%</span><span class="s">H:</span><span class="si">%</span><span class="s">M:</span><span class="si">%</span><span class="s">S"</span><span class="p">)</span>
+            <span class="n">start_times_tamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">start_time_array</span><span class="p">)</span>
+            <span class="n">end_times_tamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">end_time_array</span><span class="p">)</span>
+            <span class="n">time_diff</span> <span class="o">=</span> <span class="n">end_times_tamp</span> <span class="o">-</span> <span class="n">start_times_tamp</span>
+
+            <span class="n">total_objs_cmd</span> <span class="o">=</span> <span class="s">"cat {}/driver*.csv | grep write | grep -v init "</span> \
+                             <span class="s">"| awk -F',' ''"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
+            <span class="n">count_str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">total_objs_cmd</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">count_str</span><span class="p">:</span>
+                <span class="n">counts_str_list</span> <span class="o">=</span> <span class="n">count_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+                <span class="n">counts_str_int</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">counts_str_list</span><span class="p">)</span>
+                <span class="n">total_objs</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">counts_str_int</span><span class="p">)</span>
+
+                <span class="n">write_speed</span> <span class="o">=</span> <span class="n">total_objs</span> <span class="o">/</span> <span class="n">time_diff</span>
+
+                <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\033</span><span class="s">[32m  Task : ({}-{}), total: ({}), elapsed : ({}s), "</span>
+                      <span class="s">"speed : ({}) </span><span class="se">\033</span><span class="s">[0m"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">total_objs</span><span class="p">,</span> <span class="n">time_diff</span><span class="p">,</span> <span class="n">write_speed</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\033</span><span class="s">[33m  [WARN]  Not found task : ({}-{}), please pay more attention </span><span class="se">\033</span><span class="s">[0m</span><span class="se">\n</span><span class="s">"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task_name</span><span class="p">))</span>
+                <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\033</span><span class="s">[33m  [WARN]  Task : ({}-{}) status is not finished, but : ({}), "</span>
+                  <span class="s">"please pay more attention </span><span class="se">\033</span><span class="s">[0m</span><span class="se">\n</span><span class="s">"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task_name</span><span class="p">,</span> <span class="n">task_state</span><span class="p">))</span>
+
+    <span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\n\033</span><span class="s">[31m </span><span class="se">\n</span><span class="s">  [ERROR]  Parase file of '{}' "</span>
+              <span class="s">"exception : ({}) </span><span class="se">\033</span><span class="s">[0m</span><span class="se">\n</span><span class="s">"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">HISTORY_FILE</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">)))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
 
 
                 <hr style="visibility: hidden;">
