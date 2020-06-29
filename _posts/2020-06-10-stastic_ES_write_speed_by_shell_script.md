@@ -95,7 +95,7 @@ root@node76:~#
 
 分别使用了 ```_cat/count?v&format=json&pretty``` 和 ```index_name/_cat/indices?v&pretty ``` 这两个API，写了统计脚本，本文只给出shell 使用```index_name/_cat/indices?v&pretty ```的示例,脚本内容如下:
 
-```
+{% raw %}```
 #!/bin/bash
 
 TOTAL_COUNTS=10000000
@@ -130,7 +130,7 @@ do
         sleep 2
     fi
 done
-```
+``` {% endraw %}
 
 
 输出内容示例如下:

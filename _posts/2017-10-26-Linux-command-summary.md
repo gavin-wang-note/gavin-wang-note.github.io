@@ -256,7 +256,7 @@ X表示中括号里的数值，比如：
 
 # 查看所有网口的Link Detected 状态
 
-```ifconfig -a | grep 'Link encap:' | grep -v lo | awk '{{print $1}}' | xargs -I{} -t ethtool {} | grep 'Link detected' ```
+{% raw %}```ifconfig -a | grep 'Link encap:' | grep -v lo | awk '{{print $1}}' | xargs -I{} -t ethtool {} | grep 'Link detected' ``` {% endraw %}
 
 输出示例：
 

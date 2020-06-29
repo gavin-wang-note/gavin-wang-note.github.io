@@ -197,11 +197,11 @@ awk: cmd. line:1: (FILENAME=- FNR=1) fatal: division by zero attempted
 
 报错了，这种情况，建议先在前面的echo中将需要使用的变量输出出来，再进行调用。
 
-```
+{% raw %}```
 root@code80:~# echo $pam1 $pam2 | awk '{{printf ("%.2f\n", $1/$2)}}'
 3.33
 root@code80:~# 
-```
+``` {% endraw %}
 
 说明：
 

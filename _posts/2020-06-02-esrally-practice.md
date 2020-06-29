@@ -390,7 +390,7 @@ root@node244:~/my_esrally_data/tracks/bigtera#
 
 
 
-```
+{% raw %}```
 root@node244:~/my_esrally_data/tracks/bigtera# cat index.json 
 {
   "settings": {
@@ -526,7 +526,7 @@ root@node244:~/my_esrally_data/tracks/bigtera# cat index.json
     }
   }
 }
-```
+``` {% endraw %}
 
 
 
@@ -714,9 +714,9 @@ if __name__ == '__main__':
 
 
 
-```
+{% raw %}```
 root@node244:~/my_esrally_data/tracks/bigtera# cat track.json 
-{\% \import "rally.helpers" as rally with context \%}
+{% import "rally.helpers" as rally with context %}
 {
   "version": 2,
   "description": "POIs from bigtera",
@@ -749,7 +749,7 @@ root@node244:~/my_esrally_data/tracks/bigtera# cat track.json
   ]
 }
 root@node244:~/my_esrally_data/tracks/bigtera#
-```
+``` {% endraw %}
 
 
 
@@ -855,7 +855,7 @@ root@node244:/mnt/sata/700million#
 
 
 
-```
+{% raw %}```
 root@node244:~/my_esrally_data/tracks/bigtera/challenges# cat default.json 
     {
       "name": "append-no-conflicts",
@@ -944,7 +944,7 @@ root@node244:~/my_esrally_data/tracks/bigtera/challenges# cat default.json
       ]
     }
 root@node244:~/my_esrally_data/tracks/bigtera/challenges# 
-```
+``` {% endraw %}
 
 
 
@@ -962,7 +962,7 @@ root@node244:~/my_esrally_data/tracks/bigtera/challenges#
 
 
 
-```
+{% raw %}```
 root@node244:~/my_esrally_data/tracks/bigtera/operations# cat default.json 
     { 
       "name": "index-append",
@@ -1011,7 +1011,7 @@ root@node244:~/my_esrally_data/tracks/bigtera/operations# cat default.json
         }
       }
     }
-```
+`` {% endraw %}`
 
 
 

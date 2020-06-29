@@ -593,20 +593,20 @@ do
     if [[ x"$line" =~ x"Id" ]]; then
         continue
     else
-        task_id=`echo $line | awk -F"," ''`
-        task_name=`echo $line | awk -F"," ''`
-        TASK_STATUS=`echo $line | awk -F"," ''`
+        task_id=`echo $line | awk -F"," '{{print $1}}'`
+        task_name=`echo $line | awk -F"," '{{print $2}}'`
+        TASK_STATUS=`echo $line | awk -F"," '{{print $7}}'`
         work_dir=${ARCHIVE}${task_id}-${task_name}
 
         # echo ${task_id}, ${task_name}, ${TASK_STATUS}, ${work_dir}
 
         if [[ -d ${work_dir} ]]; then
             if [[ x"${TASK_STATUS}" == x"finished" ]]; then
-                TOTAL_OBJS=`cat ${work_dir}/driver*.csv | grep write | grep -v init | awk -F',' '' | awk '{sum += $1};END {print sum}'`
+                TOTAL_OBJS=`cat ${work_dir}/driver*.csv | grep write | grep -v init | awk -F',' '{{print $3}}' | awk '{sum += $1};END {print sum}'`
                 # echo ${TOTAL_OBJS}
 
-                START_TIME=`echo $line | awk -F"," ''`
-                END_TIME=`echo $line | awk -F"," ''`
+                START_TIME=`echo $line | awk -F"," '{{print $4}}'`
+                END_TIME=`echo $line | awk -F"," '{{print $5}}'`
                 START_TIME_STR=`date -d "${START_TIME}" +%s`
                 END_TIME_STR=`date -d "${END_TIME}" +%s`
                 COST_TIME=`expr ${END_TIME_STR} - ${START_TIME_STR}`
@@ -745,7 +745,7 @@ for each_line in his_content.strip().split("\n"):
             time_diff = end_times_tamp - start_times_tamp
 
             total_objs_cmd = "cat {}/driver*.csv | grep write | grep -v init " \
-                             "| awk -F',' ''".format(work_dir)
+                             "| awk -F',' '{{print $3}}'".format(work_dir)
             count_str = os.popen(total_objs_cmd).read().strip()
             couts_str_list = count_str.split("\n")
             couts_str_int = map(int, couts_str_list)
@@ -893,7 +893,7 @@ if __name__ == "__main__":
             <span class="n">time_diff</span> <span class="o">=</span> <span class="n">end_times_tamp</span> <span class="o">-</span> <span class="n">start_times_tamp</span>
 
             <span class="n">total_objs_cmd</span> <span class="o">=</span> <span class="s">"cat {}/driver*.csv | grep write | grep -v init "</span> \
-                             <span class="s">"| awk -F',' ''"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
+                             <span class="s">"| awk -F',' '{{print $3}}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">work_dir</span><span class="p">)</span>
             <span class="n">count_str</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">total_objs_cmd</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">count_str</span><span class="p">:</span>
                 <span class="n">counts_str_list</span> <span class="o">=</span> <span class="n">count_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>

@@ -36,8 +36,8 @@ def get_start_end_time():
     all_csv_file = do_cmd("find {} -iname *WRITEJOB.csv -print".format(archive_home), 30).strip()
     for each_csv in all_csv_file.split('\n'):
         work_id = each_csv.split('/')[-2].split('-')[0]
-        start_time = do_cmd("cat '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' |  sed '/^$/d' | head -n 1".format(each_csv), 30).strip()
-        end_time = do_cmd("tac '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' | head -n 1".format(each_csv), 30).strip()
+        {% raw %}start_time = do_cmd("cat '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' |  sed '/^$/d' | head -n 1".format(each_csv), 30).strip()
+        end_time = do_cmd("tac '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' | head -n 1".format(each_csv), 30).strip() {% endraw %}
         all_work_dict[work_id] = [start_time, end_time]
 
     sorted(all_work_dict.items(), lambda x, y: cmp(x[0], y[0]))
@@ -71,7 +71,7 @@ def get_start_end_time():
 #     for each_csv in all_csv_file.split('\n'):
 #         cur_work_op_list = []
 #         work_id = each_csv.split('/')[-2].split('-')[0]
-#         ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip()
+#         {% raw %}ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip() {% endraw %}
 #         ops_dict[work_id] = sum(map(float, ops_info.split("\n")))
 # 
 #     return ops_dict
@@ -85,7 +85,7 @@ def calc_elapsed_time_ops(all_work_dict):
     for each_csv in all_csv_file.split('\n'):
         cur_work_op_list = []
         work_id = each_csv.split('/')[-2].split('-')[0]
-        ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip()
+        {% raw %}ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip() {% endraw %}
         sum_ops = sum(map(float, ops_info.split("\n")))
         
         ops_dict[work_id] = sum(map(float, ops_info.split("\n")))

@@ -987,14 +987,14 @@ root@node244:~/my_esrally_data/tracks/bigtera#
 </pre></td><td class="rouge-code"><pre>root@node244:~/my_esrally_data/tracks/bigtera# cat index.json 
 {
   "settings": {
-    "index.number_of_shards": ,
-    "index.number_of_replicas": ,
-    "index.store.type": "",
+    "index.number_of_shards": {{number_of_shards | default(5)}},
+    "index.number_of_replicas": {{number_of_replicas | default(0)}},
+    "index.store.type": "{{store_type | default('fs')}}",
     "index.requests.cache.enable": false
   },
   "mappings": {
     "_source": {
-      "enabled": 
+      "enabled": {{ source_enabled | default(true) | tojson }}
     },
     "properties": {
         "bucket": {
@@ -1442,7 +1442,7 @@ if __name__ == '__main__':
 33
 34
 </pre></td><td class="rouge-code"><pre>root@node244:~/my_esrally_data/tracks/bigtera# cat track.json 
-{\% \import "rally.helpers" as rally with context \%}
+{% import "rally.helpers" as rally with context %}
 {
   "version": 2,
   "description": "POIs from bigtera",
@@ -1468,10 +1468,10 @@ if __name__ == '__main__':
     }
   ],
   "operations": [
-    
+    {{ rally.collect(parts="operations/*.json") }}
   ],
   "challenges": [
-    
+    {{ rally.collect(parts="challenges/*.json") }}
   ]
 }
 root@node244:~/my_esrally_data/tracks/bigtera#
@@ -1725,7 +1725,7 @@ root@node244:/mnt/sata/700million#
             "operation-type": "cluster-health",
             "index": "bigtera",
             "request-params": {
-              "wait_for_status": "",
+              "wait_for_status": "{{cluster_health | default('green')}}",
               "wait_for_no_relocating_shards": "true"
             }
           }
@@ -1733,7 +1733,7 @@ root@node244:/mnt/sata/700million#
         {
           "operation": "index-append",
           "warmup-time-period": 120,
-          "clients": 
+          "clients": {{bulk_indexing_clients | default(8)}}
         },
         {
           "name": "refresh-after-index",
@@ -1760,7 +1760,7 @@ root@node244:/mnt/sata/700million#
             "operation-type": "cluster-health",
             "index": "bigtera",
             "request-params": {
-              "wait_for_status": "",
+              "wait_for_status": "{{cluster_health | default('green')}}",
               "wait_for_no_relocating_shards": "true"
             }
           }
@@ -1768,7 +1768,7 @@ root@node244:/mnt/sata/700million#
         {
           "operation": "index-append",
           "warmup-time-period": 120,
-          "clients": 
+          "clients": {{bulk_indexing_clients | default(8)}}
         },
         {
           "operation": {
@@ -1850,22 +1850,62 @@ root@node244:~/my_esrally_data/tracks/bigtera/challenges#
 46
 47
 48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
 </pre></td><td class="rouge-code"><pre>root@node244:~/my_esrally_data/tracks/bigtera/operations# cat default.json 
     { 
       "name": "index-append",
       "operation-type": "bulk",
-      "bulk-size": ,
-      "ingest-percentage": 
+      "bulk-size": {{bulk_size | default(5000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}}
     },
     { 
       "name": "index-update",
       "operation-type": "bulk",
-      "bulk-size": ,
-      "ingest-percentage": ,
-      "conflicts": "",
-      "on-conflict": "",
-      "conflict-probability": ,
-      "recency": 
+      "bulk-size": {{bulk_size | default(5000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}},
+      "conflicts": "{{conflicts | default('random')}}",
+      "on-conflict": "{{on_conflict | default('index')}}",
+      "conflict-probability": {{conflict_probability | default(25)}},
+      "recency": {{recency | default(0)}}
     },
     { 
       "name": "default",
@@ -1898,41 +1938,55 @@ root@node244:~/my_esrally_data/tracks/bigtera/challenges#
         }
       }
     }
+`` `
+
+
+
+
+
+
+
+# 使用技巧
+
+
+
+## 运行时携带参数
+
+执行```esrally -h ```，查看具体的帮助信息，以及官方示例中的readme.md文档。
+
+
+
+比如下列这个示例：
+
+
+
+```esrally  --pipeline=benchmark-only --target-hosts=10.16.172.243:9200 --track=geonames  --challenge=append-no-conflicts-index-only --track-params="bulk_size:1,bulk_indexing_clients:2" ```
+
+
+
+指定了只跑append-no-conflicts-index-only这个challenge，同时指定了bulk_size和bulk_indexing_clients，当然，可以携带其他参数了，比如`number_of_replicas` 和 `number_of_shards`，参考如下：
+
+```esrally --pipeline=benchmark-only --track-path=/root/my_esrally_data/tracks/bigtera --target-hosts=10.16.172.76:9200 --offline --report-file=/root/my_esrally_data/report/427112_1Mmetadata_6shards_1rep.json --challenge=append-no-conflicts-index-only --track-params="number_of_shards:6,number_of_replicas:1" ```
+
+
+
+## esrally日志的查看
+
+
+
+在esrally运行时，可以查看日志文件，来帮助定位工具运行中碰到的问题。
+
+
+
 </pre></td></tr></tbody></table></code></pre></div></div>
-
-<h1 id="使用技巧">使用技巧</h1>
-
-<h2 id="运行时携带参数">运行时携带参数</h2>
-
-<p>执行<code class="highlighter-rouge">esrally -h</code>，查看具体的帮助信息，以及官方示例中的readme.md文档。</p>
-
-<p>比如下列这个示例：</p>
-
-<p><code class="highlighter-rouge">esrally  --pipeline=benchmark-only --target-hosts=10.16.172.243:9200 --track=geonames  --challenge=append-no-conflicts-index-only --track-params="bulk_size:1,bulk_indexing_clients:2"</code></p>
-
-<p>指定了只跑append-no-conflicts-index-only这个challenge，同时指定了bulk_size和bulk_indexing_clients，当然，可以携带其他参数了，比如<code class="highlighter-rouge">number_of_replicas</code> 和 <code class="highlighter-rouge">number_of_shards</code>，参考如下：</p>
-
-<p><code class="highlighter-rouge">esrally --pipeline=benchmark-only --track-path=/root/my_esrally_data/tracks/bigtera --target-hosts=10.16.172.76:9200 --offline --report-file=/root/my_esrally_data/report/427112_1Mmetadata_6shards_1rep.json --challenge=append-no-conflicts-index-only --track-params="number_of_shards:6,number_of_replicas:1"</code></p>
-
-<h2 id="esrally日志的查看">esrally日志的查看</h2>
-
-<p>在esrally运行时，可以查看日志文件，来帮助定位工具运行中碰到的问题。</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
-2
-3
-4
-5
-6
-7
-</pre></td><td class="rouge-code"><pre>root@node244:~# cd .rally/logs/
+<p>root@node244:~# cd .rally/logs/
 root@node244:~/.rally/logs# ll
 total 51520
 drwxr-xr-x 2 root root     4096 Jun  2 11:03 ./
 drwxr-xr-x 4 root root     4096 Jun  2 11:03 ../
--rw-r--r-- 1 root root 52740698 Jun  2 13:54 rally.log
-root@node244:~/.rally/logs# 
-</pre></td></tr></tbody></table></code></pre></div></div>
+-rw-r–r– 1 root root 52740698 Jun  2 13:54 rally.log
+root@node244:~/.rally/logs#
+```</p>
 
 
 

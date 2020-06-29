@@ -153,7 +153,7 @@ root@node244:~/henry#
 终于到本文主题了，既然有了上面的测试script方便QA提交测试任务，那统计RGW写速度，以前写了一个python来统计，不是很通用，因为import了产品的function，一旦脱离产品环境运行cosbench，python脚本就没法执行了，今天重写了个统计cosbench写速度的shell脚本，内容如下：
 
 
-```
+{% raw %}```
 root@node244:~# cat calc_cosbench_speed.sh 
 #!/bin/bash
 
@@ -208,7 +208,7 @@ do
         fi
     fi
 done < ${HISTORY_FILE}
-```
+``` {% endraw %}
 
 执行效果如下:
 
@@ -220,7 +220,7 @@ done < ${HISTORY_FILE}
 今天（2020-06-18）使用python改写了一版，参考如下:
 
 
-```
+{% raw %}```
 root@node244:~/75# cat calc_cosbench_speed.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -287,7 +287,7 @@ for each_line in his_content.strip().split("\n"):
 if __name__ == "__main__":
     pass
 
-```
+``` {% endraw %}
 
 执行效果如下:
 
@@ -303,7 +303,7 @@ if __name__ == "__main__":
 
 修改后的脚本内容如下：
 
-```
+{% raw %}```
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -373,5 +373,5 @@ for each_line in his_content.split("\n"):
 if __name__ == "__main__":
     pass
 
-```
+``` {% endraw %}
 

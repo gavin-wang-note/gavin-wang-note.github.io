@@ -378,7 +378,7 @@ Jun 18 18:22:53 node75 systemd[1]: Started Session 3266 of user root
 # 问题复现使用的python脚本
 
 
-```
+{% raw %}```
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -725,7 +725,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     loop_run(int(loop_times))
-```
+``` {% endraw %}
 
 
 # 执行效果

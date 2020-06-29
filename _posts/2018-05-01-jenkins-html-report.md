@@ -55,7 +55,7 @@ fi
 
 
 result_file="$scriptrootpath/report/result.txt"
-`cat ${report_file} | grep -A5 "<td><strong>Total</strong></td>" | grep -v strong | awk -F "td" '{{print $2}}' | sed 's/>//g' | sed 's/<\///g' > ${result_file}`
+{% raw %}`cat ${report_file} | grep -A5 "<td><strong>Total</strong></td>" | grep -v strong | awk -F "td" '{{print $2}}' | sed 's/>//g' | sed 's/<\///g' > ${result_file}` {% endraw %}
 
 
 test_counts=`awk 'NR==5, NR==5 {print $1}' ${result_file}`

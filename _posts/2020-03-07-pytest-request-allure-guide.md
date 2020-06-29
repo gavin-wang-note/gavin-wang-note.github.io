@@ -713,7 +713,7 @@ class AccountManager(object):
             ctdb_nodes.append(line)
 
         for each_node in ctdb_nodes:
-            cmd = "cat {} | grep {} | awk -F ':' '{{print $1}}'".format(each_node, ETC_PASSWD, user_id)
+            {% raw %}cmd = "cat {} | grep {} | awk -F ':' '{{print $1}}'".format(each_node, ETC_PASSWD, user_id) {% endraw %}
             res_status, etc_passwd = ssh_session().run_cmd(cmd)
             logging.info("[Check]    [Add user]  Check user in : /etc/passwd on node : (%s)", each_node)
             err_msg = 'Found account : ({}) in /etc/passwd on node : ({})'.format(user_id, each_node)
@@ -1425,8 +1425,8 @@ def run_node_check():
             print "         [Success]  Check public and storage interface success " \
                   "from config/autotest.config and ceph.conf"
 
-        scope_pub_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(pub_ifce)
-        scope_sto_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(sto_ifce)
+        {% raw %}scope_pub_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(pub_ifce) {% endraw %}
+        {% raw %}scope_sto_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(sto_ifce) {% endraw %}
         local_pub_ip_info = do_cmd(scope_pub_cmd, 15).strip()
         local_sto_ip_info = do_cmd(scope_sto_cmd, 15).strip()
         local_pub_ip = local_pub_ip_info.split('/')[0]
@@ -1441,7 +1441,7 @@ def run_node_check():
             sys.exit(0)
     else:
         local_ip = []
-        local_ip_info = do_cmd("ip a | grep 'scope global' | awk '{{print $2}}'", 30).strip()
+        {% raw %}local_ip_info = do_cmd("ip a | grep 'scope global' | awk '{{print $2}}'", 30).strip() {% endraw%}
 
         for each_ip in local_ip_info.split("\n"):
             local_ip.append(each_ip.split('/')[0])
@@ -1483,7 +1483,7 @@ def run_node_check():
         # If client is a cluster of Virtual Storage node, which reset-node or create cluster for many
         # times(not refresh install OS), will has many old ssh key in /root/.ssh/authorized_keys
         expect_pub_files_list = ['/root/.ssh/id_dsa.pub', '/root/.ssh/id_ecdsa.pub', '/root/.ssh/id_rsa.pub']
-        ls_pub_files = "ls -l /root/.ssh/id*.pub | awk '{{print $NF}}'"
+        {% raw %}ls_pub_files = "ls -l /root/.ssh/id*.pub | awk '{{print $NF}}'" {% endraw %}
         cat_auth_keys_file = "cat /root/.ssh/authorized_keys"
         client_ls_pub_files = "sshpass -p {} ssh -p {} -l root {} '{}'".format(client_ip_passwd, port,
                                                                                client_ip, ls_pub_files)
@@ -1532,7 +1532,7 @@ def run_node_check():
                           "pub_list : ({})\n".format(expect_pub_files_list, pub_list)
                 else:
                     # Check content of /root/.ssh/authorized_keys, if has many same host name, should change it
-                    cat_auth_keys_cmd = "cat /root/.ssh/authorized_keys | awk '{{print $NF}}'"
+                    {% raw %}cat_auth_keys_cmd = "cat /root/.ssh/authorized_keys | awk '{{print $NF}}'" {% endraw %}
                     get_content_cmd = "sshpass -p {} ssh -p {} -l root {} '{}'".format(client_ip_passwd, port,
                                                                                        client_ip, cat_auth_keys_cmd)
                     auth_keys_res = do_cmd(get_content_cmd, 30).strip()
@@ -1647,7 +1647,7 @@ def unlink_unavailable_scsi_session():
     do_cmd(remote_rm_tgt_cmd, 60, True).strip()
 
     # Delete all of folder which name include pytest, then rm unavailable link file in send_targets
-    ls_session_cmd = "iscsiadm -m session | grep pytest | sed 's/,1//g' | awk '{{print \$3, \$NF}}'"
+    {% raw %}ls_session_cmd = "iscsiadm -m session | grep pytest | sed 's/,1//g' | awk '{{print $3, $NF}}'" {% endraw %}
     rm_iqn_cmd = "rm -rf /etc/iscsi/nodes/iqn*pytest*"
     rm_tgt_cmd = "for f in $(find /etc/iscsi/send_targets/ -type l); do [ ! -e $f ] && rm -rf $f; done"
 
@@ -2080,8 +2080,8 @@ def modify_apache_conf():
     apache_conf = "/etc/apache2/apache2.conf"
 
     for each_node in all_nodes:
-        res = do_cmd("ssh {} cat {} | grep -w KeepAlive | grep -v '#' | "
-                     "awk '{{print $2}}'".format(each_node, apache_conf), 30).strip()
+        {% raw %}res = do_cmd("ssh {} cat {} | grep -w KeepAlive | grep -v '#' | "
+                     "awk '{{print $2}}'".format(each_node, apache_conf), 30).strip() {% endraw %}
         if res == "On":
             print "        [Action]   Start to modify ({}) on node ({}) to " \
                   "change KeepAlive to Off".format(apache_conf, each_node)
@@ -2101,8 +2101,8 @@ def modify_webpy_session():
     else:
         all_nodes = ClusterManager().list_nodes()
         for each_node in all_nodes:
-            res = do_cmd("ssh {} cat {} | grep web.config.session_parameters | "
-                         " grep timeout | awk '{{print $NF}}'".format(each_node, index_py), 30).strip()
+            {% raw %}res = do_cmd("ssh {} cat {} | grep web.config.session_parameters | "
+                         " grep timeout | awk '{{print $NF}}'".format(each_node, index_py), 30).strip() {% endraw %}
             if res == '1800':
                 print "        [Action]   Start to modify ({}) on node ({}) to " \
                   "change session from 1800 to 86400".format(index_py, each_node)

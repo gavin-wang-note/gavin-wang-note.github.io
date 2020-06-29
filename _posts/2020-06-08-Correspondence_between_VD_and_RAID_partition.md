@@ -88,7 +88,7 @@ lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:7:0-part1 -> ..
 lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0 -> ../../sdi
 lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0-part1 -> ../../sdi1
 root@ec-node3:/dev/disk/by-path#
-root@ec-node3:/dev/disk/by-path# ls -l |grep 'pci-0000:af:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}'
+{% raw %}root@ec-node3:/dev/disk/by-path# ls -l |grep 'pci-0000:af:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' {% endraw %}
 sdc
 ```
 

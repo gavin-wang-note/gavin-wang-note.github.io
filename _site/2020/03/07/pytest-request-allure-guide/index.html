@@ -1421,7 +1421,7 @@ class AccountManager(object):
             ctdb_nodes.append(line)
 
         for each_node in ctdb_nodes:
-            cmd = "cat {} | grep {} | awk -F ':' ''".format(each_node, ETC_PASSWD, user_id)
+            cmd = "cat {} | grep {} | awk -F ':' '{{print $1}}'".format(each_node, ETC_PASSWD, user_id) 
             res_status, etc_passwd = ssh_session().run_cmd(cmd)
             logging.info("[Check]    [Add user]  Check user in : /etc/passwd on node : (%s)", each_node)
             err_msg = 'Found account : ({}) in /etc/passwd on node : ({})'.format(user_id, each_node)
@@ -3666,8 +3666,8 @@ def test_add_user_success(self):
             <span class="k">print</span> <span class="s">"         [Success]  Check public and storage interface success "</span> \
                   <span class="s">"from config/autotest.config and ceph.conf"</span>
 
-        <span class="n">scope_pub_cmd</span> <span class="o">=</span> <span class="s">"ip a | grep 'scope global {}' | awk ''"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">pub_ifce</span><span class="p">)</span>
-        <span class="n">scope_sto_cmd</span> <span class="o">=</span> <span class="s">"ip a | grep 'scope global {}' | awk ''"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">sto_ifce</span><span class="p">)</span>
+        <span class="n">scope_pub_cmd</span> <span class="o">=</span> <span class="s">"ip a | grep 'scope global {}' | awk '{{print $2}}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">pub_ifce</span><span class="p">)</span> 
+        <span class="n">scope_sto_cmd</span> <span class="o">=</span> <span class="s">"ip a | grep 'scope global {}' | awk '{{print $2}}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">sto_ifce</span><span class="p">)</span> 
         <span class="n">local_pub_ip_info</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="n">scope_pub_cmd</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">local_sto_ip_info</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="n">scope_sto_cmd</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="n">local_pub_ip</span> <span class="o">=</span> <span class="n">local_pub_ip_info</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'/'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -3682,7 +3682,7 @@ def test_add_user_success(self):
             <span class="n">sys</span><span class="o">.</span><span class="nb">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">local_ip</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">local_ip_info</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="s">"ip a | grep 'scope global' | awk ''"</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">local_ip_info</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="s">"ip a | grep 'scope global' | awk '{{print $2}}'"</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> 
 
         <span class="k">for</span> <span class="n">each_ip</span> <span class="ow">in</span> <span class="n">local_ip_info</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">):</span>
             <span class="n">local_ip</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">each_ip</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'/'</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
@@ -3724,7 +3724,7 @@ def test_add_user_success(self):
         <span class="c1"># If client is a cluster of Virtual Storage node, which reset-node or create cluster for many
 </span>        <span class="c1"># times(not refresh install OS), will has many old ssh key in /root/.ssh/authorized_keys
 </span>        <span class="n">expect_pub_files_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">'/root/.ssh/id_dsa.pub'</span><span class="p">,</span> <span class="s">'/root/.ssh/id_ecdsa.pub'</span><span class="p">,</span> <span class="s">'/root/.ssh/id_rsa.pub'</span><span class="p">]</span>
-        <span class="n">ls_pub_files</span> <span class="o">=</span> <span class="s">"ls -l /root/.ssh/id*.pub | awk ''"</span>
+        <span class="n">ls_pub_files</span> <span class="o">=</span> <span class="s">"ls -l /root/.ssh/id*.pub | awk '{{print $NF}}'"</span> 
         <span class="n">cat_auth_keys_file</span> <span class="o">=</span> <span class="s">"cat /root/.ssh/authorized_keys"</span>
         <span class="n">client_ls_pub_files</span> <span class="o">=</span> <span class="s">"sshpass -p {} ssh -p {} -l root {} '{}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">client_ip_passwd</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span>
                                                                                <span class="n">client_ip</span><span class="p">,</span> <span class="n">ls_pub_files</span><span class="p">)</span>
@@ -3773,7 +3773,7 @@ def test_add_user_success(self):
                           <span class="s">"pub_list : ({})</span><span class="se">\n</span><span class="s">"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">expect_pub_files_list</span><span class="p">,</span> <span class="n">pub_list</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># Check content of /root/.ssh/authorized_keys, if has many same host name, should change it
-</span>                    <span class="n">cat_auth_keys_cmd</span> <span class="o">=</span> <span class="s">"cat /root/.ssh/authorized_keys | awk ''"</span>
+</span>                    <span class="n">cat_auth_keys_cmd</span> <span class="o">=</span> <span class="s">"cat /root/.ssh/authorized_keys | awk '{{print $NF}}'"</span> 
                     <span class="n">get_content_cmd</span> <span class="o">=</span> <span class="s">"sshpass -p {} ssh -p {} -l root {} '{}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">client_ip_passwd</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span>
                                                                                        <span class="n">client_ip</span><span class="p">,</span> <span class="n">cat_auth_keys_cmd</span><span class="p">)</span>
                     <span class="n">auth_keys_res</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="n">get_content_cmd</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
@@ -3888,7 +3888,7 @@ def test_add_user_success(self):
     <span class="n">do_cmd</span><span class="p">(</span><span class="n">remote_rm_tgt_cmd</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
     <span class="c1"># Delete all of folder which name include pytest, then rm unavailable link file in send_targets
-</span>    <span class="n">ls_session_cmd</span> <span class="o">=</span> <span class="s">"iscsiadm -m session | grep pytest | sed 's/,1//g' | awk ''"</span>
+</span>    <span class="n">ls_session_cmd</span> <span class="o">=</span> <span class="s">"iscsiadm -m session | grep pytest | sed 's/,1//g' | awk '{{print $3, $NF}}'"</span> 
     <span class="n">rm_iqn_cmd</span> <span class="o">=</span> <span class="s">"rm -rf /etc/iscsi/nodes/iqn*pytest*"</span>
     <span class="n">rm_tgt_cmd</span> <span class="o">=</span> <span class="s">"for f in $(find /etc/iscsi/send_targets/ -type l); do [ ! -e $f ] &amp;&amp; rm -rf $f; done"</span>
 
@@ -4322,7 +4322,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
 
     <span class="k">for</span> <span class="n">each_node</span> <span class="ow">in</span> <span class="n">all_nodes</span><span class="p">:</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="s">"ssh {} cat {} | grep -w KeepAlive | grep -v '#' | "</span>
-                     <span class="s">"awk ''"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">each_node</span><span class="p">,</span> <span class="n">apache_conf</span><span class="p">),</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                     <span class="s">"awk '{{print $2}}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">each_node</span><span class="p">,</span> <span class="n">apache_conf</span><span class="p">),</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> 
         <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="s">"On"</span><span class="p">:</span>
             <span class="k">print</span> <span class="s">"        [Action]   Start to modify ({}) on node ({}) to "</span> \
                   <span class="s">"change KeepAlive to Off"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">apache_conf</span><span class="p">,</span> <span class="n">each_node</span><span class="p">)</span>
@@ -4343,7 +4343,7 @@ export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
         <span class="n">all_nodes</span> <span class="o">=</span> <span class="n">ClusterManager</span><span class="p">()</span><span class="o">.</span><span class="n">list_nodes</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">each_node</span> <span class="ow">in</span> <span class="n">all_nodes</span><span class="p">:</span>
             <span class="n">res</span> <span class="o">=</span> <span class="n">do_cmd</span><span class="p">(</span><span class="s">"ssh {} cat {} | grep web.config.session_parameters | "</span>
-                         <span class="s">" grep timeout | awk ''"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">each_node</span><span class="p">,</span> <span class="n">index_py</span><span class="p">),</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                         <span class="s">" grep timeout | awk '{{print $NF}}'"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">each_node</span><span class="p">,</span> <span class="n">index_py</span><span class="p">),</span> <span class="mi">30</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> 
             <span class="k">if</span> <span class="n">res</span> <span class="o">==</span> <span class="s">'1800'</span><span class="p">:</span>
                 <span class="k">print</span> <span class="s">"        [Action]   Start to modify ({}) on node ({}) to "</span> \
                   <span class="s">"change session from 1800 to 86400"</span><span class="o">.</span><span class="nb">format</span><span class="p">(</span><span class="n">index_py</span><span class="p">,</span> <span class="n">each_node</span><span class="p">)</span>
