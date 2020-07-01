@@ -1,4 +1,986 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-06-30T10:57:44+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">shell中|&amp;amp;含义</title><link href="http://172.17.73.80:4000/2020/06/30/what_means_pipeline_and_&/" rel="alternate" type="text/html" title="shell中|&amp;含义" /><published>2020-06-30T00:00:00+08:00</published><updated>2020-06-30T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/30/what_means_pipeline_and_&amp;</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/30/what_means_pipeline_and_&amp;/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-07-01T17:23:02+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">shell随机数生成的几种方法</title><link href="http://172.17.73.80:4000/2020/07/01/generate_random_number_in_shell/" rel="alternate" type="text/html" title="shell随机数生成的几种方法" /><published>2020-07-01T00:00:00+08:00</published><updated>2020-07-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/01/generate_random_number_in_shell</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/01/generate_random_number_in_shell/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;今天验证在对存储不断灌S3 10K小对象数据情况下，对设备强制断电，观察是否引发ceph-osd crash问题，简易写了个临时命令完成检查操作，如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;for i in {1..100}; do echo &quot;================== $i ==================&quot;; rand_time=`expr $RANDOM / 400`; echo &quot;  sleep ${rand_time}s&quot;; sleep ${rand_time}; ipmitool -I lan  -U ADMIN -P ADMIN -H 172.17.75.169 chassis power off; rand_time=`expr $RANDOM / 400`; echo &quot;  sleep ${rand_time}s&quot;; sleep ${rand_time};ipmitool -I lan  -U ADMIN -P ADMIN -H 172.17.75.169 chassis power on; echo &quot;  power on, then sleep 300s&quot;; sleep 300;done
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;另外一个临时check脚本参考如下:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat check_cores.sh 
+#!/bin/bash
+
+i=1
+
+while [[ $i -lt 1000  ]];do
+    echo &quot;=========================== $i ===============================&quot;
+
+    res=`onnode all 'ls /var/log/cores -lhrt | grep -vi ldb' 2&amp;gt;/dev/null|grep ezcore`
+    if [[ $? -eq 0 ]]; then
+        echo &quot;`date`: FAIL!! Core dump of others yielded.&quot;
+        exit 1
+    else
+        rand_time=`expr $RANDOM / 1000`
+        echo &quot;  OK --&amp;gt; sleep ${rand_time}s&quot;
+        sleep ${rand_time} 
+        let i+=1
+    fi    
+    
+done
+root@node76:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这里使用到了随机数，本文介绍shell几种生成随机数的方法。&lt;/p&gt;
+
+&lt;h1 id=&quot;shell-产生随机数的几种方法&quot;&gt;shell 产生随机数的几种方法&lt;/h1&gt;
+
+&lt;h2 id=&quot;内置变量random&quot;&gt;内置变量$RANDOM&lt;/h2&gt;
+
+&lt;p&gt;参考 &lt;code class=&quot;highlighter-rouge&quot;&gt;http://www.tldp.org/LDP/abs/html/randomvar.html&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;RANDOM 是 Bash 的一个内建函数(而不是常量)，会返回一个在区间 [0, 32767] 内的整数，若超过5位可以加个固定10位整数，然后进行求余。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# echo $RANDOM 
+27399
+root@node76:~# echo $RANDOM 
+17012
+root@node76:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;示例生成10以内&quot;&gt;示例：生成10以内&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# expr $RANDOM % 10 + 1
+10
+root@node76:~# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;示例-生成指定范围内的随机数&quot;&gt;示例： 生成指定范围内的随机数&lt;/h3&gt;
+
+&lt;p&gt;生成1000~2000的随机数，示例如下:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~/shell# cat r.sh 
+#!/bin/bash    
+
+function rand(){
+    min=$1
+    max=$(($2 - $min + 1))
+    num=$(($RANDOM+1000000000)) # 增加一个10位的数再求余
+    echo $(($num%$max + $min))
+}
+
+rand_no=$(rand 1000 2000)
+echo $rand_no
+
+exit 0
+root@node76:~/shell#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;运行结果示例如下:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~/shell# bash r.sh
+1332
+root@node76:~/shell# bash r.sh
+1581
+root@node76:~/shell# bash r.sh
+1293
+root@node76:~/shell# bash r.sh
+1787
+root@node76:~/shell# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;使用awk的随机函数&quot;&gt;使用awk的随机函数&lt;/h2&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;awk 'BEGIN{srand();print rand()*1000000}' &lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;使用date-sn&quot;&gt;使用date +%s%N&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;date +%s%N  # 生成19位数
+date +%s%N | cut -c6-13 # 取八位数字
+date +%s%N | md5sum | head -c 8 # 八位字母和数字的组合
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;示例生成150的随机数&quot;&gt;示例：生成1~50的随机数&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;function &lt;/span&gt;rand&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
+    &lt;span class=&quot;nv&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;
+    &lt;span class=&quot;nv&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$min&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;nv&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s%N&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$max&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$min&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;rnd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;rand 1 50&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$rnd&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;0
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;openssl-rand产生随机数&quot;&gt;openssl rand产生随机数&lt;/h2&gt;
+
+&lt;p&gt;openssl rand 用于产生指定长度个bytes的随机字符。-base64或-hex对随机字符串进行base64编码或用hex格式显示。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;openssl rand -base64 3 | md5sum | cut -c1-8      # 八位字母和数字的组合
+openssl rand -base64 2 | cksum | cut -c1-8       # 八位数字
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;额外补充一下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~/shell# openssl rand  -base64 0 | md5sum | cut -c1-8
+d41d8cd9
+root@node76:~/shell# openssl rand  -base64 0 | md5sum | cut -c1-8
+d41d8cd9
+root@node76:~/shell# openssl rand  -base64 0 | md5sum | cut -c1-8
+d41d8cd9
+root@node76:~/shell# openssl rand  -base64 1 | md5sum | cut -c1-8
+e2740bcc
+root@node76:~/shell# openssl rand  -base64 1 | md5sum | cut -c1-8
+d8fb4cee
+root@node76:~/shell# openssl rand  -base64 1 | md5sum | cut -c1-8
+212e9682
+root@node76:~/shell# 
+root@node76:~/shell# openssl rand  -base64 0
+root@node76:~/shell# openssl rand  -base64 1
+IQ==
+root@node76:~/shell# openssl rand  -base64 1
+4g==
+root@node76:~/shell# openssl rand  -base64 1
+zA==
+root@node76:~/shell# openssl rand  -base64 10
+94pxE5KZvYNU9g==
+root@node76:~/shell# openssl rand  -base64 30
+PxfQot0kAO9KdTO6H4ny71AguR28LZiWa/ruVaja
+root@node76:~/shell#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;通过上面参数-base64后面的值，可以看到，当值为0时，&lt;code class=&quot;highlighter-rouge&quot;&gt;openssl rand  -base64 0&lt;/code&gt;输出为空，而非0值时才有输出，没有找到这个具体数值的含义，个人推测是seed(种子)，seed=0,产生的值时一个固定值。&lt;/p&gt;
+
+&lt;h2 id=&quot;通过系统内唯一数据生成随机数devrandom及devurandom&quot;&gt;通过系统内唯一数据生成随机数（/dev/random及/dev/urandom）&lt;/h2&gt;
+
+&lt;h3 id=&quot;random&quot;&gt;random&lt;/h3&gt;
+
+&lt;p&gt;/dev/random是 Linux 上的一个字符设备，里面会源源不断地产生随机数(存储系统当前运行的环境的实时数据), 是阻塞的随机数发生器，读取有时需要等待，可以看作系统某时候的唯一值数据。&lt;/p&gt;
+
+&lt;p&gt;一般来说，用 od 命令即可:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~/shell# od -An -N2 -i /dev/random
+        4291
+root@node76:~/shell# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这里的 -N2 指定要读取的字节数， -i 则是指定输入。&lt;/p&gt;
+
+&lt;p&gt;若要产生特定范围内的随机数，则和使用 $RANDOM 的方法类似:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;# @args &amp;lt;beg&amp;gt; &amp;lt;end&amp;gt;
+# return random integer in [&amp;lt;beg&amp;gt;, &amp;lt;end&amp;gt;)
+function random_range() {
+    local beg=$1
+    local end=$2
+    echo $(($(od -An -N2 -i /dev/random) % ($end - $beg) + $beg))
+}
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;urandom&quot;&gt;urandom&lt;/h3&gt;
+
+&lt;p&gt;/dev/urandom 是非阻塞的随机数产生器，读取时不会产生阻塞，速度更快、安全性较差的随机数发生器。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /dev/urandom | head -n 10 | md5sum | head -c 10&lt;/code&gt;     # 生成字母数字组合串&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /dev/urandom | strings -n 8 | head -n 1&lt;/code&gt;      # 生成全字符的随机字符串，含特殊字符（e.g: NO&amp;gt;0/D}I?ln）&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /dev/urandom | sed -e 's/[^a-zA-Z0-9]//g' | strings -n 8 | head -n 1&lt;/code&gt;   # 生成数字加字母的随机字符串&lt;/p&gt;
+
+&lt;p&gt;其中 strings -n设置字符串的字符数，head -n并不像是设置输出的行数，更像是seed(种子)。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;head -n 20 /dev/urandom| cksum | cut -d&quot; &quot; -f1&lt;/code&gt;   # urandom的数据很多使用cat会比较慢，在此使用head读20行，cksum将读取文件内容生成唯一的表示整型数据，cut以空格分割然后得到分割的第一个字段数据&lt;/p&gt;
+
+&lt;h3 id=&quot;示例使用devurandom生成100500的随机数&quot;&gt;示例：使用/dev/urandom生成100~500的随机数&lt;/h3&gt;
+
+&lt;p&gt;这里使用urandom避免阻塞。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;function &lt;/span&gt;rand&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
+    &lt;span class=&quot;nv&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;
+    &lt;span class=&quot;nv&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$min&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;))&lt;/span&gt;
+    &lt;span class=&quot;nv&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /dev/urandom | &lt;span class=&quot;nb&quot;&gt;head&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-n&lt;/span&gt; 10 | &lt;span class=&quot;nb&quot;&gt;cksum&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;' '&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'{print $1}'&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$max&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$min&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;nv&quot;&gt;rnd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;rand 100 500&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$rnd&lt;/span&gt;
+
+&lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;0
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;seq--sort&quot;&gt;seq + sort&lt;/h2&gt;
+
+&lt;p&gt;sort 命令有一个 -R 选项，可以根据随机 hash 排序，那么我们就可以用 seq 命令先生成一个整数序列，然后用 sort 的 -R 选项处理取其中一行即可。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;# @args &amp;lt;beg&amp;gt; &amp;lt;end&amp;gt;
+# return random integer in [&amp;lt;beg&amp;gt;, &amp;lt;end&amp;gt;]
+function random_range {
+    local beg=$1
+    local end=$2
+    seq $beg $end | sort -R | head -n1
+}
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;值得注意的是，使用这种方法时，要求的值域可以包含负数区域，而本文的其他方法则要进行不同的处理。&lt;/p&gt;
+
+&lt;h2 id=&quot;shuf&quot;&gt;shuf&lt;/h2&gt;
+
+&lt;p&gt;shuf 和 ‘sort -R’ 的作用类似，用来根据输入生成随机序列:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;# @args &amp;lt;beg&amp;gt; &amp;lt;end&amp;gt;
+# return random integer in [&amp;lt;beg&amp;gt;, &amp;lt;end&amp;gt;]
+function random_range {
+    shuf -i $1-$2 -n1
+}
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;在各种方法中，使用 shuf 命令是最简洁的。&lt;/p&gt;
+
+&lt;h2 id=&quot;读取linux的uuid码&quot;&gt;读取linux的uuid码&lt;/h2&gt;
+
+&lt;p&gt;UUID码全称是通用唯一识别码 (Universally Unique Identifier, UUID)，UUID格式是：包含32个16进制数字，以“-”连接号分为五段，形式为8-4-4-4-12的32个字符。linux的uuid码也是有内核提供的，在/proc/sys/kernel/random/uuid这个文件内。cat/proc/sys/kernel/random/uuid每次获取到的数据都会不同。&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /proc/sys/kernel/random/uuid| cksum | cut -f1 -d&quot; &quot;&lt;/code&gt;    # 获取不同的随机整数&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;cat /proc/sys/kernel/random/uuid| md5sum | cut -c1-8&lt;/code&gt;      # 数字加字母的随机数&lt;/p&gt;
+
+&lt;h3 id=&quot;示例-使用linux-uuid-生成100500随机数&quot;&gt;示例: 使用linux uuid 生成100~500随机数&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash    &lt;/span&gt;
+    
+&lt;span class=&quot;k&quot;&gt;function &lt;/span&gt;rand&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;    
+    &lt;span class=&quot;nv&quot;&gt;min&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$1&lt;/span&gt;    
+    &lt;span class=&quot;nv&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$2&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$min&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;))&lt;/span&gt;    
+    &lt;span class=&quot;nv&quot;&gt;num&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; /proc/sys/kernel/random/uuid | &lt;span class=&quot;nb&quot;&gt;cksum&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;' '&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'{print $1}'&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;    
+    &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$num&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$max&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$min&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;))&lt;/span&gt;    
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;    
+    
+&lt;span class=&quot;nv&quot;&gt;rnd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;rand 100 500&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;    
+&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$rnd&lt;/span&gt;    
+    
+&lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;0
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;从元素池中随机抽取取&quot;&gt;从元素池中随机抽取取&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pool=(a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 8 9)
+
+num=${#pool[*]}
+
+result=${pool[$((RANDOM%num))]}
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;用于生成一段特定长度的有数字和字母组成的字符串，字符串中元素来自自定义的池子。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;length=10 
+i=1
+
+seq=(0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)
+num_seq=${#seq[@]}
+  
+while [ &quot;$i&quot; -le &quot;$length&quot; ]
+do
+    seqrand[$i]=${seq[$((RANDOM%num_seq))]}  
+    let &quot;i=i+1&quot;  
+done  
+  
+echo &quot;The random string is:&quot;  
+for j in ${seqrand[@]}  
+do  
+    echo -n $j  
+done  
+
+echo
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="shell" /><summary type="html">概述</summary></entry><entry><title type="html">shell完成一次ceph-osd crash验证</title><link href="http://172.17.73.80:4000/2020/07/01/reproduce_ceph-osd-replay-crash-shell/" rel="alternate" type="text/html" title="shell完成一次ceph-osd crash验证" /><published>2020-07-01T00:00:00+08:00</published><updated>2020-07-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/01/reproduce_ceph-osd-replay-crash-shell</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/01/reproduce_ceph-osd-replay-crash-shell/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;最近在测试ceph rocksdb性能优化效果，由于频繁的重启机器（ipmitool power off），出现了两次ceph-osd replay crash问题，由于频繁的power off太伤机器了，验证完毕rocksdb性能优化后，重写了个script，通过kill ceph 核心服务来模拟突然掉电，同时cosbench持续狂打流量，以及不间断的reset s3 pool 来完成场景的复现。&lt;/p&gt;
+
+&lt;h1 id=&quot;脚本参考如下&quot;&gt;脚本参考如下&lt;/h1&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat kill_ceph_and_reset_s3_pool.sh 
+#!/bin/bash
+
+loop_cnt=100
+ctdb_wait_time=600
+ceph_wait_time=900
+node_num=3
+pgnum=6656
+target_ip=10.16.172.77
+public_ip=10.16.172.76
+target_pool='pool01'
+default_pool='Default'
+default_s3_pool='default.rgw.buckets.data'
+bucket_objs_no=300000
+
+
+function rand(){
+    min=$1
+    max=$(($2- $min + 1))
+    num=$(date +%s%N)
+    echo $(($num % $max + $min))
+}
+
+
+function login_ui(){
+    login_res=`curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${public_ip}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'`
+    login_return_code=`echo ${login_res} | sed 's@{&quot;name&quot;: &quot;login&quot;, &quot;return_code&quot;: @@' | sed 's/}//'`
+
+    if [ x&quot;${login_return_code}&quot; == x&quot;300&quot; ]; then
+        echo &quot;&quot;
+        echo &quot;[ERROR]  Login Failed, exit!!!&quot;
+        echo &quot;&quot;
+        exit 1
+    elif [[ ${login_return_code} =~ 'session_id' ]]; then
+        echo &quot;&quot;
+        echo &quot;Login success&quot;
+        echo &quot;&quot;
+    fi
+}
+
+
+function check_pool_exist()
+{
+    pool_grep=`rados lspools | grep ${target_pool}`
+
+    if [[ -z ${pool_grep}  ]]; then
+        echo &quot;&quot;
+        echo &quot;[ERROR]  Not exists pool : ${target_pool}, needs to create in cluster, exit!!!&quot;
+        echo &quot;&quot;
+        exit 0
+    fi
+}
+
+
+function reset_s3_pool(){
+    pool_name=$1
+
+    # Reset s3 pool
+    start_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
+    echo &quot;${start_time}  Start to set pool : (${pool_name}) as s3 pool&quot; 
+
+    result_code=`curl --insecure --cookie cookie.jar --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; -s -I -w %{http_code} &quot;https://${public_ip}:8080/cgi-bin/ezs3/json/pool_enable_s3?pool_name=${pool_name}&quot;`
+
+    cur_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
+    if [[ ${result_code} =~ '200' ]]; then
+        sleep_time=$(rand 100 120)
+        echo &quot;${cur_time}  --&amp;gt; OK, set pool : (${pool_name}) as s3 pool success, now sleep ${sleep_time}s&quot; 
+        sleep ${sleep_time}
+    elif [[ ${result_code} =~ '401'  ]]; then
+        echo &quot;[WARN]  Session timeout, login again&quot;
+        login_ui
+    else
+        echo &quot;${cur_time}  [ERROR]  exit!&quot; 
+        echo &quot;&quot;
+        exit 1
+    fi
+}
+
+
+function wait_until_ctdb_ok()
+{
+    expect_num=$1
+    max_wait_time=$2
+    current_time=0
+    while [[ $current_time -lt $max_wait_time ]];do
+        current_ctdb_ok=`ctdb status 2&amp;gt;/dev/null|grep OK|wc -l`
+        if [ $current_ctdb_ok -eq $expect_num ];then
+            break
+        fi
+        sleep 5
+        current_time=$((current_time+5))
+        #echo &quot;...elapse: $current_time, ctdb: ${current_ctdb_ok}&quot;
+    done
+    if [[ $current_time -ge $max_wait_time ]];then
+        echo &quot;Fail!!! After wait $max_wait_time seconds, ctdb number is still $current_ctdb_ok, should be $expect_num, exit!&quot;
+        # ceph tell osd.* injectargs '--debug-osd 0/0'
+        # ceph tell mds.* injectargs '--debug-mds 0/0'
+        onnode -p all 'truncate --size 0 /var/log/ceph/ceph*.log'
+        exit 1
+    fi
+    echo &quot;${current_time}&quot;
+}
+
+
+function wait_until_ceph_ok()
+{
+    max_wait_time=$1
+    start_time=`date +%s`
+    max_end_time=$((start_time+max_wait_time))
+    current_time=`date +%s`
+    while [[ $current_time -lt $max_end_time ]];do
+        ceph -s|grep &quot;$pgnum active+clean&quot; &amp;gt;/dev/null
+        if [ $? -eq 0 ];then
+            break
+        fi
+        sleep 5
+        current_time=`date +%s`
+    done
+    if [[ $current_time -ge $max_end_time ]];then
+        echo &quot;Fail!!! After wait $max_wait_time seconds, ceph is not healthy, but is `ceph health`, exit!&quot;
+        # ceph tell osd.* injectargs '--debug-osd 0/0'
+        # ceph tell mds.* injectargs '--debug-mds 0/0'
+        exit 1
+    fi
+    echo &quot;$((current_time-start_time))&quot;
+}
+
+# ceph tell mds.* injectargs '--debug-mds 20' 2&amp;amp;&amp;gt;/dev/null
+
+
+function wait_objects_reach()
+{
+    echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Wait S3 objects number should be large than ${bucket_objs_no}&quot;
+
+    cur_s3_pool=`radosgw-admin zone get --rgw-zone=default | grep data_pool | awk -F ':' '{{print $NF}}' | sed 's/,//g' | sed 's/&quot;//g' | sed 's/ //g'`
+    objs=`ceph df | grep ${cur_s3_pool} | awk '{{print $NF}}'`
+
+    while [[ ${objs} -le ${bucket_objs_no} ]]; do
+        sleep_time=$(rand 30 60)
+        echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Objects number : ${objs} is less than ${bucket_objs_no}, sleep ${sleep_time}&quot;
+        sleep ${sleep_time}
+        objs=`ceph df | grep ${cur_s3_pool} | awk '{{print $NF}}'`
+    done
+
+    echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Objects number : ${objs} is large than ${bucket_objs_no}&quot;
+}
+
+
+function kill_ceph_service()
+{
+    process_to_kill='ceph-osd ceph-mds ceph-mon radosgw'
+    for seed in ${process_to_kill}; do
+        process_list=`ssh ${target_ip} pidof ${seed}`
+        killed=
+        for killpid in $process_list; do
+          if [ ! -z $killpid ];then
+            echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Killed ${seed} PID ${killpid} on node : ${target_ip}&quot;
+            ssh ${target_ip} kill -9 $killpid
+            killed=yes
+          fi
+        done
+
+        if [ -z $killed ];then
+            echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Didn't kill anything on node ${target_ip}&quot;
+        fi
+    done
+
+    ssh ${target_ip} systemctl stop ceph.target
+    sleep_time=$(rand 100 180)
+    echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: After kill ceph service, sleep ${sleep_time}&quot;
+    sleep ${sleep_time}
+}
+
+
+function start_ceph_service(){
+    echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Start ceph service on node ${target_ip}&quot;
+    ssh ${target_ip} systemctl start ceph.target
+    ssh ${target_ip} systemctl restart ceph-radosgw@radosgw.0.service
+}
+
+
+function restart_cosbench_job()
+{
+    cosbench_ip=10.16.172.244
+    cosbench_dir=&quot;/root/0.4.2.c4&quot;
+    submit_dir=&quot;/root/75&quot;
+    root_passwd=1
+
+    job_no=`sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} &quot;${cosbench_dir}/cli.sh info |&amp;amp; grep PROCESSING | wc -l&quot;`
+
+    if [[ ${job_no} -gt 0 ]]; then
+        job_id=`sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} &quot;${cosbench_dir}/cli.sh info |&amp;amp; grep PROCESSING | awk '{{print \\$1}}'&quot;`
+
+        # Cancel the job
+        echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Cancel cosbench job : ${job_id}&quot;
+        sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} &quot;${cosbench_dir}/cli.sh cancel ${job_id}&quot;
+
+        # Start another new job
+        echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Sumbit a new cosbench job&quot;
+        kill_cmd=&quot;ps -ef |grep cosbench.sh | grep -v grep | awk '{{print \$2}}' | xargs -I {} kill -9 {}&quot;
+        sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} &quot;${kill_cmd}; cd ${submit_dir}; bash cosbench.sh&quot;&amp;amp;
+    else
+        # Start another new job
+        echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: Sumbit a new cosbench job&quot;
+        kill_cmd=&quot;ps -ef |grep cosbench.sh | grep -v grep | awk '{{print \$2}}' | xargs -I {} kill -9 {}&quot;
+        sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} &quot;${kill_cmd}; cd ${submit_dir}; bash cosbench.sh&quot;&amp;amp;
+    fi
+}
+
+
+# Check pool exists or not
+check_pool_exist
+
+# First, needs to login UI, generate session
+login_ui
+
+for ((i=1;i&amp;lt;=$loop_cnt;i++));
+do
+    echo &quot;============================================== $i ==============================================&quot;
+    # Secondly, reset s3 pool
+    cur_s3_pool=`radosgw-admin zone get --rgw-zone=default | grep data_pool | awk -F ':' '{{print $NF}}' | sed 's/,//g' | sed 's/&quot;//g' | sed 's/ //g'`
+    if [[ X${cur_s3_pool} == X${target_pool} ]]; then
+        reset_s3_pool ${default_pool}
+    elif [[ X${cur_s3_pool} == X${default_s3_pool} ]]; then
+        reset_s3_pool ${target_pool}
+    else
+        reset_s3_pool ${target_pool}
+    fi
+
+    # Resubmit a cosbench job
+    restart_cosbench_job
+
+    # Wait S3 pool objects reach to the target numbers
+    wait_objects_reach
+
+    # Then kill and start ceph-osd, ceph-mds, ceph-mon, radosgw
+    kill_ceph_service
+    start_ceph_service
+
+    cost_time=$(wait_until_ceph_ok $ceph_wait_time)
+    echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: After ${cost_time}s, ceph becomes HEALTH_OK.&quot;
+
+    onnode all 'ls /var/log/cores -lhrt | grep -vi ldb' 2&amp;gt;/dev/null|grep ezcore
+    if [[ $? -eq 0 ]]; then
+        echo &quot;`date '+%Y-%m-%d %H:%M:%S'`: FAIL!! Core dump of others yielded.&quot;
+        # ceph tell osd.* injectargs '--debug-osd 0/0'
+        # ceph tell mds.* injectargs '--debug-mds 0/0'
+        exit 1
+    fi
+
+    onnode -p all 'truncate --size 0 /var/log/ceph/ceph*.log'
+    echo &quot;[Success]  Loop $i pass&quot;
+done
+root@node76:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="shell" /><category term="ceph" /><summary type="html">概述</summary></entry><entry><title type="html">shell中|&amp;amp;含义</title><link href="http://172.17.73.80:4000/2020/06/30/what_means_pipeline_and_&/" rel="alternate" type="text/html" title="shell中|&amp;含义" /><published>2020-06-30T00:00:00+08:00</published><updated>2020-06-30T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/30/what_means_pipeline_and_&amp;</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/30/what_means_pipeline_and_&amp;/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;今天细看了同事Henry编写的一个shell脚本，看到如下片断内容：&lt;/p&gt;
 
@@ -176,7 +1158,7 @@ root@node244:~/test#
 
 &lt;h1 id=&quot;解决方法&quot;&gt;解决方法&lt;/h1&gt;
 
-&lt;p&gt;Linux平台上，dos2unix一把 windows产生的文件即可。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">统计两个时间的时间差</title><link href="http://172.17.73.80:4000/2020/06/28/calc_time_differenct/" rel="alternate" type="text/html" title="统计两个时间的时间差" /><published>2020-06-28T00:00:00+08:00</published><updated>2020-06-28T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/28/calc_time_differenct</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/28/calc_time_differenct/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;p&gt;Linux平台上，dos2unix一把 windows产生的文件即可。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">统计两个时间的时间差</title><link href="http://172.17.73.80:4000/2020/06/28/calc_time_difference/" rel="alternate" type="text/html" title="统计两个时间的时间差" /><published>2020-06-28T00:00:00+08:00</published><updated>2020-06-28T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/28/calc_time_difference</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/28/calc_time_difference/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;最近在跑cosbench，由于OS根分区空间满，导致cosbench任务失败，误删了一部分cosbench archive记录，但controller html页面还是能展示这部分数据记录的片段信息，比如任务的提交时间，起始时间与结束时间，而每个cosbench 任务写数据的总量可以从定义的xml中获取到，需要手动计算一下起止时间差，统计总量/时间差，就可以得到这轮任务的平均写速度了。&lt;/p&gt;
 
@@ -3659,368 +4641,4 @@ root@code80:~#
 root@code80:~# echo &quot;5.9637e+12/100&quot; | awk '{printf (&quot;%.2f\n&quot;,$1)}'
 5963700000000.00
 root@code80:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="shell" /><summary type="html">概述</summary></entry><entry><title type="html">脚本统计ES写入速度</title><link href="http://172.17.73.80:4000/2020/06/10/stastic_ES_write_speed_by_shell_script/" rel="alternate" type="text/html" title="脚本统计ES写入速度" /><published>2020-06-10T00:00:00+08:00</published><updated>2020-06-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/10/stastic_ES_write_speed_by_shell_script</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/10/stastic_ES_write_speed_by_shell_script/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;本文介绍下如何call API的方式去统计ES的写速度，当然，你可以使用监控工具去统计，不在本文描述范围。&lt;/p&gt;
-
-&lt;h1 id=&quot;哪些api可以获取到es-index中的数据量&quot;&gt;哪些API可以获取到ES index中的数据量&lt;/h1&gt;
-
-&lt;p&gt;这里介绍两种API,参考如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;_cat/count?v&amp;amp;format=json&amp;amp;pretty
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;吐出信息参考如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[
-  {
-    &quot;epoch&quot; : &quot;1591598061&quot;,
-    &quot;timestamp&quot; : &quot;06:34:21&quot;,
-    &quot;count&quot; : &quot;3626228&quot;
-  }
-]
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;另外一种是&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;index_name/_cat/indices?v&amp;amp;pretty
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;输出示例参考如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node248:/opt/datasearch# curl -XGET -s 'localhost:9200/_cat/indices?v&amp;amp;pretty'
-health status index                uuid                   pri rep docs.count docs.deleted store.size pri.store.size
-green  open   rgw-default-fb9bb242 fZDCxLRPRKS1hn6GD_PE-g  12   0    8796770         6075      3.3gb          3.3gb
-root@node248:/opt/datasearch# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-
-&lt;p&gt;因为ES集群中只有一个index，所以可以不带index_name，如果有多个，在不带具体index_name情况下，或查询出所有的，建议根据所需进行查询。&lt;/p&gt;
-
-&lt;h1 id=&quot;这两个api哪个更合适&quot;&gt;这两个API，哪个更合适？&lt;/h1&gt;
-
-&lt;p&gt;先说&lt;code class=&quot;highlighter-rouge&quot;&gt;_cat/count?v&amp;amp;format=json&amp;amp;pretty&lt;/code&gt;， 它的吐出信息中，epoch其实就是时间戳，但精度只到秒级别，如果要计算ES写入速度：获取前后两个count的值，以及前后两个epoch的值，分别做差，使用前者的差值，除以后者的差值，得到当前ES的写入速度，效果如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# python calc_es_write_speed.py 
--------  Timestamp ----------- Total Counts ---------- Counts diff --------- Time diff ------- ES speed -------
-	 1591778958 	       4645564 		       1616  	        	3 		  538
-	 1591778961 	       4647574 		       921  			2 		  460
-	 1591778964 	       4649407 		       755  			1 		  755
-	 1591778967 	       4651841 		       849  			1 		  849
-	 1591778971 	       4654225 		       1062  			2 		  531
-	 1591778974 	       4656417 		       1012  			2 		  506
-	 1591778978 	       4658627 		       1151  			2 		  575
-	 1591778981 	       4661607 		       1067  			1 		  1067
-.................................................. 中间数据省略 ................................................                                            
-	 1591779923 		5264956 		873  			1 		   873
-	 1591779926 		5267410 		845  			1 		   845
-	 1591779929 		5269377 		1030  			1 		   1030
-	 1591779933 		5271217 		933  			2 		   466
-	 1591779936 		5273646 		973  			1 		   973
----------------------------------------------------------------------------------------------------------------
-AVG speed : 700.153333333
-root@node76:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;弊端比较明显了，精度不够，有时除以1，有时除以2，比如上次统计是1000，下次就可能是500了。&lt;/p&gt;
-
-&lt;p&gt;另外一种API &lt;code class=&quot;highlighter-rouge&quot;&gt;index_name/_cat/indices?v&amp;amp;pretty&lt;/code&gt;,通过观察，大约60秒左右才会更新一次数据，更新频率不大，但是计算起止时间可以自己控制，精度也可以自己控制。&lt;/p&gt;
-
-&lt;h1 id=&quot;脚本&quot;&gt;脚本&lt;/h1&gt;
-
-&lt;p&gt;分别使用了 &lt;code class=&quot;highlighter-rouge&quot;&gt;_cat/count?v&amp;amp;format=json&amp;amp;pretty&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;index_name/_cat/indices?v&amp;amp;pretty&lt;/code&gt; 这两个API，写了统计脚本，本文只给出shell 使用&lt;code class=&quot;highlighter-rouge&quot;&gt;index_name/_cat/indices?v&amp;amp;pretty&lt;/code&gt;的示例,脚本内容如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/bash&lt;/span&gt;
-
-&lt;span class=&quot;nv&quot;&gt;TOTAL_COUNTS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;10000000
-&lt;span class=&quot;nv&quot;&gt;LOG_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;es_speed.log
-&lt;span class=&quot;nv&quot;&gt;TITLE_NAME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;------ Timestamp ------  Total Counts ------ Time Diff ------ Count Diff ------  AVG Speed ------&quot;&lt;/span&gt;
-
-
-&lt;span class=&quot;c&quot;&gt;# start_time=`echo $[$(date +%s%N)/1000000]`&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;curl &lt;span class=&quot;nt&quot;&gt;-XGET&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'localhost:9200/_cat/indices?v&amp;amp;pretty'&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'rgw-default'&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'{{print $7}}'&lt;/span&gt; 2&amp;gt;&amp;amp;1&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-
-&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TITLE_NAME&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG_FILE&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-lt&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TOTAL_COUNTS&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;do
-    &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;before_counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-    &lt;span class=&quot;nv&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$[&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s%N&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;/1000000]&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;sleep &lt;/span&gt;60
-
-    &lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;curl &lt;span class=&quot;nt&quot;&gt;-XGET&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-s&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'localhost:9200/_cat/indices?v&amp;amp;pretty'&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'rgw-default'&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'{{print $7}}'&lt;/span&gt; 2&amp;gt;&amp;amp;1&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-    &lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$[&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s%N&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;/1000000]&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-
-    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-ne&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;before_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-        &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;diff&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; - &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;time_diff&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;{print &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$diff&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/1000}&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;count_diff&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; - &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;before_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;avg_speed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;{print &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;count_diff&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;time_diff&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;}&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;      &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;       &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;           &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;time_diff&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;           &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;count_diff&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;             &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;avg_speed&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG_FILE&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;else
-        &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;    [WARN]  Get the same count : (&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_counts&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;) in adjacent intervals, wait 2 seconds&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG_FILE&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;sleep &lt;/span&gt;2
-    &lt;span class=&quot;k&quot;&gt;fi
-done&lt;/span&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;输出内容示例如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# bash speed_calc_es.sh 
------- Timestamp ------ Total Counts ------ Time Diff ------ Count Diff ------ AVG Speed ------
-      1591781812805       6372650           60.043           44556             742.068
-      1591781934909       6416426           60.04           43776             729.114
-      1591782057108       6509848           60.128           93422             1553.72
-      1591782117259       6554868           60.131           45020             748.699
-      1591782177403       6604810           60.118           49942             830.733
-      1591782237568       6648911           60.139           44101             733.318
-      1591782359825       6692497           60.114           43586             725.056
-      1591782419957       6735616           60.115           43119             717.275
-      1591782542227       6833050           60.121           97434             1620.63
-      1591782602341       6958258           60.088           125208             2083.74
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="shell" /><summary type="html">概述</summary></entry><entry><title type="html">VD与RAID分区对应关系</title><link href="http://172.17.73.80:4000/2020/06/08/Correspondence_between_VD_and_RAID_partition/" rel="alternate" type="text/html" title="VD与RAID分区对应关系" /><published>2020-06-08T00:00:00+08:00</published><updated>2020-06-08T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/08/Correspondence_between_VD_and_RAID_partition</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/08/Correspondence_between_VD_and_RAID_partition/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;环境中创建了VD,lsblk可以看到创建好后的分区信息，如何获取分区与RAID VD之间的对应关系呢，比如/dev/sdc分区，对应RAID组哪个VD？&lt;/p&gt;
-
-&lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
-
-&lt;p&gt;Step1. 获取RAID卡的Vendor Id和Device Id&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -adpallinfo -aall | grep -Ei 'Vendor Id|Device Id'
-Vendor Id       : 1000
-Device Id       : 005d
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Step2. 获取VD的Target Id&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -ldpdinfo  aall | grep 'Target Id'
-Virtual Drive: 0 (Target Id: 0)
-Virtual Drive: 1 (Target Id: 1)
-Virtual Drive: 2 (Target Id: 2)
-Virtual Drive: 3 (Target Id: 3)
-Virtual Drive: 4 (Target Id: 4)
-Virtual Drive: 5 (Target Id: 5)
-Virtual Drive: 6 (Target Id: 6)
-Virtual Drive: 7 (Target Id: 7)
-Virtual Drive: 8 (Target Id: 8)
-root@ec-node3:~#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Step3. 获取设备前缀信息&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ec-node3:~# lspci -nd 1000:005d
-af:00.0 0104: 1000:005d (rev 02)
-root@ec-node3:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;这里的&lt;code class=&quot;highlighter-rouge&quot;&gt;af:00.0&lt;/code&gt;，就是我们所需的设备前缀信息。&lt;/p&gt;
-
-&lt;p&gt;Step4. 根据设备前缀信息以及Target Id，获取对应分区信息&lt;/p&gt;
-
-&lt;p&gt;Linux 命令行操作如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ec-node3:~# cd /dev/disk/by-path
-root@ec-node3:/dev/disk/by-path# ls -l
-total 0
-lrwxrwxrwx 1 root root  9 Jun  8 14:39 pci-0000:00:11.5-ata-1 -&amp;gt; ../../sdj
-lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part1 -&amp;gt; ../../sdj1
-lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part2 -&amp;gt; ../../sdj2
-lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part3 -&amp;gt; ../../sdj3
-lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part4 -&amp;gt; ../../sdj4
-lrwxrwxrwx 1 root root  9 Jun  8 14:39 pci-0000:00:11.5-ata-2 -&amp;gt; ../../sdk
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:0:0 -&amp;gt; ../../sda
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:0:0-part1 -&amp;gt; ../../sda1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:1:0 -&amp;gt; ../../sdb
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:1:0-part1 -&amp;gt; ../../sdb1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:2:0 -&amp;gt; ../../sdc
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:2:0-part1 -&amp;gt; ../../sdc1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:3:0 -&amp;gt; ../../sdd
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:3:0-part1 -&amp;gt; ../../sdd1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:4:0 -&amp;gt; ../../sde
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:4:0-part1 -&amp;gt; ../../sde1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:5:0 -&amp;gt; ../../sdf
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:5:0-part1 -&amp;gt; ../../sdf1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:6:0 -&amp;gt; ../../sdg
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:6:0-part1 -&amp;gt; ../../sdg1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:7:0 -&amp;gt; ../../sdh
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:7:0-part1 -&amp;gt; ../../sdh1
-lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0 -&amp;gt; ../../sdi
-lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0-part1 -&amp;gt; ../../sdi1
-root@ec-node3:/dev/disk/by-path#
-root@ec-node3:/dev/disk/by-path# ls -l |grep 'pci-0000:af:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
-sdc
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;说明：&lt;/p&gt;
-
-&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pci-0000:af:00.0-scsi-0:2:2:0&lt;/code&gt;，这里的 &lt;code class=&quot;highlighter-rouge&quot;&gt;0:2:2:0&lt;/code&gt;，从左向右数，第二位，2，表示的就是Target Id，&lt;code class=&quot;highlighter-rouge&quot;&gt;af:00.0&lt;/code&gt;为设备前缀信息。&lt;/p&gt;
-
-&lt;p&gt;Python Code示例如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@ec-node3:~# python
-Python 2.7.12 (default, Oct  8 2019, 14:14:10) 
-[GCC 5.4.0 20160609] on linux2
-Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.
-&amp;gt;&amp;gt;&amp;gt; slot_name = 'af:00.0'
-&amp;gt;&amp;gt;&amp;gt; target_id = '2'
-&amp;gt;&amp;gt;&amp;gt; import os, re
-&amp;gt;&amp;gt;&amp;gt; pattern = re.compile(r':{}-scsi-\d+:\d+:{}:\d+$'.format(slot_name, target_id))
-&amp;gt;&amp;gt;&amp;gt; disk_path = None
-&amp;gt;&amp;gt;&amp;gt; dev_path = '/dev/disk/by-path'
-&amp;gt;&amp;gt;&amp;gt; for disk in os.listdir(dev_path):
-...     if pattern.search(disk):
-...         path_to_disk = os.readlink(os.path.join(dev_path, disk))
-...         disk_path = os.path.normpath(os.path.join(dev_path, path_to_disk))
-...         print disk_path
-...         break
-... 
-/dev/sdc
-&amp;gt;&amp;gt;&amp;gt; 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="shell" /><summary type="html">概述</summary></entry></feed>

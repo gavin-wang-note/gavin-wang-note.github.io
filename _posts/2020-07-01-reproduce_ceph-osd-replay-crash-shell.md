@@ -1,0 +1,276 @@
+---
+layout:     post
+title:      "shell完成一次ceph-osd crash验证"
+subtitle:   "Reproduce ceph-osd crash by shell script"
+date:       2020-07-01
+author:     "Gavin"
+catalog:    true
+tags:
+    - shell
+    - ceph
+---
+
+# 概述
+
+最近在测试ceph rocksdb性能优化效果，由于频繁的重启机器（ipmitool power off），出现了两次ceph-osd replay crash问题，由于频繁的power off太伤机器了，验证完毕rocksdb性能优化后，重写了个script，通过kill ceph 核心服务来模拟突然掉电，同时cosbench持续狂打流量，以及不间断的reset s3 pool 来完成场景的复现。
+
+
+# 脚本参考如下
+
+{% raw %}```
+root@node76:~# cat kill_ceph_and_reset_s3_pool.sh 
+#!/bin/bash
+
+loop_cnt=100
+ctdb_wait_time=600
+ceph_wait_time=900
+node_num=3
+pgnum=6656
+target_ip=10.16.172.77
+public_ip=10.16.172.76
+target_pool='pool01'
+default_pool='Default'
+default_s3_pool='default.rgw.buckets.data'
+bucket_objs_no=300000
+
+
+function rand(){
+    min=$1
+    max=$(($2- $min + 1))
+    num=$(date +%s%N)
+    echo $(($num % $max + $min))
+}
+
+
+function login_ui(){
+    login_res=`curl --insecure --cookie-jar cookie.jar -s -X POST --header "Accept: application/json, text/javascript, */*; q=0.01" --header "Content-Type: application/json" "https://${public_ip}:8080/auth" --data '{"password": "1", "user_id": "admin"}'`
+    login_return_code=`echo ${login_res} | sed 's@{"name": "login", "return_code": @@' | sed 's/}//'`
+
+    if [ x"${login_return_code}" == x"300" ]; then
+        echo ""
+        echo "[ERROR]  Login Failed, exit!!!"
+        echo ""
+        exit 1
+    elif [[ ${login_return_code} =~ 'session_id' ]]; then
+        echo ""
+        echo "Login success"
+        echo ""
+    fi
+}
+
+
+function check_pool_exist()
+{
+    pool_grep=`rados lspools | grep ${target_pool}`
+
+    if [[ -z ${pool_grep}  ]]; then
+        echo ""
+        echo "[ERROR]  Not exists pool : ${target_pool}, needs to create in cluster, exit!!!"
+        echo ""
+        exit 0
+    fi
+}
+
+
+function reset_s3_pool(){
+    pool_name=$1
+
+    # Reset s3 pool
+    start_time=`date "+%Y-%m-%d %H:%M:%S"`
+    echo "${start_time}  Start to set pool : (${pool_name}) as s3 pool" 
+
+    result_code=`curl --insecure --cookie cookie.jar --header "Accept: application/json, text/javascript, */*; q=0.01" --header "Content-Type: application/json" -s -I -w %{http_code} "https://${public_ip}:8080/cgi-bin/ezs3/json/pool_enable_s3?pool_name=${pool_name}"`
+
+    cur_time=`date "+%Y-%m-%d %H:%M:%S"`
+    if [[ ${result_code} =~ '200' ]]; then
+        sleep_time=$(rand 100 120)
+        echo "${cur_time}  --> OK, set pool : (${pool_name}) as s3 pool success, now sleep ${sleep_time}s" 
+        sleep ${sleep_time}
+    elif [[ ${result_code} =~ '401'  ]]; then
+        echo "[WARN]  Session timeout, login again"
+        login_ui
+    else
+        echo "${cur_time}  [ERROR]  exit!" 
+        echo ""
+        exit 1
+    fi
+}
+
+
+function wait_until_ctdb_ok()
+{
+    expect_num=$1
+    max_wait_time=$2
+    current_time=0
+    while [[ $current_time -lt $max_wait_time ]];do
+        current_ctdb_ok=`ctdb status 2>/dev/null|grep OK|wc -l`
+        if [ $current_ctdb_ok -eq $expect_num ];then
+            break
+        fi
+        sleep 5
+        current_time=$((current_time+5))
+        #echo "...elapse: $current_time, ctdb: ${current_ctdb_ok}"
+    done
+    if [[ $current_time -ge $max_wait_time ]];then
+        echo "Fail!!! After wait $max_wait_time seconds, ctdb number is still $current_ctdb_ok, should be $expect_num, exit!"
+        # ceph tell osd.* injectargs '--debug-osd 0/0'
+        # ceph tell mds.* injectargs '--debug-mds 0/0'
+        onnode -p all 'truncate --size 0 /var/log/ceph/ceph*.log'
+        exit 1
+    fi
+    echo "${current_time}"
+}
+
+
+function wait_until_ceph_ok()
+{
+    max_wait_time=$1
+    start_time=`date +%s`
+    max_end_time=$((start_time+max_wait_time))
+    current_time=`date +%s`
+    while [[ $current_time -lt $max_end_time ]];do
+        ceph -s|grep "$pgnum active+clean" >/dev/null
+        if [ $? -eq 0 ];then
+            break
+        fi
+        sleep 5
+        current_time=`date +%s`
+    done
+    if [[ $current_time -ge $max_end_time ]];then
+        echo "Fail!!! After wait $max_wait_time seconds, ceph is not healthy, but is `ceph health`, exit!"
+        # ceph tell osd.* injectargs '--debug-osd 0/0'
+        # ceph tell mds.* injectargs '--debug-mds 0/0'
+        exit 1
+    fi
+    echo "$((current_time-start_time))"
+}
+
+# ceph tell mds.* injectargs '--debug-mds 20' 2&>/dev/null
+
+
+function wait_objects_reach()
+{
+    echo "`date '+%Y-%m-%d %H:%M:%S'`: Wait S3 objects number should be large than ${bucket_objs_no}"
+
+    cur_s3_pool=`radosgw-admin zone get --rgw-zone=default | grep data_pool | awk -F ':' '{{print $NF}}' | sed 's/,//g' | sed 's/"//g' | sed 's/ //g'`
+    objs=`ceph df | grep ${cur_s3_pool} | awk '{{print $NF}}'`
+
+    while [[ ${objs} -le ${bucket_objs_no} ]]; do
+        sleep_time=$(rand 30 60)
+        echo "`date '+%Y-%m-%d %H:%M:%S'`: Objects number : ${objs} is less than ${bucket_objs_no}, sleep ${sleep_time}"
+        sleep ${sleep_time}
+        objs=`ceph df | grep ${cur_s3_pool} | awk '{{print $NF}}'`
+    done
+
+    echo "`date '+%Y-%m-%d %H:%M:%S'`: Objects number : ${objs} is large than ${bucket_objs_no}"
+}
+
+
+function kill_ceph_service()
+{
+    process_to_kill='ceph-osd ceph-mds ceph-mon radosgw'
+    for seed in ${process_to_kill}; do
+        process_list=`ssh ${target_ip} pidof ${seed}`
+        killed=
+        for killpid in $process_list; do
+          if [ ! -z $killpid ];then
+            echo "`date '+%Y-%m-%d %H:%M:%S'`: Killed ${seed} PID ${killpid} on node : ${target_ip}"
+            ssh ${target_ip} kill -9 $killpid
+            killed=yes
+          fi
+        done
+
+        if [ -z $killed ];then
+            echo "`date '+%Y-%m-%d %H:%M:%S'`: Didn't kill anything on node ${target_ip}"
+        fi
+    done
+
+    ssh ${target_ip} systemctl stop ceph.target
+    sleep_time=$(rand 100 180)
+    echo "`date '+%Y-%m-%d %H:%M:%S'`: After kill ceph service, sleep ${sleep_time}"
+    sleep ${sleep_time}
+}
+
+
+function start_ceph_service(){
+    echo "`date '+%Y-%m-%d %H:%M:%S'`: Start ceph service on node ${target_ip}"
+    ssh ${target_ip} systemctl start ceph.target
+    ssh ${target_ip} systemctl restart ceph-radosgw@radosgw.0.service
+}
+
+
+function restart_cosbench_job()
+{
+    cosbench_ip=10.16.172.244
+    cosbench_dir="/root/0.4.2.c4"
+    submit_dir="/root/75"
+    root_passwd=1
+
+    job_no=`sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} "${cosbench_dir}/cli.sh info |& grep PROCESSING | wc -l"`
+
+    if [[ ${job_no} -gt 0 ]]; then
+        job_id=`sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} "${cosbench_dir}/cli.sh info |& grep PROCESSING | awk '{{print \\$1}}'"`
+
+        # Cancel the job
+        echo "`date '+%Y-%m-%d %H:%M:%S'`: Cancel cosbench job : ${job_id}"
+        sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} "${cosbench_dir}/cli.sh cancel ${job_id}"
+
+        # Start another new job
+        echo "`date '+%Y-%m-%d %H:%M:%S'`: Sumbit a new cosbench job"
+        kill_cmd="ps -ef |grep cosbench.sh | grep -v grep | awk '{{print \$2}}' | xargs -I {} kill -9 {}"
+        sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} "${kill_cmd}; cd ${submit_dir}; bash cosbench.sh"&
+    else
+        # Start another new job
+        echo "`date '+%Y-%m-%d %H:%M:%S'`: Sumbit a new cosbench job"
+        kill_cmd="ps -ef |grep cosbench.sh | grep -v grep | awk '{{print \$2}}' | xargs -I {} kill -9 {}"
+        sshpass -p ${root_passwd} ssh -o ServerAliveInterval=60 -p 22 -l root ${cosbench_ip} "${kill_cmd}; cd ${submit_dir}; bash cosbench.sh"&
+    fi
+}
+
+
+# Check pool exists or not
+check_pool_exist
+
+# First, needs to login UI, generate session
+login_ui
+
+for ((i=1;i<=$loop_cnt;i++));
+do
+    echo "============================================== $i =============================================="
+    # Secondly, reset s3 pool
+    cur_s3_pool=`radosgw-admin zone get --rgw-zone=default | grep data_pool | awk -F ':' '{{print $NF}}' | sed 's/,//g' | sed 's/"//g' | sed 's/ //g'`
+    if [[ X${cur_s3_pool} == X${target_pool} ]]; then
+        reset_s3_pool ${default_pool}
+    elif [[ X${cur_s3_pool} == X${default_s3_pool} ]]; then
+        reset_s3_pool ${target_pool}
+    else
+        reset_s3_pool ${target_pool}
+    fi
+
+    # Resubmit a cosbench job
+    restart_cosbench_job
+
+    # Wait S3 pool objects reach to the target numbers
+    wait_objects_reach
+
+    # Then kill and start ceph-osd, ceph-mds, ceph-mon, radosgw
+    kill_ceph_service
+    start_ceph_service
+
+    cost_time=$(wait_until_ceph_ok $ceph_wait_time)
+    echo "`date '+%Y-%m-%d %H:%M:%S'`: After ${cost_time}s, ceph becomes HEALTH_OK."
+
+    onnode all 'ls /var/log/cores -lhrt | grep -vi ldb' 2>/dev/null|grep ezcore
+    if [[ $? -eq 0 ]]; then
+        echo "`date '+%Y-%m-%d %H:%M:%S'`: FAIL!! Core dump of others yielded."
+        # ceph tell osd.* injectargs '--debug-osd 0/0'
+        # ceph tell mds.* injectargs '--debug-mds 0/0'
+        exit 1
+    fi
+
+    onnode -p all 'truncate --size 0 /var/log/ceph/ceph*.log'
+    echo "[Success]  Loop $i pass"
+done
+root@node76:~#
+``` {% endraw %}
+
