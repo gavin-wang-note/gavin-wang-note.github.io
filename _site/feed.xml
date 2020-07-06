@@ -1,4 +1,162 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-07-02T11:06:49+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">awk引用shell中变量</title><link href="http://172.17.73.80:4000/2020/07/01/awk_refers_variables_in_shell/" rel="alternate" type="text/html" title="awk引用shell中变量" /><published>2020-07-01T00:00:00+08:00</published><updated>2020-07-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/01/awk_refers_variables_in_shell</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/01/awk_refers_variables_in_shell/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-07-06T13:48:41+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">利用oceanfile批量构造文件并统计cephfs速度</title><link href="http://172.17.73.80:4000/2020/07/06/calc_cephfs_write_speed/" rel="alternate" type="text/html" title="利用oceanfile批量构造文件并统计cephfs速度" /><published>2020-07-06T00:00:00+08:00</published><updated>2020-07-06T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/06/calc_cephfs_write_speed</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/06/calc_cephfs_write_speed/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;前段时间RD优化了rocksdb，S3的性能有显著提升，在此基础上，利用RD自研工具验证cepfhs 写速度，每间隔5million个文件进行一次写速度的统计。&lt;/p&gt;
+
+&lt;h1 id=&quot;shell-script&quot;&gt;shell script&lt;/h1&gt;
+
+&lt;p&gt;直接上脚本，参考如下:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~/oceanfile# cat run_oceanfile.sh 
+#!/bin/bash
+
+EFILE=/usr/local/bin/oceanfile
+target_no=5000000
+WRITE_DIR=&quot;/vol/nas02/&quot;
+LOG=&quot;/var/log/nas_ocean.log&quot;
+
+
+function check_arch()
+{   
+    new_arch=(`echo $arch | tr ',' ' '` )
+    total_no=1 
+    for var in ${new_arch[@]}
+    do  
+        # echo $var
+        let total_no*=$var
+    done 
+
+    if [[ ${total_no} -ne ${target_no} ]]; then
+        echo ''
+        echo '[ERROR]  The current round amount of data: (${total_no}) is less than expected amount of data: (${target_no})'
+        echo ''
+        exit 1
+    fi
+}
+
+
+if [ $# != 3 ] ; then
+    echo &quot;&quot;
+    echo &quot;USAGE: $0 parallel size arch&quot;
+    echo &quot;  e.g.: $0 20 64 10,10,10,10,100&quot;
+    echo &quot;&quot;
+    exit 1;
+fi
+
+parallel=$1
+file_size=$2  # Unit is K
+arch=$3
+
+# Check arch numbers
+check_arch
+
+for round in {1..22}
+do
+    while (( $(ps aux | grep -w oceanfile | grep -v grep | wc -l) &amp;gt;= 1 )); do
+        sleep 60
+    done
+
+    write_dir=${WRITE_DIR}/round_${round}
+
+    if [[ ! -d ${write_dir} ]]; then
+        mkdir -p ${write_dir}
+    fi
+
+    echo $(date) ROUND ${round} BEGIN  &amp;gt;&amp;gt;$LOG 2&amp;gt;&amp;amp;1
+    start_time=`echo $[$(date +%s%N)/1000000]`
+    ${EFILE} -d ${write_dir} -p ${parallel} -s ${file_size}k -b ${file_size}k -a ${arch} -i 5 &amp;gt;&amp;gt;$LOG 2&amp;gt;&amp;amp;1 
+    end_time=`echo $[$(date +%s%N)/1000000]`
+
+    diff=`expr ${end_time} - ${start_time}`
+    time_diff=`echo | awk &quot;{print $diff/1000}&quot;`
+    avg_speed=`echo | awk &quot;{print ${target_no}/${time_diff}}&quot;`
+   
+    # echo ROUND $round &quot;* ${target_no}  cost $time_diff (ms) avg_speed $avg_speed&quot;
+    printf &quot;ROUND %-8s  %12d (Files)       Cost %10.2f (s)  Avage: %8.2f\n&quot; $round $target_no $time_diff $avg_speed
+    
+    echo &amp;gt;&amp;gt;$LOG 2&amp;gt;&amp;amp;1
+    echo &quot;ROUND $round  * $target_no (files) cost $time_diff (s)  avg_speed: $avg_speed&quot; &amp;gt;&amp;gt; $LOG 2&amp;gt;&amp;amp;1
+    echo $(date) ROUND ${round} FINISH  &amp;gt;&amp;gt;$LOG 2&amp;gt;&amp;amp;1
+    echo &amp;gt;&amp;gt;$LOG 2&amp;gt;&amp;amp;1
+    echo &amp;gt;&amp;gt;$LOG 2&amp;gt;&amp;amp;1
+done
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;运行效果&quot;&gt;运行效果&lt;/h1&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/cephfs_write_speed.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;</content><author><name>Gavin</name></author><category term="shell" /><summary type="html">概述</summary></entry><entry><title type="html">awk引用shell中变量</title><link href="http://172.17.73.80:4000/2020/07/01/awk_refers_variables_in_shell/" rel="alternate" type="text/html" title="awk引用shell中变量" /><published>2020-07-01T00:00:00+08:00</published><updated>2020-07-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/01/awk_refers_variables_in_shell</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/01/awk_refers_variables_in_shell/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;在网上找了一个统计pool下pg分布的脚本，拿来使用了一下，发现可以在ceph J版上执行，在L版报错，原脚本内容参考如下:&lt;/p&gt;
 
@@ -3959,650 +4117,4 @@ root@node76:~#
   &lt;li&gt;实现同集群中创建同名bucket和S3账号，即实现租户的数据隔离。&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;而实际应用要远比本文所示要复杂的多，比如不同tenant之间不同bucket下的数据共享，这就涉及到RGW bucket policy 设置问题了。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">什么是multi-tenancy</summary></entry><entry><title type="html">API响应慢问题复现</title><link href="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/" rel="alternate" type="text/html" title="API响应慢问题复现" /><published>2020-06-12T00:00:00+08:00</published><updated>2020-06-12T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue</id><content type="html" xml:base="http://172.17.73.80:4000/2020/06/12/reproduce_slow_API_issue/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。&lt;/p&gt;
-
-&lt;h1 id=&quot;具体要求&quot;&gt;具体要求&lt;/h1&gt;
-
-&lt;p&gt;具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID card等诸多信息，如果响应时间超过预定时间，比如30s，则认为API出状况了。&lt;/p&gt;
-
-&lt;p&gt;上述过程，使用测试脚本完成，一旦响应时间超过预定时间，程序退出。&lt;/p&gt;
-
-&lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
-
-&lt;h2 id=&quot;shell&quot;&gt;shell&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat raid_api_elapsed.sh
-#!/bin/bash
-
-PUBLIC_IP=7.73.7.76
-STORAGE_IP=1.1.1.76
-TIMEOUT=30
-LOG_FILE=./raid_api_elapsed.log
-
-# Login
-login_res=`curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${PUBLIC_IP}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'`
-login_return_code=`echo ${login_res} | sed 's@{&quot;name&quot;: &quot;login&quot;, &quot;return_code&quot;: @@' | sed 's/}//'`
-
-if [ x&quot;${login_return_code}&quot; == x&quot;300&quot; ]; then
-    echo &quot;&quot;
-    echo &quot;[ERROR]  Login Failed, exit!!!&quot;
-    echo &quot;&quot;
-    exit 1
-elif [[ ${login_return_code} =~ 'session_id' ]]; then
-    echo &quot;&quot;
-    echo &quot;Login success&quot;
-    echo &quot;&quot;
-fi
-
-echo &quot;======================================================= RAID API Elapsed Time Test =======================================================&quot; | tee ${LOG_FILE}
-
-while :
-do
-    # RAID API
-    # start_time=`date +%F-%H-%M.%N`
-    start_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
-    start_time_stamp=`date -d &quot;${start_time}&quot; +%s`
-    start_mills=$((${start_time_stamp}*1000+`date &quot;+%N&quot; | sed 's/^[0]*//'`/1000000))
-
-    result_code=`curl --insecure --cookie cookie.jar --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; -s -I -m ${TIMEOUT} -w %{http_code} &quot;https://${PUBLIC_IP}:8080/system/host/${STORAGE_IP}/disk/raid&quot;`
-    end_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
-    end_time_stamp=`date -d &quot;${end_time}&quot; +%s`
-    end_mills=$((${end_time_stamp}*1000+`date &quot;+%N&quot; | sed 's/^[0]*//'`/1000000))
-
-    if [[ ${result_code} =~ '200' ]]; then
-        time_diff=`expr ${end_mills} - ${start_mills}`
-        echo &quot;${end_time}  --&amp;gt; OK, elapsed time is : (${time_diff} milliseconds), now sleep 2s&quot; | tee ${LOG_FILE}
-        sleep 2
-    elif [[ ${result_code} =~ '401'  ]]; then
-        echo &quot;[WARN]  Session timeout, login again&quot;
-        curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${PUBLIC_IP}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'
-    else
-        echo &quot;${end_time}  [ERROR]  Cost more than ${TIMEOUT}s, exit!&quot; | tee ${LOG_FILE}
-        echo &quot;&quot;
-        exit 1
-    fi
-done
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;核心是-s -I -m 10 -w %{http_code}，解释一下携带的参数信息：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;-I 仅测试HTTP头
-
--m 10 最多查询10s
-
--o /dev/null 屏蔽原有输出信息
-
--s silent 模式，不输出任何东西
-
--w %{http_code} 控制额外输出
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;这里还有另外一个方法:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# curl --insecure --cookie cookie --header 'Accept: application/json, text/javascript, */*; q=0.01' --header 'Content-Type: application/json' -o /dev/null -s -w &quot;time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n&quot; https://7.73.7.76:8080/system/host/1.1.1.76/disk/raid
-time_connect: 0.000
-time_starttransfer: 8.435
-time_total: 8.436
-root@node76:~# 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;可以根据time_total时间来判断，此时间超过一定值，就退出。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat raid_api_elapsed2.sh 
-#!/bin/bash
-
-PUBLIC_IP=7.73.7.76
-STORAGE_IP=1.1.1.76
-TIMEOUT=30
-LOG_FILE=./raid_api_elapsed.log
-
-# Login
-login_res=`curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${PUBLIC_IP}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'`
-login_return_code=`echo ${login_res} | sed 's@{&quot;name&quot;: &quot;login&quot;, &quot;return_code&quot;: @@' | sed 's/}//'`
-
-if [ x&quot;${login_return_code}&quot; == x&quot;300&quot; ]; then
-    echo &quot;&quot;
-    echo &quot;[ERROR]  Login Failed, exit!!!&quot;
-    echo &quot;&quot;
-    exit 1
-elif [[ ${login_return_code} =~ 'session_id' ]]; then
-    echo &quot;&quot;
-    echo &quot;Login success&quot;
-    echo &quot;&quot;
-fi
-
-echo &quot;======================================================= RAID API Elapsed Time Test =======================================================&quot; | tee ${LOG_FILE}
-
-while :
-do
-    # RAID API
-    start_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
-
-    time_total=`curl --insecure --cookie cookie.jar --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; -o /dev/null -s -w &quot;%{time_total}\n&quot; &quot;https://${PUBLIC_IP}:8080/system/host/${STORAGE_IP}/disk/raid&quot;`
-    end_time=`date &quot;+%Y-%m-%d %H:%M:%S&quot;`
-
-    int_time_total=`echo $a | cut -d '.' -f1`
-    if [[ ${int_time_total} -lt ${TIMEOUT} ]]; then
-        echo &quot;${end_time}  --&amp;gt; OK, elapsed time is : (${time_total} milliseconds), now sleep 2s&quot; | tee ${LOG_FILE}
-        sleep 2
-    elif [[ ${result_code} =~ '401'  ]]; then
-        echo &quot;[WARN]  Session timeout, login again&quot;
-        curl --insecure --cookie-jar cookie.jar -s -X POST --header &quot;Accept: application/json, text/javascript, */*; q=0.01&quot; --header &quot;Content-Type: application/json&quot; &quot;https://${PUBLIC_IP}:8080/auth&quot; --data '{&quot;password&quot;: &quot;1&quot;, &quot;user_id&quot;: &quot;admin&quot;}'
-    else
-        echo &quot;${end_time}  [ERROR]  Cost time : (${time_total}) is more than ${TIMEOUT}s, exit!&quot; | tee ${LOG_FILE}
-        echo &quot;&quot;
-        exit 1
-    fi
-done
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;python&quot;&gt;python&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# cat raid_api_elapsed.py 
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
-import sys
-import json
-import time
-import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
-requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-
-class HttpSession(requests.Session):
-    &quot;&quot;&quot;  http request session  &quot;&quot;&quot;
-
-    def __init__(self):
-        super(HttpSession, self).__init__()
-
-        # Not verify SSL certificate
-        self.verify = False
-
-        # timeout time
-        self.timeout = (60, 600)
-
-        # session information
-        self.session = &quot;&quot;
-
-    def login_session(self, user_id, password, public_ip):
-        &quot;&quot;&quot; Login Session &quot;&quot;&quot;
-        login_url = &quot;https://{}:8080/auth&quot;.format(public_ip)
-
-        login_data = {&quot;user_id&quot;: user_id,
-                     &quot;password&quot;: password}
-
-        self.session = requests.session()
-        self.session.keep_alive = False
-        self.session.headers.update({'Accept': 'application/json, text/javascript, */*; q=0.01'})
-        # print(&quot;[Login]    login_url: %s, login_data: %s&quot;, login_url, json.dumps(login_data))
-        response = self.session.request(&quot;POST&quot;, login_url, json=login_data, verify=False)
-
-        if response.status_code != 200:
-            print(&quot;[ERROR]  Login web error, http status code is {}&quot;.format(response.status_code))
-            sys.exit(1)
-
-        return self.session
-
-    def http_request(self, session, http_method, url, user_id, password, public_ip, params=None, data=None):
-        &quot;&quot;&quot;  Send HTTP request, support GET/POST  &quot;&quot;&quot;
-        params = {} if params is None else params
-        data = {} if data is None else data
-
-        # set SSL Verify to False
-        session.verify = False
-
-        # Set session keep alive to False
-        session.keep_alive = False
-
-        try:
-            start_time = time.time()
-            start_trans = time.localtime(start_time)
-            format_start_time = time.strftime('%Y-%m-%d %H:%M:%S.%3d', start_trans)
-
-            if &quot;cgi-bin&quot; in url:
-                # Legacy CGI
-                response = session.request(http_method, url, params=params, data=data)
-                if response.status_code == 401:
-                    session = self.login_session(user_id, password, public_ip)
-                    response = session.request(http_method, url, params=params, data=data)
-            else:
-                # Restful CGI
-                response = session.request(http_method, url, params=params, json=data)
-
-                if response.status_code == 401:
-                    session = self.login_session(user_id, password, public_ip)
-                    response = session.request(http_method, url, params=params, json=data)
-
-            elapsed_sec = response.elapsed.seconds
-            if elapsed_sec &amp;gt;= 30:
-                print(&quot;[{}]  [ERROR]  URL response elapsed time : ({}), return_text : ({})&quot;.format(format_start_time, elapsed_sec, response.text))
-                sys.exit(1)
-            else:
-                print(&quot;[{}]    URL response elapsed time : ({})&quot;.format(format_start_time, elapsed_sec))
-        except Exception as ex:
-            print(&quot;[WARN]  Session request exception : (%s)&quot;, str(ex))
-
-        return response
-
-
-def call_raid_api(user_id, password, http_method, url, public_ip, storage_ip):
-    &quot;&quot;&quot;  Call API &quot;&quot;&quot;
-    session = HttpSession()
-    login_s = session.login_session(user_id, password, public_ip)
-
-    for i in xrange(100):
-        session.http_request(login_s, http_method, url, user_id, password, public_ip) 
-
-
-if __name__ == '__main__':
-    public_ip = '7.73.7.76'
-    storage_ip = '1.1.1.76'
-    user_id = 'admin'
-    password = '1'
-    http_method = 'GET'
-    url = &quot;https://{}:8080/system/host/{}/disk/raid&quot;.format(public_ip, storage_ip)
-
-    call_raid_api(user_id, password, http_method, url, public_ip, storage_ip)
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;测试效果如下&quot;&gt;测试效果如下：&lt;/h1&gt;
-
-&lt;h2 id=&quot;shell-1&quot;&gt;shell&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# tailf raid_api_elapsed.log 
-2020-06-12 12:41:05  --&amp;gt; OK, elapsed time is : (8433 milliseconds), now sleep 2s
-2020-06-12 12:41:27  --&amp;gt; OK, elapsed time is : (8514 milliseconds), now sleep 2s
-2020-06-12 12:41:37  --&amp;gt; OK, elapsed time is : (8698 milliseconds), now sleep 2s
-2020-06-12 12:41:48  --&amp;gt; OK, elapsed time is : (8518 milliseconds), now sleep 2s
-2020-06-12 12:42:09  --&amp;gt; OK, elapsed time is : (8436 milliseconds), now sleep 2s
-2020-06-12 12:42:20  --&amp;gt; OK, elapsed time is : (8660 milliseconds), now sleep 2s
-2020-06-12 12:42:51  --&amp;gt; OK, elapsed time is : (8559 milliseconds), now sleep 2s
-2020-06-12 12:43:02  --&amp;gt; OK, elapsed time is : (8501 milliseconds), now sleep 2s
-2020-06-12 12:43:12  --&amp;gt; OK, elapsed time is : (8597 milliseconds), now sleep 2s
-2020-06-12 12:43:23  --&amp;gt; OK, elapsed time is : (8470 milliseconds), now sleep 2s
-.................................. 中间省略 ....................................
-2020-06-12 12:53:50  --&amp;gt; OK, elapsed time is : (8632 milliseconds), now sleep 2s
-2020-06-12 12:54:00  --&amp;gt; OK, elapsed time is : (8605 milliseconds), now sleep 2s
-2020-06-12 12:54:22  --&amp;gt; OK, elapsed time is : (8526 milliseconds), now sleep 2s
-2020-06-12 12:55:04  --&amp;gt; OK, elapsed time is : (8507 milliseconds), now sleep 2s
-2020-06-12 12:55:14  --&amp;gt; OK, elapsed time is : (8483 milliseconds), now sleep 2s
-2020-06-12 12:56:07  --&amp;gt; OK, elapsed time is : (8357 milliseconds), now sleep 2s
-2020-06-12 12:56:39  --&amp;gt; OK, elapsed time is : (8671 milliseconds), now sleep 2s
-2020-06-12 12:56:50  --&amp;gt; OK, elapsed time is : (8573 milliseconds), now sleep 2s
-2020-06-12 12:57:11  --&amp;gt; OK, elapsed time is : (8435 milliseconds), now sleep 2s
-2020-06-12 12:57:26  [ERROR]  Cost more than 30s, exit!
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;python-1&quot;&gt;python&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node76:~# python raid_api_elapsed.py 
-[2020-06-12 14:33:13.012]    URL response elapsed time : (8)
-[2020-06-12 14:33:22.012]    URL response elapsed time : (8)
-[2020-06-12 14:33:30.012]    URL response elapsed time : (8)
-[2020-06-12 14:33:39.012]    URL response elapsed time : (8)
-[2020-06-12 14:33:48.012]    URL response elapsed time : (8)
-[2020-06-12 14:33:56.012]    URL response elapsed time : (8)
-[2020-06-12 14:34:05.012]    URL response elapsed time : (8)
-[2020-06-12 14:34:13.012]    URL response elapsed time : (8)
-.......................... 中间省略 .........................
-[2020-06-12 14:39:30.012]    URL response elapsed time : (8)
-[2020-06-12 14:39:38.012]    URL response elapsed time : (13)
-[2020-06-12 14:39:52.012]    URL response elapsed time : (8)
-.......................... 中间省略 .........................
-[2020-06-12 14:44:19.012]    URL response elapsed time : (9)
-[2020-06-12 14:44:29.012]    URL response elapsed time : (9)
-[2020-06-12 14:44:38.012]    URL response elapsed time : (9)
-[2020-06-12 14:44:47.012]    URL response elapsed time : (8)
-[2020-06-12 14:44:55.012]    URL response elapsed time : (9)
-[2020-06-12 14:45:05.012]    URL response elapsed time : (9)
-[2020-06-12 14:45:14.012]    URL response elapsed time : (8)
-[2020-06-12 14:45:23.012]    URL response elapsed time : (8)
-[2020-06-12 14:45:31.012]    URL response elapsed time : (8)
-[2020-06-12 14:45:40.012]  [ERROR]  URL response elapsed time : (39), return_text : ({&quot;assigned&quot;: [{&quot;vd&quot;: &quot;0&quot;, &quot;current_cache_policy&quot;: &quot;WriteThrough, ReadAheadNone, Direct, No Write Cache if Bad BBU&quot;, &quot;drive_num&quot;: &quot;7&quot;, &quot;pds&quot;: [{&quot;slot&quot;: &quot;1&quot;, &quot;copyback_progress&quot;: null, &quot;other_error&quot;: 0, &quot;healthy&quot;: &quot;none&quot;, &quot;rebuild_progress&quot;: null, &quot;adapter&quot;: null, &quot;size&quot;: &quot;7.277 TB&quot;, &quot;media_error&quot;: 0, &quot;pd_type&quot;: &quot;SATA&quot;, &quot;lifetime_remaining&quot;: -1, &quot;firmware_state&quot;: &quot;Online, Spun Up&quot;, &quot;pd&quot;: &quot;0&quot;, &quot;media_type&quot;: &quot;HDD&quot;, &quot;device_id&quot;: &quot;38&quot;, &quot;smart_info&quot;: &quot;smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-server] (local build)\nCopyright (C) ....后面省略，这里展示具体的response详细信息...
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;其他&quot;&gt;其他&lt;/h1&gt;
-
-&lt;p&gt;看了同事写的一个python版本，非常简洁，不过没有考虑session过期问题，脚本内容参考如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@246:/home# cat c.py 
-# -*- coding: utf-8 -*-
-
-import time
-import urllib3
-import requests
-
-urllib3.disable_warnings()
-
-ip = &quot;1.1.7.246&quot;
-storage_ip = &quot;1.1.1.246&quot;
-headers = {&quot;accept&quot;: &quot;application/bigtera.vs.v1+json, application/json&quot;}
-
-session = requests.Session()
-# login
-url = &quot;https://{}:8080/auth&quot;.format(ip)
-response = session.post(
-    url, json={&quot;user_id&quot;: &quot;admin&quot;, &quot;password&quot;: &quot;1&quot;}, headers=headers, verify=False
-)
-
-while True:
-    start = time.time()
-    # get raid info
-    url = &quot;https://{}:8080/system/host/{}/disk/raid&quot;.format(ip, storage_ip)
-    response = session.get(url, headers=headers, verify=False)
-    end = time.time()
-    try:
-        response.raise_for_status()
-    except Exception as e:
-        print(e)
-        break
-
-    if end - start &amp;gt; 10:
-        print(&quot;last request cost {} seconds&quot;, end - start)
-        break
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><category term="shell" /><summary type="html">概述</summary></entry></feed>
+&lt;p&gt;而实际应用要远比本文所示要复杂的多，比如不同tenant之间不同bucket下的数据共享，这就涉及到RGW bucket policy 设置问题了。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">什么是multi-tenancy</summary></entry></feed>
