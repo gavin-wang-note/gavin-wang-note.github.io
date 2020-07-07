@@ -412,33 +412,27 @@ http://www.eclipse.org/downloads/
 
 <img class="shadow" src="/img/in-post/pvdev_package.png" width="1200">
 
-​    
 
 ### 步骤3、测试工程是否创建正常
 
 在testCase目录下新创建个test.py文件，输入脚本内容：
 
-`#/usr/bin/env python`
+```
+#/usr/bin/env python
+#-*- coding:UTF-8 -*-
 
-`#-*- coding:UTF-8 -*-`
+import os,sys
 
- `import os,sys`
+def nameInfo(name=None):
+    return name
 
- `def nameInfo(name=None):`
 
-  `return name`
-
-`` 
-
-`if __name__ == "__main__":`
-
-  `name = nameInfo('Gikoo')`
-
-  `print name`
-
-​    `print sys.platform`
-
-  `print os.path.sep`
+if __name__ == "__main__":
+    name = nameInfo('Gikoo')
+    print name
+    print sys.platform
+    print os.path.sep
+```
 
 按F9即可看到输出结果：
 
