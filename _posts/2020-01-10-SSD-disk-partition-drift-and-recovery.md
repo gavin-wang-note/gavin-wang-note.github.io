@@ -184,7 +184,7 @@ root@node245:~#
 
 这里发现，g-osd2-0对应的ext4m，ext4j之类的信息依然存在于dm设备中
 
-##Step4.  接触dm设备里map关系
+## Step4.  接触dm设备里map关系
 
 ```
 root@node245:~# umount /dev/mapper/g-osd2-0-cache
