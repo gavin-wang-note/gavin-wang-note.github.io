@@ -16,7 +16,7 @@ tags:
 
 由于要频繁的进出机房进行设备的拔出与插回操作，比较麻烦，是否有更便捷的方式进行操作呢？
 
-本文介绍同事推荐的，在有热交换驱动器情况下，scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。
+本文介绍同事推荐的，在有热交换驱动器情况下，通过scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。
 
 # 实践
 
@@ -49,7 +49,7 @@ root@node75:~#
 ```
 
 
-* 第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN
+* 第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN(分别对应本文的0，0，17，0)
 * 第二列：设备类型
 * 第3，4，5列：设备厂商，型号，版本信息  (Vendor,Model,Rev)
 * 最后一列：Rev，设备主节点名，可以理解为设备在系统中的名称，如果是磁盘，则为/dev/sdxxx
@@ -155,4 +155,19 @@ Drive      Status  ErrCd ErrMsg
 
 root@node75:~#
 ```
+
+
+# 其他
+
+上文中的热插拔，和 'Rescan SCSI/SATA Host Bus' 有着异曲同工之处，毕竟方法都是多样的，，根据不同场合使用。
+
+{% raw %}```
+#/bin/bash
+# ReScan all SCSI/SATA Hosts
+for SHOST in /sys/class/scsi_host/host*; do
+    echo -n "Scanning ${SHOST##*/}..."
+    echo "- - -" > ${SHOST}/scan
+    echo Done
+done
+```{% endraw %}
 

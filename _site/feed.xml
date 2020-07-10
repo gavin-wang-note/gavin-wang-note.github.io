@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-07-10T10:41:26+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">热插拔设备</title><link href="http://172.17.73.80:4000/2020/07/10/Hot_swap_device/" rel="alternate" type="text/html" title="热插拔设备" /><published>2020-07-10T00:00:00+08:00</published><updated>2020-07-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/10/Hot_swap_device</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/10/Hot_swap_device/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.0">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2020-07-10T11:03:28+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">热插拔设备</title><link href="http://172.17.73.80:4000/2020/07/10/Hot_swap_device/" rel="alternate" type="text/html" title="热插拔设备" /><published>2020-07-10T00:00:00+08:00</published><updated>2020-07-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/10/Hot_swap_device</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/10/Hot_swap_device/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;测试中碰到破坏RAID或下线磁盘的场景，需要从设备上拔盘，然后等产品侦测到对应Disk或VD异常后，再插回去，验证程序侦测及时性是否存在问题。&lt;/p&gt;
 
 &lt;p&gt;由于要频繁的进出机房进行设备的拔出与插回操作，比较麻烦，是否有更便捷的方式进行操作呢？&lt;/p&gt;
 
-&lt;p&gt;本文介绍同事推荐的，在有热交换驱动器情况下，scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。&lt;/p&gt;
+&lt;p&gt;本文介绍同事推荐的，在有热交换驱动器情况下，通过scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。&lt;/p&gt;
 
 &lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
 
@@ -47,7 +47,7 @@ root@node75:~#
 &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN&lt;/li&gt;
+  &lt;li&gt;第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN(分别对应本文的0，0，17，0)&lt;/li&gt;
   &lt;li&gt;第二列：设备类型&lt;/li&gt;
   &lt;li&gt;第3，4，5列：设备厂商，型号，版本信息  (Vendor,Model,Rev)&lt;/li&gt;
   &lt;li&gt;最后一列：Rev，设备主节点名，可以理解为设备在系统中的名称，如果是磁盘，则为/dev/sdxxx&lt;/li&gt;
@@ -240,6 +240,26 @@ Drive      Status  ErrCd ErrMsg
 
 
 root@node75:~#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;其他&quot;&gt;其他&lt;/h1&gt;
+
+&lt;p&gt;上文中的热插拔，和 ‘Rescan SCSI/SATA Host Bus’ 有着异曲同工之处，毕竟方法都是多样的，，根据不同场合使用。&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;#/bin/bash
+# ReScan all SCSI/SATA Hosts
+for SHOST in /sys/class/scsi_host/host*; do
+    echo -n &quot;Scanning ${SHOST##*/}...&quot;
+    echo &quot;- - -&quot; &amp;gt; ${SHOST}/scan
+    echo Done
+done
 &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">获取系统中所有的pid</title><link href="http://172.17.73.80:4000/2020/07/08/get_all_of_pid_from_os/" rel="alternate" type="text/html" title="获取系统中所有的pid" /><published>2020-07-08T00:00:00+08:00</published><updated>2020-07-08T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/08/get_all_of_pid_from_os</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/08/get_all_of_pid_from_os/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;Linux进程的pid，会在/proc目录下产生对应pid目录，如果想获取当前系统所有的pid，可以到此目录下去找。&lt;/p&gt;
