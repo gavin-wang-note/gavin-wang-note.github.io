@@ -143,7 +143,7 @@ do
     time_total=`curl --insecure --cookie cookie.jar --header "Accept: application/json, text/javascript, */*; q=0.01" --header "Content-Type: application/json" -o /dev/null -s -w "%{time_total}\n" "https://${PUBLIC_IP}:8080/system/host/${STORAGE_IP}/disk/raid"`
     end_time=`date "+%Y-%m-%d %H:%M:%S"`
 
-    int_time_total=`echo $a | cut -d '.' -f1`
+    int_time_total=`echo $time_total | cut -d '.' -f1`
     if [[ ${int_time_total} -lt ${TIMEOUT} ]]; then
         echo "${end_time}  --> OK, elapsed time is : (${time_total} milliseconds), now sleep 2s" | tee ${LOG_FILE}
         sleep 2
