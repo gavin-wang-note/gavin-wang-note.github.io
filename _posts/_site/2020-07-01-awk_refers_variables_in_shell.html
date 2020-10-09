@@ -1,0 +1,168 @@
+<h1 id="概述">概述</h1>
+
+<p>在网上找了一个统计pool下pg分布的脚本，拿来使用了一下，发现可以在ceph J版上执行，在L版报错，原脚本内容参考如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ceph pg dump | egrep -v "^[0-9]*  " | awk '
+/^pg_stat/ { col=1; while($col!="up") {col++}; col++ }
+/^[0-9a-f]+.[0-9a-f]+/ { match($0,/^[0-9a-f]+/); pool=substr($0, RSTART, RLENGTH); poollist[pool]=0;
+up=$col; i=0; RSTART=0; RLENGTH=0; delete osds; while(match(up,/[0-9]+/)&gt;0) { osds[++i]=substr(up,RSTART,RLENGTH); up = substr(up, RSTART+RLENGTH) }
+for(i in osds) {array[osds[i],pool]++; osdlist[osds[i]];}
+}
+END {
+printf("\n");
+printf("pool :\t"); for (i in poollist) printf("%s\t",i); printf("| SUM \n");
+for (i in poollist) printf("--------"); printf("-------------\n");
+for (i in osdlist) { printf("osd.%i\t", i); sum=0;
+for (j in poollist) { printf("%i\t", array[i,j]); sum+=array[i,j]; poollist[j]+=array[i,j] }; printf("| %i\n",sum) }
+for (i in poollist) printf("--------"); printf("--------------\n");
+printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n");
+}'
+</code></pre></div></div>
+
+<p>本文讲述awk如何引用shell变量，来解决上面这个脚本对我们产品的兼容问题。</p>
+
+<h1 id="实践">实践</h1>
+
+<p>修改后的脚本参考如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ceph_version=`ceph -v | awk '{{print $3}}'`
+
+if [[ ${ceph_version} =~ '10.' ]]; then
+    pg_stat="pg_stat"
+    up="up"
+elif [[ ${ceph_version} =~ '12.' ]]; then
+    pg_stat="PG_STAT"
+    up="UP"
+fi
+
+ceph pg dump | egrep -v "^[0-9]*  " | awk '
+/^'$pg_stat'/ { col=1; while($col!="'"$up"'") {col++}; col++ }
+/^[0-9a-f]+.[0-9a-f]+/ { match($0,/^[0-9a-f]+/); pool=substr($0, RSTART, RLENGTH); poollist[pool]=0;
+up=$col; i=0; RSTART=0; RLENGTH=0; delete osds; while(match(up,/[0-9]+/)&gt;0) { osds[++i]=substr(up,RSTART,RLENGTH); up = substr(up, RSTART+RLENGTH) }
+for(i in osds) {array[osds[i],pool]++; osdlist[osds[i]];}
+}
+END {
+printf("\n");
+printf("pool :\t"); for (i in poollist) printf("%s\t",i); printf("| SUM \n");
+for (i in poollist) printf("--------"); printf("-------------\n");
+for (i in osdlist) { printf("osd.%i\t", i); sum=0;
+for (j in poollist) { printf("%i\t", array[i,j]); sum+=array[i,j]; poollist[j]+=array[i,j] }; printf("| %i\n",sum) }
+for (i in poollist) printf("--------"); printf("--------------\n");
+printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n");
+}'
+</code></pre></div></div>
+
+<h1 id="awk引用shell中变量">awk引用shell中变量</h1>
+
+<h2 id="方法1-var">方法1： <code class="highlighter-rouge">"'$var'"</code></h2>
+
+<p>这种写法大家无需改变用’括起awk程序的习惯,是老外常用的写法.如:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var="test"
+
+awk 'BEGIN{print "'$var'"}'
+</code></pre></div></div>
+
+<p>这种写法其实就是把一对单引号分成了两段单引号，中间的shell变量直接按照shell变量的引用方式即可，但是如果var中含空格,为了shell不把空格作为分格符,便应该如下使用:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var="thisis a test"
+
+awk 'BEGIN{print "'"$var"'"}'    （也就是在shell变量的两边加上一对双引号即可）
+</code></pre></div></div>
+
+<h2 id="方法2export变量">方法2：export变量</h2>
+
+<p>使用ENVIRON[“var”]形式, (ENVIRON为awk中的内置环境变量数组)</p>
+
+<p>如:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var="thisis a test";export $var
+
+awk 'BEGIN{print ENVIRON["var"]}'
+</code></pre></div></div>
+
+<h2 id="方法3使用-v选项">方法3：使用-v选项</h2>
+
+<p>如:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>var="thisis a test"
+
+awk –v nvar="$var"  'BEGIN{print nvar}'
+</code></pre></div></div>
+
+<p>这样便把系统变量定义成了awk变量.</p>
+
+<p>如果在awk是这种格式的话 <code class="highlighter-rouge">awk  'script'  filename</code> 也可以这样引用shell变量</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>awk 'script' awkvar="shellvar" filename
+
+awk 'END{print awkvar}' awkvar="$shellvar" filename
+</code></pre></div></div>
+
+<h1 id="还有一个python版本">还有一个python版本</h1>
+
+<p>参考如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env  python
+</span><span class="kn">import</span> <span class="nn">sys</span> 
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="n">ceph_version_cmd</span> <span class="o">=</span> <span class="s">"ceph -v | awk '{{print $3}}'"</span>
+<span class="n">_vers</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">ceph_version_cmd</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="k">if</span> <span class="s">'10.'</span> <span class="ow">in</span> <span class="n">_vers</span><span class="p">:</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s">'''
+ceph pg dump | awk ' /^pg_stat/ { col=1; while($col!="up") {col++}; col++ } /^[0-9a-f]+</span><span class="err">\</span><span class="s">.[0-9a-f]+/ {print $1,$col}'
+'''</span>
+<span class="k">elif</span> <span class="s">'12.'</span> <span class="ow">in</span> <span class="n">_vers</span><span class="p">:</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="s">'''
+ceph pg dump | awk ' /^PG_STAT/ { col=1; while($col!="UP") {col++}; col++ } /^[0-9a-f]+</span><span class="err">\</span><span class="s">.[0-9a-f]+/ {print $1,$col}'
+'''</span>
+
+<span class="n">body</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="n">SUM</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span>  <span class="n">body</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">):</span>
+   <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+     <span class="k">continue</span>
+   <span class="n">SUM</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">pool</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+<span class="k">for</span>  <span class="n">key</span> <span class="ow">in</span>  <span class="n">SUM</span><span class="p">:</span>
+  <span class="n">pool</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'.'</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">mapping</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">pool</span><span class="p">:</span>
+  <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">SUM</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">'.'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">number</span><span class="p">:</span>
+       <span class="k">if</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+           <span class="n">mapping</span><span class="p">[</span><span class="n">number</span><span class="p">]</span> <span class="o">+=</span> <span class="n">v</span>
+       <span class="k">else</span><span class="p">:</span>
+           <span class="n">mapping</span><span class="p">[</span><span class="n">number</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+<span class="n">MSG</span> <span class="o">=</span> <span class="s">"""</span><span class="si">%(pool)-6</span><span class="s">s: </span><span class="si">%(pools)</span><span class="s">s | SUM
+</span><span class="si">%(line)</span><span class="s">s
+</span><span class="si">%(dy)</span><span class="s">s
+</span><span class="si">%(line)</span><span class="s">s
+</span><span class="si">%(sun)-6</span><span class="s">s: </span><span class="si">%(end)</span><span class="s">s |"""</span>
+<span class="n">pools</span> <span class="o">=</span> <span class="s">" "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">'</span><span class="si">%(a)-6</span><span class="s">s'</span> <span class="o">%</span> <span class="p">{</span><span class="s">"a"</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">mapping</span><span class="p">))])</span>
+<span class="n">line</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pools</span><span class="p">)</span> <span class="o">+</span> <span class="mi">20</span>
+<span class="n">MA</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">OSD</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+    <span class="n">osd</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">mapping</span><span class="p">[</span><span class="n">p</span><span class="p">])))</span>
+    <span class="n">OSD</span> <span class="o">+=</span> <span class="n">osd</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">mapping</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">osd</span><span class="p">])</span>
+    <span class="n">osds</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">osd</span><span class="p">:</span>
+        <span class="n">osds</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">mapping</span><span class="p">[</span><span class="n">p</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">MA</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">"osd"</span><span class="p">:</span> <span class="n">osds</span><span class="p">,</span> <span class="s">"count"</span><span class="p">:</span> <span class="n">count</span><span class="p">}</span>
+<span class="n">MA</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">MA</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">OSD</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">OSD</span><span class="p">)))</span>
+<span class="n">DY</span> <span class="o">=</span> <span class="s">""</span>
+<span class="k">for</span> <span class="n">osd</span> <span class="ow">in</span> <span class="n">OSD</span><span class="p">:</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">"osd"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">osd</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">MA</span><span class="p">])</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="p">[</span><span class="s">"</span><span class="si">%(x)-6</span><span class="s">s"</span> <span class="o">%</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">"osd"</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">osd</span><span class="p">,</span><span class="mi">0</span><span class="p">)}</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">MA</span><span class="p">]</span>
+    <span class="c1">#print w
+</span>    <span class="n">w</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">"| </span><span class="si">%(x)-6</span><span class="s">s"</span> <span class="o">%</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">count</span><span class="p">})</span>
+    <span class="n">DY</span> <span class="o">+=</span> <span class="s">'osd.</span><span class="si">%(osd)-3</span><span class="s">s </span><span class="si">%(osds)</span><span class="s">s</span><span class="se">\n</span><span class="s">'</span> <span class="o">%</span> <span class="p">{</span><span class="s">"osd"</span><span class="p">:</span> <span class="n">osd</span><span class="p">,</span> <span class="s">"osds"</span><span class="p">:</span> <span class="s">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">w</span><span class="p">)}</span>
+<span class="n">SUM</span> <span class="o">=</span> <span class="s">" "</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">"</span><span class="si">%(x)-6</span><span class="s">s"</span> <span class="o">%</span> <span class="p">{</span><span class="s">"x"</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">"count"</span><span class="p">]}</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">MA</span><span class="p">])</span>
+<span class="n">msg</span> <span class="o">=</span> <span class="p">{</span><span class="s">"pool"</span><span class="p">:</span> <span class="s">"pool"</span><span class="p">,</span> <span class="s">"pools"</span><span class="p">:</span> <span class="n">pools</span><span class="p">,</span> <span class="s">"line"</span><span class="p">:</span> <span class="s">"-"</span> <span class="o">*</span> <span class="n">line</span><span class="p">,</span> <span class="s">"dy"</span><span class="p">:</span> <span class="n">DY</span><span class="p">,</span> <span class="s">"end"</span><span class="p">:</span> <span class="n">SUM</span><span class="p">,</span> <span class="s">"sun"</span><span class="p">:</span> <span class="s">"SUM"</span><span class="p">}</span>
+<span class="k">print</span> <span class="n">MSG</span> <span class="o">%</span> <span class="n">msg</span>
+</code></pre></div></div>
