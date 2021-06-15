@@ -265,6 +265,7 @@ root@scaler:~#
 
 Linux 命令行操作如下：
 
+{% raw %}
 ```
 root@scaler:~# cd /dev/disk/by-path
 root@scaler:/dev/disk/by-path# ls -l |grep 'pci-0000:02:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
@@ -299,7 +300,7 @@ root@scaler:/dev/disk/by-path#
 root@scaler:/dev/disk/by-path# ls -l |grep 'pci-0000:02:00.0-scsi-0:2:3:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
 sdd
 root@scaler:/dev/disk/by-path# 
-```
+```{% endraw %}
 
 出现坏盘的，对应RAID组为VD 3，正好是sdd这个分区，说明HDD有损坏了，需要进行更换。
 
