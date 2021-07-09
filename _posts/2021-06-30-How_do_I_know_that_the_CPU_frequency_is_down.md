@@ -15,10 +15,6 @@ tags:
 
 万句千言，荒烟残照，一丘一壑谁共调；辗转流光，了犹未了，白发多时故人少。
 
-<img class="shadow" src="/img/in-post/Bruce.jpg" width="1200">
-
-<img class="shadow" src="/img/in-post/Our.jpg" width="1200">
-
 
 # 概述
 
