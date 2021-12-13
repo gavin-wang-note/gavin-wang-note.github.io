@@ -1,4 +1,86 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2021-07-09T09:00:26+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">CentOS中cp -f copy强制覆盖命令无效</title><link href="http://172.17.73.80:4000/2021/07/01/Slove_cp_command_force_overwrite_issue/" rel="alternate" type="text/html" title="CentOS中cp -f copy强制覆盖命令无效" /><published>2021-07-01T00:00:00+08:00</published><updated>2021-07-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/07/01/Slove_cp_command_force_overwrite_issue</id><content type="html" xml:base="http://172.17.73.80:4000/2021/07/01/Slove_cp_command_force_overwrite_issue/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2021-12-13T17:29:26+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">Delay the first auto start VM in PVE</title><link href="http://172.17.73.80:4000/2021/12/13/PVE_VM_delay_boot/" rel="alternate" type="text/html" title="Delay the first auto start VM in PVE" /><published>2021-12-13T00:00:00+08:00</published><updated>2021-12-13T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/12/13/PVE_VM_delay_boot</id><content type="html" xml:base="http://172.17.73.80:4000/2021/12/13/PVE_VM_delay_boot/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;一直以来，认为PVE提供的“延时启动”是针对宿主机完成启动后的XX设定的时间后VM自动启动，直到看到如下链接的内容中：
+https://dannyda.com/2020/06/24/how-to-delay-the-first-auto-start-virtual-machinevm-guest-system-in-proxmox-ve-pve/&lt;/p&gt;
+
+&lt;p&gt;明确说明PVE VM boot delay并不是我们所想的：宿主机启动后XX秒再启动VM，而是：定义此VM启动与后续VM启动之间的间隔。说明第一台VM启动，依然存在失败问题（存储尚未ready，VM开始启动）。&lt;/p&gt;
+
+&lt;h1 id=&quot;ui-设定的延时启动&quot;&gt;UI 设定的“延时启动”&lt;/h1&gt;
+
+&lt;p&gt;UI展示VM开机自启动，这里的设置来自qm指令&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node165:/etc/systemd/system/multi-user.target.wants# qm list
+      VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB) PID       
+       100 Scaler186            stopped    4096              32.00 0         
+       101 scaler182            stopped    131072            64.00 0         
+       103 Scaler103            running    131072            64.00 65598     
+       106 Scaler106            running    131072            64.00 266948    
+root@node165:/etc/systemd/system/multi-user.target.wants# qm set 106 -startup up=300
+update VM 106: -startup up=300
+
+root@node165:/etc/systemd/system/multi-user.target.wants#
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;做了上面的变更后，UI对应VM里的启动试验也跟着变（只是证明一下UI上的设定，来自指令qm set vmid -startup up=xx）。&lt;/p&gt;
+
+&lt;h1 id=&quot;如何正确设置vm的启动时延&quot;&gt;如何正确设置VM的启动时延？&lt;/h1&gt;
+
+&lt;h2 id=&quot;方法1使用-startall-onboot-delay-设置&quot;&gt;方法1：使用 –startall-onboot-delay 设置&lt;/h2&gt;
+
+&lt;p&gt;指令参考如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pvenode config set --startall-onboot-delay XXX
+
+--startall-onboot-delay &amp;lt;integer&amp;gt; (0 - 300) ( default = 0 ) Initial delay in seconds, before starting all the Virtual Guests with on-boot enabled.
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这个参数的设定，上限是300秒，如果想调整成更大的数值，可以修改如下文件(示例设置为400秒):&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node165:/etc/pve# grep -nri 400
+nodes/node165/config:1:startall-onboot-delay: 400
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;方法2修改-pve-guestsservice-pve-guests增加sleep&quot;&gt;方法2：修改 pve-guests.service pve-guests，增加sleep&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;cat /etc/systemd/system/multi-user.target.wants/pve-guests.service pve-guests
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;会看到如下部分的内容（有省略）：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[Service]
+Environment=&quot;PVE_LOG_ID=pve-guests&quot;
+ExecStartPre=-/usr/share/pve-manager/helpers/pve-startall-delay
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;在如上内容中，增加如下内容（注意两个ExecStartPre的顺序）：&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;[Service]
+Environment=&quot;PVE_LOG_ID=pve-guests&quot;
+ExecStartPre=/bin/sleep 400
+ExecStartPre=-/usr/share/pve-manager/helpers/pve-startall-delay
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="PVE" /><category term="proxmox ve" /><summary type="html">概述</summary></entry><entry><title type="html">CentOS中cp -f copy强制覆盖命令无效</title><link href="http://172.17.73.80:4000/2021/07/01/Slove_cp_command_force_overwrite_issue/" rel="alternate" type="text/html" title="CentOS中cp -f copy强制覆盖命令无效" /><published>2021-07-01T00:00:00+08:00</published><updated>2021-07-01T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/07/01/Slove_cp_command_force_overwrite_issue</id><content type="html" xml:base="http://172.17.73.80:4000/2021/07/01/Slove_cp_command_force_overwrite_issue/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;今天分几次执行了automation用例，产生不不用的allure需要的json文件，由于部分case执行失败，再次执行了这部分用例，对新产生的json文件覆盖掉旧的，
 结果在cp时提示是否要overwrite，由于文件数量很多，不可能每个交互信息都要输入y来确认覆盖，于是就要靠强制覆盖来解决，执行cp -rf时并没有起到预期效果。&lt;/p&gt;
@@ -91,13 +173,7 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
 &lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;# yes|cp -rf /test/test_other
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">如何知道CPU降频了呢</title><link href="http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/" rel="alternate" type="text/html" title="如何知道CPU降频了呢" /><published>2021-06-30T00:00:00+08:00</published><updated>2021-06-30T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down</id><content type="html" xml:base="http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/">&lt;h1 id=&quot;题外话&quot;&gt;题外话&lt;/h1&gt;
-
-&lt;p&gt;今天（2021-06-30）是Bruce last work day, 带领我们一起走过那么多风风雨雨，从普天，到诚基，再到今天的紫金研创，Office变了又变，不变的是那些年来大家一起对这份工作的热情，对产品的执著，是这个Team的凝聚力支撑着大家一路披荆斩棘，一步一步走出来，有苦亦有乐。。。&lt;/p&gt;
-
-&lt;p&gt;万句千言，荒烟残照，一丘一壑谁共调；辗转流光，了犹未了，白发多时故人少。&lt;/p&gt;
-
-&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">如何知道CPU降频了呢</title><link href="http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/" rel="alternate" type="text/html" title="如何知道CPU降频了呢" /><published>2021-06-30T00:00:00+08:00</published><updated>2021-06-30T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down</id><content type="html" xml:base="http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；&lt;/p&gt;
 
@@ -141,7 +217,7 @@ CPU min MHz:           800.0000
 
 &lt;p&gt;（2）BIOS固件的bug&lt;/p&gt;
 
-&lt;p&gt;（3）供电不足&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">题外话</summary></entry><entry><title type="html">WebBIOS里取消磁盘的JBOD设置</title><link href="http://172.17.73.80:4000/2021/06/15/WebBIOS_disable_disk_JBOD/" rel="alternate" type="text/html" title="WebBIOS里取消磁盘的JBOD设置" /><published>2021-06-15T00:00:00+08:00</published><updated>2021-06-15T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/06/15/WebBIOS_disable_disk_JBOD</id><content type="html" xml:base="http://172.17.73.80:4000/2021/06/15/WebBIOS_disable_disk_JBOD/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+&lt;p&gt;（3）供电不足&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">WebBIOS里取消磁盘的JBOD设置</title><link href="http://172.17.73.80:4000/2021/06/15/WebBIOS_disable_disk_JBOD/" rel="alternate" type="text/html" title="WebBIOS里取消磁盘的JBOD设置" /><published>2021-06-15T00:00:00+08:00</published><updated>2021-06-15T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/06/15/WebBIOS_disable_disk_JBOD</id><content type="html" xml:base="http://172.17.73.80:4000/2021/06/15/WebBIOS_disable_disk_JBOD/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;环境之前有使用过storcli或megacli命令开启了JBOD模式，安装系统后始终无法进入系统，grub 引导出问题，BIOS的设置检查了几次，并未发现异常，boot device也是对的，始终无法解决重灌系统后开机问题。
 决定更换OS盘（换成其他的SAS盘），在更换后，碰到了本文要描述的问题：存在部分是RAID部分是JBOD盘，计划OS盘做RAID0,但WebBIOS里查看到此盘无法最RAID。&lt;/p&gt;
@@ -2984,266 +3060,4 @@ root@host248:/dev#
 2
 &lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;https://bbs.archlinux.org/viewtopic.php?id=202587
 https://wiki2.xbits.net:4430/hardware:lsi:wipefs%E6%B8%85%E9%99%A4raid%E4%BF%A1%E6%81%AF
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">概述</summary></entry><entry><title type="html">热插拔设备</title><link href="http://172.17.73.80:4000/2020/07/10/Hot_swap_device/" rel="alternate" type="text/html" title="热插拔设备" /><published>2020-07-10T00:00:00+08:00</published><updated>2020-07-10T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2020/07/10/Hot_swap_device</id><content type="html" xml:base="http://172.17.73.80:4000/2020/07/10/Hot_swap_device/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;测试中碰到破坏RAID或下线磁盘的场景，需要从设备上拔盘，然后等产品侦测到对应Disk或VD异常后，再插回去，验证程序侦测及时性是否存在问题。&lt;/p&gt;
-
-&lt;p&gt;由于要频繁的进出机房进行设备的拔出与插回操作，比较麻烦，是否有更便捷的方式进行操作呢？&lt;/p&gt;
-
-&lt;p&gt;本文介绍同事推荐的，在有热交换驱动器情况下，通过scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。&lt;/p&gt;
-
-&lt;h1 id=&quot;实践&quot;&gt;实践&lt;/h1&gt;
-
-&lt;h2 id=&quot;移除设备&quot;&gt;移除设备&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;echo 'scsi remove-single-device 0 0 17 0' &amp;gt; /proc/scsi/scsi
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h2 id=&quot;添加设备&quot;&gt;添加设备&lt;/h2&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;echo 'scsi add-single-device 0 0 17 0' &amp;gt; /proc/scsi/scsi
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;其中，0 0 17 0 为对应磁盘的信息，参考如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node75:~# lsscsi 
-[0:0:0:0]    enclosu GIGABYTE S451 series      000a  -        
-[0:0:1:0]    enclosu GIGABYTE S451 series      000a  -        
-[0:0:17:0]   disk    ATA      INTEL SSDSC2KG48 0142  /dev/sdh 
-[0:2:0:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdb 
-[0:2:1:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sde 
-[0:2:2:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdc 
-[0:2:3:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdd 
-[1:0:0:0]    disk    ATA      INTEL SSDSC2KG24 0100  /dev/sdf 
-[2:0:0:0]    disk    ATA      INTEL SSDSC2KG24 0100  /dev/sdg 
-root@node75:~#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN(分别对应本文的0，0，17，0)&lt;/li&gt;
-  &lt;li&gt;第二列：设备类型&lt;/li&gt;
-  &lt;li&gt;第3，4，5列：设备厂商，型号，版本信息  (Vendor,Model,Rev)&lt;/li&gt;
-  &lt;li&gt;最后一列：Rev，设备主节点名，可以理解为设备在系统中的名称，如果是磁盘，则为/dev/sdxxx&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;单独展示一下这里的第三列，第四列，第五列信息：&lt;/p&gt;
-
-&lt;table&gt;
-  &lt;thead&gt;
-    &lt;tr&gt;
-      &lt;th&gt;&lt;strong&gt;第三列&lt;/strong&gt;&lt;/th&gt;
-      &lt;th&gt;&lt;strong&gt;第四列&lt;/strong&gt;&lt;/th&gt;
-      &lt;th&gt;&lt;strong&gt;第五列&lt;/strong&gt;&lt;/th&gt;
-    &lt;/tr&gt;
-  &lt;/thead&gt;
-  &lt;tbody&gt;
-    &lt;tr&gt;
-      &lt;td&gt;AVAGO&lt;/td&gt;
-      &lt;td&gt;Gigabyte MR-3108&lt;/td&gt;
-      &lt;td&gt;4.68&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/tbody&gt;
-&lt;/table&gt;
-
-&lt;p&gt;分别对应着Vendor，Model， Rev，参考如下：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node75:/proc/scsi# lsscsi -c
-Attached devices: 
-Host: scsi0 Channel: 00 Target: 00 Lun: 00
-  Vendor: GIGABYTE Model: S451 series      Rev: 000a
-  Type:   Enclosure                        ANSI SCSI revision: 05
-Host: scsi0 Channel: 00 Target: 01 Lun: 00
-  Vendor: GIGABYTE Model: S451 series      Rev: 000a
-  Type:   Enclosure                        ANSI SCSI revision: 05
-Host: scsi0 Channel: 00 Target: 17 Lun: 00
-  Vendor: ATA      Model: INTEL SSDSC2KG48 Rev: 0142
-  Type:   Direct-Access                    ANSI SCSI revision: 06
-Host: scsi0 Channel: 02 Target: 00 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi0 Channel: 02 Target: 01 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi0 Channel: 02 Target: 02 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi0 Channel: 02 Target: 03 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi1 Channel: 00 Target: 00 Lun: 00
-  Vendor: ATA      Model: INTEL SSDSC2KG24 Rev: 0100
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi2 Channel: 00 Target: 00 Lun: 00
-  Vendor: ATA      Model: INTEL SSDSC2KG24 Rev: 0100
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-root@node75:/proc/scsi#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;热插拔磁盘后，对应的kern log信息片断参考如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;Jul  9 13:46:46 node75 kernel: [ 8752.867575] sd 0:0:17:0: SCSI device is removed
-Jul  9 13:46:46 node75 kernel: [ 8752.867895] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:46 node75 kernel: [ 8752.868087] print_req_error: I/O error, dev sda, sector 0
-Jul  9 13:46:46 node75 kernel: [ 8752.875385] sd 0:0:17:0: [sda] Synchronizing SCSI cache
-Jul  9 13:46:46 node75 kernel: [ 8752.875497] sd 0:0:17:0: [sda] Synchronize Cache(10) failed: Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK
-Jul  9 13:46:46 node75 kernel: [ 8752.895282] megaraid_sas 0000:af:00.0: scanning for scsi0...
-Jul  9 13:46:48 node75 kernel: [ 8754.164633] scsi 0:0:17:0: Direct-Access     ATA      INTEL SSDSC2KG48 0142 PQ: 0 ANSI: 6
-Jul  9 13:46:48 node75 kernel: [ 8754.166811] sd 0:0:17:0: Attached scsi generic sg2 type 0
-Jul  9 13:46:48 node75 kernel: [ 8754.166818] sd 0:0:17:0: [sdh] 937703088 512-byte logical blocks: (480 GB/447 GiB)
-Jul  9 13:46:48 node75 kernel: [ 8754.166821] sd 0:0:17:0: [sdh] 4096-byte physical blocks
-Jul  9 13:46:48 node75 kernel: [ 8754.166838] [830035]: scst: scst_register_device:1102:Attached to scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:48 node75 kernel: [ 8754.167729] sd 0:0:17:0: [sdh] Write Protect is off
-Jul  9 13:46:48 node75 kernel: [ 8754.167731] sd 0:0:17:0: [sdh] Mode Sense: 9b 00 10 08
-Jul  9 13:46:48 node75 kernel: [ 8754.168049] sd 0:0:17:0: [sdh] Write cache: enabled, read cache: enabled, supports DPO and FUA
-Jul  9 13:46:48 node75 kernel: [ 8754.174319]  sdh: sdh1 sdh2
-Jul  9 13:46:48 node75 kernel: [ 8754.176615] sd 0:0:17:0: [sdh] Attached SCSI disk
-Jul  9 13:46:48 node75 kernel: [ 8754.739509] blk_partition_remap: fail for partition 2
-Jul  9 13:46:48 node75 kernel: [ 8754.739514] EXT4-fs error (device sda2): ext4_find_entry:1455: inode #2: comm ezrpcd: reading directory lblock 0
-Jul  9 13:46:52 node75 kernel: [ 8758.867351] sd 0:0:17:0: SCSI device is removed
-Jul  9 13:46:52 node75 kernel: [ 8758.867648] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:52 node75 kernel: [ 8758.872546] sd 0:0:17:0: [sdh] Synchronizing SCSI cache
-Jul  9 13:46:52 node75 kernel: [ 8758.872627] sd 0:0:17:0: [sdh] Synchronize Cache(10) failed: Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK
-Jul  9 13:46:52 node75 kernel: [ 8758.897329] megaraid_sas 0000:af:00.0: scanning for scsi0...
-Jul  9 13:46:57 node75 kernel: [ 8763.163262] scsi 0:0:17:0: Direct-Access     ATA      INTEL SSDSC2KG48 0142 PQ: 0 ANSI: 6
-Jul  9 13:46:57 node75 kernel: [ 8763.165348] sd 0:0:17:0: Attached scsi generic sg2 type 0
-Jul  9 13:46:57 node75 kernel: [ 8763.165372] [830035]: scst: scst_register_device:1102:Attached to scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:57 node75 kernel: [ 8763.166274] sd 0:0:17:0: [sdh] 937703088 512-byte logical blocks: (480 GB/447 GiB)
-Jul  9 13:46:57 node75 kernel: [ 8763.166279] sd 0:0:17:0: [sdh] 4096-byte physical blocks
-Jul  9 13:46:57 node75 kernel: [ 8763.166558] sd 0:0:17:0: [sdh] Write Protect is off
-Jul  9 13:46:57 node75 kernel: [ 8763.166561] sd 0:0:17:0: [sdh] Mode Sense: 9b 00 10 08
-Jul  9 13:46:57 node75 kernel: [ 8763.166893] sd 0:0:17:0: [sdh] Write cache: enabled, read cache: enabled, supports DPO and FUA
-Jul  9 13:46:57 node75 kernel: [ 8763.175450]  sdh: sdh1 sdh2
-Jul  9 13:46:57 node75 kernel: [ 8763.177604] sd 0:0:17:0: [sdh] Attached SCSI disk
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;BTW，本示例中，0:0:17:0: [sdh] 是一块SSD，做成JBOD模式，当JBOD对应盘正常在设备上运行时，是不支持Megacli/storcli下线磁盘指令的，一旦执行报错信息参考如下:&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node75:~# storcli64 /c0/e1/s17 set offline
-Controller = 0
-Status = Failure
-Description = No drive found!
-
-Detailed Status :
-===============
-
------------------------------------------
-Drive      Status  ErrCd ErrMsg
------------------------------------------
-/c0/e1/s17 Failure   255 Drive not found
------------------------------------------
-
-
-root@node75:~#
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h1 id=&quot;其他&quot;&gt;其他&lt;/h1&gt;
-
-&lt;p&gt;上文中的热插拔，和 ‘Rescan SCSI/SATA Host Bus’ 有着异曲同工之处，毕竟方法都是多样的，，根据不同场合使用。&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;#/bin/bash
-# ReScan all SCSI/SATA Hosts
-for SHOST in /sys/class/scsi_host/host*; do
-    echo -n &quot;Scanning ${SHOST##*/}...&quot;
-    echo &quot;- - -&quot; &amp;gt; ${SHOST}/scan
-    echo Done
-done
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="ceph" /><summary type="html">概述</summary></entry></feed>
