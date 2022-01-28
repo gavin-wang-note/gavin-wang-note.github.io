@@ -1,0 +1,804 @@
+I"�O<h1 id="概述">概述</h1>
+
+<p>Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。</p>
+
+<h1 id="详述">详述</h1>
+
+<p>本文参考jenkins-rest库，将API根据获取的资源类型不同分为6个类别。</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>API类型</strong></th>
+      <th><strong>说明</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>JobsAP</td>
+      <td>任务管理（任务信息、创建、修改）</td>
+    </tr>
+    <tr>
+      <td>OBPluginManagerAPI</td>
+      <td>插件管理（插件信息、安装插件）</td>
+    </tr>
+    <tr>
+      <td>QueueAPI</td>
+      <td>任务队列相关（队列状态）</td>
+    </tr>
+    <tr>
+      <td>StatisticsAPI</td>
+      <td>Jenkins统计信息</td>
+    </tr>
+    <tr>
+      <td>CrumbIssuerAPI</td>
+      <td>系统哈希值信息（用于防御CSRF攻击）</td>
+    </tr>
+    <tr>
+      <td>SystemAPI</td>
+      <td>Jenkins系统状态（版本、路径）</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="术语定义">术语定义</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>名词</strong></th>
+      <th><strong>说明</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>job</td>
+      <td>任务</td>
+    </tr>
+    <tr>
+      <td>payload</td>
+      <td>在POST请求中提交的数据</td>
+    </tr>
+    <tr>
+      <td>{optionalFolderPath}</td>
+      <td>可选参数：任务所在目录的路径</td>
+    </tr>
+    <tr>
+      <td>{project_name}</td>
+      <td>必须参数：任务名称</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>注意:</p>
+
+<ul>
+  <li>在 GET/POST 时需要附加 HTTP 认证才能访问 API</li>
+  <li>本文使用的数据结构可以在 jenkins-rest/domain 中查看详细定义</li>
+</ul>
+
+<h2 id="jobs-相关-api">Jobs 相关 API</h2>
+
+<h3 id="job-info-获取任务信息">job-info 获取任务信息</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/api/json</code></p>
+
+<p>返回类型：JobInfo</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+      <th> </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>description</td>
+      <td>String</td>
+      <td>描述</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>name</td>
+      <td>String</td>
+      <td>项目名称</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>url</td>
+      <td>boolean</td>
+      <td>路径</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>buildable</td>
+      <td>String</td>
+      <td>是否可构建</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>builds</td>
+      <td>List<BuildInfo></BuildInfo></td>
+      <td>构建记录</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>lastBuild</td>
+      <td>BuildInfo</td>
+      <td>上次构建记录</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="build-info-获取构筑信息">build-info 获取构筑信息</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/{number}/api/json</code></p>
+
+<p>返回类型：BuildInfo</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>artifacts</td>
+      <td>List<Artifact></Artifact></td>
+      <td>artifacts</td>
+    </tr>
+    <tr>
+      <td>actions</td>
+      <td>Lis<Action></Action></td>
+      <td>actions</td>
+    </tr>
+    <tr>
+      <td>building</td>
+      <td>boolean	路径</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>description</td>
+      <td>String</td>
+      <td>描述</td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="create-使用-xml-文件创建任务">create 使用 XML 文件创建任务</h3>
+
+<p>从 XML 文件中加载任务配置并创建任务</p>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/createItem</code></p>
+
+<h4 id="参数">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>name	任务名称</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>payload	XML配置文件</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：RequestStatus</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>value</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>errors</td>
+      <td>List<Error></Error></td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="get-config-获取任务配置文件">get-config 获取任务配置文件</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml</code></p>
+
+<p>返回类型： String</p>
+
+<h3 id="update-config-更新任务配置文件">update-config 更新任务配置文件</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml</code></p>
+
+<h4 id="参数-1">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>payload</td>
+      <td>XML配置文件</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="get-description-获取任务描述">get-description 获取任务描述</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description</code></p>
+
+<p>返回类型：String</p>
+
+<h3 id="set-description-设置任务描述">set-description 设置任务描述</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description</code></p>
+
+<h4 id="参数-2">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>description</td>
+      <td>描述</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="delete-删除任务">delete 删除任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/doDelete</code></p>
+
+<p>返回类型：RequestStatus</p>
+
+<h3 id="enable允许任务">enable允许任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/enable</code></p>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="disable-禁止任务">disable 禁止任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/disable</code></p>
+
+<p>返回类型：Boolean</p>
+
+<h3 id="build-构建">build 构建</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/build</code></p>
+
+<p>返回类型： IntegerResponse</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>value</td>
+      <td>Integer</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>errors</td>
+      <td>List<Error></Error></td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="build-with-params--使用参数创建任务">build-with-params  使用参数创建任务</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/buildWithParameters</code></p>
+
+<h4 id="参数-3">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>payload</td>
+      <td>Map&lt;String, List<String>&gt; properties</String></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型： IntegerResponse</p>
+
+<h3 id="last-build-number-获取上次构建序号">last-build-number 获取上次构建序号</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildNumber</code></p>
+
+<p>返回类型：Integer</p>
+
+<h3 id="last-build-timestamp-获取上次构建时间戳">last-build-timestamp 获取上次构建时间戳</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildTimestamp</code></p>
+
+<p>返回类型：String</p>
+
+<h3 id="progressive-text-获取构建控制台输出">progressive-text 获取构建控制台输出</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/logText/progressiveText</code></p>
+
+<p>返回类型：ProgressiveText</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>text</td>
+      <td>String</td>
+      <td>控制台输出</td>
+    </tr>
+    <tr>
+      <td>size</td>
+      <td>Integer</td>
+      <td>字数</td>
+    </tr>
+    <tr>
+      <td>hasMoreData</td>
+      <td>Boolean</td>
+      <td>是否有更多数据</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="crumbissuer-系统哈希值信息用于防御csrf攻击">CrumbIssuer 系统哈希值信息（用于防御CSRF攻击）</h3>
+
+<ul>
+  <li>CrumbIssuerApi</li>
+  <li>path: /crumbIssuer/api/xml</li>
+</ul>
+
+<h4 id="crumb">crumb</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/crumbIssuer/api/xml?{key}={value}</code></p>
+
+<h5 id="参数-4">参数</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>key</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>xpath</td>
+      <td>concat(//crumbRequestField,”:”,//crumb)</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：Crumb</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>value</td>
+      <td>String</td>
+    </tr>
+    <tr>
+      <td>errors</td>
+      <td>List<Error></Error></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="pluginmanager-插件管理插件信息安装插件">PluginManager 插件管理（插件信息、安装插件）</h3>
+
+<ul>
+  <li>PluginManagerApi</li>
+  <li>path: /pluginManager</li>
+</ul>
+
+<h4 id="plugins-插件列表">plugins 插件列表</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/pluginManager/api/json</code></p>
+
+<p>返回类型：List<Plugin></Plugin></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>active</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>backupVersion	String</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>bundled</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>deleted</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>downgradable</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>enabled</td>
+      <td>Boolean</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>longName</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="installnecessaryplugins-安装插件">installNecessaryPlugins 安装插件</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/pluginManager/installNecessaryPlugins</code></p>
+
+<h4 id="参数-5">参数</h4>
+
+<p><code class="highlighter-rouge">payload: &lt;jenkins&gt;&lt;install plugin="{pluginID}"/&gt;&lt;/jenkins&gt;</code></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{pluginID}</td>
+      <td>要安装的插件ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：RequestStatus</p>
+
+<h3 id="queue-任务队列相关队列状态">Queue 任务队列相关（队列状态）</h3>
+
+<ul>
+  <li>QueueApi</li>
+  <li>path: /queue</li>
+</ul>
+
+<h4 id="queue-所有任务队列信息">queue 所有任务队列信息</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/queue/api/json</code></p>
+
+<p>返回类型：List<QueueItem></QueueItem></p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>blocked</td>
+      <td>Boolean</td>
+      <td>是否阻塞</td>
+    </tr>
+    <tr>
+      <td>buildable</td>
+      <td>Boolean</td>
+      <td>是否可构建</td>
+    </tr>
+    <tr>
+      <td>id</td>
+      <td>Integer</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>inQueueSince</td>
+      <td>Long</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>params</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td>任务参数</td>
+    </tr>
+    <tr>
+      <td>task</td>
+      <td>Task</td>
+      <td>Task中包含任务名称和URL</td>
+    </tr>
+    <tr>
+      <td>……</td>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="item-任务队列信息">item 任务队列信息</h3>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/queue/item/{queueId}/api/json</code></p>
+
+<h4 id="参数-6">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{queueId}</td>
+      <td>任务队列ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：QueueItem</p>
+
+<h3 id="cancel-取消任务队列-">cancel 取消任务队列 |</h3>
+
+<p><code class="highlighter-rouge">POST http://127.0.0.1:8080/cancelItem?id={id}</code></p>
+
+<h4 id="参数-7">参数</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>{id}</td>
+      <td>任务队列ID</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>返回类型：RequestStatus</p>
+
+<h3 id="statistics-统计信息">Statistics 统计信息</h3>
+
+<ul>
+  <li>StatisticsApi</li>
+  <li>path: /</li>
+</ul>
+
+<h4 id="overall-load">overall-load</h4>
+
+<p><code class="highlighter-rouge">GET http://127.0.0.1:8080/overallLoad/api/json</code></p>
+
+<p>返回类型：OverallLoad</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>availableExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>busyExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>connectingExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>definedExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>idleExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>onlineExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>queueLength</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>totalExecutors</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>totalQueueLength</td>
+      <td>Map&lt;String, String&gt;</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="system-系统信息">System 系统信息</h4>
+
+<ul>
+  <li>path: /</li>
+</ul>
+
+<p>返回类型：SystemInfo</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>字段</th>
+      <th>类型</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>hudsonVersion</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>jenkinsVersion</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>jenkinsSession</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>instanceIdentity</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>sshEndpoint</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>server</td>
+      <td>String</td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="举几个例子">举几个例子</h1>
+
+<h2 id="获取jenkins-job状态">获取jenkins job状态</h2>
+
+<p><code class="highlighter-rouge">oot@node248:~# curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/api/xml --user jenkins:1</code></p>
+
+<p>结果示例如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;freeStyleBuild _class='hudson.model.FreeStyleBuild'&gt;&lt;action _class='hudson.model.CauseAction'&gt;&lt;cause _class='hudson.model.Cause$UserIdCause'&gt;&lt;shortDescription&gt;Started by user jenkins&lt;/shortDescription&gt;&lt;userId&gt;jenkins&lt;/userId&gt;&lt;userName&gt;jenkins&lt;/userName&gt;&lt;/cause&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.util.BuildData'&gt;&lt;buildsByBranchName&gt;&lt;refsremotesoriginmaster _class='hudson.plugins.git.util.Build'&gt;&lt;buildNumber&gt;68&lt;/buildNumber&gt;&lt;marked&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/marked&gt;&lt;revision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/revision&gt;&lt;/refsremotesoriginmaster&gt;&lt;/buildsByBranchName&gt;&lt;lastBuiltRevision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/lastBuiltRevision&gt;&lt;remoteUrl&gt;git@10.1.12.10:yunzeng_wang/pytest_framework.git&lt;/remoteUrl&gt;&lt;scmName&gt;&lt;/scmName&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.GitTagAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.violations.ViolationsBuildAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;artifact&gt;&lt;displayPath&gt;allure-report.zip&lt;/displayPath&gt;&lt;fileName&gt;allure-report.zip&lt;/fileName&gt;&lt;relativePath&gt;allure-report.zip&lt;/relativePath&gt;&lt;/artifact&gt;&lt;building&gt;false&lt;/building&gt;&lt;displayName&gt;#68&lt;/displayName&gt;&lt;duration&gt;87155647&lt;/duration&gt;&lt;estimatedDuration&gt;85209450&lt;/estimatedDuration&gt;&lt;fullDisplayName&gt;pytest_7.0 #68&lt;/fullDisplayName&gt;&lt;id&gt;68&lt;/id&gt;&lt;keepLog&gt;false&lt;/keepLog&gt;&lt;number&gt;68&lt;/number&gt;&lt;queueId&gt;343&lt;/queueId&gt;&lt;result&gt;UNSTABLE&lt;/result&gt;&lt;timestamp&gt;1588762417068&lt;/timestamp&gt;&lt;url&gt;http://172.12.12.234:8080/job/pytest_7.0/68/&lt;/url&gt;&lt;builtOn&gt;&lt;/builtOn&gt;&lt;changeSet _class='hudson.plugins.git.GitChangeSetList'&gt;&lt;kind&gt;git&lt;/kind&gt;&lt;/changeSet&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/shengdan061&lt;/absoluteUrl&gt;&lt;fullName&gt;shengdan061&lt;/fullName&gt;&lt;/culprit&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/yunzeng_wang&lt;/absoluteUrl&gt;&lt;fullName&gt;yunzeng_wang&lt;/fullName&gt;&lt;/culprit&gt;&lt;/freeStyleBuild&gt;root@node248:~#
+root@node248:~#
+</code></pre></div></div>
+
+<h2 id="获取某一个构建版本号为56的构建结果">获取某一个构建版本号为56的构建结果</h2>
+
+<p><code class="highlighter-rouge">curl http://172.12.12.234:8080/job/pytest_7.0/56/api/xml --user jenkins:1</code></p>
+
+<h2 id="获取最后一次构建的版本号">获取最后一次构建的版本号：</h2>
+
+<p><code class="highlighter-rouge">curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/buildNumber --user jenkins:1</code></p>
+
+<h2 id="获取某个项目所有构建版本号的结果">获取某个项目所有构建版本号的结果</h2>
+
+<p><code class="highlighter-rouge">curl http://172.12.12.234:8080/job/pytest_7.0/api/xml --user jenkins:1</code></p>
+
+<p>说明：</p>
+
+<ul>
+  <li>以上pytest_7.0为项目名称，jenkins:1是访问jenkins server的账号和密码</li>
+</ul>
+
+:ET

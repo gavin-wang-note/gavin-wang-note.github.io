@@ -1,0 +1,687 @@
+I"�[<h2 id="rman简介">RMAN简介</h2>
+
+<p>RMAN 可以用来备份和恢复数据库文件、归档日志和控制文件，也可以用来执行完全或不完全的数据库恢复。RMAN有三种不同的用户接口：COMMAND LINE方式、GUI 方式（集成在OEM 中的备份管理器）、API 方式（用于集成到第三方的备份软件中）。具有如下特点：</p>
+
+<p>1）功能类似物理备份，但比物理备份强大N倍，从下面的特点可以看到；</p>
+
+<p>2）可以压缩空块；</p>
+
+<p>3）可以在块水平上实现增量；</p>
+
+<p>4）可以把备份的输出打包成备份集，也可以按固定大小分割备份集；</p>
+
+<p>5）备份与恢复的过程可以自动管理；</p>
+
+<p>6）可以使用脚本（存在Recovery catalog 中）</p>
+
+<p>7）可以做坏块监测</p>
+
+<h2 id="rman备份形式">RMAN备份形式</h2>
+
+<p>RMAN备份有两种形式：</p>
+
+<p>1、镜像备份（image copies）；</p>
+
+<p>2、备份集备份（backup sets）。</p>
+
+<h3 id="镜像备份">镜像备份</h3>
+
+<p>镜像备份实际就是RMAN利用目标数据库服务进程来完成文件的copy操作，是数据文件、控制文件或者归档日志文件的副本。</p>
+
+<p>RMAN镜像备份的副本无法通过list backup显示，可以通过list copy显示。</p>
+
+<p>本文主要描述备份集备份。</p>
+
+<h3 id="备份集备份">备份集备份</h3>
+
+<p>备份集是通过RMAN创建的逻辑备份对象，一个备份集中可以包括多个控制文件、数据文件、归档文件。</p>
+
+<p>备份集在物理上由多个备份片段组成，每个备份片段就是一个操作系统文件。</p>
+
+<h2 id="rman备份类型">RMAN备份类型</h2>
+
+<p>利用RMAN进行备份时，可以通过三种方式来对RMAN的备份做分类</p>
+
+<h3 id="完全备份full-backup与增量备份incremental-backup">完全备份(Full Backup)与增量备份(Incremental Backup)</h3>
+
+<p>全备与增备是针对数据文件而言，控制文件和归档日志文件不能进行增量备份。当然，后两者可以做备份优化。</p>
+
+<h3 id="打开备份open-backup或关闭备份closed-backup">打开备份(Open Backup)或关闭备份(Closed Backup)</h3>
+
+<p>数据库打开状态下进行备份即是打开备份，数据库关闭状态下(加载状态)进行的备份即关闭备份。</p>
+
+<h3 id="一致备份consistent-backup与不一致备份inconsistent-backup">一致备份(Consistent Backup)与不一致备份(Inconsistent Backup)</h3>
+
+<p>数据库打开状态或不干净关闭状态(shutdown abort)进行的备份是不一致备份，利用不一致的备份修复数据库后还需要做数据库的恢复。在数据库干净关闭状态进行的备份是一致备份，利用一致备份修复数据库后不需要做数据库的恢复。</p>
+
+<h2 id="rman-report-list-delete命令详解">RMAN report list delete命令详解</h2>
+
+<h3 id="report">report</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. 报告目标数据库的物理结构              RMAN&gt; report schema;
+
+2. 报告最近N天尚未备份的数据文件           RMAN&gt; report need backup days=3;
+
+3. 报告表空间上最近N天未备份的数据文件         RMAN&gt; report need backup days=3 tablespace MMSG;
+
+4. 报告恢复数据文件需要的增量备份个数超过3次的数据文件 RMAN&gt; report need backup incremental 3;
+
+5. 报告备份文件低于2份的所有数据文件         RMAN&gt; report need backup redundancy 2 database;
+
+6. 报告文件报表的恢复需要超过6天的归档日志的数据文件  RMAN&gt; report need backup recovery window of 6 days;
+
+7. 报告数据库所有不可恢复的数据文件          RMAN&gt; report unrecoverable;
+
+8. 报告备份次数超过2次的陈旧备份           RMAN&gt; report obsolete redundancy 2;
+
+9. 报告多余的备份                  RMAN&gt; report obsolete;
+</code></pre></div></div>
+
+<h3 id="list">list</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>list backup;             列出详细备份
+
+list expired backup;         列出过期备份
+
+list backup of database;       列出所有数据文件的备份集
+
+list backup of tablespace MMSG;    列出特定表空间的所有数据文件备份集
+
+list backup of controlfile;      列出控制文件备份集
+
+list backup of archivelog all;    列出归档日志备份集详细信息
+
+list archivelog all;　　　　　　    列出归档日志备份集简要信息
+
+list backup of spfile;        列出SPFILE备份集
+
+list copy of datafile 5;       列出数据文件映像副本
+
+list copy of controlfile;       列出控制文件映像副本
+
+list copy of archivelog all;     列出归档日志映像副本
+
+list incarnation of database;     列出对应物/列出数据库副本
+
+list backup summary;         概述可用的备份（B表示backup、F表示FULL、A表示archive log、S说明备份状态（A　AVAILABLE　　　X EXPIRED )
+
+list backup by file;         按备份类型列出备份
+
+​                   按照数据文件备份，归档日志备份，控制文件备份，服务器参数文件备份　列出
+</code></pre></div></div>
+
+<h3 id="check">check</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; crosscheck backup;               核对所有备份集 
+
+RMAN&gt; crosscheck backup of database;         核对所有数据文件的备份集 
+
+RMAN&gt; crosscheck backup of tablespace MMSG;      核对特定表空间的备份集 
+
+RMAN&gt; crosscheck backup of datafile 4;        核对特定数据文件的备份集 
+
+RMAN&gt; crosscheck backup of controlfile;        核对控制文件的备份集 
+
+RMAN&gt; crosscheck backup of spfile;          核对SPFILE的备份集 
+
+RMAN&gt; crosscheck backup of archivelog sequence 3;   核对归档日志的备份集
+
+RMAN&gt; crosscheck copy;                 核对所有映像副本
+
+RMAN&gt; crosscheck copy of database;          核对所有数据文件的映像副本
+
+RMAN&gt; crosscheck copy of tablespace MMSG;       核对特定表空间的映像副本 
+
+RMAN&gt; crosscheck copy of datafile 6;         核对特定数据文件的映像副本 
+
+RMAN&gt; crosscheck copy of archivelog sequence 4;    核对归档日志的映像副本 
+
+RMAN&gt; crosscheck copy of controlfile;         核对控制文件的映像副本
+
+RMAN&gt; crosscheck backup tag='SAT_BACKUP';
+
+RMAN&gt; crosscheck backup completed after 'sysdate - 2';
+
+RMAN&gt; crosscheck backup completed between 'sysdate - 5' and 'sysdate -2 ';
+
+RMAN&gt; crosscheck backup device type sbt;
+
+RMAN&gt; crosscheck archivelog all;
+
+RMAN&gt; crosscheck archivelog like '%ARC00012.001';
+
+RMAN&gt; crosscheck archivelog from sequence 12;
+
+RMAN&gt; crosscheck archivelog until sequence 522;
+</code></pre></div></div>
+
+<h3 id="delete">delete</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; delete obsolete;         删除陈旧备份；
+
+RMAN&gt; delete expired backup;      删除EXPIRED备份 
+
+RMAN&gt; delete expired copy;       删除EXPIRED副本
+
+RMAN&gt; delete backupset 19;       删除特定备份集
+
+RMAN&gt; delete backuppiece '/opt/oracle/oradata/backup/test.ora';  删除特定备份片
+
+RMAN&gt; delete backup;          删除所有备份集
+
+RMAN&gt; delete datafilecopy '/opt/oracle/oradata/backup/test.bak'; 删除特定映像副本
+
+RMAN&gt; delete copy;           删除所有映像副本
+
+RMAN&gt; delete archivelog all delete input;
+
+RMAN&gt; delete backupset 22 format = '/opt/oracle/oradata/backup/%u.bak' delete input;
+
+​                    在备份后删除输入对象      
+
+RMAN&gt; delete backupset id;       删除备份集
+</code></pre></div></div>
+
+<h2 id="rman备份">RMAN备份</h2>
+
+<h3 id="备份整个数据库">备份整个数据库</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>run {
+
+allocate channel c1 type disk;
+
+backup
+
+full
+
+tag full_db_backup
+
+format "/opt/oracle/mmsg.load/db_t%t_s%s_p%p"
+
+(database);
+
+release channel c1;
+
+}
+</code></pre></div></div>
+
+<h3 id="备份指定的数据文件">备份指定的数据文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>backup datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
+</code></pre></div></div>
+
+<h3 id="备份表空间">备份表空间</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>backup tablespace MMSG;
+</code></pre></div></div>
+
+<h3 id="备份控制文件">备份控制文件</h3>
+
+<p>方法1：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>configure controlfile autobackup on;
+</code></pre></div></div>
+
+<p>方法2：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>backup current controlfile;
+</code></pre></div></div>
+
+<p>方法3:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>backup database include current controlfile;
+</code></pre></div></div>
+
+<h3 id="备份归档日志">备份归档日志</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>backup archivelog all;
+</code></pre></div></div>
+
+<h3 id="增量备份">增量备份</h3>
+
+<p>建立一个增量级别为0的全库备份：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> backup INCREMENTAL LEVEL=0 database;
+</code></pre></div></div>
+
+<p>建立一个增量级别为1的数据库表空间的备份：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> backup incremental level=1 tablespace MMSG;
+</code></pre></div></div>
+
+<p>注：</p>
+
+<ul>
+  <li>Rman默认创建的增量备份是Differential方式，如果要建立Cumulative方式的增量备份，在执行BACKUP命令时显式指定即可，例如：</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; BACKUP INCREMENTAL LEVEL=2 CUMULATIVE DATABASE;
+</code></pre></div></div>
+
+<h3 id="冗余备份">冗余备份</h3>
+
+<p>步骤一：显示指定copies数量</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; backup copies 2 tablespace MMSG;
+</code></pre></div></div>
+
+<p>步骤二：在批处理中增加set backup copies参数：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; run
+
+{
+
+set backup copies 1;
+
+allocate channel c1 device type disk;
+
+backup tablespace MMSG;
+
+}
+</code></pre></div></div>
+
+<p>步骤三：通过configure设定预备份Duplexed方式</p>
+
+<h2 id="rman恢复">RMAN恢复</h2>
+
+<h3 id="恢复spfile文件">恢复spfile文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; startup nomount
+
+RMAN&gt; set dbid=1037536304
+
+RMAN&gt; restore spfile from autobackup; #这里confile autobackup必须设置成on
+
+RMAN&gt; startup force
+</code></pre></div></div>
+
+<h3 id="表空间的恢复">表空间的恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; shutdown immediate
+
+RMAN&gt;startup mount
+
+RMAN&gt;restore tablespace "TEST"; #TEST为要恢复的表空间名
+
+RMAN&gt;recover tablespace "TEST";
+
+RMAN&gt;alter database open;
+</code></pre></div></div>
+
+<h3 id="数据文件的恢复">数据文件的恢复</h3>
+
+<p>这个操作类似于表空间的恢复</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt;shutdown immediate
+
+RMAN&gt;startup mount
+
+RMAN&gt;restorer datafile datafilepath; #或者是restore datafile datafile_num;
+
+RMAN&gt;recover datafile datafilepath;  #或者是recover datafile datafile_num;
+
+RMAN&gt;alter database open
+</code></pre></div></div>
+
+<h3 id="全库的恢复">全库的恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt;shutdown immediate
+
+RMAN&gt;startup mount
+
+RMAN&gt; run
+
+2&gt; {
+
+3&gt; allocate channel c1 device type disk;
+
+4&gt; restore database;
+
+5&gt; }
+</code></pre></div></div>
+
+<h3 id="控制文件的恢复">控制文件的恢复</h3>
+
+<p><strong>1</strong><strong>、损坏部分控制文件</strong></p>
+
+<p>步骤一：使用dbv命令检测控制文件是否被损坏，如：dbv file=control02.ctl blocksize=16384</p>
+
+<p>步骤二：cp好的控制文件，并重命名</p>
+
+<p><strong>2</strong><strong>、所有控制文件均被损坏</strong></p>
+
+<p>损坏所有的控制文件或者人为的删除所有的控制文件，通过备份复制已经不能解决问题，只能重新建立新的控制文件。</p>
+
+<p>保留dba用户执行 alter database backup controlfile to trace 产生的重建控制文件的命令</p>
+
+<p>步骤一:</p>
+
+<p>关闭数据库，修改trace文件中创建control文件部分，dba用户执行脚本重创控制文件;</p>
+
+<p>步骤二 :</p>
+
+<p>重启数据库</p>
+
+<p>如果数据库运行在归档模式下，且有控制文件的备份(CONFIGURE CONTROLFILE AUTOBACKUP ON)，可以使用有可用的控制文件的备份，则可以使用restore controlfile from ‘备份的控制文件路径+文件名’来完成控制文件的恢复操作</p>
+
+<p>1、数据库启动到非安装状态(nomount)</p>
+
+<p>2、RMAN恢复</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> RMAN&gt; run {
+
+   allocate channel c1 device type disk;
+
+   restore controlfile from ‘/opt/oracle/rman/back_c-1037536304-20101123-07’;
+
+   release channel c1;
+
+   }
+</code></pre></div></div>
+
+<h3 id="重做日志文件的恢复">重做日志文件的恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; shutdown immediate
+
+数据库已经关闭。
+
+已经卸载数据库。
+
+ORACLE 例程已经关闭。
+
+SQL&gt; startup mount
+
+SQL&gt; recover database using backup controlfile until cancel;
+
+SQL&gt; alter database open resetlogs;
+</code></pre></div></div>
+
+<h3 id="归档日志文件的恢复">归档日志文件的恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt;shutdown immediate
+
+RMAN&gt;startup mount
+
+RMAN&gt; run
+
+2&gt; {
+
+3&gt; allocate channel c1 device type disk;
+
+4&gt; restore archivelog all;
+
+5&gt; }
+</code></pre></div></div>
+
+<h3 id="损坏非当前联机日志">损坏非当前联机日志</h3>
+
+<p>步骤一 启动数据库，报错：ORA-00313和ORA-00312</p>
+
+<p>步骤二 查看v$log视图</p>
+
+<p>步骤三  用CLEAR命令重建该日志文件</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; alter database clear logfile group 3;
+</code></pre></div></div>
+
+<p>​      如果是该日志组还没有归档，则需要用</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  SQL&gt;alter database clear unarchived logfile group 3;
+</code></pre></div></div>
+
+<p>步骤四  打开数据库，并备份数据库</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> SQL&gt; alter database open;
+</code></pre></div></div>
+
+<h3 id="损坏当前联机日志">损坏当前联机日志</h3>
+
+<p>一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  SQL&gt; alter database clear unarchived logfile group 2;
+
+  SQL&gt; alter database open;
+</code></pre></div></div>
+
+<p>二、日志组中有活动事务，需要介质恢复，日志组需要用来数据同步，有两种解决方法：</p>
+
+<p>1、通过不完全恢复，保持数据库数据一致性，这种方法要求数据库运行在归档方式下，且有可用的数据文件的备份</p>
+
+<p>步骤一 启动数据库，报错：ORA-00313 ，ORA-00312， ORA-27037</p>
+
+<p>步骤二 模拟当前日志组中日志文件损坏 SQL&gt; select * from v$log;</p>
+
+<p>步骤三 拷贝有效的备份，进行不完全恢复（包括所有的控制文件、数据文件、redo文件）</p>
+
+<p>步骤四 数据库启动到mount状态，进行不完全恢复：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>      SQL&gt; startup mount
+
+      SQL&gt; recover database until cancel;
+
+      SQL&gt; alter database open resetlogs;
+</code></pre></div></div>
+
+<p>注：这个时候是不能用rman进行恢复的！</p>
+
+<p>2、通过强制性恢复，这种方法会导致数据的不一致性，推荐使用方法一</p>
+
+<p>步骤一 模拟当前日志组中日志成员被损坏 SQL&gt; select * from v$log;</p>
+
+<p>步骤二 修改pfile文件，增加隐性参数</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
+
+  \#add for test by wangyunzeng
+
+  _allow_resetlogs_corruption=TRUE
+</code></pre></div></div>
+
+<p>步骤三 通过pfile文件启动数据库</p>
+
+<p>步骤四 进行介质恢复</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; recover database until cancel;
+</code></pre></div></div>
+
+<p>​      出现如下信息时，选择cancel命令  指定日志:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
+ cancel
+</code></pre></div></div>
+
+<p>步骤五 resetlogs方式启动数据库</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; alter database open resetlogs;
+</code></pre></div></div>
+
+<p>步骤六 关闭数据库，去掉pfile文件中隐性参数，重启数据库（直接执行startup命令即可）</p>
+
+<p>步骤七 备份整个数据库  物理冷备或者物理热备或者RMAN备份都行。</p>
+
+<p>步骤八 导入数据   如果有相关的exp导出的数据，可以执行imp导入操作，毕竟数据发生丢失。</p>
+
+<p>步骤九 表数据分析  建议执行一下表分析</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
+</code></pre></div></div>
+
+<h3 id="临时数据文件的恢复">临时数据文件的恢复</h3>
+
+<p>临时数据文件不包含有效数据，发生丢失后删除原先临时数据文件并进行重建就可以了。</p>
+
+<h2 id="rman实战">RMAN实战</h2>
+
+<h3 id="实战1">实战1</h3>
+
+<p>要求</p>
+
+<p>1 、每天夜间1点执行；</p>
+
+<p>2 、数据库全备，同时备份控制文件及归档日志文件，备份文件保存至：/opt/oracle/rman目录下，并在完成归档日志文件备份后，自动删除已备份的归档日志；</p>
+
+<p>3 、备份保留7天，过期则自动删除；</p>
+
+<p>4 、保留操作日志备查；</p>
+
+<p>RMAN脚本</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg:~/rman&gt; more back_full.rman
+
+run
+
+{
+
+configure retention policy to recovery window of 7 days;
+
+configure controlfile autobackup on;
+
+configure controlfile autobackup format for device type disk to '/opt/oracle/rman/full_bak_%F';
+
+allocate channel c1 device type disk format '/opt/oracle/rman/full_bak_%U';
+
+backup database skip inaccessible filesperset 10 plus archivelog filesperset 20 delete all input;
+
+release channel c1;
+
+}
+
+allocate channel for maintenance device type disk;
+
+crosscheck backupset;
+
+delete noprompt obsolete;
+</code></pre></div></div>
+
+<p>命令执行</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg:~/rman&gt; rman target / msglog /opt/oracle/rman/bak.log cmdfile=/opt/oracle/rman/back_full.rman
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~/rmanbak&gt; more backup.pl
+
+#!/usr/bin/perl
+
+###    作用：rman定时任务脚本       ###
+
+#获取系统当前时间
+
+my ($sec,$min,$hour,$day,$month,$year)= localtime(time());
+
+$year+=1900;
+
+$month=sprintf("%02d",$month+1);
+
+$day=sprintf("%02d",$day);
+
+$hour=sprintf("%02d",$hour);
+
+$min=sprintf("%02d",$min);
+
+$sec=sprintf("%02d",$sec);
+
+my $daytime = "$year$month$day$hour$min$sec";
+
+system("/opt/oracle/product/11g/bin/rman  cmdfile = '/opt/oracle/rmanbak/everydaybak.rman' msglog=/opt/oracle/rmanbak/everydaybak_$
+
+daytime.log");
+</code></pre></div></div>
+
+<p>设置crontab</p>
+
+<p>每天凌晨1点执行数据库的备份</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0 1 * * * su - oracle -c /opt/oracle/rmanbak/backup.pl
+</code></pre></div></div>
+
+<h3 id="实战2">实战2</h3>
+
+<p>1、备份整个数据库，包括控制文件以及归档日志；</p>
+
+<p>2、清除3天前备份的归档日志。</p>
+
+<p>RMAN脚本</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~/rmanbak&gt; more everydaybak.rman
+
+#script.:fullbakup.rman
+
+# creater:wangyunzeng
+
+# date:2011-03-11
+
+# desc:backup all database datafile in archive with rman
+
+# connect database
+
+connect target rman/rman;
+
+connect catalogrman/rman@mmsgdb;
+
+#start backup database
+
+run
+
+{
+
+ allocate channel t1 type disk; 
+
+configure controlfile autobackup format for device type disk to '/opt/oracle/rmanbak/controlfile_bak_%F';            
+
+backup database format 'fullbak_%s_%p_%u'  (archivelog all );
+
+crosscheck backupset;
+
+delete noprompt obsolete;
+
+delete noprompt archivelog until time "sysdate -3";
+
+release channel t1;     
+
+}
+
+#end
+</code></pre></div></div>
+
+<h2 id="rman常见问题解决方法">RMAN常见问题解决方法</h2>
+
+<h3 id="rman命令输入后终端无反应一直处于等待状态且长时间如此">RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此</h3>
+
+<p>原因：操作系统也有一个rman命令，这里执行的是os的rman而非Oracle的</p>
+
+<p>解决：oracle用户设置环境变量 export PATH=$ORACLE_HOME:$PATH</p>
+
+<h3 id="rman无法进行备份操作查看备份信息配置信息">RMAN无法进行备份操作/查看备份信息/配置信息</h3>
+
+<p>RMAN-03002: list 命令 (在 03/05/2011 09:28:03 上) 失败</p>
+
+<p>RMAN-06004: 恢复目录数据库发生 ORACLE 错误: RMAN-20001: target database not found in recovery catalog</p>
+
+<p>RMAN-03002: backup 命令 (在 03/05/2011 09:28:32 上) 失败</p>
+
+<p>RMAN-03014: 恢复目录的隐式重新同步失败</p>
+
+<p>RMAN-06004: 恢复目录数据库发生 ORACLE 错误: RMAN-20001: 在恢复目录中未找到目标数据库</p>
+
+<p>原因：RMAN未注册。</p>
+
+<p>解决方法：注册RMAN。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; register database;           
+</code></pre></div></div>
+
+<p>​</p>
+
+<h3 id="rman备份文件异常删除">RMAN备份文件异常删除</h3>
+
+<p>原因：RMAN备份的文件存放在某个目录下，该文件没有通过rman命令delete删除，而是在操作系统侧执行rm操作，导致再去删除这个备份文件时无法删除掉。</p>
+
+<p>解决：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; list backupset by backup summary;
+
+RMAN&gt; crosscheck backupset;
+
+RMAN&gt; delete backupset;
+</code></pre></div></div>
+:ET

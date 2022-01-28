@@ -1,0 +1,512 @@
+I"-Z<h1 id="oracle-11g-r2安装介质包">oracle 11g R2安装介质包</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>文件名称</th>
+      <th>大小（字节）</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_1of7.zip</td>
+      <td>1358,454,646</td>
+      <td>database安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_2of7.zip</td>
+      <td>1142,195,302</td>
+      <td>database安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_3of7.zip</td>
+      <td>979,195,792</td>
+      <td>grid安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_4of7.zip</td>
+      <td>659,229,728</td>
+      <td>client安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_5of7.zip</td>
+      <td>616,473,105</td>
+      <td>gateways安装介质</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_6of7.zip</td>
+      <td>479,890,040</td>
+      <td>examples</td>
+    </tr>
+    <tr>
+      <td>p10404530_112030_Linux-x86-64_7of7.zip</td>
+      <td>113,915,106</td>
+      <td>deinstall</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>说明：</p>
+<ul>
+  <li>Database安装介质，用于安装数据库，即数据库server端；</li>
+  <li>Grid安装介质，用户安装grid，管理ASM；</li>
+  <li>Client安装介质，用于安装oracle客户端；</li>
+  <li>Gateways安装介质，用于安装网关，应用比较少；</li>
+  <li>Examples安装介质，用户安装现成的示例演示数据库，供研究学习使用；</li>
+  <li>Deinstall安装介质，用户卸载数据库，从R2开始，dbca不在提供卸载功能。</li>
+</ul>
+
+<h1 id="遇见问题与解决过程">遇见问题与解决过程</h1>
+
+<h2 id="问题1安装grid报错">问题1、安装grid报错</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grid@linux173:~/oraInventory/grid&gt; ./ runInstaller
+You do not have sufficient permissions to access the inventory '/home/oracle/oraInventory'. Installation cannot continue. It is required that the primary group of the install user is same as the inventory owner group. 
+Make sure that the install user is part of the inventory owner group and restart the installer.: Permission denied
+</code></pre></div></div>
+
+<p>原因：</p>
+
+<p>根据提示信息，当前安装用户grid，不具有对目录“/home/oracle/oraInventory”拥有足够的写权限（sufficient permissions to access），修改方向也是根据提示信息来解决：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Installation cannot continue. It is required that the primary group of the install user is same as the inventory owner group.
+</code></pre></div></div>
+
+<p>进入/home/oracle目录，修改oraInventory目录的属主为grid.oinstall，再执行runInstaller命令进行安装grid操作。</p>
+
+<h2 id="问题2安装数据库软件介质报错">问题2、安装数据库软件，介质报错</h2>
+
+<p>原因：</p>
+
+<p>database介质包错误，即zip压缩包不完整。</p>
+
+<p>使用unzip命令解压zip包，虽然报错，但解压操作会继续进行，将报错信息淹没，unzip命令解压完成后并不最终汇总报错信息，如果不查看解压过程日志是无法发现压缩包问题的。</p>
+
+<p>unzip命令解压介质包，报错信息如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  inflating: database/stage/Components/oracle.javavm.companion/11.2.0.3.0/1/DataFiles/filegroup2.jar  
+   creating: database/stage/Components/oracle.jdk/
+   creating: database/stage/Components/oracle.jdk/1.5.0.30.03/
+   creating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/
+   creating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/
+  inflating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/filegroup4.jar  
+  inflating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/filegroup5.jar  
+  inflating: database/stage/Components/oracle.jdk/1.5.0.30.03/1/DataFiles/filegroup3.jar  
+  error:  invalid compressed data to inflate
+file #1808:  bad zipfile offset (local header sig):  799288453
+file #1809:  bad zipfile offset (local header sig):  800322303
+   creating: database/stage/Components/oracle.ordim.server/
+   creating: database/stage/Components/oracle.ordim.server/11.2.0.3.0/
+   creating: database/stage/Components/oracle.ordim.server/11.2.0.3.0/1/
+</code></pre></div></div>
+
+<p>建议使用jar命令解压zip包，因为jar命令在解压过程中，一旦遇见包错误，会立即终止继续解压操作，方便用户查看介质是否存在问题。此问题就是通过jar命令解压zip包发现的。</p>
+
+<h2 id="问题3默认监听未注册">问题3、默认监听未注册</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grid@linux173:~&gt; crsctl stat res -t
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.LISTENER.lsnr
+               ONLINE  INTERMEDIATE linux173                 Not All Endpoints R 
+                                                             egistered           
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  ONLINE       linux173
+</code></pre></div></div>
+
+<p>原因：</p>
+
+<p>R2存在两个监听，一个是默认监听，一个是业务数据监听，信息如下：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>监听名称</th>
+      <th>默认端口</th>
+      <th>管理者</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>LISTENER</td>
+      <td>1521</td>
+      <td>grid</td>
+    </tr>
+    <tr>
+      <td>LISTENER_ORA</td>
+      <td>自定义</td>
+      <td>oracle</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>其中，（OS级）grid用户管理默认监听LISTENER；（OS级）oracle用户管理业务监听，端口自定义，但不能使用1521端口。</p>
+
+<p>遇见这个问题，首先查看grid的默认监听文件，确认默认监听中端口与当前crs中是否一致。通过listener.ora文件中端口与crs中启用的端口（可通过netstat –an过滤1521端口，查看1521是否处于监听状态），经相互对比，默认监听文件中端口是1522，crs中是1521，说明有人修改过默认监听配置文件中端口，导致crs中与监听配置文件中不一致。</p>
+
+<p>解决过程如下：</p>
+
+<p>1、修改默认监听配置文件中监听端口为1521；</p>
+
+<p>2、停掉has中默认监听资源（crsctl stop res ora.LISTENER.lsnr）</p>
+
+<p>3、从has中删掉默认监听资源（srvctl remove listener -l LISTENER）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grid@linux173:~&gt; crsctl stat res -t
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  INTERMEDIATE linux173
+</code></pre></div></div>
+
+<p>结果显示是没有默认监听资源的，已经成功删除.</p>
+
+<p>4、重新创建默认监听（srvctl add listener -l LISTENER -o $ORACLE_HOME）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grid@linux173:~&gt; srvctl add listener -l LISTENER -o $ORACLE_HOME
+grid@linux173:~&gt; crsctl stat res -t                             
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.LISTENER.lsnr
+               OFFLINE OFFLINE      linux173                                     
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  ONLINE       linux173 
+</code></pre></div></div>
+
+<p>5、启动默认监听（crsctl start res ora.LISTENER.lsnr）</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grid@linux173:~&gt; crsctl start res ora.LISTENER.lsnr
+CRS-2672: Attempting to start 'ora.LISTENER.lsnr' on 'linux173'
+CRS-2676: Start of 'ora.LISTENER.lsnr' on 'linux173' succeeded
+</code></pre></div></div>
+
+<p>6、查看默认监听状态</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>grid@linux173:~&gt;  crsctl stat res -t                
+--------------------------------------------------------------------------------
+NAME           TARGET  STATE        SERVER                   STATE_DETAILS       
+--------------------------------------------------------------------------------
+Local Resources
+--------------------------------------------------------------------------------
+ora.DG_ORA.dg
+               ONLINE  ONLINE       linux173                                     
+ora.LISTENER.lsnr
+               ONLINE  ONLINE       linux173                                     
+ora.asm
+               ONLINE  ONLINE       linux173                 Started             
+ora.ons
+               OFFLINE OFFLINE      linux173                                     
+--------------------------------------------------------------------------------
+Cluster Resources
+--------------------------------------------------------------------------------
+ora.cssd
+      1        ONLINE  ONLINE       linux173                                     
+ora.diskmon
+      1        OFFLINE OFFLINE                                                   
+ora.evmd
+      1        ONLINE  ONLINE       linux173                                     
+</code></pre></div></div>
+
+<h2 id="问题4通过别名登录数据库报错">问题4、通过别名登录数据库报错</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@linux173:~/product/11gR2/db/network/admin&gt; sqlplus websvc/websvc@infoxdb
+
+SQL*Plus: Release 11.2.0.3.0 Production on Fri Nov 16 19:56:22 2012
+
+Copyright (c) 1982, 2011, Oracle.  All rights reserved.
+
+ERROR:
+ORA-12154: TNS:could not resolve the connect identifier specified
+
+
+Enter user-name: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+Enter user-name: 
+ERROR:
+ORA-01017: invalid username/password; logon denied
+
+
+SP2-0157: unable to CONNECT to ORACLE after 3 attempts, exiting SQL*Plus
+oracle@linux173:~/product/11gR2/db/network/admin&gt; 
+使用infoxdb别名登录，报错；不使用别名登录（sqlplus websvc/websvc），则可正常登录成功。
+</code></pre></div></div>
+
+<p>解决方法：</p>
+
+<p>1、首先tnsping infoxdb，查看oracle scan通讯效果</p>
+
+<p>Tnsping结果显示，报TNS中地址错误，手工检查了tns文件，尚未发现问题；</p>
+
+<p>2、将备机中tns文件ftp到主机对应目录下，通过diff命令进行tns文件对比</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@linux173:~/product/11gR2/db/network/admin&gt; diff  wyz/listener.ora  ./listener.ora        
+8a9
+&gt; 
+15a17
+&gt; 
+oracle@linux173:~/product/11gR2/db/network/admin&gt; diff  wyz/tnsnames.ora  ./tnsnames.ora 
+2a3
+&gt; 
+5c6
+&lt;     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.41.16.52)(PORT = 1522)
+---
+&gt;     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.41.16.52)(PORT = 1522))
+13a15,16
+&gt; 
+&gt; 
+</code></pre></div></div>
+
+<p>上述命令发现tns文件存在语法错误，少个括号。</p>
+
+<p>对于tns文件问题，眼睛往往看不出差异，而且oracle并没有提供相关命令供用户检测tns或监听文件的合法性，只能人为的手工的进行检查，而人为手工检查往往存在已经的马虎性，往往解决不了细节上的小问题。</p>
+
+<h2 id="问题5短信db60版本刷库报ora-01756-和ora-02291错误">问题5、短信DB60版本刷库报ORA-01756 和ORA-02291错误</h2>
+
+<p>短信DB60版本直接在Release2数据库上刷库，报错信息大致如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ERROR:
+ORA-01756: quoted string not properly terminated
+
+
+
+Comment created.
+
+
+Comment created.
+
+
+Table created.
+
+ERROR:
+ORA-01756: quoted string not properly terminated
+
+
+
+insert into MENUINFO_SMS (MENUID, ParentMenuID, DESCRIPTION, MENUURL, ISSHOW, IDORDER, TARGET, KEYNAME, PicURL, MaskID) Values (200209,200200,'计费号码限定','/sms/chargeparty/doQuery.do',null,200209,'','MENU.CHARGEPARTY','',47)
+*
+ERROR at line 1:
+ORA-02291: integrity constraint (WEBSVC.FK_MENUID_SELF_REF) violated - parent
+key not found
+
+
+ERROR:
+ORA-01756: quoted string not properly terminated
+</code></pre></div></div>
+
+<p>原因：</p>
+
+<p>通过vi一些sql文件，发现里面中文出现乱码，通过设置环境变量中语言解决：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>setenv NLS_LANG "SIMPLIFIED CHINESE"
+setenv LANG en_US
+</code></pre></div></div>
+
+<h2 id="问题6db60刷库时报ora-12899错误">问题6、DB60刷库时，报ORA-12899错误</h2>
+
+<p>原因：</p>
+
+<p>表ConfItemLangRes_SMS中ConfigName字段属性长度过小（varchar(60)），而相应的values值超过了该字段的属性范围。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>create table ConfItemLangRes_SMS  (
+   InnerIndex           INTEGER                          not null,
+   ConfItemIndex        INTEGER,
+   LanguageName         varchar(10)                      not null,
+   ConfigName           varchar(60)                      not null,
+   ConfigDesc           varchar(500),
+   constraint PK_CONFITEMLANGRES_SMS primary key (InnerIndex)
+)
+</code></pre></div></div>
+
+<p>修改该字段属性，扩大长度解决问题：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ConfigName           varchar(96)                      not null,
+</code></pre></div></div>
+
+<h2 id="问题7usm安装oracle-11g-release2问题">问题7、USM安装oracle 11g Release2问题</h2>
+
+<p>表象</p>
+
+<p>USM执行R2安装任务，报错：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2012-11-20 10:23:27 [ERROR] [1]: Execute ha_node_conf.sh on primary failed
+2012-11-20 10:23:27 [ERROR] []: The /home/inst-ora/ha-conf/ha.sh is executed faild ....
+</code></pre></div></div>
+
+<p>解决过程：</p>
+
+<p>usm版本信息如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>usm:/ataeinst # /opt/dms/bin/atae_version
+[DMS]
+version=ATAE USM V100R002C31
+patch=
+builddate=201211160851
+[USMAS]
+version=ATAE USM V100R002C31
+patch=
+builddate=201211160851
+[IPA]
+version=ATAE USM V100R002C31
+patch=
+builddate=201211160851
+[SOLUTION]
+version=ATAE SOLUTION V100R002C31
+patch=
+builddate=201211160851
+</code></pre></div></div>
+
+<p>上述报错的日志信息，是USM界面提供，该日志信息来自主机/var/adm/autoinstall/logs目录下install_script.sh.log文件，不具有参考价值。</p>
+
+<p>先了解一下USM的大致工作过程与原理：部署任务页面添加部署任务，一旦提交部署任务，在usm端会生成一个配置文件（name.properties文件，如安装oralceR2时候的配置文件为ora11gR2_x64.properties），该文件以key=value方式存储页面中配置的数据；usm执行任务的时候，将配置文件，脚本等资料存放到执行任务的单板上，通过ftp、ssh等方式执行相关shell脚本进行任务的安装，多采用静默安装方式进行安装操作。安装过程产生的日志，在/var/adm/autoinstall/logs目录下，在任务执行过程中可参考日志，根据日志定位问题，这就是为何说USM界面中显示的日志不具有参考价值的原因所在。</p>
+
+<p>其实此次安装报错，根据日志分析了下，如下：</p>
+
+<p>日志报错，信息片断如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>+ '[' X/dev/sdb '!=' X ']'
++ '[' -e /dev/sdb ']'
+++ ls -l /dev/disk/by-id
++++ basename /dev/sdb
+++ grep scsi
+++ awk '{print $9}'
+++ grep -w 'sdb$'
++ DISK_DBFILE_SCSI=/dev/disk/by-id/
++ '[' /dev/disk/by-id/ == /dev/disk/by-id/ ']'
++ error_exit 'Get device /dev/sdb scsi num failed.'
++ wlogf '[ERROR]:Get device /dev/sdb scsi num failed.'
+++ date '+%Y-%m-%d %H:%M:%S '
++ timestr='2012-11-20 10:23:22 '
++ echo 2012-11-20 10:23:22 '[ERROR]:Get device /dev/sdb scsi num failed.'
++ store_logfile
++ '[' -e /var/adm/autoinstall/logs/ora11gR2_x64_PRIMARY_20121120102316.log ']'
++ scp /var/adm/autoinstall/logs/ora11gR2_x64_PRIMARY_20121120102316.log 10.41.16.173:/var/adm/autoinstall/logs/
++ exit 1
+</code></pre></div></div>
+
+<p>上述报错日志，对应的shell脚本片断如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/iso/ora11gR2_x64/ha-conf|ha_node_conf.sh，内容片断如下：
+if [ "X$DISK_DBFILE" != "X" ]
+then
+    [ -e "$DISK_DBFILE" ] || error_exit "The device $DISK_DBFILE is not exist."
+    DISK_DBFILE_SCSI="/dev/disk/by-id/"$( ls -l /dev/disk/by-id | grep -w "$(basename $DISK_DBFILE)$" | grep scsi | awk '{print $9}')
+    [ $DISK_DBFILE_SCSI == "/dev/disk/by-id/" ] &amp;&amp; error_exit "Get device $DISK_DBFILE scsi num failed."
+    echo "ln -f -s $DISK_DBFILE_SCSI /dev/diskgroup/dg_ora       "  &gt;&gt;/etc/init.d/linkraw_oracle.sh 
+fi
+</code></pre></div></div>
+
+<p>这里的变量$DISK_DBFILE读文件（/etc/ora11gR2_x64.properties）获取，红色加粗部分，表示过滤分区对应的scsi信息，变量$(basename $DISK_DBFILE)$也是读自文件/etc/ora11gR2_x64.properties，从这里可以知道，脚本要求共享存储scsi对应的分区名称在主备机上必须保持一致，例如：主机上scsi名称为scsi-360022a110003135eb02707d900000003，对应的分区名称为sdb，那边，在备机上，scsi名称为scsi-360022a110003135eb02707d900000003的，对应的分区也必须为sdb，如果不为sdb，这里即使在主机上安装grid成功了，到备机上因无法获取sdb分区而导致脚本执行失败，一旦脚本执行失败，如果安装任务中设置了卸载操作，则执行回滚脚本进行环境的清理，包括主备机的环境的清理。</p>
+
+<p>分析至此，发现USM31版本中的脚本，要求主备机外挂存储scsi对应分区名称必须要保持一致，这样grid才能正常进行安装，脚本不至于报错退出以致回滚。而scsi与分区对应关系，是存储与操作系统映射时候产生的文件，这个文件即使编辑了，系统并不承认编辑后的文件，即非法文件，一旦重启机器，系统会自动还原整个by-id目录以及该目录下文件，所以，想通过修改by-id目录下链接规避分区名称不一致问题，此路行不通。</p>
+
+<p>可通过如下方法解决：</p>
+
+<p>既然是通过读取.properties文件获取配置安装配置信息，那么，在主机进行grid安装时，如主机中scsi-360022a110003135eb02707d900000003对应sdg分区，部署任务中就填写value为sdg分区，当主机正在进行grid安装，备机尚未进行grid安装时候，root用户登录备机，修改备机上的ora11gR2_x64.properties 文件，将文件中对应的value修改为sdb，从而规避了USMC31版本的一个缺陷。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gw249:/home # more /etc/ora11gR2_x64.properties
+#
+#Fri Nov 23 16:44:42 CST 2012
+node_count.0.PRVIP=
+REDOGROUP_NUM=3
+ORACLE_BASE=/home/oracle
+FLOATIP=
+USMAS.SOFTWARE.ID=ora11gR2_x64
+SCAN_PORT=1525
+SYSTEM_SIZE=2G
+LOGDISK=/dev/sdf
+PRIMARY_PUBIP=10.41.16.185
+GRID_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+TEMP_SIZE=6G
+ORACLE_OWNER=oracle
+UNINSTALL_COMPONENT.0=\ 
+INSTALL_TYPE=2
+GRID_OWNER=grid
+SYSAUX_SIZE=2G
+SLAVE_PUBIP=10.41.16.249
+node_count.0.VIP=
+LANGUAGE=ZHS16GBK
+UNINSTALL=yes
+DB_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+INDEXDISK=/dev/sde
+GRID_HOME=/home/oracrs/product/11gR2/grid
+SCANIP=
+CTLFILE_NUM=3
+SLAVE_ROOT_PASSWD_encrypt=I4SZtfrINcexo7CdV4+RUQ\=\=
+node_count.NUMBER=1
+ORACLE_HOME_DIRECTORY=/home/oracle
+node_count.0.PUBIP=
+REDOFILE_SIZE=1000M
+PRIMARY_PRVIP=192.168.100.244
+ASMSYS_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+DATADISK=/dev/sdd
+GRID_BASE=/home/oracrs/base
+USER_LISTENER_PORT=1526
+EXCUTETIMEOFTIMEJOB_RAC=
+UNDO_SIZE=6G
+ORACLE_SID=infoxdb
+SLAVE_PRVIP=192.168.100.247
+PRIMARY_ROOT_PASSWD_encrypt=I4SZtfrINcexo7CdV4+RUQ\=\=
+ORACLE_HOME=/home/oracle/product/11gR2/db
+DBFILEDISK=/dev/sde
+ORACLE_PASSWD_encrypt=mNi2wTvj/Kfn+8Rb0naVcg\=\=
+grid_basic_parameter.node_count.NUMBER=1
+GRID_HOME_DIRECTORY=/home/grid
+UNINSTALL_COMPONENT.NUMBER=1
+node_count.0.ROOT_PASSWD_encrypt=GfNigSAbW5XN08daE0VA6w\=\=
+OCRVOTINGDISK=/dev/sde
+USERS_SIZE=1G
+</code></pre></div></div>
+
+:ET

@@ -1,0 +1,150 @@
+I"�O<h1 id="概述">概述</h1>
+
+<p>在APP测试过程中，app运行期间会产生一些日志，在每一轮迭代测试期间，都需要检查是否存在异常日志，以此来判断程序是否有异常。</p>
+
+<h1 id="测试脚本">测试脚本</h1>
+
+<p>直接上脚本内容，如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python
+#-*- coding:UTF-8 -*-
+</span>
+<span class="c1">#######################################
+##  作用：   调用adb logcat获取日志                     ##
+##  Create:  2014-10-09              ##
+##  version: V1.0                    ##
+#######################################
+</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="p">,</span><span class="n">os</span><span class="p">,</span><span class="n">time</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="k">class</span> <span class="nc">getAppLog</span><span class="p">():</span>
+    <span class="s">'''  定义基类  :
+                        判断andriod_home是否存在，继而判断adb命令是否存在
+                        判断device是否在线，如果在线，获取devices信息
+                        判断adb logcat是否可用
+                        清空缓存日志
+                        调用adb logcat捕获日志，并重定向到指定文件
+                        如果日志文件超过20M，备份原日志文件
+    '''</span>
+    
+    <span class="k">def</span> <span class="nf">def_log_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">log_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="s">''' 定义 日志文件   '''</span>
+        <span class="n">PATH</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="n">p</span><span class="p">))</span>    
+        <span class="n">log_name</span> <span class="o">=</span> <span class="s">'test_logcat.txt'</span> <span class="k">if</span> <span class="n">log_name</span> <span class="o">==</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">log_name</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">PATH</span><span class="p">(</span><span class="n">log_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">file_path</span>
+            
+    <span class="k">def</span> <span class="nf">envCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="s">'''  校验 andriod sdk '''</span>
+        <span class="k">if</span> <span class="s">"ANDROID_HOME"</span> <span class="ow">in</span> <span class="n">os</span><span class="p">.</span><span class="n">environ</span><span class="p">:</span> 
+            <span class="n">rootDir</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">environ</span><span class="p">[</span><span class="s">"ANDROID_HOME"</span><span class="p">],</span> <span class="s">"platform-tools"</span><span class="p">)</span> 
+            <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">subdir</span><span class="p">,</span> <span class="n">files</span> <span class="ow">in</span> <span class="n">os</span><span class="p">.</span><span class="n">walk</span><span class="p">(</span><span class="n">rootDir</span><span class="p">):</span> 
+                <span class="k">if</span> <span class="s">"adb.exe"</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span> 
+                    <span class="k">return</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">"adb.exe"</span><span class="p">)</span> 
+                <span class="k">else</span><span class="p">:</span> 
+                    <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">adb.exe does not exist!</span><span class="se">\n</span><span class="s">'</span><span class="p">,</span>
+                    <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">"</span><span class="se">\n</span><span class="s">ANDROID_HOME not exist! Please setup andriod SDK and set the environment variable ANDROID_HOME. </span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+
+
+    <span class="k">def</span> <span class="nf">get_device_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
+        <span class="s">'''  获取 deviceId，并作容错校验       '''</span> 
+        <span class="c1">#尝试停止、启动adb-server，方便调用adb获取信息
+</span>        <span class="n">os</span><span class="p">.</span><span class="n">popen</span><span class="p">(</span><span class="s">'adb kill-server'</span><span class="p">)</span>
+        <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">popen</span><span class="p">(</span><span class="s">'adb start-server'</span><span class="p">)</span>
+        <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">popen</span><span class="p">(</span><span class="s">"adb devices"</span><span class="p">).</span><span class="n">read</span><span class="p">()</span>
+                 
+        <span class="k">if</span> <span class="n">out</span> <span class="o">==</span> <span class="s">''</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">[ERROR]  Terminal device has a problem, the program exits, replace the terminal equipment!</span><span class="se">\n</span><span class="s">'</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">()</span> 
+        <span class="k">elif</span> <span class="n">out</span><span class="p">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">'error'</span><span class="p">):</span>
+            <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">[ERROR]  Get devices error,program exits!</span><span class="se">\n</span><span class="s">'</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">()</span> 
+        <span class="k">elif</span> <span class="n">out</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="n">strip</span><span class="p">().</span><span class="n">endswith</span><span class="p">(</span><span class="s">'unauthorized'</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">).</span><span class="n">count</span><span class="p">(</span><span class="s">'device'</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">[ERROR]  Device unauthorized,program exits!</span><span class="se">\n</span><span class="s">'</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">()</span>            
+        <span class="k">elif</span> <span class="n">out</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)[</span><span class="mi">0</span><span class="p">].</span><span class="n">strip</span><span class="p">().</span><span class="n">endswith</span><span class="p">(</span><span class="s">'attached'</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">out</span><span class="p">).</span><span class="n">count</span><span class="p">(</span><span class="s">'device'</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">[ERROR]  Not get list of devices,program exits!</span><span class="se">\n</span><span class="s">'</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="nb">exit</span><span class="p">()</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">deviceId</span> <span class="o">=</span> <span class="n">out</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\n</span><span class="s">'</span><span class="p">)[</span><span class="mi">1</span><span class="p">].</span><span class="n">split</span><span class="p">(</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">deviceId</span>
+
+    <span class="k">def</span> <span class="nf">check_log_is_enable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">''' 校验手机设备是否支持logcat命令   '''</span>
+        <span class="n">log_cat</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">popen</span><span class="p">(</span><span class="s">"adb logcat -g 20"</span><span class="p">).</span><span class="n">read</span><span class="p">()</span>
+        
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="p">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s">'''Unable to open log device '/dev/log/main': No such file or directory'''</span><span class="p">,</span><span class="n">log_cat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">[ERROR]  '</span> <span class="o">+</span> <span class="n">log_cat</span> <span class="o">+</span> <span class="s">' </span><span class="se">\n</span><span class="s">'</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">sys</span><span class="p">.</span><span class="nb">exit</span><span class="p">()</span>
+     
+    <span class="k">def</span> <span class="nf">get_log_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">deviceid</span><span class="p">,</span><span class="n">file_path</span><span class="p">):</span>
+        <span class="s">''' 调用logcat获取日志到文件  
+            adb -s deviceid logcat -c （清除LOGCAT的缓存）
+            adb -d -s deviceid logcat *:W &gt;test_logcat.txt
+        '''</span>
+        
+        <span class="k">if</span> <span class="n">deviceid</span> <span class="o">!=</span> <span class="s">''</span><span class="p">:</span>
+            <span class="n">clear_buffer</span> <span class="o">=</span> <span class="s">'adb -s '</span><span class="o">+</span> <span class="n">deviceid</span>  <span class="o">+</span><span class="s">' logcat -c '</span>
+            <span class="n">get_log</span> <span class="o">=</span> <span class="s">'adb -d -s '</span> <span class="o">+</span>  <span class="n">deviceid</span> <span class="o">+</span> <span class="s">' logcat -v time -s *:W &gt;&gt;'</span> <span class="o">+</span> <span class="n">file_path</span>
+            
+            <span class="k">if</span> <span class="s">' '</span> <span class="ow">in</span> <span class="n">file_path</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s"> '</span> <span class="o">+</span> <span class="n">file_path</span> <span class="o">+</span> <span class="s">': The path contains spaces,program exits!</span><span class="se">\n</span><span class="s">'</span>
+                <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+                <span class="n">sys</span><span class="p">.</span><span class="nb">exit</span><span class="p">()</span>
+            
+            <span class="c1">#执行具体的命令
+</span>            <span class="n">os</span><span class="p">.</span><span class="n">system</span><span class="p">(</span><span class="n">clear_buffer</span><span class="p">)</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">os</span><span class="p">.</span><span class="n">system</span><span class="p">(</span><span class="n">get_log</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">print</span> <span class="s">'</span><span class="se">\n</span><span class="s">deviceid not exist!</span><span class="se">\n</span><span class="s">'</span>
+            <span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">sys</span><span class="p">.</span><span class="nb">exit</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">log_file_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">file_path</span><span class="p">):</span>
+        <span class="s">''' 如果log文件过大，备份并重新启用一个日志进行记录   '''</span>
+        <span class="k">if</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+            <span class="n">file_size</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_path</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">"/"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="n">split</span><span class="p">(</span><span class="s">'.'</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> 
+            <span class="n">file_Suffix</span> <span class="o">=</span><span class="n">file_path</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s">"/"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">].</span><span class="n">split</span><span class="p">(</span><span class="s">'.'</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> 
+            
+            <span class="n">timeStamp</span> <span class="o">=</span>  <span class="n">time</span><span class="p">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">'%Y_%m_%d_%H_%M_%S'</span><span class="p">)</span>
+            <span class="n">new_name</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">+</span><span class="s">'_'</span><span class="o">+</span> <span class="n">timeStamp</span> <span class="o">+</span> <span class="n">file_Suffix</span>
+            <span class="k">if</span> <span class="n">file_size</span> <span class="o">&gt;=</span> <span class="mi">20971520</span><span class="p">:</span>
+                <span class="n">os</span><span class="p">.</span><span class="n">rename</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">new_name</span><span class="p">)</span>
+        
+        
+                               
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+    <span class="k">print</span> <span class="s">'-'</span> <span class="o">*</span> <span class="mi">75</span> 
+    
+    <span class="n">log</span> <span class="o">=</span> <span class="n">getAppLog</span><span class="p">()</span>
+    
+    <span class="n">log_file</span> <span class="o">=</span> <span class="n">log</span><span class="p">.</span><span class="n">def_log_file</span><span class="p">()</span>
+    
+    <span class="n">log</span><span class="p">.</span><span class="n">log_file_size</span><span class="p">(</span><span class="n">log_file</span><span class="p">)</span>
+    
+    <span class="n">log</span><span class="p">.</span><span class="n">envCheck</span><span class="p">()</span>
+     
+    <span class="n">device_id</span> <span class="o">=</span> <span class="n">log</span><span class="p">.</span><span class="n">get_device_id</span><span class="p">()</span>
+    
+    <span class="n">log</span><span class="p">.</span><span class="n">check_log_is_enable</span><span class="p">()</span>
+    
+    <span class="n">log</span><span class="p">.</span><span class="n">get_log_to_file</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span><span class="n">log_file</span><span class="p">)</span>
+</code></pre></div></div>
+
+:ET

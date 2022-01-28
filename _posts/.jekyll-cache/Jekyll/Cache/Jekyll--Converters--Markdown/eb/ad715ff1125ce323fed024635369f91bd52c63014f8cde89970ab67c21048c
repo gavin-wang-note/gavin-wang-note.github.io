@@ -1,0 +1,151 @@
+I"�<h1 id="概述">概述</h1>
+
+<p>dd是一个神奇的命令，可以将硬盘驱动器复制到另一个硬盘驱动器，完全归零硬盘驱动器等。但是，一旦启动 dd 命令，就没法显示它的进度，只是坐在光标处，直到命令最终完成。那么如何监控dd的进展呢？本文以ubuntu环境为例进行阐述。</p>
+
+<h1 id="查看dd进度">查看dd进度</h1>
+
+<p>新status选项添加到dd（GNU Coreutils 8.24+）
+dd在GNU Coreutils 8.24+（Ubuntu 16.04及更高版本）中，有一个新status选项可以显示进度：</p>
+
+<p>示例：</p>
+
+<p><code class="highlighter-rouge">dd if=/dev/urandom of=/dev/null status=progress</code></p>
+
+<p>输出信息：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>462858752 bytes (463 MB, 441 MiB) copied, 38 s, 12,2 MB/s
+</code></pre></div></div>
+
+<h1 id="使用kill获取进度">使用kill获取进度</h1>
+
+<p><code class="highlighter-rouge">dd if=/dev/zero of=/tmp/zero.img bs=10M count=100000</code></p>
+
+<p>想要查看上面的dd命令的执行进度，可以使用下面几种方法：</p>
+
+<p>比如：每5秒输出dd的进度</p>
+
+<p>方法一：</p>
+
+<p><code class="highlighter-rouge">watch -n 5 pkill -USR1 ^dd$</code></p>
+
+<p>方法二：</p>
+
+<p><code class="highlighter-rouge">watch -n 5 killall -USR1 dd</code></p>
+
+<p>方法三：</p>
+
+<p><code class="highlighter-rouge">while killall -USR1 dd; do sleep 5; done</code></p>
+
+<p>方法四：</p>
+
+<p><code class="highlighter-rouge">while (ps auxww |grep " dd " |grep -v grep |awk '{print $2}' |while read pid; do kill -USR1 $pid; done) ; do sleep 5; done</code></p>
+
+<p>方法五：</p>
+
+<p><code class="highlighter-rouge">dd if=/path/to/bigimage of=/path/to/newimage conv=sparse bs=262144 &amp; bgid=$!; while true; do sleep 1; kill -USR1 $bgid || break; sleep 4; done</code></p>
+
+<p>上面这个命令，糅合了具体的dd命令，然后kill它来显示进度</p>
+
+<p><img class="shadow" src="/img/in-post/dd_output_progress.png" width="1200" /></p>
+
+<h1 id="pv显示进度">pv显示进度</h1>
+
+<p>题外话：</p>
+
+<p>pv不仅仅有显示进度的功能，还有结合dd来限制dd读写速度， e.g:</p>
+
+<p><code class="highlighter-rouge">pv --rate-limit 2M -q -cN source &lt; /dev/zero |dd of=off_file bs=1M count=1024 iflag=fullblock</code></p>
+
+<p>非本文要阐述的内容，有兴趣的可以man pv查看使用手册。</p>
+
+<p>如果没有pv，执行下列命令进行安装</p>
+
+<p><code class="highlighter-rouge">apt-get install pv</code></p>
+
+<h2 id="创建bash包装器使用pv来显示进度">创建bash包装器，使用pv来显示进度</h2>
+
+<p>在.bashrc中增加包装器,将下面内容放入.bashrc文件</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dd()
+{
+    local dd=$(which dd); [ "$dd" ] || {
+        echo "'dd' is not installed!" &gt;&amp;2
+        return 1
+    }
+
+    local pv=$(which pv); [ "$pv" ] || {
+        echo "'pv' is not installed!" &gt;&amp;2
+        "$dd" "$@"
+        return $?
+    }
+
+    local arg arg2 infile
+    local -a args
+    for arg in "$@"
+    do
+        arg2=${arg#if=}
+        if [ "$arg2" != "$arg" ]
+        then
+            infile=$arg2
+        else
+            args[${#args[@]}]=$arg
+        fi
+    done
+
+    "$pv" -tpreb "$infile" | "$dd" "${args[@]}"
+}
+</code></pre></div></div>
+
+<p>source一下.bashrc</p>
+
+<p>之后再来使用dd命令，就可以看到进度了~</p>
+
+<h2 id="直接命令行用pv显示进度">直接命令行用pv显示进度</h2>
+
+<p>示例：</p>
+
+<p><code class="highlighter-rouge">dd if=/dev/urandom | pv | dd of=/dev/null</code></p>
+
+<p>输出：</p>
+
+<p><code class="highlighter-rouge">44.2MB 0:00:04 [11.4MB/s] [         &lt;=&gt;                                ]</code></p>
+
+<p>如果想要时间估算，可以使用 –size 指定近似大小：</p>
+
+<p><code class="highlighter-rouge">dd if=/dev/urandom | pv -s 2G| dd of=/dev/null</code></p>
+
+<p><img class="shadow" src="/img/in-post/pv_size.png" width="1200" /></p>
+
+<p>示例：</p>
+
+<p>写一个文件，并显示进度：</p>
+
+<p><code class="highlighter-rouge">pv -cN source &lt; /dev/zero | dd of=1g bs=100k count=10240</code></p>
+
+<p>输出如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@host245:~/tmp# pv -cN source &lt; /dev/zero | dd of=1g bs=100k count=10240
+   source:  960MB 0:00:01 [ 627MB/s] [         &lt;=&gt;                                                                                                                                                                                                                           ]
+7680+2560 records in
+7680+2560 records out
+1006632960 bytes (1.0 GB) copied, 4.18198 s, 241 MB/s
+root@host245:~/tmp# 
+</code></pre></div></div>
+
+<h2 id="使用pv配合dialog还可以显示进度条对话框">使用pv配合dialog还可以显示进度条对话框：</h2>
+
+<p>需要事先安装dialog</p>
+
+<p><code class="highlighter-rouge">apt-get install dialog</code></p>
+
+<p><code class="highlighter-rouge">(pv -n /dev/sda | dd of=/dev/zero bs=128M) 2&gt;&amp;1 | dialog --gauge "dd process bar" 10 70 0</code></p>
+
+<p><img class="shadow" src="/img/in-post/pv_dialog.png" width="1200" /></p>
+
+<p>示例：</p>
+
+<p>克隆磁盘驱动器：</p>
+
+<p><code class="highlighter-rouge">(pv -n /dev/sda | dd of=/dev/sdh bs=128M conv=notrunc,noerror) 2&gt;&amp;1 | dialog --gauge "Running dd command (cloning), please wait..." 10 70 0</code></p>
+
+:ET

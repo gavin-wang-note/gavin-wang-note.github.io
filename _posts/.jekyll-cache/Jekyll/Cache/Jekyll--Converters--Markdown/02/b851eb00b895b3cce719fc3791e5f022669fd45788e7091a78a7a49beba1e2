@@ -1,0 +1,65 @@
+I"
+<h1 id="ora-01940无法删除当前已链接的用户">ORA-01940：无法删除当前已链接的用户</h1>
+
+<h2 id="现象">现象</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; drop user ufuser cascade;    
+drop user ufuser cascade
+*
+ERROR at line 1:
+ORA-01940: cannot drop a user that is currently connected
+</code></pre></div></div>
+
+<h2 id="原因">原因</h2>
+
+<p>当前用户正在与数据库建立连接，session关系还在。</p>
+
+<h2 id="解决方法">解决方法</h2>
+
+<p>Kill掉对应的session既可。</p>
+
+<p>1、	查询对应用户与当前数据库连接的session信息</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; set wrap off    
+SQL&gt; set lin 200
+SQL&gt; set pagesize 0
+SQL&gt; select username,sid,serial# from v$session where username ='UFUSER';
+UFUSER                                513         81
+UFUSER                                515         62
+UFUSER                                516      49583
+UFUSER                                517      38584
+UFUSER                                519      12508
+UFUSER                                520      36408
+UFUSER                                522      64260
+UFUSER                                523      59321
+UFUSER                                524       4285
+UFUSER                                525      42644
+UFUSER                                529        181
+UFUSER                                530      44970
+</code></pre></div></div>
+
+<p>2、kill session操作</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>alter system kill session'513,81';
+alter system kill session'515,62';
+alter system kill session'516,49583';
+alter system kill session'519,12508';
+alter system kill session'520,36408';
+alter system kill session'522,64260';
+alter system kill session'523,59321';
+alter system kill session'524,4285';
+alter system kill session'525,42644';
+alter system kill session'529,181';
+alter system kill session'530,44970';
+</code></pre></div></div>
+
+<p>3、查询session信息确定该session是否被kill</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>select saddr,sid,serial#,paddr,username,status from v$session where username is not null and username ='UFUSER';
+</code></pre></div></div>
+
+<p>status 为要删除用户的session状态，如果还为inactive，说明没有被kill掉，如果状态为killed，说明已kill。</p>
+
+<p>4、如果session被kill掉，然后执行drop user操作。</p>
+
+:ET

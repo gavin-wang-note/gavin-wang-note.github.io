@@ -1,0 +1,101 @@
+I"9<h1 id="概述">概述</h1>
+
+<p>环境中创建了VD,lsblk可以看到创建好后的分区信息，如何获取分区与RAID VD之间的对应关系呢，比如/dev/sdc分区，对应RAID组哪个VD？</p>
+
+<h1 id="实践">实践</h1>
+
+<p>Step1. 获取RAID卡的Vendor Id和Device Id</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -adpallinfo -aall | grep -Ei 'Vendor Id|Device Id'
+Vendor Id       : 1000
+Device Id       : 005d
+</code></pre></div></div>
+
+<p>Step2. 获取VD的Target Id</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -ldpdinfo  aall | grep 'Target Id'
+Virtual Drive: 0 (Target Id: 0)
+Virtual Drive: 1 (Target Id: 1)
+Virtual Drive: 2 (Target Id: 2)
+Virtual Drive: 3 (Target Id: 3)
+Virtual Drive: 4 (Target Id: 4)
+Virtual Drive: 5 (Target Id: 5)
+Virtual Drive: 6 (Target Id: 6)
+Virtual Drive: 7 (Target Id: 7)
+Virtual Drive: 8 (Target Id: 8)
+root@ec-node3:~#
+</code></pre></div></div>
+
+<p>Step3. 获取设备前缀信息</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ec-node3:~# lspci -nd 1000:005d
+af:00.0 0104: 1000:005d (rev 02)
+root@ec-node3:~# 
+</code></pre></div></div>
+
+<p>这里的<code class="highlighter-rouge">af:00.0</code>，就是我们所需的设备前缀信息。</p>
+
+<p>Step4. 根据设备前缀信息以及Target Id，获取对应分区信息</p>
+
+<p>Linux 命令行操作如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ec-node3:~# cd /dev/disk/by-path
+root@ec-node3:/dev/disk/by-path# ls -l
+total 0
+lrwxrwxrwx 1 root root  9 Jun  8 14:39 pci-0000:00:11.5-ata-1 -&gt; ../../sdj
+lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part1 -&gt; ../../sdj1
+lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part2 -&gt; ../../sdj2
+lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part3 -&gt; ../../sdj3
+lrwxrwxrwx 1 root root 10 Jun  8 14:39 pci-0000:00:11.5-ata-1-part4 -&gt; ../../sdj4
+lrwxrwxrwx 1 root root  9 Jun  8 14:39 pci-0000:00:11.5-ata-2 -&gt; ../../sdk
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:0:0 -&gt; ../../sda
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:0:0-part1 -&gt; ../../sda1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:1:0 -&gt; ../../sdb
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:1:0-part1 -&gt; ../../sdb1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:2:0 -&gt; ../../sdc
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:2:0-part1 -&gt; ../../sdc1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:3:0 -&gt; ../../sdd
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:3:0-part1 -&gt; ../../sdd1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:4:0 -&gt; ../../sde
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:4:0-part1 -&gt; ../../sde1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:5:0 -&gt; ../../sdf
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:5:0-part1 -&gt; ../../sdf1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:6:0 -&gt; ../../sdg
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:6:0-part1 -&gt; ../../sdg1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:7:0 -&gt; ../../sdh
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:7:0-part1 -&gt; ../../sdh1
+lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0 -&gt; ../../sdi
+lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0-part1 -&gt; ../../sdi1
+root@ec-node3:/dev/disk/by-path#
+root@ec-node3:/dev/disk/by-path# ls -l |grep 'pci-0000:af:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
+sdc
+</code></pre></div></div>
+
+<p>说明：</p>
+
+<p><code class="highlighter-rouge">pci-0000:af:00.0-scsi-0:2:2:0</code>，这里的 <code class="highlighter-rouge">0:2:2:0</code>，从左向右数，第三位，3，表示的就是Target Id，<code class="highlighter-rouge">af:00.0</code>为设备前缀信息。</p>
+
+<p>Python Code示例如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@ec-node3:~# python
+Python 2.7.12 (default, Oct  8 2019, 14:14:10) 
+[GCC 5.4.0 20160609] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; slot_name = 'af:00.0'
+&gt;&gt;&gt; target_id = '2'
+&gt;&gt;&gt; import os, re
+&gt;&gt;&gt; pattern = re.compile(r':{}-scsi-\d+:\d+:{}:\d+$'.format(slot_name, target_id))
+&gt;&gt;&gt; disk_path = None
+&gt;&gt;&gt; dev_path = '/dev/disk/by-path'
+&gt;&gt;&gt; for disk in os.listdir(dev_path):
+...     if pattern.search(disk):
+...         path_to_disk = os.readlink(os.path.join(dev_path, disk))
+...         disk_path = os.path.normpath(os.path.join(dev_path, path_to_disk))
+...         print disk_path
+...         break
+... 
+/dev/sdc
+&gt;&gt;&gt; 
+</code></pre></div></div>
+
+:ET

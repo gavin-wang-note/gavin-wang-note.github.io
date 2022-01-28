@@ -1,0 +1,26 @@
+I"�<h1 id="前言">前言</h1>
+
+<p>最近在写script支持cobbler全自动部署OS，由于profile与system对应关系是1:N，下次执行自动安装前会清理掉对应的profile与system，但当有其他人使用了script生成的profile后，就形成了一个profile对应多个system，回头再删profile时出错，因为这个profile有被其他system占用，删除失败了。解决方法就是找处profile关联的system，先删除掉system，再删除profile。</p>
+
+<p>这个过程碰到一个问题，如何获取cobbler profile与system的map关系（虽然可以通过cobbler CGI来获取map关系，但太重了点）。</p>
+
+<h1 id="问题所在">问题所在</h1>
+
+<p>如下为测试示例获取到的profile与system的字典信息：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{'test02': 'Scaler-8.0-latest-x86_64', 'Scaler-CentOS-8.0-latest-x86_64': 'Scaler-CentOS-8.0-latest-x86_64', 'Scaler-8.0-latest-x86_64': 'Scaler-8.0-latest-x86_64', 'test01': 'Scaler-8.0-latest-x86_64'}
+</code></pre></div></div>
+
+<p>而我预期的映射关系是：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{'Scaler-CentOS-8.0-latest-x86_64': ['Scaler-CentOS-8.0-latest-x86_64'], 'Scaler-8.0-latest-x86_64': ['test02', 'Scaler-8.0-latest-x86_64', 'test01']}
+</code></pre></div></div>
+
+<h1 id="解决方法">解决方法</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>from collections import defaultdict
+reversed_dict = defaultdict(list)
+for key,value in mydict.iteritems():
+    reversed_dict[value].append(key)
+</code></pre></div></div>
+:ET

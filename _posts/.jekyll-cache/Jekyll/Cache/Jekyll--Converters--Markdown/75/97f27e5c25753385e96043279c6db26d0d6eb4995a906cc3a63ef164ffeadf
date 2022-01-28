@@ -1,0 +1,276 @@
+I",<h1 id="oracle表空间使用率为负">oracle表空间使用率为负</h1>
+
+<h2 id="引言">引言</h2>
+
+<p>oracle的表空间的使用率主要是通过表dba_data_files 和 dba_free_space查询得出的。正常情况下，dba_data_files中bytes字段值应该大于dba_free_space中bytes字段值，否则会出现表空间使用率为负的情况。</p>
+
+<p>本文主要介绍当前彩信网关应用环境中一应用表空间的使用率为是负的一则案例。详细信息如下：</p>
+
+<h2 id="表像">表像</h2>
+
+<h3 id="查询该表空间使用情况dba_tablespace_usage_metrics">查询该表空间使用情况（dba_tablespace_usage_metrics）</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; run
+  1* select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH'
+
+TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
+------------------------------ ---------- --------------- ------------
+YJH                                -47312           76800   -61.604167
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>上述结果展示发现表空间的使用率为负值。</p>
+
+<p>注：</p>
+<ul>
+  <li>这个现象几个月前就发现了，迟迟没有解决方法。</li>
+</ul>
+
+<h2 id="其他方式查询">其他方式查询</h2>
+
+<h3 id="使用oem">使用OEM</h3>
+
+<p>Web OEM查询结果如下：</p>
+
+<p><img class="shadow" src="/img/in-post/oracle-oem.png" width="1200" /></p>
+
+<p>上图结果显示表空间YJH的使用率为10.5%</p>
+
+<p>OEM的SQL trace为：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SELECT 
+/*+first_rows */ 
+ d.tablespace_name,
+  NVL(a.bytes / 1024 / 1024, 0),
+  DECODE(d.contents,'UNDO',
+  NVL(u.bytes, 0)/1024/1024,
+  NVL(a.bytes - NVL(f.bytes, 0), 0)/1024/1024), 
+  DECODE(d.contents,'UNDO', NVL(u.bytes / a.bytes * 100, 0),
+  NVL((a.bytes - NVL(f.bytes, 0)) / a.bytes * 100, 0)),
+  DECODE(d.contents,'UNDO', NVL(a.bytes - NVL(u.bytes, 0), 0)/1024/1024,
+  NVL(f.bytes, 0) / 1024 / 1024),
+  d.status,
+  a.count,
+  d.contents,
+  d.extent_management,
+  d.segment_space_management/*, d.encrypted*/ 
+  
+ FROM 
+ sys.dba_tablespaces d, 
+( SELECT 
+     tablespace_name,
+     SUM(bytes) bytes,
+     COUNT(file_id) count 
+   from dba_data_files 
+   GROUP BY tablespace_name
+   ) a,
+   
+   (select 
+      tablespace_name,
+      sum(bytes) bytes 
+    from dba_free_space 
+    group by tablespace_name
+    ) f,
+    
+    (
+      SELECT 
+        tablespace_name,
+        SUM(bytes) bytes 
+      FROM 
+      (
+        SELECT 
+            tablespace_name,
+            sum (bytes) bytes,
+            status 
+         from dba_undo_extents 
+         WHERE status ='ACTIVE' 
+         group by tablespace_name,status UNION ALL 
+         
+           SELECT 
+              tablespace_name,
+              sum(bytes) bytes,
+              status 
+           from dba_undo_extents 
+           WHERE status ='UNEXPIRED' 
+           group by tablespace_name,status 
+        )
+       group by tablespace_name 
+       ) u 
+       
+     WHERE d.tablespace_name = a.tablespace_name(+)
+     AND d.tablespace_name = f.tablespace_name(+)
+     AND d.tablespace_name = u.tablespace_name(+)
+     AND NOT (d.extent_management = 'LOCAL' 
+     AND d.contents = 'TEMPORARY')
+     AND d.tablespace_name like 'YJH%' 
+     UNION ALL 
+
+SELECT 
+     d.tablespace_name,
+     NVL(a.bytes / 1024 / 1024, 0),
+     NVL(t.bytes, 0)/1024/1024,
+     NVL(t.bytes / a.bytes * 100, 0),
+     (NVL(a.bytes ,0)/1024/1024 - NVL(t.bytes, 0)/1024/1024),
+     d.status,
+     a.count,
+     d.contents,
+     d.extent_management,
+     d.segment_space_management/*, d.encrypted*/ 
+FROM sys.dba_tablespaces d, 
+(
+   select 
+       tablespace_name,
+       sum(bytes) bytes,
+       count(file_id) count 
+   from dba_temp_files
+   group by tablespace_name
+ ) a, 
+
+ (
+     select  
+        ss.tablespace_name ,
+        sum((ss.used_blocks*ts.blocksize)) bytes 
+     from gv$sort_segment ss, sys.ts$ ts 
+     where ss.tablespace_name = ts.name 
+     group by ss.tablespace_name) t 
+   WHERE d.tablespace_name = a.tablespace_name(+)
+   AND d.tablespace_name = t.tablespace_name(+)
+   AND d.extent_management = 'LOCAL' 
+   AND d.contents = 'TEMPORARY' 
+and d.tablespace_name like 'YJH%' ORDER BY 1
+</code></pre></div></div>
+
+<p>上述commond查询结果如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>TABLESPACE_NAME  NVL(A.BYTES/1024/1024,0) DECODE(D.CONTENTS,'UNDO',NVL(U.BYTES,0)/1024/1024,NVL(A.BYTES-NVL(F.BYTES,0),0)/1024/1024) STATUS     COUNT CONTENTS  EXTENT_MAN SEGMEN
+------------------------------ ------------------------ ------------------------------------------------------------------------------------------ --------- ---------- --------- ---------- ------
+YJH                                                 600                                                                            63 ONLINE              1 PERMANENT LOCAL      AUTO
+YJH_TMP                                              21                                                                             0 ONLINE              1 TEMPORARY LOCAL      MANUAL
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>该表空间大小为600M，已使用63M，自己计算一下该表空间的使用率为63/600*100%=10.5%</p>
+
+<h3 id="查询dba_free_space和dba_data_files">查询dba_free_space和dba_data_files</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select sum(bytes) from dba_data_files where tablespace_name = 'YJH';
+
+SUM(BYTES)
+----------
+ 629145600
+SQL&gt; select sum(bytes) from dba_free_space where tablespace_name = 'YJH';
+
+SUM(BYTES)
+----------
+ 563085312
+</code></pre></div></div>
+
+<p>Free的值比总的值要小，也就是该表空间使用了66060288（629145600-563085312）字节，大约使用率在10.5%，而发布的command查询结果却是一个负值，-61.604167%。前后计算值不一。</p>
+
+<h3 id="结果对比">结果对比</h3>
+
+<p>发现 通过OEM查询结果与手工查表（dba_data_file 和dba_free_space）计算的结果是一致的，都是正数，使用率为10.5%。</p>
+
+<p>这里只能说明一个问题，那就是oracle对于表空间使用率的计算存在缺陷。</p>
+
+<h3 id="问题回想">问题回想</h3>
+
+<p>之前表空间名为YJH的使用率达到100%，存在大量XXX_YYYYMMDD表，消耗掉大量的表空间，所以（多次）执行了大量的drop操作（没增加purge参数），以解决有限的表空间资源问题。</p>
+
+<h3 id="验证">验证</h3>
+
+<p>oracle从10g开始提供回收站功能，从11g提供闪回功能，回收站默认空间为2G。相关信息如下：</p>
+
+<h4 id="步骤一回收站相关参数">步骤一、回收站相关参数</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; show parameter recyclebin
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+recyclebin                           string      OFF
+SQL&gt; show parameter recovery
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+db_recovery_file_dest                string
+db_recovery_file_dest_size           big integer 0
+recovery_parallelism                 integer     0
+SQL&gt; 
+SQL&gt; 
+SQL&gt; select * from recyclebin;   #从查询结果来看，回收站没有记录，因为回收站处于关闭状态
+
+no rows selected
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>上述查询结果显示，recyclebin被关闭（OFF），所以db_recovery_file_dest_size值为0。</p>
+
+<p>如果没有开通回收站功能，默认空间依然为2G，只是删除表、索引等drop记录会被记录在自己的表空间中，用于必要的恢复操作（具体存放的位置或者表中记录，没查询到）。</p>
+
+<h4 id="步骤二dba用户清空当前回收站中所有记录">步骤二、dba用户清空当前回收站中所有记录</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; purge dba_recyclebin;
+
+DBA Recyclebin purged.
+</code></pre></div></div>
+
+<h4 id="步骤三再次查询表空间使用率">步骤三、再次查询表空间使用率</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH';
+
+TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
+------------------------------ ---------- --------------- ------------
+YJH                                  8064           76800         10.5
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>由此可以推测出：</p>
+
+<p>表空间使用率的计算（dba_tablespace_usage_metrics）的缺陷应该是由于回收站机制导致的（只是一种可能，或许还有其他的原因导致表空间使用率为负，本例中是由于回收站机制导致）。</p>
+
+<h3 id="问题引申">问题引申</h3>
+
+<p>如果表空间的使用率为负，那么，数据库在后续的工作中如何计算表空间的使用情况以及如果处理数据？</p>
+
+<p>按照当前的现象，查询了当前表空间中表的可读写情况：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>select 
+b.segment_name ,
+b.BYTES,b.BLOCKS 
+,a.BYTES,
+a.USER_BYTES  
+from 
+dba_data_files a,
+dba_extents b 
+where a.file_id=b.file_id 
+and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
+</code></pre></div></div>
+
+<p>发布上述commond命令，是有查询结果的，也就是当前虽然表空间使用率为负，但对数据库的操作应该处于一种正常状态，并不影响当前数据库系统的正常运行与使用。</p>
+
+<h3 id="彩信网关相关话题">彩信网关相关话题</h3>
+
+<p>在关闭回收站情况下，建议定期去清理recycle bin中的内容。</p>
+
+<p>目前彩信网关对数据库的备份是定期备份，且关闭回收站以及不启用闪回功能，同时，还有脚本用于定期调用存储过程清除日期表，里面的操作是drop，没增加purge参数。虽然磁阵挂载点给足足够的空间用于MMSG表空间的应用，个人觉得未雨绸缪也不是一件坏事。</p>
+
+<h4 id="综述">综述</h4>
+
+<p>解决彩信可能存在的数据库表空间使用率为负，可参考如下两个方法：</p>
+
+<h5 id="方法一通过脚本定期清理recyclebin">方法一、通过脚本定期清理recyclebin</h5>
+
+<h5 id="方法二存储过程刷库脚本中增加purge参数">方法二、存储过程、刷库脚本中增加purge参数</h5>
+
+<p>这个最直接，也最简单。</p>
+
+<p>方法二也是对当前彩信网关 存储过程 的一个优化，以及setdb.sh脚本调用createdb.sql这个脚本中的 drop表操作 的一个优化，都可以通过增加purge参数解决。类似于windows的shift+delete，不经过回收站了。
+其他</p>
+
+<p>表空间使用率为负，从oracle 10g引入（具体版本暂时不知），以前为负的情况时候，OEM的统计表空间的使用率也是负值，该问题应该是修改不完善，导致OEM查询是正确的，而通过表查询是错误的。</p>
+
+:ET

@@ -1,0 +1,377 @@
+I"��<h1 id="概述">概述</h1>
+
+<p>在网关测试组工作期间，产品支持SUSE9/SUSE10/SUSE11平台，每次部署环境，都要进行网卡配置操作，虽然有指导手册，无奈比较懒，不想浪费心力在手动配置上，于是酝酿出这个脚本，实现自动进行网卡的绑定动作，一旦绑定失败，自动还原。</p>
+
+<h1 id="直接上脚本">直接上脚本</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/perl</span>
+<span class="k">use</span> <span class="nv">warnings</span><span class="p">;</span>
+<span class="k">use</span> <span class="nv">strict</span><span class="p">;</span>
+<span class="k">use</span> <span class="nn">Sys::</span><span class="nv">Hostname</span><span class="p">;</span>
+<span class="k">use</span> <span class="nv">Socket</span><span class="p">;</span>
+
+
+<span class="c1">################################################################################</span>
+<span class="c1">#    ######################################################################    #</span>
+<span class="c1">#   #      说明：   完成网卡文件的备份、绑定、回滚等操作                   #   #</span>
+<span class="c1">#   #      使用：   perl   network_bond.pl                                 #   #</span>
+<span class="c1">#   #      AUTH：   wangyunzeng                                            #   #</span>
+<span class="c1">#   #      VER ：   1.0                                                    #   #</span>
+<span class="c1">#   #      TIME：   2012-06-11   18:50   create                            #   #</span>
+<span class="c1">#   #      VER ：   1.1                                                    #   #</span>
+<span class="c1">#   #      TIME：   2013-05-08   18:05   增加SUSE9/11平台绑定网卡操作      #   #</span>
+<span class="c1">#    ######################################################################    #</span>
+<span class="c1">################################################################################</span>
+
+<span class="c1">#定义全局变量</span>
+<span class="nb">chomp</span><span class="p">(</span><span class="k">my</span> <span class="nv">$OS_Type</span> <span class="o">=</span> <span class="vg">$^O</span><span class="p">);</span>                                                       <span class="c1">#操作系统类型</span>
+<span class="k">my</span> <span class="nv">$cornel</span><span class="p">;</span>                                                                     <span class="c1">#内核版本号,2013-05-08</span>
+
+<span class="k">my</span> <span class="nv">$host</span><span class="o">=</span><span class="nv">hostname</span><span class="p">();</span>                                                            <span class="c1">#修改获取大网IP可能错误问题，2013-05-08</span>
+<span class="k">my</span> <span class="nv">$IP_A</span><span class="o">=</span><span class="nv">inet_ntoa</span><span class="p">(</span><span class="nb">scalar</span> <span class="nb">gethostbyname</span> <span class="p">(</span><span class="nv">$host</span> <span class="o">||</span> <span class="p">'</span><span class="s1">localhost</span><span class="p">'));</span>
+<span class="nb">chomp</span><span class="p">(</span><span class="nv">$IP_A</span><span class="p">);</span>
+
+
+<span class="c1">#判断当前登录用户，非root，退出</span>
+<span class="k">my</span> <span class="nv">$localuser</span> <span class="o">=</span> <span class="nb">getlogin</span> <span class="o">||</span> <span class="p">(</span><span class="nb">getpwuid</span><span class="p">(</span><span class="vg">$&lt;</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Can't find a user here!!!</span><span class="se">\n</span><span class="p">";</span>
+
+<span class="k">if</span><span class="p">(</span><span class="nv">$localuser</span> <span class="ow">ne</span> <span class="p">"</span><span class="s2">root</span><span class="p">")</span>
+<span class="p">{</span>
+  <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">当前登录用户非root，退出！</span><span class="se">\n\n</span><span class="p">";</span>
+  <span class="nb">exit</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+   <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">【说明】
+       1、本脚本仅支持SUSE9/SUSE10/SUSE11平台
+       
+       2、本脚本将Fabric平面网卡绑定成bond0，将Base平面网卡绑定成bond1
+       
+       3、本脚本备份原网卡配置文件，备份在 /etc/sysconfig 目录下，network_日期.tar.gz
+          如果绑定失败，请登录usm，到 /etc/sysconfig 目录下解压后重启网卡既可. </span><span class="se">\n\n</span><span class="p">";</span>
+       
+   
+   <span class="c1">##判断操作系统类型</span>
+   <span class="k">if</span><span class="p">(</span><span class="nv">$OS_Type</span> <span class="o">=~</span> <span class="sr">/linux/</span><span class="p">)</span>
+   <span class="p">{</span>
+      <span class="nb">chomp</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=</span><span class="p">`</span><span class="sb">cat /etc/SuSE-release  | head -1</span><span class="p">`);</span>                        <span class="c1">#内核版本号</span>
+      
+      <span class="c1">##获取系统时间  </span>
+      <span class="k">my</span> <span class="p">(</span><span class="nv">$sec</span><span class="p">,</span><span class="nv">$min</span><span class="p">,</span><span class="nv">$hour</span><span class="p">,</span><span class="nv">$day</span><span class="p">,</span><span class="nv">$month</span><span class="p">,</span><span class="nv">$year</span><span class="p">)</span><span class="o">=</span> <span class="nb">localtime</span><span class="p">(</span><span class="nb">time</span><span class="p">());</span>
+      
+      <span class="nv">$year</span><span class="o">+=</span><span class="mi">1900</span><span class="p">;</span>
+      <span class="nv">$month</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$month</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+      <span class="nv">$day</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$day</span><span class="p">);</span>
+      <span class="nv">$hour</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$hour</span><span class="p">);</span>
+      <span class="nv">$min</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$min</span><span class="p">);</span>
+      <span class="nv">$sec</span><span class="o">=</span><span class="nb">sprintf</span><span class="p">("</span><span class="s2">%02d</span><span class="p">",</span><span class="nv">$sec</span><span class="p">);</span>
+      
+      <span class="k">my</span> <span class="nv">$daytime</span> <span class="o">=</span> <span class="p">"</span><span class="si">$year$month$day</span><span class="p">";</span>
+      
+      <span class="nb">chdir</span> <span class="p">"</span><span class="s2">/etc/sysconfig</span><span class="p">";</span> 
+      <span class="k">if</span><span class="p">(</span><span class="o">!</span> <span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="s2">network_ </span><span class="si">$daytime</span><span class="s2">.tar.gz</span><span class="p">")</span>
+      <span class="p">{</span>
+         <span class="nb">system</span><span class="p">("</span><span class="s2">tar zcf network_</span><span class="si">$daytime</span><span class="s2">.tar.gz network</span><span class="p">");</span>
+      <span class="p">}</span>
+
+      <span class="nv">&amp;bak_check</span><span class="p">;</span>
+   <span class="p">}</span>
+   <span class="k">else</span>
+   <span class="p">{</span>
+      <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">当前仅支持ATAE SUSE平台下网卡绑定操作!</span><span class="se">\n\n</span><span class="p">";</span>
+      <span class="nb">exit</span><span class="p">;</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="c1">#################################################################################</span>
+<span class="c1">###                                  定义子例程                               ###</span>
+<span class="c1">#################################################################################</span>
+
+<span class="k">sub </span><span class="nf">bak_check</span><span class="p">()</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span> <span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="s2">/etc/sysconfig/network/ifcfg-bond0</span><span class="p">")</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">存在网卡绑定文件ifcfg-bond0! </span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">可能已经绑定网卡，程序退出.</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">exit</span><span class="p">;</span>
+  <span class="p">}</span>
+  
+  <span class="k">if</span><span class="p">(</span> <span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="s2">/etc/sysconfig/network/ifcfg-bond1</span><span class="p">")</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">存在网卡绑定文件ifcfg-bond1! </span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">可能已经绑定网卡，程序退出.</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">exit</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="nb">chdir</span> <span class="p">"</span><span class="s2">/etc/sysconfig/network</span><span class="p">";</span> 
+  
+  <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">开始备份网卡文件.</span><span class="se">\n\n</span><span class="p">";</span>
+ 
+  <span class="c1">#创建目录</span>
+  <span class="k">unless</span> <span class="p">(</span><span class="o">-</span><span class="nv">d</span> <span class="p">"</span><span class="s2">bak</span><span class="p">")</span>                                                             <span class="c1">#如果目录不存在，创建目录</span>
+  <span class="p">{</span>
+    <span class="nb">mkdir</span><span class="p">("</span><span class="s2">bak</span><span class="p">",</span> <span class="mo">0755</span><span class="p">)</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Make directory bak error,$!.</span><span class="se">\n</span><span class="p">";</span>
+  <span class="p">}</span>
+
+  <span class="c1">#增加SUSE9和SUSE11平台的支持与判断</span>
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span> <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">cp ifcfg-eth-id-* ./bak/</span><span class="p">");</span>
+  <span class="p">}</span>
+  <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">cp ifcfg-eth[0-9] ./bak/</span><span class="p">");</span>
+  <span class="p">}</span>
+  
+  
+  <span class="c1">#判断备份是否成功,成功则继续</span>
+  <span class="c1">#my $ifcfg_cut=`ls ./bak/ifcfg-eth-id-* | wc -l`;</span>
+  <span class="k">my</span> <span class="nv">$ifcfg_cut</span><span class="o">=</span><span class="p">`</span><span class="sb">ls ./bak/ifcfg-eth* | wc -l</span><span class="p">`;</span>                                  <span class="c1">#SUSE11 文件名称发生变化,2013-05-08</span>
+  <span class="nb">chomp</span><span class="p">(</span><span class="nv">$ifcfg_cut</span><span class="p">);</span>
+
+  <span class="k">if</span><span class="p">(</span><span class="nv">$ifcfg_cut</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">备份网卡文件成功</span><span class="se">\n\n</span><span class="p">";</span>
+    
+    <span class="c1">#绑定网卡</span>
+    <span class="nv">&amp;bond</span><span class="p">;</span>
+    
+    <span class="c1">#清理文件</span>
+    <span class="nv">&amp;clear</span><span class="p">;</span>
+    
+    <span class="c1">#重启网卡</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">重启网卡......</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">rcnetwork restart</span><span class="p">");</span>
+    
+    <span class="c1">#打印绑定后的网卡信息</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">绑定后的网卡信息如下:</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">ifconfig -a</span><span class="p">");</span>
+  
+    
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">完成网卡的绑定.</span><span class="se">\n\n</span><span class="p">";</span>
+   
+  <span class="p">}</span>
+  <span class="k">else</span>
+  <span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">备份网卡文件失败,退出!</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="nb">exit</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="k">sub </span><span class="nf">bond</span><span class="p">()</span>
+<span class="p">{</span>
+   <span class="nb">system</span><span class="p">("</span><span class="s2">/var/adm/autoinstall/scripts/eth_alias.sh  | grep -v Update | grep -v PMC  &gt; eth.tmp</span><span class="p">");</span>
+   <span class="nb">system</span><span class="p">("</span><span class="s2">ifconfig -a | grep -v RX | grep -v dropped | grep -v UP | grep -v collisions | grep -v Interrupt | grep -v </span><span class="se">\"</span><span class="s2">127.0.0.1</span><span class="se">\"</span><span class="s2"> &gt; ifconfig.txt</span><span class="p">");</span>
+   
+   <span class="c1">##网卡名</span>
+   <span class="k">my</span> <span class="nv">$eth_A</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Fabric1 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_B</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Fabric2 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_C</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Base1 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_D</span><span class="o">=</span> <span class="p">`</span><span class="sb">cat eth.tmp | grep Base2 |  awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_A</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_B</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_C</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_D</span><span class="p">);</span>
+   
+   
+   <span class="c1">##总线</span>
+   <span class="k">my</span> <span class="nv">$Fabric1_A1</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Fabric1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Fabric1_A2</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Fabric1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Base1_A1</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Base1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$1</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Base1_A2</span><span class="o">=</span><span class="p">`</span><span class="sb"> more eth.tmp | grep Base1 | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">"</span><span class="err">\</span><span class="sb">,</span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' </span><span class="p">`;</span>
+   
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric1_A1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric1_A2</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base1_A1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base1_A2</span><span class="p">);</span>
+   
+   <span class="c1">##10转16进制</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX_1</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Fabric1_A1</span><span class="sb">"|bc</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX_2</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Fabric1_A2</span><span class="sb">"|bc</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$Base_ZX_1</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Base1_A1</span><span class="sb">"|bc</span><span class="p">`;</span>    
+   <span class="k">my</span> <span class="nv">$Base_ZX_2</span><span class="o">=</span><span class="p">`</span><span class="sb">echo "obase=16;</span><span class="si">$Base1_A2</span><span class="sb">"|bc</span><span class="p">`;</span>
+   
+   <span class="c1">##全部转换成小写 add by wangyunzeng  2012-11-06</span>
+   <span class="c1">##-----begin-----##</span>
+   <span class="nv">$Fabric_ZX_1</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Fabric_ZX_1</span><span class="p">);</span>
+   <span class="nv">$Fabric_ZX_2</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Fabric_ZX_2</span><span class="p">);</span>
+   <span class="nv">$Base_ZX_1</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Base_ZX_1</span><span class="p">);</span>
+   <span class="nv">$Base_ZX_2</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$Base_ZX_2</span><span class="p">);</span>
+   <span class="c1">##------end------##</span>
+      
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric_ZX_1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Fabric_ZX_2</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base_ZX_1</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$Base_ZX_2</span><span class="p">);</span>
+   
+   
+   <span class="c1">## 拼接</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX0</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Fabric_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.0</span><span class="p">";</span>
+   <span class="k">my</span> <span class="nv">$Fabric_ZX1</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Fabric_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.1</span><span class="p">";</span>
+   <span class="k">my</span> <span class="nv">$Base_ZX0</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Base_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.0</span><span class="p">";</span>
+   <span class="k">my</span> <span class="nv">$Base_ZX1</span><span class="o">=</span><span class="p">"</span><span class="s2">0</span><span class="si">$Base_ZX_1</span><span class="s2">:0</span><span class="si">$Fabric_ZX_2</span><span class="s2">.1</span><span class="p">";</span>
+
+   
+   <span class="c1">##MAC</span>
+   <span class="k">my</span> <span class="nv">$eth_A_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_A</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_B_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_B</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_C_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_C</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="k">my</span> <span class="nv">$eth_D_MAC</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep </span><span class="si">$eth_D</span><span class="sb"> | head -1 | awk </span><span class="err">\</span><span class="sb">-F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$5</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_A_MAC</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_B_MAC</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_C_MAC</span><span class="p">);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$eth_D_MAC</span><span class="p">);</span>
+   
+   <span class="c1">##IP地址,修改SUSE11平台ifconfig显示大网地址在小网地址后，获取大网地址错误问题，注释掉原cat和chomp操作，2013-05-08</span>
+   <span class="c1">#my $IP_A=`cat ifconfig.txt | grep "inet addr" | head -1  | awk -F \" \" \'\{print \$2\}\' | sed \'s\/addr\:\/\/\'`;</span>
+   <span class="k">my</span> <span class="nv">$IP_C</span><span class="o">=</span><span class="p">`</span><span class="sb">cat ifconfig.txt | grep "inet addr" | sort -r | head -1  | awk -F </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">" </span><span class="err">\</span><span class="sb">'</span><span class="err">\</span><span class="sb">{print </span><span class="err">\</span><span class="sb">$2</span><span class="err">\</span><span class="sb">}</span><span class="err">\</span><span class="sb">' | sed </span><span class="err">\</span><span class="sb">'s</span><span class="err">\</span><span class="sb">/addr</span><span class="err">\</span><span class="sb">:</span><span class="err">\</span><span class="sb">/</span><span class="err">\</span><span class="sb">/</span><span class="err">\</span><span class="sb">'</span><span class="p">`;</span>
+   <span class="c1">#chomp($IP_A);</span>
+   <span class="nb">chomp</span><span class="p">(</span><span class="nv">$IP_C</span><span class="p">);</span>
+   
+   <span class="c1">#print "\n$IP_A\n";</span>
+   <span class="c1">#print "\n$IP_C\n";</span>
+   
+   <span class="c1">##写bind文件</span>
+   <span class="nb">open</span><span class="p">(</span><span class="nv">BOND0</span><span class="p">,"</span><span class="s2">&gt;ifcfg-bond0</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$!</span><span class="se">\n\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">WIRELESS='no'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">device='bond0'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">IPADDR='</span><span class="si">$IP_A</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">NETMASK='255.255.254.0'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">REMOTE_IPADDR=''</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_MASTER='yes'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_MODULE_OPTS='mode=1 miimon=200'</span><span class="se">\n</span><span class="p">";</span>
+      
+      <span class="c1">#增加SUSE11平台网卡绑定操作</span>
+      <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0=' bus-pci-0000:</span><span class="si">$Fabric_ZX0</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1=' bus-pci-0000:</span><span class="si">$Fabric_ZX1</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="p">}</span>
+      <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0='</span><span class="si">$eth_A</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND0</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1='</span><span class="si">$eth_B</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>  
+      <span class="p">}</span>
+
+   <span class="nb">close</span><span class="p">(</span><span class="nv">BOND0</span><span class="p">);</span>
+
+
+   
+   
+   <span class="nb">open</span><span class="p">(</span><span class="nv">BOND1</span><span class="p">,"</span><span class="s2">&gt;ifcfg-bond1</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$!</span><span class="se">\n\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">WIRELESS='no'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">device='bond1'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">IPADDR='</span><span class="si">$IP_C</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">NETMASK='255.255.255.0'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">REMOTE_IPADDR=''</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_MASTER='yes'</span><span class="se">\n</span><span class="p">";</span>
+      <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_MODULE_OPTS='mode=1 miimon=200'</span><span class="se">\n</span><span class="p">";</span>
+      
+      <span class="c1">#增加SUSE11平台网卡绑定操作</span>
+      <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0=' bus-pci-0000:</span><span class="si">$Base_ZX0</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1=' bus-pci-0000:</span><span class="si">$Base_ZX1</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span> 
+      <span class="p">}</span>
+      <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+      <span class="p">{</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE0='</span><span class="si">$eth_C</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+        <span class="k">print</span> <span class="nv">BOND1</span> <span class="p">"</span><span class="s2">BONDING_SLAVE1='</span><span class="si">$eth_D</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>  
+      <span class="p">}</span>
+
+   <span class="nb">close</span><span class="p">(</span><span class="nv">BOND1</span><span class="p">);</span>
+   
+   
+   <span class="c1">##写网卡文件</span>
+   <span class="c1">#增加SUSE11平台支持,2013-05-08</span>
+   <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHA</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_A</span><span class="s2">-id-</span><span class="si">$eth_A_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHA</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_A</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file ifcfg-</span><span class="si">$eth_A</span><span class="s2"> failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="c1">#open(ETHA,"&gt;ifcfg-$eth_A-id-$eth_A_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHA</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_A</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHA</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span> 
+       <span class="k">print</span> <span class="nv">ETHA</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHA</span><span class="p">);</span>
+   
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHB</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_B</span><span class="s2">-id-</span><span class="si">$eth_B_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHB</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_B</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="c1">#open(ETHB,"&gt;ifcfg-$eth_B-id-$eth_B_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHB</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_B</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHB</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>                                                 
+       <span class="k">print</span> <span class="nv">ETHB</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHB</span><span class="p">);</span>
+   
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHC</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_C</span><span class="s2">-id-</span><span class="si">$eth_C_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHC</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_C</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>   
+   <span class="c1">#open(ETHC,"&gt;ifcfg-$eth_C-id-$eth_C_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHC</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_C</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHC</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>                                                 
+       <span class="k">print</span> <span class="nv">ETHC</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHC</span><span class="p">);</span>
+   
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHD</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_D</span><span class="s2">-id-</span><span class="si">$eth_D_MAC</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 11/i</span><span class="p">)</span>
+   <span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">ETHD</span><span class="p">,"</span><span class="s2">&gt;ifcfg-</span><span class="si">$eth_D</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2">Open file failed:$! </span><span class="se">\n\n</span><span class="p">";</span>
+   <span class="p">}</span>   
+   <span class="c1">#open(ETHD,"&gt;ifcfg-$eth_D-id-$eth_D_MAC") || die "\nOpen file failed:$! \n\n";</span>
+       <span class="k">print</span> <span class="nv">ETHD</span> <span class="p">"</span><span class="s2">DEVICE='</span><span class="si">$eth_D</span><span class="s2">'</span><span class="se">\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="nv">ETHD</span> <span class="p">"</span><span class="s2">BOOTPROTO='static'</span><span class="se">\n</span><span class="p">";</span>                                                 
+       <span class="k">print</span> <span class="nv">ETHD</span> <span class="p">"</span><span class="s2">STARTMODE='onboot'</span><span class="se">\n</span><span class="p">";</span>
+   <span class="nb">close</span><span class="p">(</span><span class="nv">ETHD</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">#文件清理</span>
+<span class="k">sub </span><span class="nf">clear</span>
+<span class="p">{</span>
+  <span class="k">if</span><span class="p">(</span><span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 10/i</span>  <span class="o">||</span> <span class="nv">$cornel</span><span class="o">=~</span><span class="sr">m/Server 9/i</span> <span class="p">)</span>
+  <span class="p">{</span>
+    <span class="c1">##删除原网卡配置文件</span>
+    <span class="nb">system</span><span class="p">("</span><span class="s2">rm  -f ifcfg-eth-id-*</span><span class="p">");</span>
+  <span class="p">}</span>
+  <span class="c1">#elsif($cornel=~m/Server 11/i)</span>
+  <span class="c1">#{</span>
+  <span class="c1">#  ##删除原网卡配置文件</span>
+  <span class="c1">#  system("rm  -f ifcfg-eth[0-9]");</span>
+  <span class="c1">#}</span>
+  <span class="c1">#else</span>
+  <span class="c1">#{</span>
+  <span class="c1">#  print "\n不支持的操作系统类型，程序退出!\n";</span>
+  <span class="c1">#  exit</span>
+  <span class="c1">#}</span>
+
+  <span class="c1">##清理其他文件</span>
+  <span class="nb">unlink</span><span class="p">("</span><span class="s2">eth.tmp</span><span class="p">");</span>
+  <span class="nb">unlink</span><span class="p">("</span><span class="s2">ifconfig.txt</span><span class="p">");</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+:ET

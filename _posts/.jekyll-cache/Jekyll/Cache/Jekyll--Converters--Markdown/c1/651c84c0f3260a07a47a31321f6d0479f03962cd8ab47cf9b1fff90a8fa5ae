@@ -1,0 +1,297 @@
+I"3�<h1 id="引言">引言</h1>
+
+<p>Web UI上的所有操作都对应一个CGI(大多是一个HTTP GET请求)，因此如果想快速地进行大量UI操作，可以直接call CGI去完成想要的工作。对于发送一个HTTP请求，绝大多数编程语言都可以做到。如果是自动化测试开发，可能会选择python等比较全面的工具，但如果只是偶尔用之，一个小小的curl，一两行命令就可以满足要求。</p>
+
+<h1 id="示例">示例</h1>
+
+<h2 id="step1-记录下cookie文件testcookie">Step1 记录下cookie文件test.cookie</h2>
+
+<p>–cookie-jar可简化做-c，仅需要登录一次，除非会话过期</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl --cookie-jar test.cookie --insecure "https://10.16.17.191:8080/cgi-bin/ezs3/json/login?user_id=admin&amp;password=1"
+</code></pre></div></div>
+
+<h2 id="step2-调用对应的api">Step2 调用对应的API</h2>
+
+<p>–cookie可简化做-b，该示例是创建一个叫pool01的pool</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl --cookie ezstor.cookie --insecure "https://10.16.17.191:8080/cgi-bin/ezs3/json/poolcreate?poolname=pool01"
+</code></pre></div></div>
+
+<h1 id="扩展">扩展</h1>
+
+<p>如何抓取API?</p>
+
+<p>可以借助浏览器，F12，就可以抓取自己care的API了</p>
+
+<h1 id="完整脚本示例">完整脚本示例</h1>
+
+<ul>
+  <li>说明:</li>
+  <li>
+    <ul>
+      <li>本示例，用于创建集群</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nv">public_ip</span><span class="o">=(</span>
+172.17.59.101
+172.17.59.102
+172.17.59.103
+<span class="o">)</span>
+<span class="nv">storage_ip</span><span class="o">=(</span>
+192.168.100.101
+192.168.100.102
+192.168.100.103
+<span class="o">)</span>
+<span class="nv">license_info</span><span class="o">=(</span>
+CLAWCT-PTWAV4-4K66F0-C3RH9O-8ATUKF-YDO14G-11WI568
+CLB2LB-GF94W0-2O11R5-NA4E9L-5B5XRM-9DFK0V-72438U
+CLB8TT-70LYWW-5ZYPBB-H0AAR4-126WJ0-VC8END-1H4H309
+<span class="o">)</span>
+<span class="nv">osd_device</span><span class="o">=</span>sdb
+
+<span class="nv">public_iface</span><span class="o">=</span>eth0
+<span class="nv">cluster_iface</span><span class="o">=</span>eth1
+<span class="nv">root_passwd</span><span class="o">=</span>1
+<span class="nv">cluster_name</span><span class="o">=</span>automation
+<span class="nv">ui_account</span><span class="o">=</span>admin
+<span class="nv">ui_account_passwd</span><span class="o">=</span>1
+<span class="nv">rep_no</span><span class="o">=</span>2
+<span class="nv">ntp_server_ip</span><span class="o">=</span>202.120.2.101
+<span class="nv">enable_timeout</span><span class="o">=</span>480
+
+
+<span class="k">function </span>check_network<span class="o">()</span>
+<span class="o">{</span>
+    <span class="c"># public_interface network status check</span>
+    <span class="nb">echo</span> <span class="s2">"@1.Start to check network."</span>
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"  [Public interface]:"</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> i&lt;<span class="k">${#</span><span class="nv">public_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> i++ <span class="o">))</span>
+    <span class="k">do
+        </span><span class="nv">public_network_status</span><span class="o">=</span><span class="sb">`</span>ping <span class="nt">-c</span> 4 <span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span> | <span class="nb">grep</span> <span class="s2">"packet loss"</span> | <span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">" "</span> <span class="s1">'{print $6}'</span><span class="sb">`</span>
+        <span class="k">if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">public_network_status</span><span class="k">}</span><span class="s2">"</span> <span class="o">==</span> x<span class="s2">"0%"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+            </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    </span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">  --&gt;  OK"</span>
+        <span class="k">else
+            </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    </span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">  --&gt;  OK"</span>
+            <span class="k">return </span>1
+        <span class="k">fi
+    done</span>
+    
+    <span class="c"># storage_interface network status check</span>
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"  [Storeage interfae]:"</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span>i&lt;<span class="k">${#</span><span class="nv">storage_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> i++ <span class="o">))</span>
+    <span class="k">do
+        </span><span class="nv">storage_network_status</span><span class="o">=</span><span class="sb">`</span>ping <span class="nt">-c</span> 4 <span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span> | <span class="nb">grep</span> <span class="s2">"packet loss"</span> | <span class="nb">awk</span> <span class="nt">-F</span> <span class="s2">" "</span> <span class="s1">'{print $6}'</span><span class="sb">`</span>
+        <span class="k">if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">storage_network_status</span><span class="k">}</span><span class="s2">"</span> <span class="o">==</span> x<span class="s2">"0%"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+            </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">  --&gt;  OK"</span>
+        <span class="k">else
+            </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">  --&gt;  OK"</span>
+            <span class="k">return </span>1
+        <span class="k">fi
+    done
+    return </span>0
+<span class="o">}</span>
+
+<span class="k">function </span>check_apache<span class="o">()</span>
+<span class="o">{</span> 
+    <span class="c"># network is bad, do not start apache</span>
+    <span class="nv">ret</span><span class="o">=</span><span class="sb">`</span><span class="nb">echo</span> <span class="nv">$?</span><span class="sb">`</span>
+    <span class="k">if</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">ret</span><span class="k">}</span> <span class="nt">-eq</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+        </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"[ERROR]  network check finish, network is bad."</span>
+        <span class="k">return </span>1
+    <span class="k">else
+        </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"[Success]  network check finish, network is ok."</span>
+    <span class="k">fi
+    
+    </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">@2.Start to check apache service."</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> i&lt;<span class="k">${#</span><span class="nv">public_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> i++ <span class="o">))</span>
+    <span class="k">do
+        for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> i&lt;3<span class="p">;</span> i++ <span class="o">))</span>
+        <span class="k">do
+            </span><span class="nv">ret_code</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">-I</span> <span class="nt">-m</span> 10 <span class="nt">-o</span> /dev/null <span class="nt">-s</span> <span class="nt">-w</span> %<span class="o">{</span>http_code<span class="o">}</span> <span class="nt">--insecure</span> <span class="nt">--cookie-jar</span> cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/login?user_id=root&amp;password=</span><span class="k">${</span><span class="nv">root_passwd</span><span class="k">}</span><span class="s2">"</span><span class="si">)</span>
+            <span class="k">if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">ret_code</span><span class="k">}</span><span class="s2">"</span> <span class="o">!=</span> x<span class="s2">"200"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+                </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"[ERROR]  Apache's service is bad on </span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">, error code is </span><span class="k">${</span><span class="nv">ret_code</span><span class="k">}</span><span class="s2">"</span>
+                <span class="k">return </span>1
+            <span class="k">else
+                </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"  Apache service on </span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">  --&gt;  OK"</span>
+            <span class="k">fi
+        done
+    done
+
+    </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"[Success] Check Apache service finished, all apache's service are OK."</span>
+    <span class="k">return </span>0
+
+:&lt;&lt;<span class="o">!</span>
+    <span class="c"># add host to sshpass known list</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> i&lt;<span class="k">${#</span><span class="nv">public_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> i++ <span class="o">))</span>
+    <span class="k">do</span>
+        <span class="c">#echo ${apache_status}</span>
+        sshpass <span class="nt">-p</span> p@ssw0rd ssh <span class="nt">-o</span> <span class="nv">StrictHostKeyChecking</span><span class="o">=</span>no root@<span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span> pidof apache2
+        <span class="c">#apache_status="sshpass -p p@ssw0rd ssh -o StrictHostKeyChecking=no root@${public_ip[i]} pidof apache2"</span>
+        <span class="c">#echo ${apache_status}</span>
+    <span class="k">done</span>
+    
+    <span class="c"># check apache whether or not start</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span> i&lt;<span class="k">${#</span><span class="nv">public_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span> i++ <span class="o">))</span>
+    <span class="k">do
+        </span><span class="nv">apache_status</span><span class="o">=</span><span class="s2">"sshpass -p p@ssw0rd ssh -o StrictHostKeyChecking=no root@</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2"> pidof apache2"</span>
+        <span class="k">if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">apache_status</span><span class="k">}</span><span class="s2">"</span> <span class="o">==</span> x<span class="s2">""</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+            </span><span class="nb">echo</span> <span class="s2">"apache not started @</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">."</span>
+            <span class="k">return </span>1
+        <span class="k">else
+            </span><span class="nb">echo</span> <span class="s2">"apache started </span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">."</span>
+        <span class="k">fi
+    done
+    return </span>0
+<span class="o">!</span>
+<span class="o">}</span>
+
+<span class="k">function </span>check_license<span class="o">()</span>
+<span class="o">{</span>
+   <span class="nv">license_array_len</span><span class="o">=</span><span class="k">${#</span><span class="nv">license_info</span><span class="p">[@]</span><span class="k">}</span>
+   <span class="nv">storage_ip_len</span><span class="o">=</span><span class="k">${#</span><span class="nv">storage_ip</span><span class="p">[@]</span><span class="k">}</span>
+
+   <span class="k">if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">license_array_len</span><span class="k">}</span><span class="s2">"</span> <span class="nt">-ne</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">storage_ip_len</span><span class="k">}</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+      </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    [ERROR] Licesne number should same as the number of nodes</span><span class="se">\n</span><span class="s2">"</span>
+      <span class="k">return </span>1 
+   <span class="k">fi</span>
+<span class="o">}</span>
+
+
+<span class="k">function </span>create_cluster<span class="o">()</span>
+<span class="o">{</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span>i&lt;<span class="k">${#</span><span class="nv">storage_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span>i++<span class="o">))</span>
+    <span class="k">do
+        if</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">i</span><span class="k">}</span> <span class="nt">-eq</span> 0 <span class="o">]]</span><span class="p">;</span> <span class="k">then 
+            </span>cluster_ip+<span class="o">=</span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span>
+        <span class="k">else
+            </span>cluster_ip+<span class="o">=</span>+<span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span>
+        <span class="k">fi
+    done
+
+    </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Login with root account, then create the cluster</span><span class="se">\n</span><span class="s2">"</span>
+    curl <span class="nt">--insecure</span> <span class="nt">--cookie-jar</span> cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/login?user_id=root&amp;password=</span><span class="k">${</span><span class="nv">root_passwd</span><span class="k">}</span><span class="s2">"</span>
+    
+    curl <span class="nt">--insecure</span> <span class="nt">--cookie</span> cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/create_cluster?admin_account=</span><span class="k">${</span><span class="nv">ui_account</span><span class="k">}</span><span class="s2">&amp;admin_passwd=</span><span class="k">${</span><span class="nv">ui_account_passwd</span><span class="k">}</span><span class="s2">&amp;cluster_name=</span><span class="k">${</span><span class="nv">cluster_name</span><span class="k">}</span><span class="s2">&amp;license_key=&amp;mons=</span><span class="k">${</span><span class="nv">cluster_ip</span><span class="p">#*+</span><span class="k">}</span><span class="s2">&amp;nodes=</span><span class="k">${</span><span class="nv">cluster_ip</span><span class="k">}</span><span class="s2">&amp;ntp_server_list=</span><span class="k">${</span><span class="nv">ntp_server_ip</span><span class="k">}</span><span class="s2">&amp;rack_id=0&amp;rep_no=2&amp;use_rack_aware=false"</span>
+ 
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Account of root logout</span><span class="se">\n</span><span class="s2">"</span>
+    curl <span class="nt">--insecure</span> <span class="nt">--cookie</span> cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/logout"</span>
+    
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Remove cookie.jar</span><span class="se">\n</span><span class="s2">"</span>
+    <span class="nb">rm</span> <span class="nt">-rf</span> cookie.jar
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Sleep 100s, to wait root session timeout</span><span class="se">\n</span><span class="s2">"</span>
+    <span class="nb">sleep </span>100
+    
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Login UI with </span><span class="k">${</span><span class="nv">ui_account</span><span class="k">}</span><span class="s2">, then input license/create OSD/enable GW</span><span class="se">\n</span><span class="s2">"</span>
+    curl <span class="nt">--insecure</span>  <span class="nt">--cookie-jar</span> ui-cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/login?user_id=</span><span class="k">${</span><span class="nv">ui_account</span><span class="k">}</span><span class="s2">&amp;password=</span><span class="k">${</span><span class="nv">ui_account_passwd</span><span class="k">}</span><span class="s2">"</span>
+<span class="o">}</span>
+
+
+<span class="k">function </span>input_license<span class="o">()</span>
+<span class="o">{</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span>i&lt;<span class="k">${#</span><span class="nv">storage_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span>i++<span class="o">))</span>
+    <span class="k">do 
+        </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Input lincesne </span><span class="k">${</span><span class="nv">license_info</span><span class="p">[i]</span><span class="k">}</span><span class="s2"> on </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+        curl <span class="nt">--insecure</span> <span class="nt">--cookie</span> ui-cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/license_set?ip=</span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">&amp;key=</span><span class="k">${</span><span class="nv">license_info</span><span class="p">[i]</span><span class="k">}</span><span class="s2">"</span>
+        <span class="nb">sleep </span>1
+    <span class="k">done</span>
+<span class="o">}</span>
+
+<span class="k">function </span>create_and_enable_osd<span class="o">()</span>
+<span class="o">{</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span>i&lt;<span class="k">${#</span><span class="nv">storage_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span>i++<span class="o">))</span>
+    <span class="k">do 
+        </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Create OSD on node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+        curl <span class="nt">--insecure</span> <span class="nt">--cookie</span> ui-cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/storage_volume_add"</span> <span class="nt">--data</span> <span class="s2">"host=</span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">&amp;name=osd&amp;sv_type=0&amp;data_devs=%5B%22%2Fdev%2F</span><span class="k">${</span><span class="nv">osd_device</span><span class="k">}</span><span class="s2">%22%5D&amp;journal_dev=data&amp;cache_dev=&amp;spare_devs=%5B%5D&amp;dedup=false&amp;compress=false&amp;memory_conserve=false&amp;enable_osd=true&amp;ip=</span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">&amp;cluster_iface=</span><span class="k">${</span><span class="nv">cluster_iface</span><span class="k">}</span><span class="s2">&amp;public_iface=</span><span class="k">${</span><span class="nv">public_iface</span><span class="k">}</span><span class="s2">&amp;pool_to_join=default&amp;add_metadata_pool=true"</span>
+        <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Enable  OSD on node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+        curl <span class="nt">--insecure</span> <span class="nt">--cookie</span> ui-cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/node_role_enable_osd?ip=</span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">&amp;sv_list=osd&amp;cluster_iface=</span><span class="k">${</span><span class="nv">cluster_iface</span><span class="k">}</span><span class="s2">&amp;public_iface=</span><span class="k">${</span><span class="nv">public_iface</span><span class="k">}</span><span class="s2">"</span>
+        <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Check OSD up/down status on node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="nv">j</span><span class="o">=</span>1
+        <span class="k">while</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">j</span><span class="k">}</span> <span class="nt">-le</span> <span class="k">${</span><span class="nv">enable_timeout</span><span class="k">}</span> <span class="o">]]</span>
+        <span class="k">do
+           </span><span class="nv">osd_up_nums</span><span class="o">=</span><span class="sb">`</span>ceph osd tree | <span class="nb">grep</span> <span class="nt">-A</span> 2 default_<span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span> | <span class="nb">grep</span> <span class="nt">-i</span> up| <span class="nb">wc</span> <span class="nt">-l</span> 2&gt;&amp;1<span class="sb">`</span>
+           <span class="k">if</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">osd_up_nums</span><span class="k">}</span> <span class="nt">-ge</span> 1 <span class="o">]]</span><span class="p">;</span> <span class="k">then
+               </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"        [SUCCESS] OSD is up on node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+               <span class="nb">break
+           </span><span class="k">else
+               </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"        Node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">, the </span><span class="nv">$j</span><span class="s2"> time(s) check OSD up status, total check times is </span><span class="k">${</span><span class="nv">enable_timeout</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+           <span class="k">fi
+           </span><span class="nb">let </span>j++
+           <span class="nb">sleep </span>1
+        <span class="k">done
+    done</span>
+<span class="o">}</span>
+
+
+<span class="k">function </span>enable_gw<span class="o">()</span>
+<span class="o">{</span>
+    <span class="k">for</span><span class="o">((</span> <span class="nv">i</span><span class="o">=</span>0<span class="p">;</span>i&lt;<span class="k">${#</span><span class="nv">storage_ip</span><span class="p">[@]</span><span class="k">}</span><span class="p">;</span>i++<span class="o">))</span>
+    <span class="k">do
+        </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Enable Gateway on node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+        curl <span class="nt">--insecure</span> <span class="nt">--cookie</span> ui-cookie.jar <span class="s2">"https://</span><span class="k">${</span><span class="nv">public_ip</span><span class="p">[0]</span><span class="k">}</span><span class="s2">:8080/cgi-bin/ezs3/json/gateway_role_enable?ip=</span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">&amp;public_iface=</span><span class="k">${</span><span class="nv">public_iface</span><span class="k">}</span><span class="s2">"</span>
+        <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Check GW enabled status on node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+        <span class="nv">j</span><span class="o">=</span>1
+        <span class="k">while</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">j</span><span class="k">}</span> <span class="nt">-le</span> <span class="k">${</span><span class="nv">enable_timeout</span><span class="k">}</span> <span class="o">]]</span>
+        <span class="k">do
+           </span><span class="nv">ctdb_status</span><span class="o">=</span><span class="sb">`</span>ctdb status | <span class="nb">grep</span> <span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span> | <span class="nb">awk</span> <span class="s1">'{print $3}'</span>| <span class="nb">sed</span> <span class="s1">'s/ //g'</span> 2&gt;&amp;1<span class="sb">`</span>
+           <span class="k">if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">ctdb_status</span><span class="k">}</span><span class="s2">"</span> <span class="o">==</span> x<span class="s2">"OK"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+               </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"        [SUCCESS] GW is enabled</span><span class="se">\n</span><span class="s2">"</span>
+               <span class="nb">break
+           </span><span class="k">else
+               </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"        Node </span><span class="k">${</span><span class="nv">storage_ip</span><span class="p">[i]</span><span class="k">}</span><span class="s2">, the </span><span class="nv">$j</span><span class="s2"> time(s) to check ctdb status, total check times is </span><span class="k">${</span><span class="nv">enable_timeout</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+           <span class="k">fi
+           </span><span class="nb">let </span>j++
+           <span class="nb">sleep </span>1
+        <span class="k">done
+    done</span>
+<span class="o">}</span>
+
+<span class="k">function </span>cluster_health<span class="o">()</span>
+<span class="o">{</span>
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Check cluster health status</span><span class="se">\n</span><span class="s2">"</span>
+    <span class="nv">health_status</span><span class="o">=</span><span class="sb">`</span>ceph <span class="nt">-s</span> | <span class="nb">grep</span> <span class="nt">-i</span> health | <span class="nb">awk</span> <span class="s1">'{print $NF}'</span> | <span class="nb">sed</span> <span class="s1">'s/ //g'</span> 2&gt;&amp;1<span class="sb">`</span>
+    <span class="nv">i</span><span class="o">=</span>1
+    <span class="k">while</span> <span class="o">[[</span> <span class="nv">$i</span> <span class="nt">-le</span> <span class="k">${</span><span class="nv">enable_timeout</span><span class="k">}</span> <span class="o">]]</span>
+    <span class="k">do
+        if</span> <span class="o">[[</span> x<span class="s2">"</span><span class="k">${</span><span class="nv">health_status</span><span class="k">}</span><span class="s2">"</span> <span class="o">!=</span> x<span class="s2">"HEALTH_OK"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+            </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"  The </span><span class="nv">$i</span><span class="s2"> time(s) to check cluster health, total check times is </span><span class="k">${</span><span class="nv">enable_timeout</span><span class="k">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="nb">let </span>i++
+            <span class="nb">sleep </span>1
+        <span class="k">else
+            </span><span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"  [Success] Cluster health is OK</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="nb">break
+        </span><span class="k">fi
+    done</span>
+<span class="o">}</span>
+
+<span class="k">function </span>clean_env<span class="o">()</span>
+<span class="o">{</span>
+    <span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Clean current env</span><span class="se">\n</span><span class="s2">"</span>
+    <span class="nb">rm </span>ui-cookie.jar
+<span class="o">}</span>
+
+<span class="c">#curl -I -o /dev/null -s -w %{http_code} --insecure --cookie-jar cookie.jar "https://172.16.146.130:8080/cgi-bin/ezs3/json/login?user_id=root&amp;password=${root_passwd}"</span>
+<span class="c">#code_status=$(curl -I -o /dev/null -s -w %{http_code} --insecure --cookie-jar cookie.jar "https://172.16.146.130:8080/cgi-bin/ezs3/json/login?user_id=root&amp;password=${root_passwd}")</span>
+<span class="c">#echo "status: ${code_status}"</span>
+<span class="c">#echo "http_code: ${http_code}"</span>
+
+check_network
+check_apache
+<span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"Do some general checks</span><span class="se">\n</span><span class="s2">"</span>
+check_license
+<span class="nb">echo</span> <span class="nt">-e</span> <span class="s2">"    Check whether the licesne number is the same as the number of nodes    [Success]</span><span class="se">\n</span><span class="s2">"</span>
+
+create_cluster
+input_license
+create_and_enable_osd
+enable_gw
+cluster_health
+clean_env
+
+</code></pre></div></div>
+
+:ET

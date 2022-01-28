@@ -1,0 +1,172 @@
+I"}G<h1 id="概述">概述</h1>
+
+<p>在网关组做产品测试的时候，经常要安装环境，部署产品，其中涉及到产品部署刷库，由于组内有多套产品，每套产品所需的表名称皆不仅相同，又互补兼容，在切换到另外一个产品进行测试的时候，不想重做数据库，或者重做表空间来进行数据数据的清理，故而想用一个脚本来清理掉当前数据库环境中的所有的表、视图以及触发器，更换被测产品时，直接先抹掉当前数据，执行下个产品的刷库脚本即可。</p>
+
+<h1 id="清理脚本">清理脚本</h1>
+
+<p>使用perl语言编写（那个时候，组内都用perl，初学，水平有限，望请海涵。。。）</p>
+
+<p>直接上脚本</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/perl</span>
+<span class="k">use</span> <span class="nv">warnings</span><span class="p">;</span>
+<span class="k">use</span> <span class="nv">strict</span><span class="p">;</span>
+<span class="k">use</span> <span class="nv">Cwd</span><span class="p">;</span>
+
+<span class="c1">################################################################################</span>
+<span class="c1">#    ######################################################################    #</span>
+<span class="c1">#   #      说明：   清除当前数据库用户中所有表、视图、存储过程等数据       #   #</span>
+<span class="c1">#   #      使用：   perl   cls_db.pl                                       #   #</span>
+<span class="c1">#   #      AUTH：   wangyunzeng                                            #   #</span>
+<span class="c1">#   #      VER ：   1.0                                                    #   #</span>
+<span class="c1">#   #      TIME：   2013-01-25   14:52   create                            #   #</span>
+<span class="c1">#    ######################################################################    #</span>
+<span class="c1">################################################################################</span>
+
+
+<span class="c1">#说明</span>
+<span class="vg">$~</span><span class="o">=</span><span class="p">"</span><span class="s2">CLEAR</span><span class="p">";</span>
+<span class="nb">write</span><span class="p">;</span>
+<span class="k">format</span> <span class="n">CLEAR</span> <span class="p">=</span>
+
+<span class="si">--------------------------------------------------------------------------------
+说明：
+    
+    此脚本，清除数据库应用用户下所有资源，包括：表、视图、存储过程、包、包体、
+
+    JOB、Sequence、TRIGGER
+
+--------------------------------------------------------------------------------
+.
+</span>
+<span class="c1">#当前路径</span>
+<span class="k">my</span> <span class="nv">$cur_path</span><span class="o">=</span><span class="nv">getcwd</span><span class="p">;</span>
+
+<span class="c1">#输入数据库用户。口令与SID信息，并校验</span>
+<span class="k">my</span> <span class="nv">$USER</span><span class="o">=</span><span class="nv">$ARGV</span><span class="p">[</span><span class="mi">0</span><span class="p">];</span>
+<span class="k">my</span> <span class="nv">$USERPASS</span><span class="o">=</span><span class="nv">$ARGV</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="k">my</span> <span class="nv">$SID</span> <span class="o">=</span><span class="nv">$ARGV</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+
+<span class="c1">#使用方法</span>
+<span class="k">if</span><span class="p">(</span><span class="nv">@ARGV</span> <span class="o">!=</span><span class="mi">3</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">【使用方法】
+    
+         perl cls_db.pl username  passwd  sid</span><span class="se">\n\n</span><span class="p">";</span>
+    
+    <span class="nb">exit</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">else</span>
+<span class="p">{</span>
+    <span class="c1">#检查下</span>
+    <span class="nv">&amp;check</span><span class="p">;</span>
+            
+    <span class="nb">system</span><span class="p">("</span><span class="s2">which sqlplus&gt;/dev/null</span><span class="p">");</span>
+    <span class="k">if</span><span class="p">(</span><span class="vg">$?</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">0</span><span class="p">")</span>
+    <span class="p">{</span>
+        <span class="c1">#print '-' x 80,"\n";</span>
+        
+        <span class="c1">#先导出，然后再清理</span>
+        <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">是否需要导出当前用户下数据，[yes/no]?</span><span class="se">\n\n</span><span class="p">";</span>
+        
+        <span class="k">my</span> <span class="nv">$response</span><span class="o">=&lt;</span><span class="bp">STDIN</span><span class="o">&gt;</span><span class="p">;</span>
+        <span class="nv">$response</span><span class="o">=</span><span class="nb">lc</span><span class="p">(</span><span class="nv">$response</span><span class="p">);</span>
+        <span class="nb">chomp</span><span class="p">(</span><span class="nv">$response</span><span class="p">);</span>
+        
+        <span class="k">if</span><span class="p">(</span><span class="nv">$response</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">y</span><span class="p">"</span> <span class="o">||</span> <span class="nv">$response</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">yes</span><span class="p">")</span>
+        <span class="p">{</span>
+            <span class="k">if</span><span class="p">(</span><span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="si">$cur_path</span><span class="s2">/exp_</span><span class="si">$USER</span><span class="s2">.dmp</span><span class="p">")</span>
+            <span class="p">{</span>
+                <span class="nb">system</span><span class="p">("</span><span class="s2">rm -f </span><span class="si">$cur_path</span><span class="s2">/exp_</span><span class="si">$USER</span><span class="s2">.dmp</span><span class="p">");</span>
+            <span class="p">}</span>
+            <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">开始导出数据到dmp文件</span><span class="se">\n</span><span class="p">";</span>
+            <span class="nb">system</span><span class="p">("</span><span class="s2">exp </span><span class="si">$USER</span><span class="s2">/</span><span class="si">$USERPASS</span><span class="se">\@</span><span class="si">$SID</span><span class="s2"> file=</span><span class="si">$cur_path</span><span class="s2">/exp_</span><span class="si">$USER</span><span class="s2">.dmp</span><span class="p">");</span>
+        <span class="p">}</span>
+        <span class="k">elsif</span><span class="p">(</span><span class="nv">$response</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">n</span><span class="p">"</span> <span class="o">||</span> <span class="nv">$response</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">no</span><span class="p">")</span>
+        <span class="p">{</span>
+            <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">不需要导出当前用户下数据到dmp文件.</span><span class="se">\n</span><span class="p">";</span>
+        <span class="p">}</span>
+        <span class="k">else</span>
+        <span class="p">{</span>
+            <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">[yes/no]输入错误，不进行备份操作，直接进行清理.</span><span class="se">\n\n</span><span class="p">";</span>
+        <span class="p">}</span>
+        
+        <span class="k">print</span> <span class="p">'</span><span class="s1">-</span><span class="p">'</span> <span class="nv">x</span> <span class="mi">80</span><span class="p">,"</span><span class="se">\n</span><span class="p">";</span>
+        
+        <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">开始清理当前数据库下所有对象.......</span><span class="se">\n</span><span class="p">";</span>
+        
+        
+        <span class="c1">#调用子函数</span>
+        <span class="nv">&amp;expinfo</span><span class="p">;</span>
+        <span class="nv">&amp;dropops</span><span class="p">;</span>
+        
+        <span class="k">print</span> <span class="p">'</span><span class="s1">-</span><span class="p">'</span> <span class="nv">x</span> <span class="mi">80</span><span class="p">,"</span><span class="se">\n</span><span class="p">";</span>
+    <span class="p">}</span>
+    <span class="k">else</span>
+    <span class="p">{</span>
+       <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">不支持的数据库类型，程序退出!</span><span class="se">\n\n</span><span class="p">";</span>
+       <span class="k">print</span> <span class="p">'</span><span class="s1">-</span><span class="p">'</span> <span class="nv">x</span> <span class="mi">60</span><span class="p">,"</span><span class="se">\n</span><span class="p">";</span>
+       <span class="nb">exit</span><span class="p">;</span>
+    <span class="p">}</span>   
+<span class="p">}</span>
+
+
+
+<span class="c1">####################################定义子函数##################################</span>
+<span class="c1">##对输入的用户名、口令和SID校验</span>
+<span class="k">sub </span><span class="nf">check</span>
+<span class="p">{</span>
+   <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nv">$USER</span> <span class="o">||</span> <span class="nv">$USER</span> <span class="ow">eq</span> <span class="p">""</span> <span class="o">||</span> <span class="nv">$USER</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">sys</span><span class="p">"</span> <span class="o">||</span> <span class="nv">$USER</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">system</span><span class="p">"</span> <span class="o">||</span> <span class="nv">$USER</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">scott</span><span class="p">"</span> <span class="o">||</span> <span class="nv">$USER</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">sysman</span><span class="p">"</span> <span class="o">||</span> <span class="nv">$USER</span> <span class="ow">eq</span> <span class="p">"</span><span class="s2">rman</span><span class="p">")</span>
+   <span class="p">{</span>
+       <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">输入数据库用户名有误，不能为空、不能为sys、system、scott、sysman或rman用户，程序退出执行!</span><span class="se">\n\n</span><span class="p">";</span>
+       <span class="nb">exit</span><span class="p">;</span>
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="o">!</span><span class="nv">$USERPASS</span> <span class="o">||</span> <span class="nv">$USERPASS</span> <span class="ow">eq</span> <span class="p">"")</span>
+   <span class="p">{</span>
+       <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">输入数据库口令有误，不能为空，程序退出执行!</span><span class="se">\n\n</span><span class="p">";</span>
+       <span class="nb">exit</span><span class="p">;</span>    
+   <span class="p">}</span>
+   <span class="k">elsif</span><span class="p">(</span><span class="o">!</span><span class="nv">$SID</span> <span class="o">||</span> <span class="nv">$SID</span> <span class="ow">eq</span> <span class="p">"")</span>
+   <span class="p">{</span>
+       <span class="k">print</span> <span class="p">"</span><span class="se">\n</span><span class="s2">输入数据库SID有误，不能为空，程序退出执行!</span><span class="se">\n\n</span><span class="p">";</span>
+       <span class="nb">exit</span><span class="p">;</span>      
+   <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="c1">##导出当前数据库中表名、视图名等到文件</span>
+<span class="k">sub </span><span class="nf">expinfo</span>
+<span class="p">{</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">SQLPLUS</span><span class="p">,</span> <span class="p">"</span><span class="s2">|sqlplus -S </span><span class="si">$USER</span><span class="s2">/</span><span class="si">$USERPASS</span><span class="se">\@</span><span class="si">$SID</span><span class="s2"> &gt;/dev/null</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Execute sqlplus loging error!</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">set feedback off</span><span class="se">\n</span><span class="s2">set sqlnumber off</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">set pagesize 0</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">set trimspool off</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">set sqlblanklines off</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">spool </span><span class="si">$cur_path</span><span class="s2">/dropjob.txt</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">select 'drop job ' || job || ';' from user_jobs;</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">spool </span><span class="si">$cur_path</span><span class="s2">/dropobj.txt</span><span class="se">\n</span><span class="p">";</span>    
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">select 'drop ' || object_type || ' ' || object_name || ';' from user_objects;</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="s2">spool off</span><span class="se">\n</span><span class="p">";</span>
+    <span class="nb">close</span><span class="p">(</span><span class="nv">SQLPLUS</span><span class="p">)</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Execute sqlplus exit error!</span><span class="se">\n</span><span class="p">";</span>    
+<span class="p">}</span>
+
+<span class="c1">##执行删除操作</span>
+<span class="k">sub </span><span class="nf">dropops</span>
+<span class="p">{</span>
+    <span class="c1">##判断文件是否存在</span>
+    <span class="p">(</span><span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="si">$cur_path</span><span class="s2">/dropjob.txt</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2"> File [dropjob.txt] is not eixt,$!</span><span class="se">\n\n</span><span class="p">";</span>
+    <span class="p">(</span><span class="o">-</span><span class="nv">f</span> <span class="p">"</span><span class="si">$cur_path</span><span class="s2">/dropobj.txt</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="se">\n</span><span class="s2"> File [dropobj.txt] is not eixt,$!</span><span class="se">\n\n</span><span class="p">";</span>
+    
+    <span class="nb">system</span><span class="p">("</span><span class="s2">cat </span><span class="si">$cur_path</span><span class="s2">/dropjob.txt </span><span class="si">$cur_path</span><span class="s2">/dropobj.txt &gt; </span><span class="si">$cur_path</span><span class="s2">/dropinfo.txt</span><span class="p">");</span>
+    
+    <span class="nb">unlink</span><span class="p">("</span><span class="si">$cur_path</span><span class="s2">/dropjob.txt</span><span class="p">");</span>
+    <span class="nb">unlink</span><span class="p">("</span><span class="si">$cur_path</span><span class="s2">/dropobj.txt</span><span class="p">");</span>
+    
+    <span class="c1">#执行清理操作</span>
+    <span class="nb">open</span><span class="p">(</span><span class="nv">SQLPLUS</span><span class="p">,</span> <span class="p">"</span><span class="s2">|sqlplus -S </span><span class="si">$USER</span><span class="s2">/</span><span class="si">$USERPASS</span><span class="se">\@</span><span class="si">$SID</span><span class="s2"> &gt;/dev/null</span><span class="p">")</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Execute sqlplus loging error!</span><span class="se">\n</span><span class="p">";</span>
+    <span class="k">print</span> <span class="nv">SQLPLUS</span> <span class="p">"</span><span class="se">\@</span><span class="si">$cur_path</span><span class="s2">/dropinfo.txt</span><span class="se">\n</span><span class="p">";</span>
+    <span class="nb">close</span><span class="p">(</span><span class="nv">SQLPLUS</span><span class="p">)</span> <span class="o">||</span> <span class="nb">die</span> <span class="p">"</span><span class="s2">Execute sqlplus exit error!</span><span class="se">\n</span><span class="p">";</span>     
+<span class="p">}</span>
+</code></pre></div></div>
+:ET

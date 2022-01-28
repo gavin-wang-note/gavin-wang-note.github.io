@@ -1,0 +1,51 @@
+I"�<h1 id="迁移数据库控制文件数据文件重做日志文件">迁移数据库控制文件、数据文件、重做日志文件</h1>
+
+<h2 id="适用条件">适用条件</h2>
+
+<p>数据文件、控制文件较大，占用当前磁盘空间，而且当前磁盘剩余空间严重不足。</p>
+
+<h2 id="操作步骤">操作步骤</h2>
+
+<h3 id="首先移动控制文件">首先，移动控制文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        sqlplus / as sysdba 
+        create pfile from spfile;  
+        shutdown immdiate 
+</code></pre></div></div>
+
+<h3 id="修改pfile文件中控制文件的位置">修改pfile文件中控制文件的位置</h3>
+
+<p>如：原先控制文件在/opt/oracle/oradata/mmsgdb/目录下，修改为/home/oradata/mmsgdb/ (这个目录手工建立，并改变属主)</p>
+
+<p>(1) os level级去mv 控制文件 到 新的目录下</p>
+
+<p>(2) startup pfile=‘pfile文件路径’</p>
+
+<p>(3) create spfile from pfile</p>
+
+<p>注：</p>
+<ul>
+  <li>数据库启动可以指定使用哪个pfile文件，但不能指定使用spfile文件。</li>
+</ul>
+
+<h3 id="其次数据文件">其次，数据文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>         shutdown immediate
+         os level 级  mv操作
+         startup mount
+         alter database rename datafile ‘xxxx01.dbf’,’xxxx02.dbf’ to ‘xxxx03.dbf’,’xxx04.dbf’;
+         alter database open;  //如果还需要移动重做日志文件，这里可不启动数据库
+</code></pre></div></div>
+
+<h3 id="再者重做日志文件">再者，重做日志文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>        shutdown immediate
+        os level nv重做日志文件
+        startup mount
+        alter database rename file '/opt/oracle/oradata/mmsgdb/redo01.log' to '/home/oradate/redo01.log‘;
+        alter database rename file '/opt/oracle/oradata/mmsgdb/redo02.log' to '/home/oradate/redo02.log‘;
+        alter database rename file '/opt/oracle/oradata/mmsgdb/redo03.log' to '/home/oradate/redo03.log‘;
+        alter database open;
+</code></pre></div></div>
+
+:ET

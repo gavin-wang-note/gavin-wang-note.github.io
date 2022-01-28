@@ -1,0 +1,450 @@
+I"�><h1 id="jekyll本地搭建开发环境以及github部署流程">Jekyll本地搭建开发环境以及Github部署流程</h1>
+
+<h2 id="本地搭建jekyll">本地搭建Jekyll</h2>
+
+<p>本文以ubuntu14.04为例。</p>
+
+<p>根据最新版本的要求， Jekyll 3 要求 Ruby 2.0.0 及以上的版本。但 Ubuntu 14.04 apt-get 默认提供的版本较低（1.9），所以需要从其他地方安装最新的版本。</p>
+
+<h3 id="安装-rbenv">安装 rbenv</h3>
+
+<p>从 Github 上 clone, 再添加路径 :</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
+
+echo 'export PATH="$HOME/.rbenv/bin:$PATH"' &gt;&gt; ~/.bashrc
+
+echo 'eval "$(rbenv init -)"' &gt;&gt; ~/.bashrc
+
+source ~/.bashrc
+</code></pre></div></div>
+
+<p>然后我们需要一个 rbenv 插件 ruby-build 来编译并安装 Ruby .</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
+
+echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' &gt;&gt; ~/.bashrc
+
+source ~/.bashrc
+</code></pre></div></div>
+
+<p>安装 rbenv-gem-rehash . 当使用 gem 安装或卸载 Ruby package 时，这个插件自动调用 rbenv rehash .</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
+</code></pre></div></div>
+
+<h3 id="安装nodejs">安装Node.js</h3>
+
+<p>官网提供的方法是：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
+
+apt-get install -y nodejs
+</code></pre></div></div>
+
+<p>npm 也会被安装.</p>
+
+<h3 id="安装gem">安装gem</h3>
+
+<p>说明：</p>
+
+<p><strong>先跳过安装，如果没有</strong><strong>gem</strong><strong>，再来安装与设置环境变量</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt-get install gem
+</code></pre></div></div>
+
+<p>设置gem环境变量</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo '# Install Ruby Gems to ~/gems' &gt;&gt; ~/.zshrc
+
+echo 'export GEM_HOME="$HOME/gems"' &gt;&gt; ~/.zshrc
+
+echo 'export PATH="$HOME/gems/bin:$PATH"' &gt;&gt; ~/.zshrc
+
+source ~/.zshrc
+</code></pre></div></div>
+
+<h3 id="安装-ruby-2x-和-jekyll-40">安装 Ruby 2.x 和 Jekyll 4.0</h3>
+
+<p>首先确定相关的依赖已经安装.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt-get update
+
+apt-get install build-essential libssl-dev libreadline-dev libyaml-dev libxml2-dev libxslt1-dev libffi-dev python-software-properties
+</code></pre></div></div>
+
+<p>然后运行下面的语句：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rbenv install 2.4.0
+
+rbenv global 2.4.0
+</code></pre></div></div>
+
+<p>由于jekyll requires RubyGems version &gt;= 2.7.0，需要更新gem</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem update --system
+</code></pre></div></div>
+
+<p>如果上面的命令不行，需要执行下面的命令：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install rubygems-update
+
+update_rubygems
+</code></pre></div></div>
+
+<p>成功更新后，查看gem版本</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@code80:~# gem -v
+3.0.6
+</code></pre></div></div>
+
+<h4 id="开始安装jekyll">开始安装jekyll</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install bundle
+
+gem install jekyll
+</code></pre></div></div>
+
+<p><img class="shadow" src="/img/in-post/install_jekyll_1.jpg" width="1200" />
+<img class="shadow" src="/img/in-post/install_jekyll_2.jpg" width="1200" /></p>
+
+<p>通过下面的方法检查安装是否成功.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@code80:~# jekyll -v
+jekyll 4.0.0
+</code></pre></div></div>
+
+<h4 id="使用jekyll创建你的博客站点">使用Jekyll创建你的博客站点</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>jekyll new blog
+</code></pre></div></div>
+
+<p>说明：</p>
+
+<p>执行“jekyll new blog”会卡住很久，耐心等待一下（或者tmux里执行），成功后会看到：</p>
+
+<p><img class="shadow" src="/img/in-post/jeky_new_blog.jpg" width="1200" /></p>
+
+<h4 id="启动jekyll服务">启动jekyll服务</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd blog
+
+jekyll serve
+</code></pre></div></div>
+
+<p>会看到如下效果：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@code80:~/blog# jekyll serve
+Configuration file: /root/blog/_config.yml
+            Source: /root/blog
+       Destination: /root/blog/_site
+ Incremental build: disabled. Enable with --incremental
+      Generating... 
+       Jekyll Feed: Generating feed for posts
+                    done in 0.624 seconds.
+ Auto-regeneration: enabled for '/root/blog'
+    Server address: http://127.0.0.1:4000/
+  Server running... press ctrl-c to stop.
+</code></pre></div></div>
+
+<h4 id="尝试web访问">尝试web访问</h4>
+
+<p>由于jekyll将地址绑定到了127.0.0.1，导致局域网的其它机器并不能访问它的服务。但实际上只要改变运行jekyll的参数就可以了。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> root@code80:~/blog# jekyll serve -w --host=172.17.73.80
+Configuration file: /root/blog/_config.yml
+            Source: /root/blog
+       Destination: /root/blog/_site
+ Incremental build: disabled. Enable with --incremental
+      Generating... 
+       Jekyll Feed: Generating feed for posts
+                    done in 0.49 seconds.
+ Auto-regeneration: enabled for '/root/blog'
+    Server address: http://172.17.73.80:4000/
+  Server running... press ctrl-c to stop.
+</code></pre></div></div>
+
+<p>通过172.17.73.80这个地址，访问web：</p>
+
+<p><img class="shadow" src="/img/in-post/default_ui.jpg" width="1200" /></p>
+
+<p>至此，jekyll安装好了。</p>
+
+<h2 id="使用jekyll写博文">使用Jekyll写博文</h2>
+
+<h3 id="博文结构">博文结构</h3>
+
+<p>我们进入blog目录后，会发现Jekyl的结构如下：</p>
+
+<p><img class="shadow" src="/img/in-post/default_tree.jpg" width="1200" /></p>
+
+<h3 id="博文发布测试">博文发布测试</h3>
+
+<p>我们进入_post目录，撰写的markdown语法的博文都放在这里。默认会有一篇测试文章：2019-11-21-welcome-to-jekyll.markdown.</p>
+
+<p>现在写两个新的md文档</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>-rw-r--r-- 1 root root 3319 Nov 21 21:20 2019-11-20-nose-progress-bar.md
+
+-rw-r--r-- 1 root root 5018 Nov 21 21:20 2019-11-21-write-nose-test-case-role.md
+</code></pre></div></div>
+
+<p>然后刷新一下浏览器、发现页面并没有变化.因为我们还没有通过Jekyll build去生成。</p>
+
+<h3 id="jekyll-build">jekyll build</h3>
+
+<p>默认情况下，服务会以前台的方式挂起，如果希望用后台进程运行服务，我们可以使用 –detach参数，缩写参数为-B(应该是Background的首字母)</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>jekyll serve build --detach -w --host=172.17.73.80
+</code></pre></div></div>
+
+<p>或者</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>jekyll serve build -B -w --host=172.17.73.80
+</code></pre></div></div>
+
+<p>注意：</p>
+
+<p>如果用vagrant虚拟机去安装jekyll，那么启动服务时还需要加上-H参数，指定访问主机号为0.0.0.0，即jekyll serve build -B -H 0.0.0.0,否则vagrant下可能启动失败</p>
+
+<p>再查看首页，发现已经有三篇文章了！</p>
+
+<p><img class="shadow" src="/img/in-post/3_test_file.jpg" width="1200" /></p>
+
+<h3 id="博文头信息">博文头信息</h3>
+
+<p>打开一个markdown,可以看见开头有如下几个东东。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---
+
+layout: post
+
+title: "Welcome to Jekyll!"
+
+date:  2019-11-21 20:52:45 +0800
+
+categories: jekyll update
+
+---
+</code></pre></div></div>
+
+<p>layout表示使用的是post布局，title是文章标题，date是自动生成的日期，categories是该文章生成html文件后存放的目录，可以去_site/jekyll/update下找到对应日期下面的html文档。当然你也可以只设置jekyll单一的目录，甚至是更多级别的目录，用空格分开即可。头信息设置完成后就可以书写正文了。</p>
+
+<p>如果每次都输入这些头信息，还要去整理格式，那么一定很烦躁，这种重复性的东西我们就把它自动化，通过Rakefile去解决，它类似shell这样的脚本，可以使用交互模式。以下是我的Rakefile,可以复制后命名为Rakefile，放在站点根目录直接使用，也可以修改为适合自己的Rakefile：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>task :default =&gt; :new
+
+require 'fileutils'
+
+desc "创建新 post"
+
+task :new do
+
+ puts "请输入要创建的 post URL："
+
+  @url = STDIN.gets.chomp
+
+  puts "请输入 post 标题："
+
+  @name = STDIN.gets.chomp
+
+  puts "请输入 post 子标题："
+
+  @subtitle = STDIN.gets.chomp
+
+  puts "请输入 post 分类，以空格分隔："
+
+  @categories = STDIN.gets.chomp
+
+  puts "请输入 post 标签："
+
+  @tag = STDIN.gets.chomp
+
+  @slug = "#{@url}"
+
+  @slug = @slug.downcase.strip.gsub(' ', '-')
+
+  @date = Time.now.strftime("%F")
+
+  @post_name = "_posts/#{@date}-#{@slug}.md"
+
+  if File.exist?(@post_name)
+
+​      abort("文件名已经存在！创建失败")
+
+  end
+
+  FileUtils.touch(@post_name)
+
+  open(@post_name, 'a') do |file|
+
+​      file.puts "---"
+
+​      file.puts "layout: post"
+
+​      file.puts "title: #{@name}"
+
+​      file.puts "subtitle: #{@subtitle}"
+
+​      file.puts "author: Gavin"
+
+​      file.puts "date: #{Time.now}"
+
+​      file.puts "categories: #{@categories}"
+
+​      file.puts "tag: #{@tag}"
+
+​      file.puts "---"
+
+  end
+
+  exec "vi #{@post_name}"
+
+end
+</code></pre></div></div>
+
+<h3 id="如何使用rake">如何使用Rake</h3>
+
+<p>输入一下命令：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rake new
+</code></pre></div></div>
+
+<p>rake会启动交互模式，让你依次输入title，subtitle，author，categories，tag等信息，并为你创建好具有头信息的markdown文件。如下一样:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>请输入要创建的 post URL：
+
+testurl
+
+请输入 post 标题：
+
+testpost
+
+请输入 post 子标题：
+
+subtitle  
+
+请输入 post 分类，以空格分隔：
+
+jekyll
+
+请输入 post 标签：
+
+技术
+</code></pre></div></div>
+
+<p>我们查看_post目录，发现已经有一篇2019-11-21-testurl.md文章，打开看下</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>---
+
+layout: post
+
+title: testpost
+
+subtitle: subtitle
+
+author: gavin
+
+date: 2019-11-21 21:39:27 +0800
+
+categories: jekyll
+
+tag: 技术
+
+---
+</code></pre></div></div>
+
+<h2 id="使用github-pages服务生成个人博客">使用Github pages服务生成个人博客</h2>
+
+<h3 id="创建我们的仓库">创建我们的仓库</h3>
+
+<p><img class="shadow" src="/img/in-post/my_pro.jpg" width="1200" /></p>
+
+<p>如此，我们已经可以通过浏览器输入 <a href="https://link.jianshu.com/?t=http://username.github.io">http://username.github.io</a>访问博客主页。那么我就访问https://gavin-wang-note.github.io/</p>
+
+<p>如下图所示，就是我的默认博客首页：</p>
+
+<p><img class="shadow" src="/img/in-post/my_default_blog_ui.jpg" width="1200" /></p>
+
+<p>这里我使用了他人的pro，更换了一些图片，代替上面默认的风格，展示如下：</p>
+
+<p><img class="shadow" src="/img/in-post/my_new_pro.jpg" width="1200" /></p>
+
+<h3 id="将本地jekyll代码部署到github上的仓库">将本地jekyll代码部署到Github上的仓库</h3>
+
+<p>前面我们已经详细地说明如何搭建Jekyll，我们可以在本地开发测试，推送代码到仓库，发布到线上。</p>
+
+<h3 id="克隆仓库到本地">克隆仓库到本地</h3>
+
+<p>请确保本地安装了git客户端，克隆你的username.github.com仓库到本地。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/username/username.github.com.git
+</code></pre></div></div>
+
+<h3 id="拷贝本地的jekyll目录到版本库">拷贝本地的jekyll目录到版本库</h3>
+
+<p>删除username.github.com下面的示例文件(README.md,不要删除，绑定域名会用到):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>rm -rf _site index.html _config.yml
+</code></pre></div></div>
+
+<p>拷贝本地blog(这个是前面本地搭建的blog，后续等同，不再说明)下的所有目录及文件到username.github.com</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cp -r /root/blog/* username.github.com
+</code></pre></div></div>
+
+<p>此时你会看见当前存在username.github.com这个目录，我们启动jekyll服务（启动前确保其他目录下没有jekyll服务，可以<code class="highlighter-rouge">ps aux|grep jekyll</code>查看进程,有的话,用<code class="highlighter-rouge">kill -9 进程号</code>杀掉）:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cd username.github.com
+
+jekyll serve -B -w --host=172.17.73.80
+</code></pre></div></div>
+
+<p>现在我们打开http://172.17.73.80:4000,即可看见我们在Github上创建的主页，理论上和<a href="https://link.jianshu.com?t=http:/username.github.com">http://username.github.com</a> 访问的应该是一模一样的。</p>
+
+<h3 id="本地jekyll站点部署到github-pages上相当于线上环境">本地Jekyll站点部署到Github Pages上（相当于线上环境）</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add --all       #添加到暂存区 
+
+git commit -m "提交jekyll默认页面" #提交到本地仓库
+
+git push origin master     #线上的站点是部署在master下面的
+
+</code></pre></div></div>
+
+<p>稍等10分钟左右，Github Pages有一定时间缓存,我们刷新username.github.io看看,已经ok了！</p>
+
+<h2 id="问题">问题</h2>
+
+<h3 id="jekyll因missingdependencyexception启动失败">Jekyll因MissingDependencyException启动失败</h3>
+
+<p><img class="shadow" src="/img/in-post/jekyll_start_failed.jpg" width="1200" /></p>
+
+<p>主要是这一句：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The jekyll-theme-cayman theme could not be found
+</code></pre></div></div>
+
+<p>那就使用gem去安装它</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gem install jekyll-theme-cayman
+</code></pre></div></div>
+
+<p><img class="shadow" src="/img/in-post/install_jekyll-theme-cayman.jpg" width="1200" /></p>
+
+<p>成功安装后，再次启动Jekyll</p>
+
+<p><img class="shadow" src="/img/in-post/start_jekyll_again.jpg" width="1200" /></p>
+
+<p>后续如果缺失其他模块，可根据trace信息，使用gem进行安装。</p>
+
+<h1 id="参考文档">参考文档</h1>
+
+<p>https://jekyllrb.com/docs/installation/ubuntu/</p>
+
+<p>https://www.digitalocean.com/community/tutorials/how-to-install-ruby-on-rails-with-rbenv-on-ubuntu-14-04</p>
+
+<p>https://blog.csdn.net/sinat_34439107/article/details/78440836</p>
+
+<p>https://www.jianshu.com/p/f37a96f83d51</p>
+:ET
