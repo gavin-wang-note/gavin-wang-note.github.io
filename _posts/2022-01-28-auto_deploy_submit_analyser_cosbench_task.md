@@ -22,52 +22,54 @@ tags:
 
 
 ```
-root@node243:~/cosbench# tree ./
+[root@node243 bak_cosbench]# tree ./
 ./
 ├── 00_run.sh
-├── 01_deploy_jre.sh
-├── 02_deploy_cosbench.sh
-├── 03_deplay_nmon.sh
-├── 04_submit_cosbench_task.sh
-├── 05_collect_result.sh
-├── 06_analyser_cosbench_result.sh
-├── 07_restart_cosbench.sh
+├── 01_check_expect_installed.sh
+├── 02_deploy_jre.sh
+├── 03_deploy_cosbench.sh
+├── 04_deplay_nmon.sh
+├── 05_submit_cosbench_task.sh
+├── 06_collect_result.sh
+├── 07_analyser_cosbench_result.sh
+├── 08_restart_cosbench.sh
 ├── config
-│   ├── 10M_size_object_write_read_mix_files.xml.ini
-│   ├── 120Million_only_write.xml.ini
-│   ├── 1G_size_object_write_read_mix_files.xml.ini
-│   ├── 1M_size_object_write_read_mix_files.xml.ini
-│   ├── controller_template.conf
-│   ├── dry_run.xml
-│   ├── parameters.conf
-│   └── small_object_write_read_mix_files.xml.ini
+│   ├── 100M_size_object_write_read_mix_files.xml.ini
+│   ├── 10M_size_object_write_read_mix_files.xml.ini
+│   ├── 120Million_only_write.xml.ini
+│   ├── 1G_size_object_write_read_mix_files.xml.ini
+│   ├── 1M_size_object_write_read_mix_files.xml.ini
+│   ├── 500M_size_object_write_read_mix_files.xml.ini
+│   ├── controller_template.conf
+│   ├── dry_run.xml
+│   ├── parameters.conf
+│   └── small_object_write_read_mix_files.xml.ini
 ├── packages
-│   ├── 0.4.2.c4.tar.gz
-│   ├── binfmt-support_2.1.6-1_amd64.deb
-│   ├── expect-5.44.1.15-5.el6_4.x86_64.rpm
-│   ├── jre-8u171-linux-x64.tar.gz
-│   ├── ksh-20120801-143.el7_9.x86_64.rpm
-│   ├── ksh-2020.0.0-4.ky10.x86_64.rpm
-│   ├── ksh_93u+20120801-2ubuntu0.16.04.1_amd64.deb
-│   ├── nmon_14g+debian-1build1_amd64.deb
-│   ├── nmon-16g-3.el7.x86_64.rpm
-│   ├── nmonchart40.tar
-│   └── tcl-8.5.7-6.el6.x86_64.rpm
+│   ├── 0.4.2.c4.tar.gz
+│   ├── binfmt-support_2.1.6-1_amd64.deb
+│   ├── expect-5.44.1.15-5.el6_4.x86_64.rpm
+│   ├── jre-8u171-linux-x64.tar.gz
+│   ├── ksh-20120801-143.el7_9.x86_64.rpm
+│   ├── ksh-2020.0.0-4.ky10.x86_64.rpm
+│   ├── ksh_93u+20120801-2ubuntu0.16.04.1_amd64.deb
+│   ├── nmon_14g+debian-1build1_amd64.deb
+│   ├── nmon-16g-3.el7.x86_64.rpm
+│   ├── nmonchart40.tar
+│   └── tcl-8.5.7-6.el6.x86_64.rpm
 ├── README.md
 ├── subin
-    ├── expect_scp.sh
-    └── expect_ssh.sh
+│   ├── expect_scp.sh
+│   └── expect_ssh.sh
+└── xml_files
+    └── 60workers_4KB_workload.xml
+
+4 directories, 34 files
 ```
 
 
-* instructions
+# SOP
 
-    00_run.sh is the main entry point for the script. Other scripts starting with digits are invoked by this script.
-
-
-## SOP
-
-#### Prepare test environment
+1. Prepare test environment
 
   * Install Kylin V10 or CentOS 7 or Ubuntu 16.04 as clients, client number is suggested same as that of gateways
   * The IP address of clients must be sequential
@@ -76,28 +78,30 @@ root@node243:~/cosbench# tree ./
 
 
 
-#### Create a S3 account in web UI
+2. Create a S3 account in web UI
 
   * Only support S3
 
 
 
-#### Create a pool, then set as S3 pool
+3. Create a pool, then set as S3 pool
 
   * Not care EC pool or Replicate pool
 
 
 
-#### Enable ssh for root on Storage nodes
+4. Enable ssh for root on Storage nodes
 
   * vim /etc/ssh/sshd_config to enable ssh for root(Default, after create cluster, forbidden root account to ssh)
 
 
 
 
-## Content 
 
-### parameter.conf
+
+# Content 
+
+## parameter.conf
 
 This conf defines items below:
 
@@ -107,29 +111,35 @@ This conf defines items below:
 2. S3 AKEY&SKEY
 
 
-### Script info
+## Script info
 
 Scripts are usually executed by order of the number prefixed to the filename.
 
-#### 00_run.sh:
+### 00_run.sh:
 
 This script can be treated as a set which is constituted by the following scripts. You can modify the steps to fill the concrete requirements.
 
 
-#### 01_deploy_jre.sh 
+### 01_check_expect_installed.sh
+
+This scripe is used to install some packages on each cosbench client, such as expect, tcl, nc, net-tools and sshpass.
+
+
+### 02_deploy_jre.sh 
 
 This script is used to copy jre(jre-8u171-linux-x64.tar.gz) to all clients according to parameter.conf.
 Since this script uses expect to interact, it is requested to install expect has not been installed on this client.
 
 
-#### 02_deploy_cosbench.sh
+### 03_deploy_cosbench.sh
 
 Execute it to install cosbench on all clients if have no cosbench installed before.
 If has been installed cosbench, if cosbench in running status, do nothing; if not running, will replace controller.conf then start cosbench.
-The first client as cosbench controller and driver, other nodes run driver
+The first client as cosbench controller and driver, other nodes run driver.
+Will stop and disable firewall, if firewall in running status, each cosbench node can't connect to each other.
 
 
-#### 03_deplay_nmon.sh
+### 04_deplay_nmon.sh
 
 Execute it to install nmon,ksh,nmonchart on all clients if have no nmon installed before.
 Use nmon to collect monitor data from each storage node.
@@ -139,42 +149,44 @@ Use nmonchart to chart nmon data on each storage node.
     (2) Needs to be able to access Google because needs Google plug-ins online(Can use nmon analyser to save excel)
 
 
-#### 04_submit_cosbench_task.sh
+### 05_submit_cosbench_task.sh
 
 Execute it to generate cosbench xml, then submit cosbench task, then run nmon to monitor storage on each storage node.
 Support dry run or not, suggest to dry run, prevent problems in direct running, and run completely after ensuring that there are no problems in the whole process.
 
 
-#### 05_collect_result.sh
+### 06_collect_result.sh
 
 Execute it to collect nmon result from storage nodes
 
 
-#### 06_analyser_cosbench_result.sh
+### 07_analyser_cosbench_result.sh
 
 Execute it to analyser cosbench rest result on cosbench controller node
 
-#### 07_restart_cosbench.sh
+### 08_restart_cosbench.sh
 
 If wants to restart all of cosbench service, you can run this script to do it.
-This action will not clean archive and log on each cosbench node.
+This action will not clean archive and log on each cosbench node by default, if to delete archive or log dir, should pass a parameter to shell, like as:./08_restart_cosbench.sh del.
 
 
-#### config/
+### config/
 
 ```
 controller_template.conf --> Generate controller.conf then sync to the controller node
-dry_run.xml  --> For dry run
-10M_size_object_write_read_mix_files.xml.ini   --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
-120Million_only_write.xml.ini                  --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
-1G_size_object_write_read_mix_files.xml.ini    --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
+dry_run.xml                                    --> For dry run
 1M_size_object_write_read_mix_files.xml.ini    --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
+10M_size_object_write_read_mix_files.xml.ini   --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
+100M_size_object_write_read_mix_files.xml.ini  --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
+500M_size_object_write_read_mix_files.xml.ini  --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
+1G_size_object_write_read_mix_files.xml.ini    --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
+120Million_only_write.xml.ini                  --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
 small_object_write_read_mix_files.xml.ini      --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
 ```
 
 For cosbench xml files(under xml_files), can decide the running sequence by specfying proper filename.
 
-#### packages/
+### packages/
 
 Include expect, nmon, nmonchart, ksh and other tools.
 
