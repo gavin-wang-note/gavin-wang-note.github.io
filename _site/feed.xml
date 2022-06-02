@@ -1,4 +1,140 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2022-05-19T18:50:03+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">获取OSD与CPU绑定关系</title><link href="http://172.17.73.80:4000/2022/05/19/bind_relationship_between_OSD_CPUS/" rel="alternate" type="text/html" title="获取OSD与CPU绑定关系" /><published>2022-05-19T00:00:00+08:00</published><updated>2022-05-19T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2022/05/19/bind_relationship_between_OSD_CPUS</id><content type="html" xml:base="http://172.17.73.80:4000/2022/05/19/bind_relationship_between_OSD_CPUS/">&lt;h1 id=&quot;代码&quot;&gt;代码&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2022-06-02T17:58:39+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">在linux中查看端口号是哪个进程在占用</title><link href="http://172.17.73.80:4000/2022/06/02/get_port_used_by_which_process/" rel="alternate" type="text/html" title="在linux中查看端口号是哪个进程在占用" /><published>2022-06-02T00:00:00+08:00</published><updated>2022-06-02T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2022/06/02/get_port_used_by_which_process</id><content type="html" xml:base="http://172.17.73.80:4000/2022/06/02/get_port_used_by_which_process/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;今天升级一套存储，碰到了80端口被占用，导致RGW bind 80 port时bind失败，最终导致RGW服务启用失败，造成S3 业务不可用问题。&lt;/p&gt;
+
+&lt;h1 id=&quot;查看端口信息&quot;&gt;查看端口信息&lt;/h1&gt;
+
+&lt;p&gt;Linux 上的 /etc/services 文件可以查看到更多关于保留端口的信息。&lt;/p&gt;
+
+&lt;p&gt;可以使用以下三种方法查看端口信息。&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;ss：可以用于转储套接字统计信息&lt;/li&gt;
+  &lt;li&gt;netstat：可以显示打开的套接字列表&lt;/li&gt;
+  &lt;li&gt;lsof：可以列出打开的文件。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;以下我们将找出端口号为80,被哪个守护进程所使用。&lt;/p&gt;
+
+&lt;h2 id=&quot;方法1使用-ss-命令&quot;&gt;方法1：使用 ss 命令&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node167:/var/log/ceph# ss -tlnp | grep ':80'
+LISTEN     0      128          *:8080                     *:*                   users:((&quot;apache2&quot;,pid=2771,fd=3),(&quot;apache2&quot;,pid=2770,fd=3),(&quot;apache2&quot;,pid=2769,fd=3),(&quot;apache2&quot;,pid=2768,fd=3),(&quot;apache2&quot;,pid=2767,fd=3),(&quot;apache2&quot;,pid=2760,fd=3))
+LISTEN     0      128          *:80                       *:*                   users:((&quot;haproxy&quot;,pid=2473,fd=4))
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;方法2使用-netstat-命令&quot;&gt;方法2：使用 netstat 命令&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node167:/var/log/ceph# netstat -lntp | grep ':80'
+tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2760/apache2    
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2473/haproxy    
+root@node167:/var/log/ceph# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;方法3使用-lsof-命令&quot;&gt;方法3：使用 lsof 命令&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node167:/var/log/ceph# lsof -i:80
+COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+haproxy 2473 root    4u  IPv4   1766      0t0  TCP *:http (LISTEN)
+root@node167:/var/log/ceph# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;此次事故概述&quot;&gt;此次事故概述&lt;/h1&gt;
+
+&lt;p&gt;此次碰到的问题，是升级过程中未对新增功能相关port bind做处理，详情如下：&lt;/p&gt;
+
+&lt;p&gt;Parts of ceph-client.radosgw.0.log:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;2022-06-02 17:05:38.709761 7fec78874040  0 deferred set uid:gid to 0:0 (root:root)
+2022-06-02 17:05:38.709778 7fec78874040  0 ceph version 12.2.10-903-g0149c5ceafe (0149c5ceafe1c541f0a5044e1c5c9e4fbc71c64e) luminous (stable), process radosgw, pid 104451
+2022-06-02 17:05:38.713450 7fec78874040  0 stack NetworkStack max thread limit is 24, switching to this now. Higher thread values are unnecessary and currently unsupported.
+2022-06-02 17:05:38.807429 7fec78874040  0 starting handler: civetweb
+2022-06-02 17:05:38.808117 7fec78874040  0 civetweb: 0x55d2cd1be0c0: cannot bind to 80: 98 (Address already in use)
+2022-06-02 17:05:38.808143 7fec78874040  0 civetweb: 0x55d2cd1be0c0: cannot bind to 443s: 98 (Address already in use)
+2022-06-02 17:05:38.808175 7fec78874040 -1 ERROR: failed run
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Other log:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node167:/var/log/ceph# netstat -tnlp | grep ':80'
+tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2760/apache2    
+tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2473/haproxy    
+root@node167:/var/log/ceph# cat /etc/ceph/ceph.conf | grep -i 'rgw frontends'
+rgw frontends = civetweb port=80+443s ssl_certificate=/etc/ezs3/ssl/ezs3_server.pem num_threads=1024 ssl_cipher_list=HIGH:!aNULL:!MD5:!3DES ssl_protocol_version=4
+rgw frontends = civetweb port=80+443s ssl_certificate=/etc/ezs3/ssl/ezs3_server.pem num_threads=1024 ssl_cipher_list=HIGH:!aNULL:!MD5:!3DES ssl_protocol_version=4
+root@node167:/var/log/ceph# cat /etc/haproxy/haproxy.cfg
+frontend https
+        bind *:80
+        bind *:443 ssl crt /etc/ezs3/ssl/ezs3_server.pem
+        mode http
+        option http-keep-alive
+        option http-server-close
+        timeout http-keep-alive 10s
+        option forwardfor
+        reqadd X-Forwarded-Proto:\ https
+        default_backend rgw_cluster
+
+backend rgw_cluster
+        mode http
+        balance roundrobin
+       server localhost 127.0.0.1:7480 check
+root@node167:/var/log/ceph# 
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;这里可以清晰看到，haproxy占用了RGW的80端口， /etc/haproxy/haproxy.cfg中&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;server localhost 127.0.0.1:7480 check
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;是告知ceph.conf中的rgw，你要使用的是7480这个port，而不是/etc/ceph/ceph.conf使用的却是80 port&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;rgw frontends = civetweb port=80+443s ssl_certificate=/etc/ezs3/ssl/ezs3_server.pem num_threads=1024 ssl_cipher_list=HIGH:!aNULL:!MD5:!3DES ssl_protocol_version=4
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;问题的解决方法是修改/etc/ceph/ceph.conf中的80 port为 7480。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">获取OSD与CPU绑定关系</title><link href="http://172.17.73.80:4000/2022/05/19/bind_relationship_between_OSD_CPUS/" rel="alternate" type="text/html" title="获取OSD与CPU绑定关系" /><published>2022-05-19T00:00:00+08:00</published><updated>2022-05-19T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2022/05/19/bind_relationship_between_OSD_CPUS</id><content type="html" xml:base="http://172.17.73.80:4000/2022/05/19/bind_relationship_between_OSD_CPUS/">&lt;h1 id=&quot;代码&quot;&gt;代码&lt;/h1&gt;
 
 &lt;p&gt;这里代码转自&lt;code class=&quot;highlighter-rouge&quot;&gt;https://blog.51cto.com/zphj1987/3212869&lt;/code&gt;，在他基础上增加了+号的颜色显示(高亮)，表明当前ceph-osd运行在对应On-line CPU(s)上.&lt;/p&gt;
 
@@ -1767,48 +1903,4 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 
 &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
 &lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;# yes|cp -rf /test/test_other
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry><entry><title type="html">如何知道CPU降频了呢</title><link href="http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/" rel="alternate" type="text/html" title="如何知道CPU降频了呢" /><published>2021-06-30T00:00:00+08:00</published><updated>2021-06-30T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down</id><content type="html" xml:base="http://172.17.73.80:4000/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
-
-&lt;p&gt;最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；&lt;/p&gt;
-
-&lt;p&gt;还有一次是设备两路电源线被同事拔掉了一根，只剩下一路了，供电不足，导致CPU主动降频；&lt;/p&gt;
-
-&lt;p&gt;今天RD在tuning performance时，再次碰到了CPU降频问题，问题是tuning performance过程中ganesha 跑到 1000 多 %，很凶，造成服务器机体温度升高，整个Lab平均温度达到31度，增加空调紧急降温后恢复正常。&lt;/p&gt;
-
-&lt;p&gt;由于碰到过多次，本文汇总下如何判断CPU发生了降频，避免忘记（其实今天没看出来哪里降频了，所以才写了此文XD）。&lt;/p&gt;
-
-&lt;h1 id=&quot;查看cpu降频的方法&quot;&gt;查看CPU降频的方法&lt;/h1&gt;
-
-&lt;h2 id=&quot;lscpu&quot;&gt;lscpu&lt;/h2&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/lscpu.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;如上图所示：&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;CPU MHz:               2579.700
-CPU max MHz:           3000.0000
-CPU min MHz:           800.0000
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;这里有CPU当前HZ（CPU MHz）信息和min MHz（CPU min MHz），如果CPU MHz的值是小于CPU min MHz的值，说明CPU被降频了。&lt;/p&gt;
-
-&lt;h2 id=&quot;atop中查看cruf&quot;&gt;atop中查看cruf&lt;/h2&gt;
-
-&lt;p&gt;借助atop命令（公司产品有安装），查看CPU的curf（ARM平台，华为鲲鹏服务器，这里的值为’？’，不知道为什么【需要打流量？？】，X86是OK的）&lt;/p&gt;
-
-&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/atop_cruf.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
-
-&lt;p&gt;如果curf（current frequency）只有几十MHz(正常情况下是XGHz)，CPU铁定是被降频了，此时观察atop中众多process，几乎清一色的只消耗1%的process&lt;/p&gt;
-
-&lt;h1 id=&quot;总结&quot;&gt;总结&lt;/h1&gt;
-
-&lt;p&gt;CPU降频的原因，目前碰到的：&lt;/p&gt;
-
-&lt;p&gt;（1）硬件设备温度过高&lt;/p&gt;
-
-&lt;p&gt;（2）BIOS固件的bug&lt;/p&gt;
-
-&lt;p&gt;（3）供电不足&lt;/p&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Linux" /><summary type="html">概述</summary></entry></feed>
