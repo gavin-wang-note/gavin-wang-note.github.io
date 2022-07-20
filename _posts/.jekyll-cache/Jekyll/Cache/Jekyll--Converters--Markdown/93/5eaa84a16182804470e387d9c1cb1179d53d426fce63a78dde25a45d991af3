@@ -1,0 +1,132 @@
+I"'%<h1 id="概述">概述</h1>
+
+<h1 id="第一版">第一版</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nv">ceph_version</span><span class="o">=</span><span class="sb">`</span>ceph <span class="nt">-v</span> | <span class="nb">awk</span> <span class="s1">'\{\{print \$3\}\}'</span><span class="sb">`</span>
+
+<span class="k">if</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">ceph_version</span><span class="k">}</span> <span class="o">=</span>~ <span class="s1">'10.'</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nv">pg_stat</span><span class="o">=</span><span class="s2">"pg_stat"</span>
+    <span class="nv">up</span><span class="o">=</span><span class="s2">"up"</span>
+<span class="k">elif</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">ceph_version</span><span class="k">}</span> <span class="o">=</span>~ <span class="s1">'12.'</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nv">pg_stat</span><span class="o">=</span><span class="s2">"PG_STAT"</span>
+    <span class="nv">up</span><span class="o">=</span><span class="s2">"UP"</span>
+<span class="k">fi
+
+</span>ceph pg dump | egrep <span class="nt">-v</span> <span class="s2">"^[0-9]*  "</span> | <span class="nb">awk</span> <span class="s1">'
+/^'</span><span class="nv">$pg_stat</span><span class="s1">'/ { col=1; while($col!="'</span><span class="s2">"</span><span class="nv">$up</span><span class="s2">"</span><span class="s1">'") {col++}; col++ }
+/^[0-9a-f]+.[0-9a-f]+/ { match($0,/^[0-9a-f]+/); pool=substr($0, RSTART, RLENGTH); poollist[pool]=0;
+up=$col; i=0; RSTART=0; RLENGTH=0; delete osds; while(match(up,/[0-9]+/)&gt;0) { osds[++i]=substr(up,RSTART,RLENGTH); up = substr(up, RSTART+RLENGTH) }
+for(i in osds) {array[osds[i],pool]++; osdlist[osds[i]];}
+}
+END {
+printf("\n");
+printf("pool :\t"); for (i in poollist) printf("%s\t",i); printf("| SUM \n");
+for (i in poollist) printf("--------"); printf("-------------\n");
+for (i in osdlist) { printf("osd.%i\t", i); sum=0;
+for (j in poollist) { printf("%i\t", array[i,j]); sum+=array[i,j]; poollist[j]+=array[i,j] }; printf("| %i\n",sum) }
+for (i in poollist) printf("--------"); printf("--------------\n");
+printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n");
+}'</span>
+</code></pre></div></div>
+
+<p>结果展示如下：</p>
+
+<p><img class="shadow" src="/img/in-post/pg_allocate_v1.png" width="1200" /></p>
+
+<h1 id="第二版">第二版</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nv">ceph_version</span><span class="o">=</span><span class="sb">`</span>ceph <span class="nt">-v</span> | <span class="nb">awk</span> <span class="s1">'\{\{print \$3\}\}'</span><span class="sb">`</span>
+
+<span class="k">if</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">ceph_version</span><span class="k">}</span> <span class="o">=</span>~ <span class="s1">'10.'</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nv">pg_stat</span><span class="o">=</span><span class="s2">"pg_stat"</span>
+    <span class="nv">up</span><span class="o">=</span><span class="s2">"up"</span>
+<span class="k">elif</span> <span class="o">[[</span> <span class="k">${</span><span class="nv">ceph_version</span><span class="k">}</span> <span class="o">=</span>~ <span class="s1">'12.'</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+    </span><span class="nv">pg_stat</span><span class="o">=</span><span class="s2">"PG_STAT"</span>
+    <span class="nv">up</span><span class="o">=</span><span class="s2">"UP"</span>
+<span class="k">fi
+
+</span>ceph pg dump | <span class="nb">awk</span> <span class="s1">'
+ /^'</span><span class="nv">$pg_stat</span><span class="s1">'/ { col=1; while($col!="UP") {col++}; col++ }
+ /^[0-9a-f]+\.[0-9a-f]+/ { match($0,/^[0-9a-f]+/); pool=substr($0, RSTART, RLENGTH); poollist[pool]=0;
+ up=$col; i=0; RSTART=0; RLENGTH=0; delete osds; while(match(up,/[0-9]+/)&gt;0) { osds[++i]=substr(up,RSTART,RLENGTH); up = substr(up, RSTART+RLENGTH) }
+ for(i in osds) {array[osds[i],pool]++; osdlist[osds[i]];}
+}
+END {
+ printf("\n");
+ slen=asorti(poollist,newpoollist);
+ printf("pool :\t");for (i=1;i&lt;=slen;i++) {printf("%s\t", newpoollist[i])}; printf("| SUM \n");
+ for (i in poollist) printf("--------"); printf("----------------\n");
+ slen1=asorti(osdlist,newosdlist)
+ delete poollist;
+ for (j=1;j&lt;=slen;j++) {maxpoolosd[j]=0};
+ for (j=1;j&lt;=slen;j++) {for (i=1;i&lt;=slen1;i++){if (array[newosdlist[i],newpoollist[j]] &gt;0  ){minpoolosd[j]=array[newosdlist[i],newpoollist[j]] ;break } }}; 
+ for (i=1;i&lt;=slen1;i++) { printf("osd.%i\t", newosdlist[i]); sum=0; 
+ for (j=1;j&lt;=slen;j++)  { printf("%i\t", array[newosdlist[i],newpoollist[j]]); sum+=array[newosdlist[i],newpoollist[j]]; poollist[j]+=array[newosdlist[i],newpoollist[j]];if(array[newosdlist[i],newpoollist[j]] != 0){poolhasid[j]+=1 };if(array[newosdlist[i],newpoollist[j]]&gt;maxpoolosd[j]){maxpoolosd[j]=array[newosdlist[i],newpoollist[j]];maxosdid[j]=newosdlist[i]};if(array[newosdlist[i],newpoollist[j]] != 0){if(array[newosdlist[i],newpoollist[j]]&lt;=minpoolosd[j]){minpoolosd[j]=array[newosdlist[i],newpoollist[j]];minosdid[j]=newosdlist[i]}}}; printf("| %i\n",sum)} for (i in poollist) printf("--------"); printf("----------------\n");
+ slen2=asorti(poollist,newpoollist);
+ printf("SUM :\t"); for (i=1;i&lt;=slen;i++) printf("%s\t",poollist[i]); printf("|\n");
+ printf("Osd :\t"); for (i=1;i&lt;=slen;i++) printf("%s\t",poolhasid[i]); printf("|\n");
+ printf("AVE :\t"); for (i=1;i&lt;=slen;i++) printf("%.2f\t",poollist[i]/poolhasid[i]); printf("|\n");
+ printf("Max :\t"); for (i=1;i&lt;=slen;i++) printf("%s\t",maxpoolosd[i]); printf("|\n");
+ printf("Osdid :\t"); for (i=1;i&lt;=slen;i++) printf("osd.%s\t",maxosdid[i]); printf("|\n");
+ printf("per:\t"); for (i=1;i&lt;=slen;i++) printf("%.1f%\t",100*(maxpoolosd[i]-poollist[i]/poolhasid[i])/(poollist[i]/poolhasid[i])); printf("|\n");
+ for (i=1;i&lt;=slen2;i++) printf("--------");printf("----------------\n");
+ printf("min :\t"); for (i=1;i&lt;=slen;i++) printf("%s\t",minpoolosd[i]); printf("|\n");
+ printf("osdid :\t"); for (i=1;i&lt;=slen;i++) printf("osd.%s\t",minosdid[i]); printf("|\n");
+ printf("per:\t"); for (i=1;i&lt;=slen;i++) printf("%.1f%\t",100*(minpoolosd[i]-poollist[i]/poolhasid[i])/(poollist[i]/poolhasid[i])); printf("|\n");
+}'</span>
+</code></pre></div></div>
+
+<p>结果显示如下图：</p>
+
+<p><img class="shadow" src="/img/in-post/PG_ALLOCATE_V2.png" width="1200" /></p>
+
+<h1 id="语法的解释">语法的解释</h1>
+
+<p><code class="highlighter-rouge">/^pg_stat/ { col=1; while($col!="up") {col++}; col++ }</code></p>
+
+<p>这个是匹配pg dump 的输出结果里面pg_stat那个字段，开始计数为1，不是up值就将col的值加1，这个匹配到的就是我们经常看到的[1,10]这个值最后的col++是将col值+1,因为字段里面有up,up_primary,我们需要的是up_primary</p>
+
+<p><code class="highlighter-rouge">/?[1]+.[0-9a-f]+/ { match($0,/?[2]+/); pool=substr($0, RSTART, RLENGTH); poollist[pool]=0;</code></p>
+
+<p>这个是匹配前面的 1.17a pg号 ，使用自带的match函数 做字符串的过滤统计匹配.号前面的存储池ID， 并得到 RSTART, RLENGTH 值，这个是取到前面的存储池ID，使用substr 函数，就可以得到pool的值了，poollist[pool]=0，是将数组的值置为0</p>
+
+<p><code class="highlighter-rouge">up=$col; i=0; RSTART=0; RLENGTH=0; delete osds; while(match(up,/[0-9]+/)&gt;0) { osds[++i]=substr(up,RSTART,RLENGTH); up = substr(up, RSTART+RLENGTH) }</code></p>
+
+<p>先将变量置0，然后将osd编号一个个输入到osds[i]的数组当中去</p>
+
+<p><code class="highlighter-rouge">for(i in osds) {array[osds[i],pool]++; osdlist[osds[i]];}</code></p>
+
+<p>将osds数组中的值输入到数组当中去，并且记录成osdlist，和数组array[osd[i],pool]</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>printf("\n");
+printf("pool :\t"); for (i in poollist) printf("%s\t",i); printf("| SUM \n");
+</code></pre></div></div>
+
+<p>打印osd pool的编号</p>
+
+<p><code class="highlighter-rouge">for (i in poollist) printf("--------"); printf("----------------\n");</code></p>
+
+<p>根据osd pool的长度打印—-</p>
+
+<p><code class="highlighter-rouge">for (i in osdlist) { printf("osd.%i\t", i); sum=0;</code></p>
+
+<p>打印osd的编号</p>
+
+<p><code class="highlighter-rouge">for (j in poollist) { printf("%i\t", array[i,j]); sum+=array[i,j]; poollist[j]+=array[i,j] }; printf("| %i\n",sum) }</code>
+打印对应的osd的pg数目，并做求和的统计</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>for (i in poollist) printf("--------"); printf("----------------\n");
+printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n");
+</code></pre></div></div>
+
+<p>打印新的poollist里面的求和的值,修改版本里面用到的函数</p>
+
+<p><code class="highlighter-rouge">slen1=asorti(osdlist,newosdlist)</code></p>
+
+<p>这个是将数组里面的下标进行排序，这里是对osd和poollist的编号进行排序 slen1是拿到数组的长度，使用for进行遍历输出</p>
+
+:ET

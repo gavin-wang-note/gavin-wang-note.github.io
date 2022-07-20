@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "CentOS7设置netconsole"
-subtitle:   "Base on CentOS7 to confie netconsole"
+subtitle:   "Base on CentOS7 to config netconsole"
 date:       2022-06-08
 author:     "Gavin"
 catalog:    true
@@ -32,7 +32,7 @@ tags:
 
 
 
-## 写入/rtc/rc.local中，开机自动设置
+## 写入/etc/rc.local中，开机自动设置
 
 
 

@@ -190,6 +190,8 @@
                     
                     
                     
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -661,6 +663,12 @@
 287
 288
 289
+290
+291
+292
+293
+294
+295
 </pre></td><td class="rouge-code"><pre><span class="err">#</span><span class="o">!</span><span class="n">groovy</span>
 
 <span class="n">ip_list</span> <span class="o">=</span> <span class="n">IPS</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s1">','</span><span class="o">)</span>
@@ -934,6 +942,12 @@
                             ).trim()
                         echo "build status  ${build_status}"
                        */</span>
+                        <span class="n">product_version</span> <span class="o">=</span> <span class="n">sh</span> <span class="o">(</span>
+                            <span class="nl">script:</span> <span class="s2">"""sshpass -p btadmin ssh -p 22 ${cluster1_ip} -l btadmin ezs3-version"""</span><span class="o">,</span>
+                            <span class="nl">returnStdout:</span> <span class="kc">true</span>
+                            <span class="o">).</span><span class="na">trim</span><span class="o">()</span>
+                        <span class="n">env</span><span class="o">.</span><span class="na">PRODUCT_VERSION</span> <span class="o">=</span> <span class="n">product_version</span>
+
                         <span class="n">emailext</span><span class="o">([</span>
                                 <span class="nl">attachLog:</span> <span class="kc">true</span><span class="o">,</span>
                                 <span class="nl">attachmentsPattern:</span> <span class="s1">'report/cgi_response_elapsed_time.txt,report/pytest_autotest.log.gz'</span><span class="o">,</span>
@@ -1107,157 +1121,171 @@
 149
 150
 151
-</pre></td><td class="rouge-code"><pre>jenkins@ubuntu-16:~/email-templates$ cat allure-pipeline-report.groovy 
-&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"&gt;
-&lt;style type="text/css"&gt;
-/*base css*/
-    body
-    {
-      margin: 0px;
-      padding: 15px;
-    }
+152
+153
+154
+155
+156
+157
+158
+</pre></td><td class="rouge-code"><pre><span class="cp">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"&gt;</span>
+<span class="nt">&lt;style </span><span class="na">type=</span><span class="s">"text/css"</span><span class="nt">&gt;</span>
+<span class="c">/*base css*/</span>
+    <span class="nt">body</span>
+    <span class="p">{</span>
+      <span class="nl">margin</span><span class="p">:</span> <span class="m">0px</span><span class="p">;</span>
+      <span class="nl">padding</span><span class="p">:</span> <span class="m">15px</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    body, td, th
-    {
-      font-family: "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, Tahoma, sans-serif;
-      font-size: 10pt;
-    }
+    <span class="nt">body</span><span class="o">,</span> <span class="nt">td</span><span class="o">,</span> <span class="nt">th</span>
+    <span class="p">{</span>
+      <span class="nl">font-family</span><span class="p">:</span> <span class="s1">"Lucida Grande"</span><span class="p">,</span> <span class="s1">"Lucida Sans Unicode"</span><span class="p">,</span> <span class="n">Helvetica</span><span class="p">,</span> <span class="n">Arial</span><span class="p">,</span> <span class="n">Tahoma</span><span class="p">,</span> <span class="nb">sans-serif</span><span class="p">;</span>
+      <span class="nl">font-size</span><span class="p">:</span> <span class="m">10pt</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    th
-    {
-      text-align: left;
-    }
+    <span class="nt">th</span>
+    <span class="p">{</span>
+      <span class="nl">text-align</span><span class="p">:</span> <span class="nb">left</span><span class="p">;</span>
+    <span class="p">}</span>
 
-    h1
-    {
-      margin-top: 0px;
-    }
-    a
-    {
-      color:#4a72af
-    }
-/*div styles*/
+    <span class="nt">h1</span>
+    <span class="p">{</span>
+      <span class="nl">margin-top</span><span class="p">:</span> <span class="m">0px</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="nt">a</span>
+    <span class="p">{</span>
+      <span class="nl">color</span><span class="p">:</span><span class="m">#4a72af</span>
+    <span class="p">}</span>
+<span class="c">/*div styles*/</span>
 
-.status{background-color:&lt;%= 
-            build.result.toString() == "SUCCESS" ? 'green' : 'red' %&gt;;font-size:28px;font-weight:bold;color:white;width:720px;height:52px;margin-bottom:18px;text-align:center;vertical-align:middle;border-collapse:collapse;background-repeat:no-repeat}
-.status .info{color:white!important;text-shadow:0 -1px 0 rgba(0,0,0,0.3);font-size:32px;line-height:36px;padding:8px 0}
-&lt;/style&gt;
-&lt;body&gt;
-&lt;div class="content round_border"&gt;
-                &lt;div class="status"&gt;
-                        &lt;p class="info"&gt;pytest automation build &lt;%= build.result.toString().toLowerCase() %&gt;&lt;/p&gt;
-                &lt;/div&gt;
-                &lt;!-- status --&gt;
-                        &lt;table&gt;
-                                &lt;tbody&gt;
-                                        &lt;tr&gt;
-                                                &lt;th&gt;Project:&lt;/th&gt;
-                                                &lt;td&gt;${project.name}&lt;/td&gt;
-                                        &lt;/tr&gt;
-                                        &lt;tr&gt;
-                                                &lt;th&gt;Build ${build.displayName}:&lt;/th&gt;
-                                                &lt;td&gt;&lt;a
-                                                        href="${rooturl}${build.url}"&gt;${rooturl}${build.url}&lt;/a&gt;&lt;/td&gt;
-                                        &lt;/tr&gt;
-                                        &lt;tr&gt;
-                                                &lt;th&gt;Product Version:&lt;/th&gt;
-                                                &lt;td&gt;&lt;%=build.environment['PRODUCT_VERSION']%&gt;&lt;/td&gt;
-                                        &lt;/tr&gt;
-                                        &lt;tr&gt;
-                                                &lt;th&gt;Date of build:&lt;/th&gt;
-                                                &lt;td&gt;${it.timestampString}&lt;/td&gt;
-                                        &lt;/tr&gt;
-                                        &lt;tr&gt;
-                                                &lt;th&gt;Build duration:&lt;/th&gt;
-                                                &lt;td&gt;${build.durationString}&lt;/td&gt;
-                                        &lt;/tr&gt;
-                                        &lt;tr&gt;
-                                                &lt;td colspan="2"&gt;&amp;nbsp;&lt;/td&gt;
-                                        &lt;/tr&gt;
-                                &lt;/tbody&gt;
+<span class="nc">.status</span><span class="p">{</span><span class="nl">background-color</span><span class="p">:</span><span class="err">&lt;%=</span> 
+            <span class="n">build</span><span class="p">.</span><span class="n">result</span><span class="p">.</span><span class="n">toString</span><span class="p">()</span> <span class="err">==</span> <span class="s1">"SUCCESS"</span> <span class="err">?</span> <span class="s2">'green'</span> <span class="p">:</span> <span class="s2">'red'</span> <span class="err">%&gt;</span><span class="p">;</span><span class="nl">font-size</span><span class="p">:</span><span class="m">28px</span><span class="p">;</span><span class="nl">font-weight</span><span class="p">:</span><span class="nb">bold</span><span class="p">;</span><span class="nl">color</span><span class="p">:</span><span class="no">white</span><span class="p">;</span><span class="nl">width</span><span class="p">:</span><span class="m">720px</span><span class="p">;</span><span class="nl">height</span><span class="p">:</span><span class="m">52px</span><span class="p">;</span><span class="nl">margin-bottom</span><span class="p">:</span><span class="m">18px</span><span class="p">;</span><span class="nl">text-align</span><span class="p">:</span><span class="nb">center</span><span class="p">;</span><span class="nl">vertical-align</span><span class="p">:</span><span class="nb">middle</span><span class="p">;</span><span class="nl">border-collapse</span><span class="p">:</span><span class="nb">collapse</span><span class="p">;</span><span class="nl">background-repeat</span><span class="p">:</span><span class="nb">no-repeat</span><span class="p">}</span>
+<span class="nc">.status</span> <span class="nc">.info</span><span class="p">{</span><span class="nl">color</span><span class="p">:</span><span class="no">white</span><span class="cp">!important</span><span class="p">;</span><span class="nl">text-shadow</span><span class="p">:</span><span class="m">0</span> <span class="m">-1px</span> <span class="m">0</span> <span class="n">rgba</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0</span><span class="p">,</span><span class="m">0.3</span><span class="p">);</span><span class="nl">font-size</span><span class="p">:</span><span class="m">32px</span><span class="p">;</span><span class="nl">line-height</span><span class="p">:</span><span class="m">36px</span><span class="p">;</span><span class="nl">padding</span><span class="p">:</span><span class="m">8px</span> <span class="m">0</span><span class="p">}</span>
+<span class="nt">&lt;/style&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+<span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"content round_border"</span><span class="nt">&gt;</span>
+                <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"status"</span><span class="nt">&gt;</span>
+                        <span class="nt">&lt;p</span> <span class="na">class=</span><span class="s">"info"</span><span class="nt">&gt;</span>pytest automation build <span class="nt">&lt;</span><span class="err">%=</span> <span class="na">build.result.toString</span><span class="err">().</span><span class="na">toLowerCase</span><span class="err">()</span> <span class="err">%</span><span class="nt">&gt;&lt;/p&gt;</span>
+                <span class="nt">&lt;/div&gt;</span>
 
-                        &lt;/table&gt;
-                &lt;!-- main --&gt;
-        &lt;% def artifacts = build.artifacts
-            if(artifacts != null &amp;&amp; artifacts.size() &gt; 0) { %&gt;
+                <span class="nt">&lt;</span><span class="err">%</span>
+                    <span class="na">def</span> <span class="na">envOverrides = </span><span class="s">it.getAction("org.jenkinsci.plugins.workflow.cps.EnvActionImpl").getOverriddenEnvironment()</span>
+                    <span class="na">product_version =  </span><span class="s">envOverrides["PRODUCT_VERSION"]</span>
+                <span class="err">%</span><span class="nt">&gt;</span>
 
-                        &lt;b&gt;Build Artifacts:&lt;/b&gt;
-                        &lt;ul&gt;
-            &lt;%          artifacts.each() { f -&gt; %&gt;
-                &lt;li&gt;&lt;a href="${rooturl}${build.url}artifact/${f}"&gt;${f}&lt;/a&gt;&lt;/li&gt;
-            &lt;%          } %&gt;
-                        &lt;/ul&gt;
-        &lt;% } %&gt;
-  &lt;!-- artifacts --&gt;
+                <span class="c">&lt;!-- status --&gt;</span>
+                        <span class="nt">&lt;table&gt;</span>
+                                <span class="nt">&lt;tbody&gt;</span>
+                                        <span class="nt">&lt;tr&gt;</span>
+                                                <span class="nt">&lt;th&gt;</span>Project:<span class="nt">&lt;/th&gt;</span>
+                                                <span class="nt">&lt;td&gt;</span>${project.name}<span class="nt">&lt;/td&gt;</span>
+                                        <span class="nt">&lt;/tr&gt;</span>
+                                        <span class="nt">&lt;tr&gt;</span>
+                                                <span class="nt">&lt;th&gt;</span>Build ${build.displayName}:<span class="nt">&lt;/th&gt;</span>
+                                                <span class="nt">&lt;td&gt;&lt;a</span>
+                                                        <span class="na">href=</span><span class="s">"${rooturl}${build.url}"</span><span class="nt">&gt;</span>${rooturl}${build.url}<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+                                        <span class="nt">&lt;/tr&gt;</span>
+                                        <span class="nt">&lt;tr&gt;</span>
+                                                <span class="nt">&lt;th&gt;</span>Product Version:<span class="nt">&lt;/th&gt;</span>
+                                                <span class="c">&lt;!--
+                                                &lt;td&gt;&lt;%=build.environment['PRODUCT_VERSION']%&gt;&lt;/td&gt; --&gt;</span>
+                                                <span class="nt">&lt;td&gt;</span>${product_version}<span class="nt">&lt;/td&gt;</span>
+                                        <span class="nt">&lt;/tr&gt;</span>
+                                        <span class="nt">&lt;tr&gt;</span>
+                                                <span class="nt">&lt;th&gt;</span>Date of build:<span class="nt">&lt;/th&gt;</span>
+                                                <span class="nt">&lt;td&gt;</span>${it.timestampString}<span class="nt">&lt;/td&gt;</span>
+                                        <span class="nt">&lt;/tr&gt;</span>
+                                        <span class="nt">&lt;tr&gt;</span>
+                                                <span class="nt">&lt;th&gt;</span>Build duration:<span class="nt">&lt;/th&gt;</span>
+                                                <span class="nt">&lt;td&gt;</span>${build.durationString}<span class="nt">&lt;/td&gt;</span>
+                                        <span class="nt">&lt;/tr&gt;</span>
+                                        <span class="nt">&lt;tr&gt;</span>
+                                                <span class="nt">&lt;td</span> <span class="na">colspan=</span><span class="s">"2"</span><span class="nt">&gt;</span><span class="ni">&amp;nbsp;</span><span class="nt">&lt;/td&gt;</span>
+                                        <span class="nt">&lt;/tr&gt;</span>
+                                <span class="nt">&lt;/tbody&gt;</span>
 
-&lt;% 
-  lastAllureReportBuildAction = build.getAction(ru.yandex.qatools.allure.jenkins.AllureReportBuildAction.class)
-  lastAllureBuildAction = build.getAction(ru.yandex.qatools.allure.jenkins.AllureBuildAction.class)
+                        <span class="nt">&lt;/table&gt;</span>
+                <span class="c">&lt;!-- main --&gt;</span>
+        <span class="nt">&lt;</span><span class="err">%</span> <span class="na">def</span> <span class="na">artifacts = </span><span class="s">build.artifacts</span>
+            <span class="na">if</span><span class="err">(</span><span class="na">artifacts</span> <span class="err">!=</span> <span class="na">null</span> <span class="err">&amp;&amp;</span> <span class="na">artifacts.size</span><span class="err">()</span> <span class="nt">&gt;</span> 0) { %&gt;
 
-  if (lastAllureReportBuildAction) {
-    allureResultsUrl = "${rooturl}${build.url}allure"
-    allureLastBuildSuccessRate = String.format("%.2f", lastAllureReportBuildAction.getPassedCount() * 100f / lastAllureReportBuildAction.getTotalCount())
-  }
-%&gt;
+                        <span class="nt">&lt;b&gt;</span>Build Artifacts:<span class="nt">&lt;/b&gt;</span>
+                        <span class="nt">&lt;ul&gt;</span>
+            <span class="nt">&lt;</span><span class="err">%</span>          <span class="na">artifacts.each</span><span class="err">()</span> <span class="err">{</span> <span class="na">f</span> <span class="na">-</span><span class="nt">&gt;</span> %&gt;
+                <span class="nt">&lt;li&gt;&lt;a</span> <span class="na">href=</span><span class="s">"${rooturl}${build.url}artifact/${f}"</span><span class="nt">&gt;</span>${f}<span class="nt">&lt;/a&gt;&lt;/li&gt;</span>
+            <span class="nt">&lt;</span><span class="err">%</span>          <span class="err">}</span> <span class="err">%</span><span class="nt">&gt;</span>
+                        <span class="nt">&lt;/ul&gt;</span>
+        <span class="nt">&lt;</span><span class="err">%</span> <span class="err">}</span> <span class="err">%</span><span class="nt">&gt;</span>
+  <span class="c">&lt;!-- artifacts --&gt;</span>
 
-&lt;%
-pylintResultsUrl = "${build.environment['JOB_URL']}warnings50/trendGraph"
-coberturaResultsUrl = "${rooturl}${build.url}cobertura"
-%&gt;
+<span class="nt">&lt;</span><span class="err">%</span> 
+  <span class="na">lastAllureReportBuildAction = </span><span class="s">build.getAction(ru.yandex.qatools.allure.jenkins.AllureReportBuildAction.class)</span>
+  <span class="na">lastAllureBuildAction = </span><span class="s">build.getAction(ru.yandex.qatools.allure.jenkins.AllureBuildAction.class)</span>
 
-&lt;% if (lastAllureReportBuildAction) { %&gt;
-&lt;h2&gt;Allure Results&lt;/h2&gt;
-&lt;table&gt;
-            &lt;tbody&gt;
-                        &lt;tr&gt;
-                            &lt;th&gt;Total Allure tests run:&lt;/th&gt;
-                            &lt;td&gt;&lt;a href="${allureResultsUrl}"&gt;${lastAllureReportBuildAction.getTotalCount()}&lt;/a&gt;&lt;/td&gt;
-                        &lt;/tr&gt;
-                        &lt;tr&gt;
-                            &lt;th&gt;&lt;span style="color: #000000; background-color: #ffff00;"&gt;Failed:&lt;/span&gt;&lt;/th&gt;
-                            &lt;td&gt;&lt;span style="color: #000000; background-color: #ffff00;"&gt;${lastAllureReportBuildAction.getFailedCount()} &lt;/span&gt;&lt;/td&gt;
-                        &lt;/tr&gt;
-                        &lt;tr&gt;
-                            &lt;th&gt;&lt;span style="color: #000000; background-color: #008000;"&gt;Passed:&lt;/span&gt;&lt;/th&gt;
-                            &lt;td&gt;&lt;span style="color: #000000; background-color: #008000;"&gt;${lastAllureReportBuildAction.getPassedCount()} &lt;/span&gt;&lt;/td&gt;
-                        &lt;/tr&gt;
-                        &lt;tr&gt;
-                            &lt;th&gt;&lt;span style="color: #000000; background-color: #3366ff;"&gt;Skipped:&lt;/span&gt;&lt;/th&gt;
-                            &lt;td&gt;&lt;span style="color: #000000; background-color: #3366ff;"&gt;${lastAllureReportBuildAction.getSkipCount()} &lt;/span&gt;&lt;/td&gt;
-                        &lt;/tr&gt;
-                        &lt;tr&gt;
-                            &lt;th&gt;&lt;span style="color: #000000; background-color: #ff0000;"&gt;Broken:&lt;/span&gt;&lt;/th&gt;
-                            &lt;td&gt;&lt;span style="color: #000000; background-color: #ff0000;"&gt;${lastAllureReportBuildAction.getBrokenCount()} &lt;/span&gt;&lt;/td&gt;
-                        &lt;/tr&gt;
-                        &lt;tr&gt;
-                            &lt;th&gt;Success rate: &lt;/th&gt;
-                            &lt;td&gt;${allureLastBuildSuccessRate}%  &lt;/td&gt;
-                        &lt;/tr&gt;
+  <span class="na">if</span> <span class="err">(</span><span class="na">lastAllureReportBuildAction</span><span class="err">)</span> <span class="err">{</span>
+    <span class="na">allureResultsUrl = </span><span class="s">"${rooturl}${build.url}allure"</span>
+    <span class="na">allureLastBuildSuccessRate = </span><span class="s">String.format("%.2f",</span> <span class="na">lastAllureReportBuildAction.getPassedCount</span><span class="err">()</span> <span class="na">*</span> <span class="err">100</span><span class="na">f</span> <span class="err">/</span> <span class="na">lastAllureReportBuildAction.getTotalCount</span><span class="err">())</span>
+  <span class="err">}</span>
+<span class="err">%</span><span class="nt">&gt;</span>
 
-            &lt;/tbody&gt;
-&lt;/table&gt;
+<span class="nt">&lt;</span><span class="err">%</span>
+<span class="na">pylintResultsUrl = </span><span class="s">"${build.environment['JOB_URL']}warnings50/trendGraph"</span>
+<span class="na">coberturaResultsUrl = </span><span class="s">"${rooturl}${build.url}cobertura"</span>
+<span class="err">%</span><span class="nt">&gt;</span>
 
-&lt;br&gt;
-&lt;img lazymap="${allureResultsUrl}/graphMap" src="${allureResultsUrl}/graph" alt="Allure results trend"/&gt;
-&lt;/br&gt;
+<span class="nt">&lt;</span><span class="err">%</span> <span class="na">if</span> <span class="err">(</span><span class="na">lastAllureReportBuildAction</span><span class="err">)</span> <span class="err">{</span> <span class="err">%</span><span class="nt">&gt;</span>
+<span class="nt">&lt;h2&gt;</span>Allure Results<span class="nt">&lt;/h2&gt;</span>
+<span class="nt">&lt;table&gt;</span>
+            <span class="nt">&lt;tbody&gt;</span>
+                        <span class="nt">&lt;tr&gt;</span>
+                            <span class="nt">&lt;th&gt;</span>Total Allure tests run:<span class="nt">&lt;/th&gt;</span>
+                            <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"${allureResultsUrl}"</span><span class="nt">&gt;</span>${lastAllureReportBuildAction.getTotalCount()}<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+                        <span class="nt">&lt;/tr&gt;</span>
+                        <span class="nt">&lt;tr&gt;</span>
+                            <span class="nt">&lt;th&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #ffff00;"</span><span class="nt">&gt;</span>Failed:<span class="nt">&lt;/span&gt;&lt;/th&gt;</span>
+                            <span class="nt">&lt;td&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #ffff00;"</span><span class="nt">&gt;</span>${lastAllureReportBuildAction.getFailedCount()} <span class="nt">&lt;/span&gt;&lt;/td&gt;</span>
+                        <span class="nt">&lt;/tr&gt;</span>
+                        <span class="nt">&lt;tr&gt;</span>
+                            <span class="nt">&lt;th&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #008000;"</span><span class="nt">&gt;</span>Passed:<span class="nt">&lt;/span&gt;&lt;/th&gt;</span>
+                            <span class="nt">&lt;td&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #008000;"</span><span class="nt">&gt;</span>${lastAllureReportBuildAction.getPassedCount()} <span class="nt">&lt;/span&gt;&lt;/td&gt;</span>
+                        <span class="nt">&lt;/tr&gt;</span>
+                        <span class="nt">&lt;tr&gt;</span>
+                            <span class="nt">&lt;th&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #3366ff;"</span><span class="nt">&gt;</span>Skipped:<span class="nt">&lt;/span&gt;&lt;/th&gt;</span>
+                            <span class="nt">&lt;td&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #3366ff;"</span><span class="nt">&gt;</span>${lastAllureReportBuildAction.getSkipCount()} <span class="nt">&lt;/span&gt;&lt;/td&gt;</span>
+                        <span class="nt">&lt;/tr&gt;</span>
+                        <span class="nt">&lt;tr&gt;</span>
+                            <span class="nt">&lt;th&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #ff0000;"</span><span class="nt">&gt;</span>Broken:<span class="nt">&lt;/span&gt;&lt;/th&gt;</span>
+                            <span class="nt">&lt;td&gt;&lt;span</span> <span class="na">style=</span><span class="s">"color: #000000; background-color: #ff0000;"</span><span class="nt">&gt;</span>${lastAllureReportBuildAction.getBrokenCount()} <span class="nt">&lt;/span&gt;&lt;/td&gt;</span>
+                        <span class="nt">&lt;/tr&gt;</span>
+                        <span class="nt">&lt;tr&gt;</span>
+                            <span class="nt">&lt;th&gt;</span>Success rate: <span class="nt">&lt;/th&gt;</span>
+                            <span class="nt">&lt;td&gt;</span>${allureLastBuildSuccessRate}%  <span class="nt">&lt;/td&gt;</span>
+                        <span class="nt">&lt;/tr&gt;</span>
 
-&lt;br&gt;
-&lt;font size=4&gt;&lt;b&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Pylint history trend&lt;/b&gt;&lt;/font&gt;
-&lt;/br&gt;
-&lt;br&gt;
-&lt;img src="${pylintResultsUrl}/png?url=PRIORITY"/&gt;
-&lt;/br&gt;
+            <span class="nt">&lt;/tbody&gt;</span>
+<span class="nt">&lt;/table&gt;</span>
 
-&lt;br&gt;
-&lt;font size=4&gt;&lt;b&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Code Coverage history trend&lt;/b&gt;&lt;/font&gt;
-&lt;/br&gt;
-&lt;br&gt;
-&lt;img lazymap="${coberturaResultsUrl}/graphMap" src="${coberturaResultsUrl}/graph"/&gt;
-&lt;/br&gt;
-&lt;% } %&gt;                  
-  &lt;!-- content --&gt;
-  &lt;!-- bottom message --&gt;
-&lt;/body&gt;
+<span class="nt">&lt;br&gt;</span>
+<span class="nt">&lt;img</span> <span class="na">lazymap=</span><span class="s">"${allureResultsUrl}/graphMap"</span> <span class="na">src=</span><span class="s">"${allureResultsUrl}/graph"</span> <span class="na">alt=</span><span class="s">"Allure results trend"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/br&gt;</span>
+
+<span class="nt">&lt;br&gt;</span>
+<span class="nt">&lt;font</span> <span class="na">size=</span><span class="s">4</span><span class="nt">&gt;&lt;b&gt;</span><span class="ni">&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;</span>Pylint history trend<span class="nt">&lt;/b&gt;&lt;/font&gt;</span>
+<span class="nt">&lt;/br&gt;</span>
+<span class="nt">&lt;br&gt;</span>
+<span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">"${pylintResultsUrl}/png?url=PRIORITY"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/br&gt;</span>
+
+<span class="nt">&lt;br&gt;</span>
+<span class="nt">&lt;font</span> <span class="na">size=</span><span class="s">4</span><span class="nt">&gt;&lt;b&gt;</span><span class="ni">&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;</span>Code Coverage history trend<span class="nt">&lt;/b&gt;&lt;/font&gt;</span>
+<span class="nt">&lt;/br&gt;</span>
+<span class="nt">&lt;br&gt;</span>
+<span class="nt">&lt;img</span> <span class="na">lazymap=</span><span class="s">"${coberturaResultsUrl}/graphMap"</span> <span class="na">src=</span><span class="s">"${coberturaResultsUrl}/graph"</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/br&gt;</span>
+<span class="nt">&lt;</span><span class="err">%</span> <span class="err">}</span> <span class="err">%</span><span class="nt">&gt;</span>                  
+  <span class="c">&lt;!-- content --&gt;</span>
+  <span class="c">&lt;!-- bottom message --&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
 </pre></td></tr></tbody></table></code></pre></div></div>
 
 <h2 id="运行效果">运行效果</h2>
@@ -1345,127 +1373,127 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
         </a>
         
         
-                <a data-sort="0108" 
+                <a data-sort="0112" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0147" 
+                <a data-sort="0151" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="38">Linux</a>
         
-                <a data-sort="0171" 
+                <a data-sort="0175" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="14">Automation</a>
         
-                <a data-sort="0173" 
+                <a data-sort="0177" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="12">shell</a>
         
-                <a data-sort="0178" 
+                <a data-sort="0179" 
                     href="/archive/?tag=ceph"
                     title="ceph"
-                    rel="7">ceph</a>
+                    rel="10">ceph</a>
         
-                <a data-sort="0180" 
+                <a data-sort="0184" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="5">S3</a>
+        
+                <a data-sort="0184" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0185" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0185" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0185" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0185" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0185" 
                     href="/archive/?tag=python"
                     title="python"
                     rel="4">python</a>
         
-                <a data-sort="0182" 
-                    href="/archive/?tag=S3"
-                    title="S3"
-                    rel="3">S3</a>
-        
-                <a data-sort="0182" 
+                <a data-sort="0186" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0187" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr

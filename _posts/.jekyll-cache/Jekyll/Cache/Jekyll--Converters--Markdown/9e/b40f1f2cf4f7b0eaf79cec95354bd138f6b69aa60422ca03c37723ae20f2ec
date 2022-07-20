@@ -1,0 +1,174 @@
+I"|V<h1 id="概述">概述</h1>
+
+<p>客户询问，对于2T大小的一个S3对象，我司产品是否支持。</p>
+
+<p>原本计划使用GUI工具，诸如S3Browser，CloudBerry这样的可视化工具上传一下验证看看，考虑到本地磁盘大小无法容纳2T大小的文件，只能放弃，改成使用python code来上传看看。</p>
+
+<h1 id="操作步骤">操作步骤</h1>
+
+<h2 id="准备一个2t大小的对象文件">准备一个2T大小的对象文件</h2>
+
+<p><code class="highlighter-rouge">fallocate -l 2T 2T.file</code></p>
+
+<p>快速生成一个含有大量hole的文件，存放在某个osd的挂载点（物理磁盘，RAID组，空间比较大，放的下这么大的文件了）</p>
+
+<h2 id="准备测试脚本">准备测试脚本</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#!/usr/bin/env python
+</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">path</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">boto</span>
+<span class="kn">import</span> <span class="nn">boto.s3.connection</span>
+<span class="kn">from</span> <span class="nn">filechunkio</span> <span class="kn">import</span> <span class="n">FileChunkIO</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">Queue</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">class</span> <span class="nc">Chunk</span><span class="p">:</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="nb">len</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">l</span><span class="p">):</span>  
+        <span class="bp">self</span><span class="p">.</span><span class="n">num</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">offset</span> <span class="o">=</span> <span class="n">o</span>
+        <span class="bp">self</span><span class="p">.</span><span class="nb">len</span> <span class="o">=</span> <span class="n">l</span>
+
+<span class="n">chunksize</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span>
+
+<span class="k">def</span> <span class="nf">init_queue</span><span class="p">(</span><span class="n">filesize</span><span class="p">):</span>
+    <span class="n">chunkcnt</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="p">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">filesize</span><span class="o">*</span><span class="mf">1.0</span><span class="o">/</span><span class="n">chunksize</span><span class="p">))</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">.</span><span class="n">Queue</span><span class="p">(</span><span class="n">maxsize</span> <span class="o">=</span> <span class="n">chunkcnt</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">chunkcnt</span><span class="p">):</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">chunksize</span><span class="o">*</span><span class="n">i</span>
+        <span class="nb">len</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">chunksize</span><span class="p">,</span> <span class="n">filesize</span><span class="o">-</span><span class="n">offset</span><span class="p">)</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">Chunk</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="nb">len</span><span class="p">)</span>
+        <span class="n">q</span><span class="p">.</span><span class="n">put</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">q</span>
+
+<span class="k">def</span> <span class="nf">upload_chunk</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mp</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+    <span class="k">while</span> <span class="p">(</span><span class="ow">not</span> <span class="n">q</span><span class="p">.</span><span class="n">empty</span><span class="p">()):</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">FileChunkIO</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">'r'</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">chunk</span><span class="p">.</span><span class="n">offset</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="n">chunk</span><span class="p">.</span><span class="nb">len</span><span class="p">)</span>
+        <span class="n">mp</span><span class="p">.</span><span class="n">upload_part_from_file</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">part_num</span><span class="o">=</span><span class="n">chunk</span><span class="p">.</span><span class="n">num</span><span class="p">)</span>
+        <span class="n">fp</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">q</span><span class="p">.</span><span class="n">task_done</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">upload_file_multipart</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">keyname</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">threadcnt</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">enable_debug_log_cmd</span> <span class="o">=</span> <span class="s">"ceph daemon client.radosgw.0 config set debug_rgw 20/20"</span>
+    <span class="n">disable_debug_log_cmd</span> <span class="o">=</span> <span class="s">"ceph daemon client.radosgw.0 config set debug_rgw 0/0"</span>
+    <span class="n">get_debug_log_cmd</span> <span class="o">=</span> <span class="s">"ceph daemon client.radosgw.0 config get debug_rgw"</span>
+
+    <span class="n">filesize</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">stat</span><span class="p">(</span><span class="n">filepath</span><span class="p">).</span><span class="n">st_size</span>
+    <span class="n">mp</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">.</span><span class="n">initiate_multipart_upload</span><span class="p">(</span><span class="n">keyname</span><span class="p">)</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">init_queue</span><span class="p">(</span><span class="n">filesize</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">threadcnt</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">upload_chunk</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mp</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">t</span><span class="p">.</span><span class="n">setDaemon</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">t</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">join</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"--  enable rgw debug log"</span><span class="p">)</span>
+    <span class="n">res1</span> <span class="o">=</span> <span class="n">commands</span><span class="p">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">enable_debug_log_cmd</span><span class="p">)</span>
+    <span class="n">res2</span> <span class="o">=</span> <span class="n">commands</span><span class="p">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">get_debug_log_cmd</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">res1</span><span class="p">,</span> <span class="n">res2</span>
+    <span class="n">mp</span><span class="p">.</span><span class="n">complete_upload</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"--  disable rgw debug log"</span><span class="p">)</span>
+    <span class="n">res3</span> <span class="o">=</span> <span class="n">commands</span><span class="p">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">disable_debug_log_cmd</span><span class="p">)</span>
+    <span class="n">res4</span> <span class="o">=</span> <span class="n">commands</span><span class="p">.</span><span class="n">getoutput</span><span class="p">(</span><span class="n">get_debug_log_cmd</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">res3</span><span class="p">,</span> <span class="n">res4</span>
+
+<span class="k">def</span> <span class="nf">download_chunk</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+    <span class="k">while</span> <span class="p">(</span><span class="ow">not</span> <span class="n">q</span><span class="p">.</span><span class="n">empty</span><span class="p">()):</span>
+        <span class="n">chunk</span> <span class="o">=</span> <span class="n">q</span><span class="p">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">.</span><span class="n">offset</span>
+        <span class="nb">len</span> <span class="o">=</span> <span class="n">chunk</span><span class="p">.</span><span class="nb">len</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">.</span><span class="n">connection</span><span class="p">.</span><span class="n">make_request</span><span class="p">(</span><span class="s">"GET"</span><span class="p">,</span> <span class="n">bucket</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s">"Range"</span><span class="p">:</span><span class="s">"bytes=%d-%d"</span> <span class="o">%</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset</span><span class="o">+</span><span class="nb">len</span><span class="p">)})</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">resp</span><span class="p">.</span><span class="n">read</span><span class="p">(</span><span class="nb">len</span><span class="p">)</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">FileChunkIO</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s">'r+'</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">,</span> <span class="nb">bytes</span><span class="o">=</span><span class="nb">len</span><span class="p">)</span>
+        <span class="n">fp</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">fp</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">q</span><span class="p">.</span><span class="n">task_done</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">download_file_multipart</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">threadcnt</span><span class="o">=</span><span class="mi">8</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">bucket</span><span class="p">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">filesize</span><span class="o">=</span><span class="n">key</span><span class="p">.</span><span class="n">size</span>
+    <span class="k">if</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+        <span class="n">os</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="n">os</span><span class="p">.</span><span class="n">mknod</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="n">q</span> <span class="o">=</span> <span class="n">init_queue</span><span class="p">(</span><span class="n">filesize</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">threadcnt</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">download_chunk</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">t</span><span class="p">.</span><span class="n">setDaemon</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">t</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">q</span><span class="p">.</span><span class="n">join</span><span class="p">()</span>
+
+<span class="n">access_key</span> <span class="o">=</span> <span class="s">"YGZTOFN14AEVFGFCX5VA"</span>
+<span class="n">secret_key</span> <span class="o">=</span> <span class="s">"Dyt9GlnQ8XPexUzd9iEnFNdUuDpY8vuHvde5DVxl"</span>
+<span class="n">host</span> <span class="o">=</span> <span class="s">"10.16.72.161"</span>
+
+<span class="n">filepath</span> <span class="o">=</span> <span class="s">"/data/osd.2/2T.file"</span>
+<span class="n">keyname</span> <span class="o">=</span> <span class="s">"2T.file"</span>
+
+<span class="n">threadcnt</span> <span class="o">=</span> <span class="mi">8</span>
+
+<span class="n">conn</span> <span class="o">=</span> <span class="n">boto</span><span class="p">.</span><span class="n">connect_s3</span><span class="p">(</span>
+    <span class="n">aws_access_key_id</span> <span class="o">=</span> <span class="n">access_key</span><span class="p">,</span>
+    <span class="n">aws_secret_access_key</span> <span class="o">=</span> <span class="n">secret_key</span><span class="p">,</span>
+    <span class="n">host</span> <span class="o">=</span> <span class="n">host</span><span class="p">,</span>
+    <span class="n">is_secure</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+    <span class="n">calling_format</span> <span class="o">=</span> <span class="n">boto</span><span class="p">.</span><span class="n">s3</span><span class="p">.</span><span class="n">connection</span><span class="p">.</span><span class="n">OrdinaryCallingFormat</span><span class="p">(),</span>
+    <span class="p">)</span>
+
+<span class="n">bucket</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">get_bucket</span><span class="p">(</span><span class="s">"test"</span><span class="p">)</span>
+
+<span class="n">time1</span><span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">upload_file_multipart</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">keyname</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">threadcnt</span><span class="p">)</span>
+<span class="n">time2</span><span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">"upload %s with %d threads use %d seconds"</span> <span class="o">%</span> <span class="p">(</span><span class="n">keyname</span><span class="p">,</span> <span class="n">threadcnt</span><span class="p">,</span> <span class="n">time2</span><span class="o">-</span><span class="n">time1</span><span class="p">)</span>
+
+<span class="n">key</span> <span class="o">=</span> <span class="n">bucket</span><span class="p">.</span><span class="n">get_key</span><span class="p">(</span><span class="n">keyname</span><span class="p">)</span>
+
+<span class="n">download_filepath</span> <span class="o">=</span> <span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="s">"."</span><span class="p">,</span> <span class="n">keyname</span><span class="p">)</span>
+<span class="n">time1</span><span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="n">download_file_multipart</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">download_filepath</span><span class="p">,</span> <span class="n">threadcnt</span><span class="p">)</span>
+<span class="n">time2</span><span class="o">=</span> <span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">()</span>
+<span class="k">print</span> <span class="s">"download %s with %d threads use %d seconds"</span> <span class="o">%</span> <span class="p">(</span><span class="n">keyname</span><span class="p">,</span> <span class="n">threadcnt</span><span class="p">,</span> <span class="n">time2</span><span class="o">-</span><span class="n">time1</span><span class="p">)</span>
+
+</code></pre></div></div>
+
+<ul>
+  <li>说明：
+  这里将2T对象，8个thread并发上传, 每个分片大小是8MiB</li>
+</ul>
+
+<h2 id="测试结果">测试结果</h2>
+
+<p>脚本output:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root@node224:~# python s3_upload.py            
+--  enable rgw debug log                       
+{                                              
+    "success": ""                              
+} {                                            
+    "debug_rgw": "20/20"                       
+}                                              
+--  disable rgw debug log                      
+{                                              
+    "success": ""                              
+} {                                            
+    "debug_rgw": "0/0"                         
+}                                              
+upload 1T.file with 32 threads use 8907 seconds
+</code></pre></div></div>
+
+<p>存储端对象信息：</p>
+
+:ET

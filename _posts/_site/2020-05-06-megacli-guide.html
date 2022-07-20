@@ -1,0 +1,591 @@
+<h1 id="概述">概述</h1>
+
+<p>通常，我们使用的DELL/HP/IBM三家的机架式PC级服务器阵列卡是从LSI的卡OEM出来的，DELL和IBM两家的阵列卡原生程度较高， 没有做太多封装，可以用原厂提供的阵列卡管理工具进行监控；而HP的阵列卡一般都做过封装了，因此需要使用自身特有的管理工具来监控。
+本文以几种常用的阵列卡为例，展示其阵列卡及硬盘监控的方法。</p>
+
+<p>DELL SAS 6/iR卡，全称LSI Logic SAS1068E，只支持RAID 0, RAID 1, RAID 1+0, 不支持RAID 5等高级RAID特性，不支持阵列卡电池。
+DELL PERC PERC H700卡，全称LSI Logic MegaRAID SAS 2108，支持各种RAID级别及高级特性，可选配阵列卡电池。
+DELL PERC H310 Mini卡 ，全称LSI Logic / Symbios Logic MegaRAID SAS 2008，支持常见RAID级别，不支持高级RAID特性，不支持阵列卡电池。
+IBM ServeRAID M5014 SAS/SATA Controller卡，全称LSI Logic / Symbios Logic MegaRAID SAS 2108，支持各种RAID级别及高级特性，可选配阵列卡电池。
+IBM ServeRAID-MR10i SAS/SATA Controller卡，全称LSI Logic / Symbios Logic MegaRAID SAS 1078，支持常见RAID级别，不支持高级RAID特性，可选配阵列卡电池，这个卡其实和DELL的PERC 6/i卡是一样的，都是基于LSI MegaRAID SAS 1078基础上OEM出来的。</p>
+
+<p>上面是几种常见的阵列卡型号，更多的可以自行查看官方的技术手册。
+下面我们要继续的是，这些阵列卡以及硬盘如何监控，阵列卡的管理也请查看官方技术手册，不在本文讨论范畴。
+一般地，支持RAID 5的卡，我们称其为阵列卡，都可以使用LSI官方提供的MegaCli工具来管理，而不支持RAID 5的卡，我们称其为SAS卡，使用lsiutil工具来管理。HP的服务器使用其特有的hpacucli工具来管理。</p>
+
+<h1 id="工具概述">工具概述</h1>
+
+<h2 id="megacli工具"><strong>MegaCli工具</strong></h2>
+
+<h3 id="megacli--adpallinfo--aall--查看阵列卡信息">MegaCli -adpallinfo -aall — 查看阵列卡信息</h3>
+
+<p>-a 参数指定阵列卡的编号，一般服务器上只会配一个阵列卡，因此我们通常指定为 -a0（阵列卡适配器编号，从0开始） 即可，主要关注下面几个信息：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>状态值</strong></th>
+      <th><strong>对应含义</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Product Name : PERC  H710 Mini</td>
+      <td>阵列卡名称</td>
+    </tr>
+    <tr>
+      <td>FW Package Build:  21.2.0-0007</td>
+      <td>阵列卡firmware版本号，版本如果太低，建议升级以提高稳定性及性能</td>
+    </tr>
+    <tr>
+      <td>BBU : Present</td>
+      <td>是否有配BBU电池</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="megacli--cfgdsply--aall--查看阵列配置">MegaCli -cfgdsply -aall — 查看阵列配置</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>状态值</strong></th>
+      <th><strong>对应含义</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Memory: 512MB</td>
+      <td>阵列卡cache大小，2的N次方，如果不是，说明阵列卡有异常</td>
+    </tr>
+    <tr>
+      <td>Number of dedicated  Hotspares: 0</td>
+      <td>阵列是否有专用/独享热备盘（如果有多个逻辑磁盘组/disk group，则可以指定一个硬盘用于全局热备，那么该disk group上的专用热备盘数量为0也不用担心），除了RAID  1/RAID 1+0一般不指定热备盘以外，其他几个阵列级别建议都要指定热备盘</td>
+    </tr>
+    <tr>
+      <td>State : Optimal</td>
+      <td>阵列状态，如果不是 Optimal 就要关注了</td>
+    </tr>
+    <tr>
+      <td>Current Cache  Policy: WriteBack, ReadAheadNone, Direct, Write Cache OK if Bad BBU</td>
+      <td>阵列读写cache策略，建议写策略设置为FORCE WB，最起码是WB，预读策略可以关掉，意义不大，几乎没影响</td>
+    </tr>
+    <tr>
+      <td>Disk Cache Policy :  Disabled</td>
+      <td>硬盘cache策略，建议关闭，防止意外时数据丢失</td>
+    </tr>
+    <tr>
+      <td>Current Power  Savings Policy: None</td>
+      <td>节电策略，建议关闭</td>
+    </tr>
+    <tr>
+      <td>Media Error Count:  0</td>
+      <td>三个错误计数器，任何一个值大于100就要立刻引起关注，尤其要关注起增长速度。1T以上SATA盘，计数值不够精确，可能所有盘上该值都会大于0，一般重启就会重新清0，如果重启后还是大于0的话，赶紧报修吧。SAS盘的计数值则比较准确。</td>
+    </tr>
+    <tr>
+      <td>Other Error Count:  0</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Predictive Failure  Count: 0</td>
+      <td> </td>
+    </tr>
+    <tr>
+      <td>Firmware state:  Online, Spun Up</td>
+      <td>查看硬盘状态，如果是unconfigured表示该硬盘未分配加入到阵列中；如果是  unconfigured(bad)表示该盘不但是未分配，而且还坏了，正是“出师未捷身先死”；如果是failed，表示该盘故障无法识别；如果是  rebuilding，表示该盘正在重建数据</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="megacli--adpbbucmd--aall--查看阵列卡电池信息">MegaCli -adpbbucmd -aall — 查看阵列卡电池信息</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>状态值</strong></th>
+      <th><strong>对应含义</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Temperature: 39 C</td>
+      <td>查看电池温度，如果相比上一次查看高出不少，就需要关注了，或者可以根据经验设置一个基线值</td>
+    </tr>
+    <tr>
+      <td>Battery State:  Optimal</td>
+      <td>电池状态，如果不是为Optimal，就需要关注了</td>
+    </tr>
+    <tr>
+      <td>Charger Status:  Complete</td>
+      <td>电池充放电状态</td>
+    </tr>
+    <tr>
+      <td>isSOHGood: Yes</td>
+      <td>电池状态，如果不是为Yes，需要关注</td>
+    </tr>
+    <tr>
+      <td>Relative State of  Charge: 93 %</td>
+      <td>当前电量，当电量低于15%，或者电池坏掉时，默认都会将写策略从WB改成WT，除非设定为FORCE WB策略</td>
+    </tr>
+    <tr>
+      <td>Max Error = 0 %</td>
+      <td>电池是否有错误信息</td>
+    </tr>
+    <tr>
+      <td>Next Learn time:  Tue Oct 14 22:06:50 2014</td>
+      <td>电池充放电时间，注意这是美国时间。另外，新的阵列卡电池很多改成电容式的了，也就不需要重复充放电了</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="lsiutil工具">lsiutil工具</h2>
+
+<p>lsiutil有交互和非交互两种方式，作为监控，我们肯定选择非交互模式。想要使用交互模式的，可以根据非交互模式自行练习。</p>
+
+<h3 id="lsiutil--p-1--a-201200--查看硬盘计数器">lsiutil -p 1 -a 20,12,0,0 — 查看硬盘计数器</h3>
+
+<p>Invalid DWord Count 2,563 — 任何一个值大于0，都需要引起关注</p>
+
+<p>Running Disparity Error Count 2,366</p>
+
+<p>Loss of DWord Synch Count 0</p>
+
+<p>Phy Reset Problem Count 0</p>
+
+<h3 id="lsiutil--p-1--a-211000--查看逻辑卷状态">lsiutil -p 1 -a 21,1,0,0,0 — 查看逻辑卷状态</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>状态值</strong></th>
+      <th><strong>对应含义</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Volume State:  optimal, enabled</td>
+      <td>逻辑卷健康状况</td>
+    </tr>
+    <tr>
+      <td>Volume draws from  Hot Spare Pools: 0</td>
+      <td>是否有热备</td>
+    </tr>
+    <tr>
+      <td>Volume Size 139392  MB, 2 Members</td>
+      <td>由几块硬盘组成</td>
+    </tr>
+    <tr>
+      <td>Primary is PhysDisk  1 (Bus 0 Target 9)</td>
+      <td>物理硬盘1</td>
+    </tr>
+    <tr>
+      <td>Secondary is  PhysDisk 0 (Bus 0 Target 3)</td>
+      <td>物理硬盘0</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="lsiutil--p-1--a-212000--查看物理硬盘状态">lsiutil -p 1 -a 21,2,0,0,0 — 查看物理硬盘状态</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>状态值</strong></th>
+      <th><strong>对应含义</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PhysDisk 0 is Bus 0  Target 3</td>
+      <td>编号</td>
+    </tr>
+    <tr>
+      <td>PhysDisk State:  online</td>
+      <td>状态</td>
+    </tr>
+    <tr>
+      <td>Error Count 13,  Last Error: Command = 28h, Key = 3, ASC/ASCQ = 11h/00h</td>
+      <td>错误计数器，大于0的话，就需要引起关注</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="hpacucli工具">hpacucli工具</h2>
+
+<p>hpacucli工具查看阵列、硬盘、电池信息，其实就只要一条指令：</p>
+
+<p><strong>hpacucli ctrl all show config detail — 查看阵列详细信息、配置</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>状态值</strong></th>
+      <th><strong>对应含义</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Controller Status:  OK</td>
+      <td>阵列卡状态</td>
+    </tr>
+    <tr>
+      <td>Firmware Version:  1.18</td>
+      <td>firmware版本，太低了建议升级，以提高稳定性及性能</td>
+    </tr>
+    <tr>
+      <td>Cache Board  Present: True</td>
+      <td>是否配备了cache模块</td>
+    </tr>
+    <tr>
+      <td>Cache Status: OK</td>
+      <td>cache模块状态</td>
+    </tr>
+    <tr>
+      <td>Cache Ratio: 100%  Read / 0% Write</td>
+      <td>cache策略，此处只有读cache，不用于写cache，因为没有bbu电池，见下方结果</td>
+    </tr>
+    <tr>
+      <td>Drive Write Cache:  Disabled</td>
+      <td>关闭磁盘cache</td>
+    </tr>
+    <tr>
+      <td>Total Cache Size:  256 MB</td>
+      <td>cache大小</td>
+    </tr>
+    <tr>
+      <td>Total Cache Memory  Available: 208 MB</td>
+      <td>实际可用cache大小，和理论cache大小不一样，说明cache模块可能有问题</td>
+    </tr>
+    <tr>
+      <td>No-Battery Write  Cache: Disabled</td>
+      <td>关闭FORCEWB策略</td>
+    </tr>
+    <tr>
+      <td>Battery/Capacitor  Count: 0</td>
+      <td>阵列卡BBU电池数量为0，也就是没有BBU模块</td>
+    </tr>
+    <tr>
+      <td>Battery/Capacitor  Status: Failed (Replace Batteries)</td>
+      <td>阵列卡BBU电池状态，这里显示是错误状态，需要及时更换</td>
+    </tr>
+    <tr>
+      <td>Array: A</td>
+      <td>第一个乌列阵列，编号从A开始，依次是A、B、C</td>
+    </tr>
+    <tr>
+      <td>Status: OK</td>
+      <td>物理阵列状态</td>
+    </tr>
+    <tr>
+      <td>Logical Drive: 1</td>
+      <td>第一个逻辑卷，编号从1开始</td>
+    </tr>
+    <tr>
+      <td>Fault Tolerance:  RAID 5</td>
+      <td>第一个逻辑卷的阵列级别</td>
+    </tr>
+    <tr>
+      <td>Status: OK</td>
+      <td>第一个逻辑卷状态</td>
+    </tr>
+    <tr>
+      <td>Caching: Enabled</td>
+      <td>第一个逻辑卷是否启用了cache策略</td>
+    </tr>
+    <tr>
+      <td>physicaldrive  1I:1:1</td>
+      <td>第一块物理硬盘，编号从1开始</td>
+    </tr>
+    <tr>
+      <td>Status: OK</td>
+      <td>第一块物理硬盘状态</td>
+    </tr>
+    <tr>
+      <td>Firmware Revision:  HPDA</td>
+      <td>第一块物理硬盘firmware，如果太低，也需要及时升级，HP的硬盘每个批次都有不同的firmware</td>
+    </tr>
+  </tbody>
+</table>
+
+<h1 id="megacli实践">Megacli实践</h1>
+
+<h2 id="查看有风险的盘">查看有风险的盘</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -LDPDinfo -A0 |grep "Device Id" |awk '{print $3}' |xargs -I {} smartctl -a -d megaraid,{} /dev/sdc |grep -Ei "^187|^188|^197|^198|Reallocated_Sector_Ct" | xargs -I{} echo {}</code></p>
+
+<h2 id="查看磁盘的smart信息">查看磁盘的smart信息</h2>
+
+<p>如果磁盘在RAID卡上：</p>
+
+<p>（1）先获取磁盘的device id</p>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 PDList aall</code></p>
+
+<p>这里的输出，会有ES信息，同时还会有device id</p>
+
+<p>（2）根据device id，查询smart信息</p>
+
+<p><code class="highlighter-rouge">smartctl -a -d megaraid,11 /dev/sdc</code></p>
+
+<p>这里的11就是磁盘的device id，哪怕后面的/dev/sdc不存在，获取是这颗磁盘不属于sdc，也能输出正确的信息，只要device id是正确的就行。</p>
+
+<p>如果不在RAID卡上，直接<code class="highlighter-rouge">smartctl -a /dev/sdc</code></p>
+
+<h2 id="手工配置初始化">手工配置初始化</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -start –L0 -a0         # 快速初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -start -full –L0 -a0     # 完全初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -progdsply -L0 -a0      # 显示初始化的进度
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDInit -abort -L0 -a0        # 结束完全初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -Abort -LALL -aALL # 忽略初始化
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -ProgDsply -LALL -aALL
+</code></pre></div></div>
+
+<h2 id="设置raid-cache">设置RAID cache</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/MegaRAID/MegaCli/MegaCli64 -ldinfo -l1 -a0
+
+/opt/MegaRAID/MegaCli/MegaCli64 -ldsetprop cached -l1 -a0
+
+/opt/MegaRAID/MegaCli/MegaCli64 -ldinfo -l1 -a0
+
+</code></pre></div></div>
+
+<h2 id="显示rebuid进度">显示Rebuid进度</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDRbld -ShowProg -physdrv[20:2] -aALL</code></p>
+
+<h2 id="查看e-s">查看E S</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aAll -NoLog | grep -Ei "(enclosure|slot)"</code></p>
+
+<h2 id="查看所有硬盘的状态">查看所有硬盘的状态</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aAll -NoLog </code></p>
+
+<p>如果有热备，则 Firmware State会显示为hotspace</p>
+
+<h2 id="查看copyback进度">查看copyback进度</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDCpyBk -ShowProg -PhysDrv[33:3] -a0</code></p>
+
+<h2 id="查看所有virtual-disk的状态">查看所有Virtual Disk的状态</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -LdPdInfo -aAll -NoLog</code></p>
+
+<p>RAID Level对应关系：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RAID Level : Primary-1, Secondary-0, RAID Level Qualifier-0	RAID 1
+RAID Level : Primary-0, Secondary-0, RAID Level Qualifier-0	RAID 0
+RAID Level : Primary-5, Secondary-0, RAID Level Qualifier-3	RAID 5
+RAID Level : Primary-1, Secondary-3, RAID Level Qualifier-0	RAID 10
+
+</code></pre></div></div>
+
+<h2 id="在线做raid">在线做Raid</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/MegaRAID/MegaCli/MegaCli64 -CfgLdAdd -r0 [0:11] WB NORA Direct CachedBadBBU -strpsz64 -a0 -NoLog
+/opt/MegaRAID/MegaCli/MegaCli64 -CfgLdAdd -r5 [12:2,12:3,12:4,12:5,12:6,12:7] WB Direct -a0 
+</code></pre></div></div>
+
+<h2 id="让硬盘led灯闪烁定位">让硬盘LED灯闪烁（定位）</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    1、  MegaCli  -AdpSetProp UseDiskActivityforLocate -1 -a0 
+    2、  MegaCli  -PdLocate  -start  –physdrv[E:S]  -a0  让硬盘LED灯闪烁
+    3、  MegaCli  -PdLocate  -stopt  –physdrv[E:S]  -a0 停掉硬盘LED灯
+</code></pre></div></div>
+
+<h2 id="清除foreign状态">清除Foreign状态</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -CfgForeign -Clear -a0</code></p>
+
+<h2 id="查看raid阵列中掉线的盘">查看RAID阵列中掉线的盘</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -pdgetmissing -a0</code></p>
+
+<h2 id="替换坏掉的模块">替换坏掉的模块</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -pdreplacemissing -physdrv[12:10] -Array5 -row0 -a0</code></p>
+
+<h2 id="手动开启rebuid">手动开启rebuid</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -pdrbld -start -physdrv[12:10] -a0</code></p>
+
+<h2 id="设置hotspare">设置HotSpare</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/MegaRAID/MegaCli/MegaCli64 -pdhsp -set [-Dedicated [-Array2]] [-EnclAffinity] [-nonRevertible] -PhysDrv[4:11] -a0
+/opt/MegaRAID/MegaCli/MegaCli64 -pdhsp -set [-EnclAffinity] [-nonRevertible] -PhysDrv[32：1}] -a0
+</code></pre></div></div>
+
+<h2 id="关闭rebuild">关闭Rebuild</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpAutoRbld -Dsbl -a0</code></p>
+
+<h2 id="设置rebuild的速率">设置rebuild的速率</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpSetProp RebuildRate -30 -a0</code></p>
+
+<h2 id="查看raid组成员">查看RAID组成员</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64  -LdPdInfo -aAll</code></p>
+
+<h2 id="强制修改raid卡由write-through到write-back-方法">强制修改RAID卡由write through到write back 方法</h2>
+
+<p><code class="highlighter-rouge">opt/MegaRAID/MegaCli/MegaCli64 -LDSetProp CachedBadBBU -Lall -aALL</code></p>
+
+<p>一般在没有BBU情况下， 要执行如下命令进行修改：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/opt/MegaRAID/MegaCli/MegaCli64 -ldsetprop WB -lall -aall;
+
+/opt/MegaRAID/MegaCli/MegaCli64 -LDSetProp CachedBadBBU -Lall -aALL;
+
+/opt/MegaRAID/MegaCli/MegaCli64 ldinfo lall aall
+</code></pre></div></div>
+
+<h2 id="查raid卡信息">查raid卡信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpAllInfo -aALL</code></p>
+
+<h2 id="查看电池信息">查看电池信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -aAll</code></p>
+
+<h2 id="查看raid卡日志">查看raid卡日志</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -FwTermLog -Dsply -aALL</code></p>
+
+<h2 id="显示适配器个数">显示适配器个数</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -adpCount</code></p>
+
+<h2 id="显示适配器时间">显示适配器时间</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpGetTime –aALL</code></p>
+
+<h2 id="显示所有适配器信息">显示所有适配器信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpAllInfo -aAll</code></p>
+
+<h2 id="显示所有逻辑磁盘组信息">显示所有逻辑磁盘组信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -LDInfo -LALL -aAll </code></p>
+
+<h2 id="显示所有的物理信息">显示所有的物理信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDList -aAll</code></p>
+
+<h2 id="查看充电状态">查看充电状态</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus -aALL |grep 'Charger Status'</code></p>
+
+<h2 id="显示bbu状态信息">显示BBU状态信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuStatus -aALL</code></p>
+
+<h2 id="显示bbu容量信息">显示BBU容量信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuCapacityInfo -aALL</code></p>
+
+<h2 id="显示bbu设计参数">显示BBU设计参数</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuDesignInfo -aALL</code></p>
+
+<h2 id="显示当前bbu属性">显示当前BBU属性</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpBbuCmd -GetBbuProperties -aALL</code></p>
+
+<h2 id="显示raid卡型号raid设置disk相关信息">显示Raid卡型号，Raid设置，Disk相关信息</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-cfgdsply -aALL</code></p>
+
+<h2 id="磁盘状态的变化从拔盘到插盘的过程中">磁盘状态的变化，从拔盘，到插盘的过程中</h2>
+
+<p>Device             : Normal –&gt; Damage –&gt; Rebuild –&gt; Normal</p>
+
+<p>Virtual Drive      : Optimal –&gt; Degraded –&gt; Degraded –&gt; Optimal</p>
+
+<p>Physical Drive     : Online –&gt; Failed Unconfigured –&gt; Rebuild –&gt; Online</p>
+
+<h2 id="查看物理磁盘状态">查看物理磁盘状态</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDRbld -ShowProg -PhysDrv [Enclosure Device ID:Slot Number] -a0</code></p>
+
+<p>Rebuild 中的物理磁盘状态中会显示：”Firmware state: Rebuild”</p>
+
+<h2 id="以文本进度条样式显示-rebuild-进度">以文本进度条样式显示 Rebuild 进度</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-pdrbld -progdsply -physdrv[E:S] -aALL</code></p>
+
+<p>屏幕显示类似下面的内容：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rebuild progress of physical drives...
+Enclosure:Slot         Percent Complete           Time Elps
+     032 :05   #######################87 %################*******  01:59:07
+
+</code></pre></div></div>
+
+<h2 id="查看-raid-卡-rebuild-参数">查看 RAID 卡 Rebuild 参数</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-AdpAllinfo -aALL | grep -i rebuild</code></p>
+
+<p>返回结果类似下面这样</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Rebuild Rate                             : 30%
+Auto Rebuild                             : Enabled
+Rebuild Rate                             : Yes
+Force Rebuild                            : Yes
+</code></pre></div></div>
+
+<h2 id="设置-raid-卡-rebuild-比例为60">设置 RAID 卡 Rebuild 比例为60%</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-AdpSetProp { RebuildRate -60} -aALL</code></p>
+
+<h2 id="删除全局热备">删除全局热备</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-PDHSP -Rmv -PhysDrv[E:S] -a0</code></p>
+
+<h2 id="将物理盘下线和上线">将物理盘下线和上线</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -PDOffline/Online -PhysDrv [E:S] -a0</code></p>
+
+<h2 id="在线添加磁盘">在线添加磁盘</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-LDRecon -Start -r5 -Add -PhysDrv[E:S] -L1 -a0</code></p>
+
+<h2 id="删除阵列">删除阵列</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -CfgLdDel -L1 -a0</code></p>
+
+<h2 id="查看磁盘缓存策略">查看磁盘缓存策略</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64-LDGetProp -DskCache -LALL -aALL</code></p>
+
+<p>or</p>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -LDGetProp -Cache -LALL -aALL</code></p>
+
+<h2 id="查看raid卡event-log">查看raid卡event log</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpEventLog -GetEvents -f event.log -A0</code></p>
+
+<h2 id="查看megacli的log">查看Megacli的log</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -fwtermlog -dsply -aALL</code> ，关注里面的error/fail/warn等多个关键字</p>
+
+<h2 id="查看raid卡时间">查看raid卡时间</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -AdpGetTime -A0 ; date</code></p>
+
+<h2 id="stop-一致性检查">Stop 一致性检查</h2>
+
+<p><code class="highlighter-rouge">/opt/MegaRAID/MegaCli/MegaCli64 -LDCC -stop -lall -aall</code></p>
+
+<h1 id="参考文档">参考文档</h1>
+
+<p><code class="highlighter-rouge">https://kamaok.org.ua/?p=2507</code></p>
+

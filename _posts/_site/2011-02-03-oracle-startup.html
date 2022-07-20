@@ -1,0 +1,101 @@
+<h1 id="oracle启动的几种方式">oracle启动的几种方式</h1>
+
+<h2 id="1startup-nomount">1、startup nomount</h2>
+
+<p>非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。
+启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件。</p>
+
+<h2 id="2startup-mount-dbname">2、startup mount dbname</h2>
+
+<p>安装启动，这种方式启动下可执行：数据库日志归档、数据库恢复、重新命名一些数据库文件，如：系统表空间或日志文件。</p>
+
+<p>执行“nomount”，然后打开控制文件。</p>
+
+<h2 id="3startup-open-dbname">3、startup open dbname</h2>
+
+<p>先执行“nomount”，然后执行“mount”，再打开包括Redo log文件在内的所有数据库文件，这种方式下可访问数据库中的数据。</p>
+
+<h2 id="4startup">4、startup</h2>
+
+<p>startup等于以下三个命令</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   startup nomount  
+   alter database mount  
+   alter database open
+</code></pre></div></div>
+
+<h2 id="5startup-restrict">5、startup restrict</h2>
+
+<p>约束启动的选项是restrict，它启动数据库时装入并打开它，但是此时的数据库只能为有特殊权限的数据库管理员使用，一般用户不能联入到该数据库。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt;startup restrict
+</code></pre></div></div>
+
+<p>非特权用户访问时，会出现以下提示：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   ERROR：  
+   ORA-01035: ORACLE 只允许具有 RESTRICTED SESSION 权限的用户使用
+</code></pre></div></div>
+
+<p>一般说来，当用户有create session权限时，可以连入数据库，但对于restrict方式启动的数据库，则只有用户具有restricted session系统权限才允许联入。若要在数据库运行过程中改变这一方式，可用alter system命令。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt;alter system disable restricted session;
+</code></pre></div></div>
+
+<p>也可以先将数据库关闭再重新以非restrict方式启动数据库。</p>
+
+<h2 id="6startup-force">6、startup force</h2>
+
+<p>强制启动方式，当不能关闭数据库时，可以用startup force来完成数据库的关闭。</p>
+
+<p>该命令等价于：先关闭数据库，再执行正常启动数据库命令。</p>
+
+<h2 id="7startup-pfile参数文件名">7、startup pfile=参数文件名</h2>
+
+<p>带初始化参数文件的启动方式，先读取参数文件，再按参数文件中的设置启动数据库。例：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>startup pfile=’/opt/oracle/product/11g/dbs/mypfile,ora’  
+</code></pre></div></div>
+
+<h2 id="8独占和共享启动">8、独占和共享启动</h2>
+
+<p>独占启动的选项是exclusive，表示只允许一个例程使用该数据库；</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>startup EXCLUSIVE
+</code></pre></div></div>
+
+<p>共享启动的参数是shared，表示允许多个例程并行使用该数据库，即将数据库装入多个现场。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>startup shared
+</code></pre></div></div>
+
+<h1 id="几种关闭方式">几种关闭方式</h1>
+
+<h2 id="1shutdown-normal">1、shutdown normal</h2>
+
+<p>正常方式关闭数据库。</p>
+
+<p>正常关闭数据库所用的选项是normal，数据库在关闭前将检查所有的连接，并且发出命令后不允许再有新的用户连接，在等待所有连接都断开后再关闭数据库，再次启动数据库不需要任何恢复过程。</p>
+
+<h2 id="2shutdown-immediate">2、shutdown immediate</h2>
+
+<p>该方式用在某些紧急的情况下，比如通知马上停电，此时需要紧急关闭数据库以应付这些情况。这种方式用的选项是immediate，在这种方式下并不等待所有的用户断开连接再关闭，而是由系统断开连接，然后关闭数据库。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt;shutdown immediate;
+</code></pre></div></div>
+
+<p>一旦执行了这条命令，则将当前正在处理的sql语句马上停止，然后将所有未提交的事务回退，并且不等待当前联入数据库的用户断开连接，而是由系统强行将各个联接断开。在下次启动数据库时要执行恢复动作，不过是由系统自动执行的，用户不必去了解它。</p>
+
+<p>在SVRMGRL中执行shutdown immediate，数据库并不立即关闭,而是在Oracle执行某些清除工作后才关闭（终止会话、释放会话资源），</p>
+
+<p>当使用shutdown不能关闭数据库时，shutdown immediate可以完成数据库关闭的操作。</p>
+
+<h2 id="3shutdown-abort">3、shutdown abort</h2>
+
+<p>异常关闭选项是abort，此种方式下系统并不做任何检查和断开用户操作以及回退操作，而是直接将数据库现场撤销，这样现场中的数据库数据当然就无效了，数据库自然也就被关掉了。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt;shutdown abort;
+</code></pre></div></div>
+
+<p>以abort方式关闭数据库时只有一行关闭信息表示关闭了数据库现场。以abort方式关闭的数据库再次启动时必须要进行恢复动作，这些恢复操作同样是系统自动来完成的，需要的时间较长。</p>
+

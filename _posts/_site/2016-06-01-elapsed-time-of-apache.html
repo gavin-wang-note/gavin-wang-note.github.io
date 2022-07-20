@@ -1,0 +1,30 @@
+<h1 id="引言">引言</h1>
+
+<p>客户经常指责我们某些CGI请求处理的时间过长，我们需要一种快速的方法获取apache 对每一个请求处理的时间。事实上apache 可以打印出每一个请求的处理时间。</p>
+
+<h1 id="解决方法">解决方法</h1>
+
+<p>/etc/apache2/apache2.conf中，在</p>
+
+<p><code class="highlighter-rouge">LogFormat "%h %l %u %t \"%r\" %&gt;s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined</code></p>
+
+<p>在这一行中增加 <code class="highlighter-rouge">%T.%D</code> 就可以打印每一个请求的处理时间。</p>
+
+<p>修改后，conf 内容如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>LogFormat "%v:%p %h %l %u %t \"%r\" %&gt;s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
+LogFormat "%h %l %u %t \"%r\" %&gt;s %O %T.%D \"%{Referer}i\" \"%{User-Agent}i\"" combined
+LogFormat "%h %l %u %t \"%r\" %&gt;s %O" common
+LogFormat "%{Referer}i -&gt; %U" referer
+LogFormat "%{User-agent}i" agent
+</code></pre></div></div>
+
+<p>看下//var/log/apache2/access.log中的输出：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> 10.16.17.43 - - [01/Jun/2016:13:41:51 +0800] "GET /cgi-bin/ezs3/json/list_shared_folder?gateway_group=virStorage&amp;_=1464745951979 HTTP/1.1" 200 1322 0.932141 "https://10.16.17.11:8080/" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:46.0) Gecko/20100101 Firefox/46.0"
+</code></pre></div></div>
+
+<h1 id="其他">其他</h1>
+
+<p>其他相关的参数和含义如下,可以前往 https://httpd.apache.org/docs/2.2/mod/modlogconfig.html 去学习。</p>
+

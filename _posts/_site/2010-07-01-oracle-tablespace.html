@@ -1,0 +1,76 @@
+<h1 id="查看表大小">查看表大小</h1>
+
+<p>有两种含义的表大小：一种是分配给一个表的物理空间数量，而不管空间是否被使用。可以这样查询获得字节数：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>select segment_name, bytes 
+from user_segments 
+where segment_type = 'TABLE'; 
+</code></pre></div></div>
+
+<p>或者</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Select Segment_Name,Sum(bytes)/1024/1024 From User_Extents Group By Segment_Name
+</code></pre></div></div>
+
+<p>另一种表实际使用的空间。这样查询：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>analyze table AREAINFO compute statistics; 
+
+select   TABLE_NAME,TABLESPACE_NAME, NUM_ROWS ,AVG_ROW_LEN,  NUM_ROWS*AVG_ROW_LEN   
+from user_tables 
+where table_name = 'AREAINFO';
+</code></pre></div></div>
+
+<p>说明：</p>
+
+<ul>
+  <li>表名称要大写，红色加粗部分。</li>
+</ul>
+
+<h1 id="查看每个表空间的大小">查看每个表空间的大小</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Select Tablespace_Name,Sum(bytes)/1024/1024 From Dba_Segments Group By Tablespace_Name
+</code></pre></div></div>
+
+<h1 id="看数据库有多少个tablespace">看数据库有多少个tablespace</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsg:~&gt; sqlplus / as sysdba
+
+SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 7月 1 17:37:14 2010
+
+Copyright (c) 1982, 2008, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; set wrap on
+SQL&gt; set linesize 700
+SQL&gt; select * from dba_tablespaces;
+
+TABLESPACE_NAME                                              BLOCK_SIZE INITIAL_EXTENT NEXT_EXTENT MIN_EXTENTS MAX_EXTENTS   MAX_SIZE PCT_INCREASE MIN_EXTLEN STATUS                 CONTENTS           LOGGING            FORCE_ EXTENT_MANAGEMENT    ALLOCATION_TYPE    PLUGGE SEGMENT_SPAC DEF_TAB_COMPRESS RETENTION                  BIGFIL PREDICATE_EVAL ENCRYP COMPRESS_FOR
+------------------------------------------------------------ ---------- -------------- ----------- ----------- ----------- ---------- ------------ ---------- ------------------ ------------------ ------------------ ------ -------------------- ------------------ ------ ------------ ---------------- ---------------------- ------ -------------- ------ ------------------------------------
+SYSTEM                                                             8192          65536                       1  2147483645 2147483645                       65536 ONLINE             PERMANENT          LOGGING            NO     LOCAL                SYSTEM             NO     MANUAL   DISABLED         NOT APPLY              NO     HOST           NO
+SYSAUX                                                             8192          65536                       1  2147483645 2147483645                       65536 ONLINE             PERMANENT          LOGGING            NO     LOCAL                SYSTEM             NO     AUTO     DISABLED         NOT APPLY              NO     HOST           NO
+UNDOTBS1                                                           8192          65536                       1  2147483645 2147483645                       65536 ONLINE             UNDO               LOGGING            NO     LOCAL                SYSTEM             NO     MANUAL   DISABLED         NOGUARANTEE            NO     HOST           NO
+TEMP                                                               8192        1048576     1048576           1             2147483645                0    1048576 ONLINE             TEMPORARY          NOLOGGING          NO     LOCAL                UNIFORM            NO     MANUAL   DISABLED         NOT APPLY              NO     HOST           NO
+USERS                                                              8192          65536                       1  2147483645 2147483645                       65536 ONLINE             PERMANENT          LOGGING            NO     LOCAL                SYSTEM             NO     AUTO     DISABLED         NOT APPLY              NO     HOST           NO
+MMSG                                                               8192          65536                       1  2147483645 2147483645                       65536 ONLINE             PERMANENT          LOGGING            NO     LOCAL                SYSTEM             NO     AUTO     DISABLED         NOT APPLY              NO     HOST           NO
+MMSG_TMP                                                           8192        1048576     1048576           1             2147483645                0    1048576 ONLINE             TEMPORARY          NOLOGGING          NO     LOCAL                UNIFORM            NO     MANUAL   DISABLED         NOT APPLY              NO     HOST           NO
+
+已选择7行。
+
+SQL&gt;
+</code></pre></div></div>
+
+<h1 id="如何查有多少个数据库实例">如何查有多少个数据库实例</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select instance_number,instance_name,status from v$instance;
+
+INSTANCE_NUMBER INSTANCE_NAME    STATUS
+--------------- ---------------- ------------
+              1 mmsgdb           OPEN
+
+SQL&gt;
+</code></pre></div></div>

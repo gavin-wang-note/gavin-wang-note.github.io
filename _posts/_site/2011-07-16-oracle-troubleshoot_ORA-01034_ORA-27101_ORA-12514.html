@@ -1,0 +1,202 @@
+<h1 id="ora-01034--ora-27101ora-12514解决方法">ORA-01034  ORA-27101，ORA-12514解决方法</h1>
+
+<h2 id="现象">现象</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ORA-01034: ORACLE not available
+ORA-27101: shared memory realm does not exist
+</code></pre></div></div>
+
+<h2 id="原因">原因</h2>
+
+<p>（1）	一般是因为数据库未正常停止导致；</p>
+
+<p>（2）	相关数据文件过大；</p>
+
+<p>（3）	还有其它原因，具体原因请具体对待。</p>
+
+<h2 id="解决方法">解决方法</h2>
+
+<p>这里以数据文件过大导致上述现象的解决方法，如下：</p>
+
+<p>在数据文件存放路径目录下发现一个文件，undotbs01.dbf 大的惊人！ 16G</p>
+
+<p>解决方法就是压缩这个undo文件。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; startup   
+ORACLE instance started.   
+  
+Total System Global Area  135338868 bytes   
+Fixed Size                   453492 bytes   
+Variable Size             109051904 bytes   
+Database Buffers           25165824 bytes   
+Redo Buffers                 667648 bytes   
+Database mounted.   
+ORA-01157: cannot identify/lock data file 2 - see DBWR trace file   
+ORA-01110: data file 2: ''D:ORACLEORADATAORCLUNDOTBS01.DBF''  
+  
+  
+SQL&gt; alter system set undo_management=''MANUAL'' scope=spfile;   
+  
+System altered.   
+  
+SQL&gt; alter database    
+datafile ''d:oracleoradataorclundotbs01.dbf'' offline drop   
+;   
+  
+Database altered.   
+  
+SQL&gt; alter database open;   
+  
+Database altered.   
+  
+SQL&gt;   
+  
+SQL&gt;   
+create undo tablespace undotbs2 datafile '   
+'d:oracleoradataorclundotbs02.dbf'' size 100M;   
+Tablespace created.   
+SQL&gt; select * from v?$tablespace;   
+  
+       TS# NAME                           INC   
+---------- ------------------------------ ---   
+         3 CWMLITE                        YES   
+         4 DRSYS                          YES   
+         5 EXAMPLE                        YES   
+         6 INDX                           YES   
+         7 ODM                            YES   
+         0 SYSTEM                         YES   
+         8 TOOLS                          YES   
+         1 UNDOTBS1                       YES   
+         9 USERS                          YES   
+        10 XDB                            YES   
+         2 TEMP                           YES   
+  
+       TS# NAME                           INC   
+---------- ------------------------------ ---   
+        11 UNDOTBS2                       YES   
+  
+12 rows selected.   
+  
+  
+SQL&gt; alter system set undo_management=''AUTO'' scope=spfile;   
+  
+System altered.   
+  
+SQL&gt; alter system set undo_tablespace=''UNDOTBS2'' scope=spfile;   
+  
+System altered.   
+  
+SQL&gt; shutdown immediate;   
+Database closed.   
+Database dismounted.   
+ORACLE instance shut down.   
+SQL&gt; startup   
+ORACLE instance started.   
+  
+Total System Global Area  135338868 bytes   
+Fixed Size                   453492 bytes   
+Variable Size             109051904 bytes   
+Database Buffers           25165824 bytes   
+Redo Buffers                 667648 bytes   
+Database mounted.   
+Database opened.   
+SQL&gt; show parameter undo   
+  
+NAME                                 TYPE        VALUE   
+------------------------------------ ----------- -----   
+undo_management                      string      AUTO   
+undo_retention                       integer     10800   
+undo_suppress_errors                 boolean     FALSE   
+undo_tablespace                      string      UNDOTBS2   
+SQL&gt;  
+SQL&gt; startup
+ORACLE instance started.
+
+Total System Global Area  135338868 bytes
+Fixed Size                   453492 bytes
+Variable Size             109051904 bytes
+Database Buffers           25165824 bytes
+Redo Buffers                 667648 bytes
+Database mounted.
+ORA-01157: cannot identify/lock data file 2 - see DBWR trace file
+ORA-01110: data file 2: ''D:ORACLEORADATAORCLUNDOTBS01.DBF''
+
+
+SQL&gt; alter system set undo_management=''MANUAL'' scope=spfile;
+
+System altered.
+
+SQL&gt; alter database 
+datafile ''d:oracleoradataorclundotbs01.dbf'' offline drop
+;
+
+Database altered.
+
+SQL&gt; alter database open;
+
+Database altered.
+
+SQL&gt;
+
+SQL&gt;
+create undo tablespace undotbs2 datafile '
+'d:oracleoradataorclundotbs02.dbf'' size 100M;
+Tablespace created.
+SQL&gt; select * from v?$tablespace;
+
+       TS# NAME                           INC
+---------- ------------------------------ ---
+         3 CWMLITE                        YES
+         4 DRSYS                          YES
+         5 EXAMPLE                        YES
+         6 INDX                           YES
+         7 ODM                            YES
+         0 SYSTEM                         YES
+         8 TOOLS                          YES
+         1 UNDOTBS1                       YES
+         9 USERS                          YES
+        10 XDB                            YES
+         2 TEMP                           YES
+
+       TS# NAME                           INC
+---------- ------------------------------ ---
+        11 UNDOTBS2                       YES
+
+12 rows selected.
+
+
+SQL&gt; alter system set undo_management=''AUTO'' scope=spfile;
+
+System altered.
+
+SQL&gt; alter system set undo_tablespace=''UNDOTBS2'' scope=spfile;
+
+System altered.
+
+SQL&gt; shutdown immediate;
+Database closed.
+Database dismounted.
+ORACLE instance shut down.
+SQL&gt; startup
+ORACLE instance started.
+
+Total System Global Area  135338868 bytes
+Fixed Size                   453492 bytes
+Variable Size             109051904 bytes
+Database Buffers           25165824 bytes
+Redo Buffers                 667648 bytes
+Database mounted.
+Database opened.
+SQL&gt; show parameter undo
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- -----
+undo_management                      string      AUTO
+undo_retention                       integer     10800
+undo_suppress_errors                 boolean     FALSE
+undo_tablespace                      string      UNDOTBS2
+SQL&gt;
+</code></pre></div></div>
+
+<p>完成以上操作后，重新启动oracle。</p>
+

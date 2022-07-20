@@ -341,6 +341,12 @@ pipeline {
                             ).trim()
                         echo "build status  ${build_status}"
                        */
+                        product_version = sh (
+                            script: """sshpass -p btadmin ssh -p 22 ${cluster1_ip} -l btadmin ezs3-version""",
+                            returnStdout: true
+                            ).trim()
+                        env.PRODUCT_VERSION = product_version
+
                         emailext([
                                 attachLog: true,
                                 attachmentsPattern: 'report/cgi_response_elapsed_time.txt,report/pytest_autotest.log.gz',
@@ -364,7 +370,6 @@ pipeline {
 Jenkins server处，对应的email template内容参考如下:
 
 ```
-jenkins@ubuntu-16:~/email-templates$ cat allure-pipeline-report.groovy 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <style type="text/css">
 /*base css*/
@@ -404,6 +409,12 @@ jenkins@ubuntu-16:~/email-templates$ cat allure-pipeline-report.groovy
                 <div class="status">
                         <p class="info">pytest automation build <%= build.result.toString().toLowerCase() %></p>
                 </div>
+
+                <%
+                    def envOverrides = it.getAction("org.jenkinsci.plugins.workflow.cps.EnvActionImpl").getOverriddenEnvironment()
+                    product_version =  envOverrides["PRODUCT_VERSION"]
+                %>
+
                 <!-- status -->
                         <table>
                                 <tbody>
@@ -418,7 +429,9 @@ jenkins@ubuntu-16:~/email-templates$ cat allure-pipeline-report.groovy
                                         </tr>
                                         <tr>
                                                 <th>Product Version:</th>
-                                                <td><%=build.environment['PRODUCT_VERSION']%></td>
+                                                <!--
+                                                <td><%=build.environment['PRODUCT_VERSION']%></td> -->
+                                                <td>${product_version}</td>
                                         </tr>
                                         <tr>
                                                 <th>Date of build:</th>

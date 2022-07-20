@@ -1,0 +1,1477 @@
+<h1 id="概述">概述</h1>
+
+<p>本文主要介绍RMAN的一些实战操作。</p>
+
+<h1 id="准备工作">准备工作</h1>
+
+<p>1、数据库运行在归档方式下；</p>
+
+<p>2、备份整个数据库；</p>
+
+<p>3、rman备份整个数据库与归档日志。</p>
+
+<p>rman备份脚本如下（运行日志）：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; #script:fullbakup.rcv
+2&gt; # creater:wangyunzeng
+3&gt; # date:3.1.2011
+4&gt; # desc:backup all database datafile in archive with rman
+5&gt; # connect database
+6&gt; #rman target/;
+7&gt; #connect catalog rman/rman@inomc;
+8&gt; connect catalog *
+9&gt; connect target *
+10&gt; 
+11&gt; #start backup
+12&gt; run
+13&gt; {
+14&gt;   allocate channel c1 type disk;
+15&gt;   backup tag 'dbfull' format 'fullbak_%u_%s_%p' database
+16&gt;   archivelog all;
+17&gt;   sql 'alter system archive log current';
+18&gt;   release channel c1;
+19&gt; }
+</code></pre></div></div>
+
+<h1 id="归档模式下丢失或损坏一个数据文件">归档模式下丢失或损坏一个数据文件</h1>
+
+<h2 id="os备份方案">OS备份方案</h2>
+
+<p>在归档方式下，丢失或损坏一个数据文件，如果有响应的物理文件的备用以及该备份以来的归档日志，恢复数据库是比较容易的，而且可以减少宕机时间。</p>
+
+<h3 id="步骤一-创建测试表">步骤一 创建测试表</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 10:30:57 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; create table sybex(id int);    
+
+表已创建。
+
+
+SQL&gt; insert into  sybex values(0);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(1);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(2);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(3);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(4);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         0
+         1
+         2
+         3
+         4
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤二-关闭数据库模拟数据文件损坏或丢失">步骤二 关闭数据库，模拟数据文件损坏或丢失</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus / as sysdba
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 10:44:24 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; alter database datafile 5 online;
+
+数据库已更改。
+
+SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; 
+删除数据文件
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01 
+oracle@mmsc103:~/oradata/mmsgdb&gt; 
+</code></pre></div></div>
+
+<h3 id="步骤三-启动数据库并脱机数据文件">步骤三 启动数据库，并脱机数据文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 5 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 5: '/opt/oracle/oradata/mmsgdb/mmsgdata01'
+
+
+SQL&gt; alter database datafile 5 offline drop;
+
+数据库已更改。
+
+SQL&gt; alter database open;
+
+数据库已更改。
+</code></pre></div></div>
+
+<h3 id="步骤四-拷贝文件恢复并联机该数据文件">步骤四 拷贝文件，恢复并联机该数据文件</h3>
+
+<p>拷贝过程省略。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; recover datafile 5
+ORA-00279: 更改 427060 (在 03/05/2011 09:46:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_29_6q3jw83d
+_.arc
+ORA-00280: 更改 427060 (用于线程 1) 在序列 #29 中
+
+
+指定日志: {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
+auto
+ORA-00279: 更改 433844 (在 03/05/2011 13:00:55 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_30_6q477cfq
+_.arc
+ORA-00280: 更改 433844 (用于线程 1) 在序列 #30 中
+
+
+ORA-00279: 更改 462078 (在 03/05/2011 19:22:19 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_31_6q4w04c0
+_.arc
+ORA-00280: 更改 462078 (用于线程 1) 在序列 #31 中
+
+
+ORA-00279: 更改 489270 (在 03/06/2011 01:16:52 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_32_6q5dmrx0
+_.arc
+ORA-00280: 更改 489270 (用于线程 1) 在序列 #32 中
+
+
+ORA-00279: 更改 519023 (在 03/06/2011 06:00:24 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_33_6q5rg0mj
+_.arc
+ORA-00280: 更改 519023 (用于线程 1) 在序列 #33 中
+
+
+ORA-00279: 更改 537366 (在 03/06/2011 09:22:08 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_34_6q5yl1sz
+_.arc
+ORA-00280: 更改 537366 (用于线程 1) 在序列 #34 中
+
+
+ORA-00279: 更改 549703 (在 03/06/2011 11:06:41 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_35_6q6d89j5
+_.arc
+ORA-00280: 更改 549703 (用于线程 1) 在序列 #35 中
+
+
+ORA-00279: 更改 567132 (在 03/06/2011 15:00:25 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_36_6q6t01c4
+_.arc
+ORA-00280: 更改 567132 (用于线程 1) 在序列 #36 中
+
+
+ORA-00279: 更改 584372 (在 03/06/2011 18:54:57 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_37_6q77sdpv
+_.arc
+ORA-00280: 更改 584372 (用于线程 1) 在序列 #37 中
+
+
+ORA-00279: 更改 601986 (在 03/06/2011 22:50:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_38_6q7sz1gn
+_.arc
+ORA-00280: 更改 601986 (用于线程 1) 在序列 #38 中
+
+
+已应用的日志。
+完成介质恢复。
+SQL&gt; alter database datafile 5 online;
+
+数据库已更改。
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤五---查询数据检查恢复效果">步骤五   查询数据，检查恢复效果</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 11:04:52 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         0
+         1
+         2
+         3
+         4
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>1、采用热备份，需要运行在归档模式下，可以实现数据库的完全恢复，也就是说，从备份后到数据库崩溃时的数据都不会丢失。</li>
+  <li>2、可以采用全备份数据库的方式备份，对于特殊情况，也可以只备份特定的数据文件，如只备份用户表空间（一般情况下对于某些写特别频繁的数据文件，可以单独加大备份频率）</li>
+  <li>3、如果在恢复过程中，发现损坏的是多个数据文件，即可以采用一个一个数据文件的恢复方法（第5步中需要对数据文件一一脱机，第6步中需要对数据文件分别恢复），也可以采用整个数据库的恢复方法。</li>
+  <li>4、如果是系统表空间的损坏，不能采用此方法</li>
+</ul>
+
+<h2 id="rman备份方案">RMAN备份方案</h2>
+
+<h3 id="步骤一--表中插入记录">步骤一  表中插入记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 11:51:31 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; insert into sybex values(5);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         5
+         0
+         1
+         2
+         3
+         4
+
+已选择6行。   #备份前表中有6条记录
+</code></pre></div></div>
+
+<h3 id="步骤二--备份表空间">步骤二  备份表空间</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; backup tablespace MMSG;
+
+启动 backup 于 07-3月 -11
+分配的通道: ORA_DISK_1
+通道 ORA_DISK_1: SID=289 设备类型=DISK
+通道 ORA_DISK_1: 正在启动全部数据文件备份集
+通道 ORA_DISK_1: 正在指定备份集内的数据文件
+输入数据文件: 文件号=00005 名称=/opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 ORA_DISK_1: 正在启动段 1 于 07-3月 -11
+通道 ORA_DISK_1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T115233_6q8on44m_.bkp 标记=TAG20110307T115233 注释=NONE
+通道 ORA_DISK_1: 备份集已完成, 经过时间:00:00:01
+完成 backup 于 07-3月 -11
+
+启动 Control File and SPFILE Autobackup 于 07-3月 -11
+段 handle=/opt/oracle/flash_recovery_area/MMSGDB/autobackup/2011_03_07/o1_mf_s_745156357_6q8on8c8_.bkp comment=NONE
+完成 Control File and SPFILE Autobackup 于 07-3月 -11
+
+RMAN&gt;
+</code></pre></div></div>
+
+<h3 id="步骤三--再次向表中插入记录">步骤三  再次向表中插入记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; insert into sybex values(6);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择7行。     #备份后，表中记录为7条，比备份前增加了一条
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤四--切换relog日志记录">步骤四  切换relog日志记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; alter system switch logfile;
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+</code></pre></div></div>
+
+<h3 id="步骤五--关闭数据库模拟数据文件丢失">步骤五  关闭数据库，模拟数据文件丢失</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host   
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01 
+oracle@mmsc103:~/oradata/mmsgdb&gt; exit
+exit
+</code></pre></div></div>
+
+<h3 id="步骤六--启动数据库并脱机数据文件">步骤六  启动数据库，并脱机数据文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 5 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 5: '/opt/oracle/oradata/mmsgdb/mmsgdata01'
+
+
+SQL&gt; alter database datafile 5 offline;
+
+数据库已更改。
+
+SQL&gt; alter database open;
+
+数据库已更改。
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤七--恢复表空间">步骤七  恢复表空间</h3>
+
+<p>恢复脚本可以是恢复单个数据文件</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restore datafile 5;
+5&gt; recover datafile 5;
+6&gt; sql 'alter database datafile 5 online';
+7&gt; release channel c1;
+8&gt; }
+</code></pre></div></div>
+
+<p>也可以是表空间</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restoretablespace MMSG;
+5&gt; recover tablespace MMSG;
+6&gt; sql 'alter database datafile 5 online';
+7&gt; release channel c1;
+8&gt; }
+</code></pre></div></div>
+
+<p>过程如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>使用目标数据库控制文件替代恢复目录
+分配的通道: c1
+通道 c1: SID=293 设备类型=DISK
+
+启动 restore 于 07-3月 -11
+
+通道 c1: 正在开始还原数据文件备份集
+通道 c1: 正在指定从备份集还原的数据文件
+通道 c1: 将数据文件 00005 还原到 /opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 c1: 正在读取备份片段 /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T115233_6q8on44m_.bkp
+通道 c1: 段句柄 = /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T115233_6q8on44m_.bkp 标记 = TAG20110307T115233
+通道 c1: 已还原备份片段 1
+通道 c1: 还原完成, 用时: 00:00:15
+完成 restore 于 07-3月 -11
+
+启动 recover 于 07-3月 -11
+
+正在开始介质的恢复
+介质恢复完成, 用时: 00:00:00
+
+完成 recover 于 07-3月 -11
+
+sql 语句: alter database datafile 5 online
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre></div></div>
+
+<h3 id="步骤八-检查恢复效果">步骤八 检查恢复效果</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select * from sybex;
+
+        ID
+----------
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择7行。   #恢复后，数据是7条，没有丢失
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>1、RMAN也可以实现单个表空间或数据文件的恢复，恢复过程可以在mount下或open方式下，如果在open方式下恢复，可以减少down机时间</li>
+  <li>2、如果损坏的是一个数据文件，建议offline并在open方式下恢复</li>
+  <li>3、这里可以看到，RMAN进行数据文件与表空间恢复的时候，代码都比较简单，而且能保证备份与恢复的可靠性，所以建议采用RMAN的备份与恢复</li>
+</ul>
+
+<h1 id="丢失多个数据文件的数据库恢复">丢失多个数据文件的数据库恢复</h1>
+
+<h2 id="os备份方案-1">OS备份方案</h2>
+
+<h3 id="步骤一--表中插入记录-1">步骤一  表中插入记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; insert into sybex values(7);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择8行。        #故障前有8条记录
+</code></pre></div></div>
+
+<h3 id="步骤二--关闭数据库删除除临时文件外的所有数据文件">步骤二  关闭数据库，删除除临时文件外的所有数据文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; l
+total 2255540
+drwxr-x--- 2 oracle oinstall       4096 2011-03-07 11:59 ./
+drwxr-x--- 3 oracle oinstall       4096 2011-03-03 18:20 ../
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 12:38 control01.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 12:38 control02.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 12:38 control03.ctl
+-rw-r----- 1 oracle oinstall 1048584192 2011-03-07 12:38 mmsgdata01
+-rw-r----- 1 oracle oinstall  524296192 2011-03-05 11:47 mmsgdata02
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 12:38 redo01.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 11:57 redo02.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 11:57 redo03.log
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 12:38 rman_data.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 11:47 rman_tmp.dbf
+-rw-r----- 1 oracle oinstall  287186944 2011-03-07 12:38 sysaux01.dbf
+-rw-r----- 1 oracle oinstall  356524032 2011-03-07 12:38 system01.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-07 10:45 temp01.dbf
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 12:38 undotbs01.dbf
+-rw-r----- 1 oracle oinstall    5251072 2011-03-07 12:38 users01.dbf
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01  sysaux01.dbf  system01.dbf  users01.dbf  undotbs01.dbf 
+oracle@mmsc103:~/oradata/mmsgdb&gt; exit
+exit
+</code></pre></div></div>
+
+<h3 id="步骤三-启动数据库并查看告警日志">步骤三 启动数据库，并查看告警日志</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 1 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
+
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>查看告警日志</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;msg time='2011-03-07T12:41:50.153+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 1 - ??? DBWR ????
+ORA-01110: ???? 1: &amp;apos;/opt/oracle/oradata/mmsgdb/system01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 2 - ??? DBWR ????
+ORA-01110: ???? 2: &amp;apos;/opt/oracle/oradata/mmsgdb/sysaux01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 3 - ??? DBWR ????
+ORA-01110: ???? 3: &amp;apos;/opt/oracle/oradata/mmsgdb/undotbs01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 4 - ??? DBWR ????
+ORA-01110: ???? 4: &amp;apos;/opt/oracle/oradata/mmsgdb/users01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 5 - ??? DBWR ????
+ORA-01110: ???? 5: &amp;apos;/opt/oracle/oradata/mmsgdb/mmsgdata01&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.156+08:00' org_id='oracle' comp_id='rdbms'
+ msg_id='opiexe:2986:2780954927' client_id='' type='NOTIFICATION'
+ group='admin_ddl' level='16' module='sqlplus@mmsc103 (TNS V1-V3)'
+ pid='23023'&gt;
+ &lt;txt&gt;ORA-1157 signalled during: ALTER DATABASE OPEN...
+ &lt;/txt&gt;
+&lt;/msg&gt;
+</code></pre></div></div>
+
+<p>通过查询视图v$recover_file可以发现</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select * from v$recover_file;
+
+     FILE# ONLINE  ONLINE_ ERROR                                                                CHANGE# TIME
+---------- ------- ------- ----------------------------------------------------------------- ---------- --------------
+         1 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         2 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         3 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         4 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         5 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>有5个数据文件需要恢复，整改是我删除的那5个数据文件。</p>
+
+<h3 id="步骤四---拷贝数据文件到目录着手恢复">步骤四   拷贝数据文件到目录，着手恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; cd bak_oradata/mmsgdb/
+oracle@mmsc103:~/bak_oradata/mmsgdb&gt; l
+total 2206832
+drwxr-x--- 2 oracle oinstall       4096 2011-03-05 09:48 ./
+drwxr-x--- 3 oracle oinstall       4096 2011-03-05 09:48 ../
+-rw-r----- 1 oracle oinstall    9748480 2011-03-05 09:48 control01.ctl
+-rw-r----- 1 oracle oinstall    9748480 2011-03-05 09:48 control02.ctl
+-rw-r----- 1 oracle oinstall    9748480 2011-03-05 09:48 control03.ctl
+-rw-r----- 1 oracle oinstall 1048584192 2011-03-05 09:48 mmsgdata01
+-rw-r----- 1 oracle oinstall  524296192 2011-03-05 09:48 mmsgdata02
+-rw-r----- 1 oracle oinstall   52429312 2011-03-05 09:48 redo01.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-05 09:48 redo02.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-05 09:48 redo03.log
+-rw-r----- 1 oracle oinstall  209723392 2011-03-05 09:48 rman_data.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 09:48 rman_tmp.dbf
+-rw-r----- 1 oracle oinstall  249438208 2011-03-05 09:48 sysaux01.dbf
+-rw-r----- 1 oracle oinstall  346038272 2011-03-05 09:48 system01.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 09:48 temp01.dbf
+-rw-r----- 1 oracle oinstall  209723392 2011-03-05 09:48 undotbs01.dbf
+-rw-r----- 1 oracle oinstall    5251072 2011-03-05 09:48 users01.dbf
+oracle@mmsc103:~/bak_oradata/mmsgdb&gt; cp mmsgdata01  sysaux01.dbf  system01.dbf  users01.dbf  undotbs01.dbf  ../../oradata/mmsgdb/
+oracle@mmsc103:~/bak_oradata/mmsgdb&gt;
+</code></pre></div></div>
+
+<p>恢复过程如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; recover database;
+ORA-00279: 更改 427060 (在 03/05/2011 09:46:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_29_6q3jw83d_.arc
+ORA-00280: 更改 427060 (用于线程 1) 在序列 #29 中
+
+
+指定日志: {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
+auto
+ORA-00279: 更改 433844 (在 03/05/2011 13:00:55 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_30_6q477cfq_.arc
+ORA-00280: 更改 433844 (用于线程 1) 在序列 #30 中
+
+
+ORA-00279: 更改 462078 (在 03/05/2011 19:22:19 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_31_6q4w04c0_.arc
+ORA-00280: 更改 462078 (用于线程 1) 在序列 #31 中
+
+
+ORA-00279: 更改 489270 (在 03/06/2011 01:16:52 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_32_6q5dmrx0_.arc
+ORA-00280: 更改 489270 (用于线程 1) 在序列 #32 中
+
+
+ORA-00279: 更改 519023 (在 03/06/2011 06:00:24 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_33_6q5rg0mj_.arc
+ORA-00280: 更改 519023 (用于线程 1) 在序列 #33 中
+
+
+ORA-00279: 更改 537366 (在 03/06/2011 09:22:08 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_34_6q5yl1sz_.arc
+ORA-00280: 更改 537366 (用于线程 1) 在序列 #34 中
+
+
+ORA-00279: 更改 549703 (在 03/06/2011 11:06:41 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_35_6q6d89j5_.arc
+ORA-00280: 更改 549703 (用于线程 1) 在序列 #35 中
+
+
+ORA-00279: 更改 567132 (在 03/06/2011 15:00:25 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_36_6q6t01c4_.arc
+ORA-00280: 更改 567132 (用于线程 1) 在序列 #36 中
+
+
+ORA-00279: 更改 584372 (在 03/06/2011 18:54:57 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_37_6q77sdpv_.arc
+ORA-00280: 更改 584372 (用于线程 1) 在序列 #37 中
+
+
+ORA-00279: 更改 601986 (在 03/06/2011 22:50:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_38_6q7sz1gn_.arc
+ORA-00280: 更改 601986 (用于线程 1) 在序列 #38 中
+
+
+ORA-00279: 更改 624387 (在 03/07/2011 04:00:33 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_39_6q8k2j5f_.arc
+ORA-00280: 更改 624387 (用于线程 1) 在序列 #39 中
+
+
+ORA-00279: 更改 642232 (在 03/07/2011 10:34:56 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_40_6q8kl8sg_.arc
+ORA-00280: 更改 642232 (用于线程 1) 在序列 #40 中
+
+
+已应用的日志。
+完成介质恢复。
+SQL&gt; alter database open;
+
+数据库已更改。
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤五--检查数据完整性">步骤五  检查数据完整性</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 12:48:35 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择8行。   #数据还是8条，未丢失.
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>1、只要有备份与归档存在，就可以实现数据库的完全恢复（不丢失数据）</li>
+  <li>2、适合于丢失大量数据文件，或包含系统数据文件在内的数据库的恢复</li>
+  <li>3、恢复过程在mount下进行，如果恢复成功，再打开数据库，down机时间可能比较长一些。</li>
+</ul>
+
+<h2 id="rman备份方案-1">RMAN备份方案</h2>
+
+<p>rman备份归档模式下数据库，损坏或丢失多个数据文件，可进行整个数据库的恢复。</p>
+
+<h3 id="步骤一--表中插入记录-2">步骤一  表中插入记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; insert into sybex values(8);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         8
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择9行。       #备份前有9条记录
+</code></pre></div></div>
+
+<h3 id="步骤二---备份整个数据库">步骤二   备份整个数据库</h3>
+
+<p>备份日志如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>恢复管理器: Release 11.1.0.6.0 - Production on 星期一 3月 7 13:52:27 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+RMAN&gt; #script:fullbakup.rman
+2&gt; # creater:wangyunzeng
+3&gt; # date:2011-03-01
+4&gt; # desc:backup all database datafile in archive with rman
+5&gt; # connect database
+6&gt; connect target *
+7&gt; connect catalog *
+8&gt; 
+9&gt; #start backup database
+10&gt; run
+11&gt; {
+12&gt;   allocate channel c1 type disk;
+13&gt;   backup tag 'dbfull' format 'fullbak_%u_%s_%p' database
+14&gt;   archivelog all;
+15&gt;   sql 'alter system archive log current';
+16&gt;   release channel c1;
+17&gt; }
+18&gt; #end
+19&gt; 
+连接到目标数据库: MMSGDB (DBID=3148145279)
+
+连接到恢复目录数据库
+
+正在启动全部恢复目录的 resync
+完成全部 resync
+分配的通道: c1
+通道 c1: SID=288 设备类型=DISK
+
+启动 backup 于 07-3月 -11
+通道 c1: 正在启动归档日志备份集
+通道 c1: 正在指定备份集内的归档日志
+输入归档日志线程=1 序列=29 RECID=30 STAMP=744987657
+输入归档日志线程=1 序列=30 RECID=32 STAMP=745010540
+输入归档日志线程=1 序列=31 RECID=34 STAMP=745031813
+输入归档日志线程=1 序列=32 RECID=36 STAMP=745048826
+输入归档日志线程=1 序列=33 RECID=38 STAMP=745060929
+输入归档日志线程=1 序列=34 RECID=40 STAMP=745067203
+输入归档日志线程=1 序列=35 RECID=42 STAMP=745081226
+输入归档日志线程=1 序列=36 RECID=44 STAMP=745095298
+输入归档日志线程=1 序列=37 RECID=46 STAMP=745109422
+输入归档日志线程=1 序列=38 RECID=48 STAMP=745128034
+输入归档日志线程=1 序列=39 RECID=50 STAMP=745151697
+输入归档日志线程=1 序列=40 RECID=52 STAMP=745152201
+输入归档日志线程=1 序列=41 RECID=54 STAMP=745156439
+输入归档日志线程=1 序列=42 RECID=56 STAMP=745156440
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/product/11g/dbs/fullbak_0bm6kip0_11_1 标记=DBFULL 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:07
+通道 c1: 正在启动全部数据文件备份集
+通道 c1: 正在指定备份集内的数据文件
+输入数据文件: 文件号=00005 名称=/opt/oracle/oradata/mmsgdb/mmsgdata01
+输入数据文件: 文件号=00001 名称=/opt/oracle/oradata/mmsgdb/system01.dbf
+输入数据文件: 文件号=00002 名称=/opt/oracle/oradata/mmsgdb/sysaux01.dbf
+输入数据文件: 文件号=00003 名称=/opt/oracle/oradata/mmsgdb/undotbs01.dbf
+输入数据文件: 文件号=00006 名称=/opt/oracle/oradata/mmsgdb/rman_data.dbf
+输入数据文件: 文件号=00004 名称=/opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/product/11g/dbs/fullbak_0cm6kip9_12_1 标记=DBFULL 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:15
+完成 backup 于 07-3月 -11
+
+启动 Control File and SPFILE Autobackup 于 07-3月 -11
+段 handle=/opt/oracle/flash_recovery_area/MMSGDB/autobackup/2011_03_07/o1_mf_s_745163579_6q8woy7q_.bkp comment=NONE
+完成 Control File and SPFILE Autobackup 于 07-3月 -11
+
+sql 语句: alter system archive log current
+
+释放的通道: c1
+
+恢复管理器完成。
+</code></pre></div></div>
+
+<h3 id="步骤三---表中再次插入记录">步骤三   表中再次插入记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; insert into sybex values(9);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select count(0) from sybex;
+
+  COUNT(0)
+----------
+        10    #出故障前，表中有10条记录
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤四--关闭数据库模拟多个数据文件丢失或损坏">步骤四  关闭数据库，模拟多个数据文件丢失或损坏</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; l
+total 2255540
+drwxr-x--- 2 oracle oinstall       4096 2011-03-07 12:46 ./
+drwxr-x--- 3 oracle oinstall       4096 2011-03-03 18:20 ../
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 13:55 control01.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 13:55 control02.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 13:55 control03.ctl
+-rw-r----- 1 oracle oinstall 1048584192 2011-03-07 13:55 mmsgdata01
+-rw-r----- 1 oracle oinstall  524296192 2011-03-05 11:47 mmsgdata02
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 13:53 redo01.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 13:55 redo02.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 12:48 redo03.log
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 13:55 rman_data.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 11:47 rman_tmp.dbf
+-rw-r----- 1 oracle oinstall  287186944 2011-03-07 13:55 sysaux01.dbf
+-rw-r----- 1 oracle oinstall  356524032 2011-03-07 13:55 system01.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-07 10:45 temp01.dbf
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 13:55 undotbs01.dbf
+-rw-r----- 1 oracle oinstall    5251072 2011-03-07 13:55 users01.dbf
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01  system01.dbf  sysaux01.dbf  users01.dbf  undotbs01.dbf 
+oracle@mmsc103:~/oradata/mmsgdb&gt; exit
+exit
+
+SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 1 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
+
+
+SQL&gt;
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select * from v$recover_file;
+
+     FILE# ONLINE  ONLINE_ ERROR                                                                CHANGE# TIME
+---------- ------- ------- ----------------------------------------------------------------- ---------- --------------
+         1 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         2 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         3 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         4 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         5 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤五--恢复数据库">步骤五  恢复数据库</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restore database;
+5&gt; recover database;
+6&gt; sql 'alter database open';
+7&gt; release channel c1;
+8&gt; }
+
+使用目标数据库控制文件替代恢复目录
+分配的通道: c1
+通道 c1: SID=317 设备类型=DISK
+
+启动 restore 于 07-3月 -11
+
+通道 c1: 正在开始还原数据文件备份集
+通道 c1: 正在指定从备份集还原的数据文件
+通道 c1: 将数据文件 00001 还原到 /opt/oracle/oradata/mmsgdb/system01.dbf
+通道 c1: 将数据文件 00002 还原到 /opt/oracle/oradata/mmsgdb/sysaux01.dbf
+通道 c1: 将数据文件 00003 还原到 /opt/oracle/oradata/mmsgdb/undotbs01.dbf
+通道 c1: 将数据文件 00004 还原到 /opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 将数据文件 00005 还原到 /opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 c1: 将数据文件 00006 还原到 /opt/oracle/oradata/mmsgdb/rman_data.dbf
+通道 c1: 正在读取备份片段 /opt/oracle/product/11g/dbs/fullbak_0cm6kip9_12_1
+通道 c1: 段句柄 = /opt/oracle/product/11g/dbs/fullbak_0cm6kip9_12_1 标记 = DBFULL
+通道 c1: 已还原备份片段 1
+通道 c1: 还原完成, 用时: 00:00:35
+完成 restore 于 07-3月 -11
+
+启动 recover 于 07-3月 -11
+
+正在开始介质的恢复
+介质恢复完成, 用时: 00:00:02
+
+完成 recover 于 07-3月 -11
+
+sql 语句: alter database open
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre></div></div>
+
+<h3 id="步骤六--恢复结果检查">步骤六  恢复结果检查</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 14:00:33 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select count(0) from sybex;
+
+  COUNT(0)
+----------
+        10       #数据库恢复后，10条记录，未丢失数据.
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>1、只要有备份与归档存在，RMAN也可以实现数据库的完全恢复（不丢失数据）</li>
+  <li>2、同OS备份数据库恢复，适合于丢失大量数据文件，或包含系统数据文件在内的数据库的恢复</li>
+  <li>3、目标数据库在mount下进行，如果恢复成功，再打开数据库。</li>
+  <li>4、RMAN的备份与恢复命令相对比较简单并可靠，建议有条件的话，都采用RMAN进行数据库的备份。</li>
+</ul>
+
+<h1 id="不完全恢复">不完全恢复</h1>
+
+<h2 id="os备份下的基于时间的恢复">OS备份下的基于时间的恢复</h2>
+
+<p>不完全恢复分为三种，基于时间（TIME）、基于撤销（CANCLE）、基于改变（SCN），这里以基于时间的恢复为例。</p>
+
+<h3 id="步骤一--创建表">步骤一  创建表</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         8
+         9
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择10行。
+
+SQL&gt; create table time(id int);
+
+表已创建。
+
+SQL&gt; insert into time values(0);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤二--备份数据库">步骤二  备份数据库</h3>
+
+<p>这里冷备整个数据库，包括临时数据文件，热物理备份也可以，这里不在赘述。</p>
+
+<h3 id="步骤三--再次插入数据并归档">步骤三  再次插入数据，并归档</h3>
+
+<h4 id="应用用户创建表并插入数据">应用用户创建表并插入数据。</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; insert into time values(1);
+
+已创建 1 行。
+
+SQL&gt; commit
+  2  ;
+
+提交完成。
+
+SQL&gt; 
+SQL&gt; select count(0) from time;
+
+  COUNT(0)
+----------
+         2
+</code></pre></div></div>
+
+<h4 id="sysdba用户切换日志归档">sysdba用户切换日志归档</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; alter system archive log current;
+
+系统已更改。
+
+SQL&gt; alter system archive log current;
+
+系统已更改。
+
+SQL&gt; alter system archive log current;
+
+系统已更改。
+</code></pre></div></div>
+
+<h4 id="应用用户执行如下操作">应用用户执行如下操作</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select to_char(sysdate,'yyyy-mm-dd HH24:MI:SS') from dual;
+
+TO_CHAR(SYSDATE,'YY
+-------------------
+2011-03-07 15:49:29
+
+SQL&gt; drop table time;
+
+表已删除。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤四--关闭数据库拷贝回之前备份的数据文件这个数据文件中无数据记录">步骤四  关闭数据库，拷贝回之前备份的数据文件（这个数据文件中无数据记录）</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host
+oracle@mmsc103:~&gt; cp bak_20110307/mmsgdb/* ./oradata/mmsgdb/
+oracle@mmsc103:~&gt;
+</code></pre></div></div>
+
+<h3 id="步骤五--mount数据库执行不完全恢复">步骤五  mount数据库，执行不完全恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; startup mount    
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+SQL&gt; recover database until time '2011-03-07 15:49:29';
+完成介质恢复。
+SQL&gt; alter database open resetlogs;
+
+数据库已更改。
+
+SQL&gt;
+数据库已更改。
+
+SQL&gt;
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>不完全恢复，必须使用resetlogs打开数据库。</li>
+</ul>
+
+<h3 id="步骤六--数据验证">步骤六  数据验证</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; select * from time;
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>1、不完全恢复最好备份所有的数据，冷备份亦可，因为恢复过程是从备份点往后恢复的，如果因为其中一个数据文件的时间戳(SCN)大于要恢复的时间点，那么恢复都是不可能成功的（报错，例如：
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; recover database until time '2011-03-07 15:06:07';
+ORA-01547: 警告: RECOVER 成功但 OPEN RESETLOGS 将出现如下错误
+ORA-01152: 文件 1 没有从过旧的备份中还原
+ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
+）。
+</code></pre></div>    </div>
+  </li>
+  <li>2、不完全恢复有三种方式，过程都一样，仅仅是recover命令有所不一样，这里用基于时间的恢复作为示例。</li>
+  <li>3、不完全恢复之后，都必须用resetlogs的方式打开数据库，建议马上再做一次全备份，因为resetlogs之后再用以前的备份恢复是很难了。</li>
+  <li>4、以上是在删除之前获得时间，但是实际应用中，很难知道删除之前的实际时间，但可以采用大致时间即可，或可以采用分析日志文件(logmnr)，取得精确的需要恢复的时间。</li>
+  <li>5、一般都是在测试机后备用机器上采用这种不完全恢复，恢复之后导出/导入被误删的表回生产系统</li>
+</ul>
+
+<h2 id="rman备份下的基于改变的恢复">RMAN备份下的基于改变的恢复</h2>
+
+<h3 id="步骤一--创建表表中插入记录">步骤一  创建表，表中插入记录</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; create table scn(id int);
+
+表已创建。
+
+SQL&gt; insert into scn values(0);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from scn;
+
+        ID
+----------
+         0
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤二--rman备份整个数据库">步骤二  rman备份整个数据库</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; backup database
+5&gt; (archivelog all);
+6&gt; release channel c1;
+7&gt; }
+
+在恢复目录中注册的数据库的新原型
+正在启动全部恢复目录的 resync
+完成全部 resync
+分配的通道: c1
+通道 c1: SID=286 设备类型=DISK
+
+启动 backup 于 07-3月 -11
+通道 c1: 正在启动归档日志备份集
+通道 c1: 正在指定备份集内的归档日志
+输入归档日志线程=1 序列=29 RECID=30 STAMP=744987657
+输入归档日志线程=1 序列=30 RECID=32 STAMP=745010540
+输入归档日志线程=1 序列=31 RECID=34 STAMP=745031813
+输入归档日志线程=1 序列=32 RECID=36 STAMP=745048826
+输入归档日志线程=1 序列=33 RECID=38 STAMP=745060929
+输入归档日志线程=1 序列=34 RECID=40 STAMP=745067203
+输入归档日志线程=1 序列=35 RECID=42 STAMP=745081226
+输入归档日志线程=1 序列=36 RECID=44 STAMP=745095298
+输入归档日志线程=1 序列=37 RECID=46 STAMP=745109422
+输入归档日志线程=1 序列=38 RECID=48 STAMP=745128034
+输入归档日志线程=1 序列=39 RECID=50 STAMP=745151697
+输入归档日志线程=1 序列=40 RECID=52 STAMP=745152201
+输入归档日志线程=1 序列=41 RECID=54 STAMP=745156439
+输入归档日志线程=1 序列=42 RECID=56 STAMP=745156440
+输入归档日志线程=1 序列=43 RECID=58 STAMP=745163589
+输入归档日志线程=1 序列=44 RECID=60 STAMP=745165838
+输入归档日志线程=1 序列=45 RECID=62 STAMP=745167957
+输入归档日志线程=1 序列=46 RECID=64 STAMP=745167959
+输入归档日志线程=1 序列=47 RECID=66 STAMP=745169653
+输入归档日志线程=1 序列=48 RECID=68 STAMP=745169660
+输入归档日志线程=1 序列=49 RECID=70 STAMP=745169670
+输入归档日志线程=1 序列=50 RECID=72 STAMP=745169894
+输入归档日志线程=1 序列=51 RECID=74 STAMP=745169909
+输入归档日志线程=1 序列=52 RECID=76 STAMP=745169920
+输入归档日志线程=1 序列=53 RECID=78 STAMP=745170730
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_annnn_TAG20110307T160808_6q94mc1l_.bkp 标记=TAG20110307T160808 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:16
+通道 c1: 正在启动全部数据文件备份集
+通道 c1: 正在指定备份集内的数据文件
+输入数据文件: 文件号=00005 名称=/opt/oracle/oradata/mmsgdb/mmsgdata01
+输入数据文件: 文件号=00001 名称=/opt/oracle/oradata/mmsgdb/system01.dbf
+输入数据文件: 文件号=00002 名称=/opt/oracle/oradata/mmsgdb/sysaux01.dbf
+输入数据文件: 文件号=00003 名称=/opt/oracle/oradata/mmsgdb/undotbs01.dbf
+输入数据文件: 文件号=00006 名称=/opt/oracle/oradata/mmsgdb/rman_data.dbf
+输入数据文件: 文件号=00004 名称=/opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T160808_6q94my75_.bkp 标记=TAG20110307T160808 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:15
+完成 backup 于 07-3月 -11
+
+启动 Control File and SPFILE Autobackup 于 07-3月 -11
+段 handle=/opt/oracle/flash_recovery_area/MMSGDB/autobackup/2011_03_07/o1_mf_s_745171724_6q94ngyy_.bkp comment=NONE
+完成 Control File and SPFILE Autobackup 于 07-3月 -11
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre></div></div>
+
+<h3 id="步骤三--继续插入记录应用归档以及获取删除前scn">步骤三  继续插入记录，应用归档以及获取删除前scn</h3>
+
+<h4 id="应用用户执行">应用用户执行</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; insert into scn values(1);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from scn;
+
+        ID
+----------
+         0
+         1
+#2条记录
+</code></pre></div></div>
+
+<h4 id="dba用户执行">dba用户执行</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; alter system switch logfile;
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+
+SQL&gt; select max(ktuxescnw * power(2, 32) + ktuxescnb) scn from x$ktuxe;
+
+       SCN
+----------
+    690969
+
+SQL&gt;
+</code></pre></div></div>
+
+<h3 id="步骤四--删除表">步骤四  删除表</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; drop table scn;
+
+表已删除。
+
+SQL&gt; commit;
+
+提交完成。
+</code></pre></div></div>
+
+<h3 id="步骤五--基于scn恢复">步骤五  基于SCN恢复</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SQL&gt; shutdown immediate 
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; startup mount
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+SQL&gt;
+
+RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restore database;
+5&gt; recover database until scn 690969;
+6&gt; sql 'alter database open resetlogs';
+7&gt; release channel c1;
+8&gt; }
+
+使用目标数据库控制文件替代恢复目录
+分配的通道: c1
+通道 c1: SID=317 设备类型=DISK
+
+启动 restore 于 07-3月 -11
+
+通道 c1: 正在开始还原数据文件备份集
+通道 c1: 正在指定从备份集还原的数据文件
+通道 c1: 将数据文件 00001 还原到 /opt/oracle/oradata/mmsgdb/system01.dbf
+通道 c1: 将数据文件 00002 还原到 /opt/oracle/oradata/mmsgdb/sysaux01.dbf
+通道 c1: 将数据文件 00003 还原到 /opt/oracle/oradata/mmsgdb/undotbs01.dbf
+通道 c1: 将数据文件 00004 还原到 /opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 将数据文件 00005 还原到 /opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 c1: 将数据文件 00006 还原到 /opt/oracle/oradata/mmsgdb/rman_data.dbf
+通道 c1: 正在读取备份片段 /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T160808_6q94my75_.bkp
+通道 c1: 段句柄 = /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T160808_6q94my75_.bkp 标记 = TAG20110307T160808
+通道 c1: 已还原备份片段 1
+通道 c1: 还原完成, 用时: 00:00:35
+完成 restore 于 07-3月 -11
+
+启动 recover 于 07-3月 -11
+
+正在开始介质的恢复
+
+线程 1 序列 1 的归档日志已作为文件 /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_1_6q9526m9_.arc 存在于磁盘上
+线程 1 序列 2 的归档日志已作为文件 /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_2_6q9527t3_.arc 存在于磁盘上
+线程 1 序列 3 的归档日志已作为文件 /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_3_6q952bqb_.arc 存在于磁盘上
+归档日志文件名=/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_1_6q9526m9_.arc 线程=1 序列=1
+归档日志文件名=/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_2_6q9527t3_.arc 线程=1 序列=2
+介质恢复完成, 用时: 00:00:02
+完成 recover 于 07-3月 -11
+
+sql 语句: alter database open resetlogs
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre></div></div>
+
+<h3 id="步骤六-数据检查">步骤六 数据检查</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 16:23:01 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from scn;
+
+        ID
+----------
+         0
+         1
+
+SQL&gt;     #两条记录，数据未丢失
+</code></pre></div></div>
+
+<p>说明：</p>
+<ul>
+  <li>1、RMAN也可以实现不完全恢复，方法比OS备份恢复的方法更简单可靠</li>
+  <li>2、RMAN可以基于时间，基于改变与基于日志序列的不完全恢复，基于日志序列的恢复可以指定恢复到哪个日志序列，如
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>run { 
+allocate channel ch1 type disk; 
+allocate channel ch2 type 'sbt_tape'; 
+set until logseq 1234 thread 1; 
+restore controlfile to '$ORACLE_HOME/dbs/cf1.f' ; 
+replicate controlfile from '$ORACLE_HOME/dbs/cf1.f'; 
+alter database mount; 
+restore database; 
+recover database; 
+sql "ALTER DATABASE OPEN RESETLOGS";
+}
+</code></pre></div>    </div>
+  </li>
+  <li>3、与所有的不完全恢复一样，必须在mount下，restore所有备份数据文件，需要resetlogs</li>
+  <li>4、基于改变的恢复比基于时间的恢复更可靠，但是可能也更复杂，需要知道需要恢复到哪一个改变号(SCN)，在正常生产中，获取SCN的办法其实也有很多，如查询数据库字典表(V$archived_log or v$log_history)，或分析归档与联机日志(logmnr)等。</li>
+</ul>
+
