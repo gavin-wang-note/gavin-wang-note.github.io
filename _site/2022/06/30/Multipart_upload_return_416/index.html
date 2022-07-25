@@ -307,7 +307,7 @@
 
 				<h1 id="概述">概述</h1>
 
-<p>python boto上传一个2T大小的对象，产品包HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：</p>
+<p>python boto上传一个2T大小的对象，产品报HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
 2
@@ -609,9 +609,9 @@ root@node224:~#
 
 <p>最终解决方法是：</p>
 
-<p>​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大32倍（默认值是1024*1024）。</p>
+<p>​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大50倍（默认值是1<em>1024</em>1024）。</p>
 
-<p>在未修改之前，如果要上传1T大小的对象，单个chunk size=8MiB，最低分片大小是1<em>1014</em>1024<em>1024/1</em>1024*1024(rgw_max_put_param_size) = 1GiB</p>
+<p>在未修改之前，如果要上传1T大小的对象，单个chunk size=8MiB，最低分片大小是 1 * 1024 * 1024 * 1024 / (1 * 1024 * 1024) = 1GiB (因为rgw_max_put_param_size=1 * 1024 * 1024)</p>
 
 <h1 id="资料参考">资料参考</h1>
 

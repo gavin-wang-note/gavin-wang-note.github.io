@@ -228,10 +228,10 @@ root@node224:/var/log/ceph# ceph daemon client.radosgw.0 config show | grep mult
 
 最终解决方法是：
 
-​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大32倍（默认值是1024*1024）。
+​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大50倍（默认值是1*1024*1024）。
 
 
-在未修改之前，如果要上传1T大小的对象，单个chunk size=8MiB，最低分片大小是1*1014*1024*1024/1*1024*1024(rgw_max_put_param_size) = 1GiB
+在未修改之前，如果要上传1T大小的对象，单个chunk size=8MiB，最低分片大小是 1 * 1024 * 1024 * 1024 / (1 * 1024 * 1024) = 1GiB (因为rgw_max_put_param_size=1 * 1024 * 1024)
 
 
 
@@ -241,5 +241,4 @@ root@node224:/var/log/ceph# ceph daemon client.radosgw.0 config show | grep mult
 
 
 https://blog.csdn.net/wuyan6293/article/details/82115584
-
 
