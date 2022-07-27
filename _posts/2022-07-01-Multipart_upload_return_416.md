@@ -228,7 +228,7 @@ root@node224:/var/log/ceph# ceph daemon client.radosgw.0 config show | grep mult
 
 最终解决方法是：
 
-​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大50倍（默认值是1*1024*1024）。
+​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大50倍（默认值是 1 * 1024 * 1024）。
 
 
 在未修改之前，如果要上传1T大小的对象，单个chunk size=8MiB，最低分片大小是 1 * 1024 * 1024 * 1024 / (1 * 1024 * 1024) = 1GiB (因为rgw_max_put_param_size=1 * 1024 * 1024)
@@ -239,6 +239,28 @@ root@node224:/var/log/ceph# ceph daemon client.radosgw.0 config show | grep mult
 # 资料参考
 
 
-
 https://blog.csdn.net/wuyan6293/article/details/82115584
+
+
+
+# 结语
+
+8.0 8.2的旧版本，对于分片上传，代码写死为10000片，这限制了分片上传的文件大小。
+S3Browser等工具，默认分配大小为8M，按照旧版本的10000片，最大80GB的file大小。
+ 
+当前我们将如下参数改为128000片，S3browser可支持到1000GiB，如果需要上传更大的文件，则需要调整分片上传，每个分片的大小，如运增测试每个分配64MB可以传6T的文件。
+ 
+为什么将总分片数限制在128000，而不是更大。原因是BigteraJournal的transaction有个限制MaxTransactionNumOps，最大128K个op，再大会crash。而且标准AWS，支持单个对象最大5TB，再大也就不支持了。
+ 
+```
+    self.set(section, 'rgw multipart part upload limit', '128000')
+    self.set(section, 'rgw max put param size', '52428800')
+```
+
+
+最终，在上述调整情况下， 上传了一个2T(48MiB分片大小)， 3.6T(64MiB分片大小)， 4T(64MiB分片大小) 和 6T(64MiB分片大小)的单个大小的文件，均上传OK：
+
+<p><img class="shadow" src="/img/in-post/big_object_upload.png" width="1200" /></p>
+
+<p><img class="shadow" src="/img/in-post/ui_shows_big_object.png" width="1200" /></p>
 

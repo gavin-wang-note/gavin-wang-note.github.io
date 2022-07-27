@@ -342,7 +342,7 @@ pipeline {
                         echo "build status  ${build_status}"
                        */
                         product_version = sh (
-                            script: """sshpass -p btadmin ssh -p 22 ${cluster1_ip} -l btadmin ezs3-version""",
+                            script: """sshpass -p btadminuser ssh -p 22 ${cluster1_ip} -l btadminuser ezs3-version""",
                             returnStdout: true
                             ).trim()
                         env.PRODUCT_VERSION = product_version
