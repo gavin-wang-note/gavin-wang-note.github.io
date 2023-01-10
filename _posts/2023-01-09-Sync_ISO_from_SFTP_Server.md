@@ -35,9 +35,9 @@ then
     exit 0
 fi
 
-sftp_host="12.22.32.42"
-sftp_user="ftpuser"
-sftp_password="ftpuserpsw"
+sftp_host="ftp-server-ip or domain name"
+sftp_user="ftp-user-name"
+sftp_password="ftp-user-password"
 sftp_port=22
 log_file="/var/log/sftp_sync_is.log"
 
@@ -306,4 +306,20 @@ iso_download
 # EOF
 # }
 ``` {% endraw %}
+
+
+
+# 额外补充
+
+
+这里有一个当时碰到的问题，就是如何同remote端目录结构下最后一个Build ID，当时有参考：
+```
+https://stackoverflow.com/questions/49678020/how-to-get-the-latest-file-from-sftp-folder
+```
+
+虽然没有使用到，但这里mark一下，防止未来有碰到类似状况需要这篇文章中的操作指令。
+
+最后自己的解决方法是整个list出来到本次文件，从本地文件中grep出来。
+
+
 
