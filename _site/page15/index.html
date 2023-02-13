@@ -182,6 +182,10 @@
                     
                     
                     
+                    
+                    
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -283,26 +287,61 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2019/12/27/iscsi-modify-multipath-mode/">
+    <a href="/2020/02/02/use-gparted-enlarge-root-partition/">
         <h2 class="post-title">
-            iSCSI多路径配置
+            利用gparted扩展根分区
         </h2>
         
         <h3 class="post-subtitle">
-            Config iSCSI multipath
+            Use gparted to enlagre root partition
         </h3>
         
         <div class="post-content-preview">
             
-                概述
+                前言
 
-配置iSCSI多路径，可以增加HA（高可用性）
+lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。
 
-本文以Ubuntu 14.04为示例，在安装了multipath-tools工具后，以此节点作为client去挂载iSCSI设备，将multipath默认active-standy修改为rond-robing
+后台通过VMware vSphere Client扩大了这个分区空间（扩大到60G）：
 
-iSCSI多路径配置（client端）
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+root@ubuntu-16:~# lsblk
+NAME   MAJ:MIN...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on February 2, 2020
+    </p>
+</div>
+<hr>
 
-未设置多路径之前
+<div class="post-preview">
+    <a href="/2020/01/22/user-modinfo-get-driver-version-used-by-kernel/">
+        <h2 class="post-title">
+            利用modinfo查看kernel使用的driver版本
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Use modinfo to get driver version which used in kernel
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                前言
+
+Linux modinfo命令用于显示kernel模块的信息，确切讲，会显示kernel模块的对象文件，以及显示该模块的相关信息。
+
+语法
 
 1
 2
@@ -317,146 +356,101 @@ iSCSI多路径配置（client端）
 11
 12
 13
-r...
+14
+15
+16
+17
+root@node243:~# modinfo -h
+Usage:
+	modinfo [options] filename [args]
+Options:
+	-...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on December 27, 2019
+        Posted by Gavin on January 22, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2019/11/30/calc-cosbench-task-iops-elapsed-time/">
+    <a href="/2020/01/22/get-ssd-life-span/">
         <h2 class="post-title">
-            统计cosbench每个任务的IOPS和耗时
+            获取SSD寿命
         </h2>
         
         <h3 class="post-subtitle">
-            Calc cosbench task IOPS and elapsed time
+            Get life span for SSD device
         </h3>
         
         <div class="post-content-preview">
             
                 前言
 
-近期针对前方客户提出的具体S3测试要求，测试了一下S3性能，使用的是cosbench工具。在测试过程中，排除客户的要求外，我们自身也想知道，当前硬件条件下，每间隔1,000,00,00个object，IOPS和耗时是多久，比如：1到1千万，1千万到2千万，。。。1亿到1.1亿个object, and so on。
-由于测试场景比较多，而且测试时长也会很久，所有写了这个脚本，统计一下不...
+SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。
+
+目前lab里常见的SSD，型号有S4610，S3700和NVME的，NVME的是PCI-e类型的，但intelS4600，S4610，S7300之类型号的SSD，有的设备是在RAID卡上，但...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on November 30, 2019
+        Posted by Gavin on January 22, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2019/11/27/reboot-host/">
+    <a href="/2020/01/16/modify-hostname-for-centos/">
         <h2 class="post-title">
-            魔法键重启Linux机器
+            三种方式修改CentOS hostname
         </h2>
         
         <h3 class="post-subtitle">
-            reboot Linux machine by magic key
+            Modify hostname for Centos with different method
         </h3>
         
         <div class="post-content-preview">
             
-                概述
+                三种方法修改Centos hostname
 
-啥？ 重启Linux机器，无非通过下列几种常见命令：
-
-reboot
-
-reboot -f
-
-poweroff
-
-说明：
-
-如果上面的指令，在机器重启、关机期间卡住了，怎么办？看下面ipmi指令。
-
-IPMI指令
-
-说明：
-
-需要安装ipmitool工具, 这个也不是本文重点哦。
-
-硬关机，直接切断电源
-
-ipmitool -I lan -H 192.168.1.2 -U IPMI的...
+在CentOS7中，有三种定义的主机名:静态的（static）、瞬态的（transient）、灵活的（pretty）。“静态”主机名也称为内核主机名，是系统在启动时从/etc/hostname自动初始化的主机名。“瞬态”主机名是在系统运行时临时分配的主机名，例如，通过DHCP或mDNS服务器分配。静态主机名和瞬态主机名都遵从作为互联网域名同样的字...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on November 27, 2019
+        Posted by Gavin on January 16, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2019/11/20/Install-Jekyll-with-Github/">
+    <a href="/2020/01/10/SSD-disk-partition-drift-and-recovery/">
         <h2 class="post-title">
-            Ununtu14.04 安装Jekyll及Github部署流程
+            SSD盘符漂移导致OSD down场景模拟与恢复
         </h2>
         
         <h3 class="post-subtitle">
-            Install Jekyll with Github
+            SSD disk partition drift and how to recovery it
         </h3>
         
         <div class="post-content-preview">
             
-                Jekyll本地搭建开发环境以及Github部署流程
+                前言
 
-本地搭建Jekyll
+运维团队反馈一个问题，现象是：
 
-本文以ubuntu14.04为例。
+某个OSD对应的cache分区发生了变化，比如原来cache使用的分区是/dev/sde,后来还是这块盘，但分区信息不知何故，变成了/dev/sdf（产品OSD设备并不是根据分区名称来map，而是根据partlabel），最终的现象是这个OSD down了，没法启动.
+接到这个现象的反馈后，记录一下这个问题在lab的复现方法。
 
-根据最新版本的要求， Jekyll 3 要求 Ruby 2.0.0 及以上的版本。但 Ubuntu 14.04 apt-get 默认提供的版本较低（1.9），所以需要从其他地方安装最新的版本。
+准备工作
 
-安装 rbenv
-
-从 Github 上 clone, 再添加路径 :
-
-1
-2...
+Step...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on November 20, 2019
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2019/11/20/nose-progress-bar/">
-        <h2 class="post-title">
-            nose进度条中展示执行用例数与总数
-        </h2>
-        
-        <h3 class="post-subtitle">
-            nose progress bar
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                概述
-
-在使用nose 插件时，发现这个插件只能显示进度（nose-progressive），并不知道当前执行多少个用例，执行到哪个了，如下图所示：
-
-
-
-期待效果
-
-这里源码有个问题，同时使用高亮（nose的  colorama  和  walkingnine-colorunit）和进度，会导致高亮和进度在用例执行结果信息输出时，两部分信息展示混杂在一起，已经修改源码解决，安装后无需做任何...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on November 20, 2019
+        Posted by Gavin on January 10, 2020
     </p>
 </div>
 <hr>
@@ -477,6 +471,41 @@ ipmitool -I lan -H 192.168.1.2 -U IPMI的...
     
 </ul>
 <ul class="posts">
+    
+      <li>
+        <span class="post-date">Feb 8, 2023</span>
+        <a class="post-link" href="/2023/02/08/S3_object_encryption/">S3 object encryption by awscli</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 6, 2023</span>
+        <a class="post-link" href="/2023/02/06/function_timeout/">Python下使得function timeout</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 3, 2023</span>
+        <a class="post-link" href="/2023/02/03/Delete_md_device/">彻底删除Linux下md设备</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 19, 2023</span>
+        <a class="post-link" href="/2023/01/19/Linux_stat_family_of_vmstat/">Linux stat家族之vmstat</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 19, 2023</span>
+        <a class="post-link" href="/2023/01/19/Linux_stat_family_of_mpstat/">Linux stat家族之mpstat</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 19, 2023</span>
+        <a class="post-link" href="/2023/01/19/Install-docker-with-shell/">一键安装 docker 的 shell 脚本</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 13, 2023</span>
+        <a class="post-link" href="/2023/01/13/tmpfiles.d_guide/"></a>
+      </li>
     
       <li>
         <span class="post-date">Jan 9, 2023</span>
@@ -766,6 +795,11 @@ ipmitool -I lan -H 192.168.1.2 -U IPMI的...
       <li>
         <span class="post-date">May 5, 2020</span>
         <a class="post-link" href="/2020/05/05/change-pip-install-source/">更改pip&easy_install默认安装源</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 6, 2020</span>
+        <a class="post-link" href="/2020/04/06/pytest_skip/">pytest skip</a>
       </li>
     
       <li>
@@ -1479,132 +1513,137 @@ ipmitool -I lan -H 192.168.1.2 -U IPMI的...
         </a>
         
         
-                <a data-sort="0118" 
+                <a data-sort="0126" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0155" 
                     href="/archive/?tag=Linux"
                     title="Linux"
-                    rel="43">Linux</a>
+                    rel="48">Linux</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0189" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="14">Automation</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0190" 
                     href="/archive/?tag=shell"
                     title="shell"
-                    rel="12">shell</a>
+                    rel="13">shell</a>
         
-                <a data-sort="0184" 
+                <a data-sort="0191" 
                     href="/archive/?tag=ceph"
                     title="ceph"
-                    rel="11">ceph</a>
+                    rel="12">ceph</a>
         
-                <a data-sort="0190" 
+                <a data-sort="0198" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="5">S3</a>
         
-                <a data-sort="0190" 
+                <a data-sort="0198" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0198" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="5">python</a>
+        
+                <a data-sort="0199" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0199" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0199" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0199" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0191" 
-                    href="/archive/?tag=python"
-                    title="python"
-                    rel="4">python</a>
-        
-                <a data-sort="0192" 
+                <a data-sort="0200" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="2">pytest</a>
+        
+                <a data-sort="0201" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr

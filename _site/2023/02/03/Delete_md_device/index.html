@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="彻底删除Linux下md设备 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2023-02-03T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="Linux">
+    
+    <meta property="article:tag" content="mdadm">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2023/02/03/Delete_md_device/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>彻底删除Linux下md设备 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2023/02/03/Delete_md_device/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=Linux" title="Linux">Linux</a>
+                        
+                        <a class="tag" href="/archive/?tag=mdadm" title="mdadm">mdadm</a>
+                        
+                    </div>
+                    <h1>彻底删除Linux下md设备</h1>
+                    
+                    <h2 class="subheading">Delete Linux of md deivce</h2>
+                    <span class="meta">Posted by Gavin on February 3, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p>Lab 2U4N设备上SSD盘有soft-raid存在，本文介绍如何清理掉这些md 设备。</p>
+
+<h1 id="实践">实践</h1>
+
+<h2 id="获取相关信息">获取相关信息</h2>
+
+<p>当前OS中md设备信息：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td><td class="rouge-code"><pre>root@node123:~# lsblk
+NAME        MAJ:MIN RM    SIZE RO TYPE  MOUNTPOINT
+sda           8:0    0    3.5T  0 disk  
+sdb           8:16   0    3.5T  0 disk  
+sdc           8:32   0    3.5T  0 disk  
+sdd           8:48   0    3.5T  0 disk  
+sde           8:64   0    3.5T  0 disk  
+sdf           8:80   0    3.5T  0 disk  
+└─md126       9:126  0    3.5T  0 raid0 
+  ├─md126p1 259:6    0      8G  0 part  
+  ├─md126p2 259:7    0    3.5T  0 part  
+  └─md126p3 259:8    0 1007.5K  0 part  
+nvme0n1     259:0    0  238.5G  0 disk  
+├─nvme0n1p1 259:2    0   1007K  0 part  
+├─nvme0n1p2 259:3    0    512M  0 part  /boot/efi
+├─nvme0n1p3 259:4    0      8G  0 part  [SWAP]
+└─nvme0n1p4 259:5    0    230G  0 part  /
+nvme1n1     259:1    0  238.5G  0 disk  
+pmem0       259:9    0     16G  0 disk  
+pmem1       259:10   0     16G  0 disk  
+root@node123:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@node123:~# mdadm -Ds 
+ARRAY /dev/md/ddf0 metadata=ddf UUID=783f1a5c:5a361165:b27fff3b:c518b21a
+ARRAY /dev/md126 container=/dev/md/ddf0 member=2 UUID=926ae63a:c3cd5a73:93063a44:eda9c39f
+root@node123:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+</pre></td><td class="rouge-code"><pre>root@node123:~# mdadm -D /dev/md126
+/dev/md126:
+         Container : /dev/md/ddf0, member 2
+        Raid Level : raid0
+        Array Size : 3750199296 (3576.47 GiB 3840.20 GB)
+      Raid Devices : 1
+     Total Devices : 1
+
+             State : clean 
+    Active Devices : 1
+   Working Devices : 1
+    Failed Devices : 0
+     Spare Devices : 0
+
+        Chunk Size : 64K
+
+Consistency Policy : none
+
+    Container GUID : 4C534920:20202020:1000005D:10009361:50C1A436:0B5F09A0
+                  (LSI      12/07/22 16:09:26)
+               Seq : 00000259
+     Virtual Disks : 5
+
+    Number   Major   Minor   RaidDevice State
+       0       8       80        0      active sync   /dev/sdf
+root@node123:~#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre>root@node123:/etc/mdadm# cat /proc/mdstat 
+Personalities : [raid0] [linear] [multipath] [raid1] [raid6] [raid5] [raid4] [raid10] 
+md127 : inactive sdf[0](S)
+      538968 blocks super external:ddf
+       
+unused devices: &lt;none&gt;
+root@node123:/etc/mdadm# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td><td class="rouge-code"><pre>root@node123:/etc/mdadm# mdadm -D /dev/md127
+/dev/md127:
+           Version : ddf
+        Raid Level : container
+     Total Devices : 1
+
+   Working Devices : 1
+
+    Container GUID : 4C534920:20202020:1000005D:10009361:50C1A436:0B5F09A0
+                  (LSI      12/07/22 16:09:26)
+               Seq : 00000259
+     Virtual Disks : 5
+
+     Member Arrays :
+
+    Number   Major   Minor   RaidDevice
+
+       -       8       80        -        /dev/sdf
+root@node123:/etc/mdadm#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+</pre></td><td class="rouge-code"><pre>root@node123:~# cat /etc/mdadm/mdadm.conf
+# mdadm.conf
+#
+# !NB! Run update-initramfs -u after updating this file.
+# !NB! This will ensure that initramfs has an uptodate copy.
+#
+# Please refer to mdadm.conf(5) for information about this file.
+#
+
+# by default (built-in), scan all partitions (/proc/partitions) and all
+# containers for MD superblocks. alternatively, specify devices to scan, using
+# wildcards if desired.
+#DEVICE partitions containers
+
+# automatically tag new arrays as belonging to the local system
+HOMEHOST &lt;system&gt;
+
+# instruct the monitoring daemon where to send mail alerts
+MAILADDR root
+
+# definitions of existing MD arrays
+ARRAY metadata=ddf UUID=f6da2fa6:f847cfe8:6efae15e:1ec1cb18
+ARRAY container=f6da2fa6:f847cfe8:6efae15e:1ec1cb18 member=0 UUID=9ff807d6:cd51ad98:0fde88a0:bed80d0e
+ARRAY container=f6da2fa6:f847cfe8:6efae15e:1ec1cb18 member=1 UUID=be17285a:62edb788:24f8e528:00912e8c
+ARRAY container=f6da2fa6:f847cfe8:6efae15e:1ec1cb18 member=2 UUID=b08d0c30:d7aa7ba5:0a22787e:103831d9
+ARRAY container=f6da2fa6:f847cfe8:6efae15e:1ec1cb18 member=3 UUID=5159a750:d1c2251f:56b0ef10:4b9a1309
+ARRAY container=f6da2fa6:f847cfe8:6efae15e:1ec1cb18 member=4 UUID=70f4a9f0:fdb95f4d:753d57a5:8c2314c0
+ARRAY metadata=ddf UUID=471d86af:9306e6d2:bc56f74d:c3b578f9
+ARRAY container=471d86af:9306e6d2:bc56f74d:c3b578f9 member=0 UUID=6d0bf5f0:b39ef888:80529401:91f64dcb
+ARRAY container=471d86af:9306e6d2:bc56f74d:c3b578f9 member=1 UUID=7cc9f621:c04ac67c:f4b0976a:78fe15f2
+ARRAY container=471d86af:9306e6d2:bc56f74d:c3b578f9 member=2 UUID=95994645:864ddcc9:67c2f8ce:9fe93d97
+ARRAY container=471d86af:9306e6d2:bc56f74d:c3b578f9 member=3 UUID=91b65356:8b4ec6e8:f64d7f23:63f8bd83
+ARRAY container=471d86af:9306e6d2:bc56f74d:c3b578f9 member=4 UUID=c8f2b38c:f32ce54b:9d2ef6ff:4e537329
+ARRAY metadata=ddf UUID=783f1a5c:5a361165:b27fff3b:c518b21a
+ARRAY container=783f1a5c:5a361165:b27fff3b:c518b21a member=0 UUID=af20c622:b4cab24e:6e79902d:a83f750c
+ARRAY container=783f1a5c:5a361165:b27fff3b:c518b21a member=1 UUID=2f4788c1:1dbe4d60:274c34fc:fdad0f1e
+ARRAY container=783f1a5c:5a361165:b27fff3b:c518b21a member=2 UUID=926ae63a:c3cd5a73:93063a44:eda9c39f
+ARRAY container=783f1a5c:5a361165:b27fff3b:c518b21a member=3 UUID=5bebdf83:dfd7c23d:99bdb41a:3991d212
+ARRAY container=783f1a5c:5a361165:b27fff3b:c518b21a member=4 UUID=efc49f2c:f23319c6:b2b4666f:26f9dba6
+ARRAY container=783f1a5c:5a361165:b27fff3b:c518b21a member=5 UUID=e05f0b90:235cb256:9d031efe:ac7f6f4f
+
+# This configuration was auto-generated on Thu, 02 Feb 2023 12:52:09 +0800 by mkconf
+root@node123:~#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="删除md-device">删除md device</h1>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>root@node123:~# mdadm --stop -s /dev/md126
+mdadm: stopped /dev/md126
+root@node123:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>root@node123:~# mdadm --misc --zero-superblock /dev/sdf
+mdadm: Couldn't open /dev/sdf for write - not zeroing
+root@node123:~# mdadm --zero-superblock /dev/sdf
+mdadm: Couldn't open /dev/sdf for write - not zeroing
+root@node123:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<ul>
+  <li>说明
+通过上面的方法，是无法删除md设备的，即使清空了/etc/mdadm/mdadm.conf也没用，重启机器后md设备又在了。</li>
+</ul>
+
+<p>正确的删除方法是：</p>
+
+<h2 id="从procmdstat中获取当前os下的所有md信息">从/proc/mdstat中获取当前OS下的所有md信息</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>root@node122:/var/log/history# cat /proc/mdstat 
+Personalities : [raid0] [linear] [multipath] [raid1] [raid6] [raid5] [raid4] [raid10] 
+md120 : inactive sda[0]
+      3750199296 blocks super external:/md124/3
+       
+md124 : inactive sda[1](S) sdb[0](S)
+      1077936 blocks super external:ddf
+       
+md127 : inactive sdd[1](S) sdc[0](S)
+      1077936 blocks super external:ddf
+       
+unused devices: &lt;none&gt;
+root@node122:/var/log/history# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>根据/proc/mdstat中的md信息，逐一stop并清理掉metadata信息，如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@node123:/etc/mdadm# mdadm -S /dev/md127
+mdadm: stopped /dev/md127
+root@node123:/etc/mdadm# mdadm --zero-superblock /dev/sdf
+root@node123:/etc/mdadm# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这样，即使机器reboot后，也不会再次出现md设备了，干净清理掉。</p>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2023/01/19/Linux_stat_family_of_vmstat/" data-toggle="tooltip" data-placement="top" title="Linux stat家族之vmstat">
+                        Previous<br>
+                        <span>Linux stat家族之vmstat</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2023/02/06/function_timeout/" data-toggle="tooltip" data-placement="top" title="Python下使得function timeout">
+                        Next<br>
+                        <span>Python下使得function timeout</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0126" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0155" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="48">Linux</a>
+        
+                <a data-sort="0189" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="14">Automation</a>
+        
+                <a data-sort="0190" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="13">shell</a>
+        
+                <a data-sort="0191" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="12">ceph</a>
+        
+                <a data-sort="0198" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="5">S3</a>
+        
+                <a data-sort="0198" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0198" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="5">python</a>
+        
+                <a data-sort="0199" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="4">Jenkins</a>
+        
+                <a data-sort="0199" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0199" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="4">awk</a>
+        
+                <a data-sort="0199" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0200" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="2">JBOD</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=PVE"
+                    title="PVE"
+                    rel="2">PVE</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=bzip2"
+                    title="bzip2"
+                    rel="2">bzip2</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=cosbench"
+                    title="cosbench"
+                    rel="2">cosbench</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=netconsole"
+                    title="netconsole"
+                    rel="2">netconsole</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=pbzip2"
+                    title="pbzip2"
+                    rel="2">pbzip2</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="2">pytest</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0201" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+  <li><a href="http://bean-li.github.io/">Bean Li</a></li>
+  
+  <li><a href="https://zphj1987.com/">武汉-磨渣</a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2023/02/03/Delete_md_device";
+    var disqus_url = "http://172.17.73.80:4000/2023/02/03/Delete_md_device/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2023
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>

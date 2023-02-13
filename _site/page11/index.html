@@ -182,6 +182,10 @@
                     
                     
                     
+                    
+                    
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -283,24 +287,91 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2020/06/01/bzip2_vs_pbzip2/">
+    <a href="/2020/06/12/reproduce_slow_API_issue/">
         <h2 class="post-title">
-            bzip2 vs pbzip2 性能对比
+            API响应慢问题复现
         </h2>
         
         <h3 class="post-subtitle">
-            bzip2 vs pbzip2 performance
+            Reproduce Slow API response issue
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-近期使用esrally进行Elastic Search性能压测，使用script产生了原始数据，这些原始数据需要被压缩成bz2格式，如果原文件大小很大，压缩起来就非常耗时。本文介绍几种bzip2压缩操作，观察耗时情况。
+现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。
 
-准备测试数据
+具体要求
 
-准备10万笔记录，看看压缩耗时如何：
+具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID card等诸多信息，如果响应时间超过预定时间，比如30s，则认为API出状况了。
+
+上述过程，使用测试脚本完成，一旦响应时间超过预定时间，程序退出。
+...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on June 12, 2020
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2020/06/11/shell_calculation_accuracy/">
+        <h2 class="post-title">
+            shell计算精度
+        </h2>
+        
+        <h3 class="post-subtitle">
+            shell script calculation accuracy
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                概述
+
+为何要写这篇文章，因为在上篇文章 stastic ES write speed by shell script有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。
+
+实践
+
+bc
+
+bc是比较常用的Linux中计算器了，简单方便，而且是支持浮点的。一...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on June 11, 2020
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2020/06/10/stastic_ES_write_speed_by_shell_script/">
+        <h2 class="post-title">
+            脚本统计ES写入速度
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Stastic ES write speed by shell script
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                概述
+
+本文介绍下如何call API的方式去统计ES的写速度，当然，你可以使用监控工具去统计，不在本文描述范围。
+
+哪些API可以获取到ES index中的数据量
+
+这里介绍两种API,参考如下：
+
+1
+_cat/count?v&amp;format=json&amp;pretty
+
+
+吐出信息参考如下：
 
 1
 2
@@ -309,158 +380,75 @@
 5
 6
 7
-8
-9
-root@node244:/mnt/disk/esrally_data/...
+[
+  {
+    "epoch" : "159159...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 1, 2020
+        Posted by Gavin on June 10, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2020/05/28/get-line-no-performace-compare/">
+    <a href="/2020/06/08/Correspondence_between_VD_and_RAID_partition/">
         <h2 class="post-title">
-            Linux下统计行数性能对比
+            VD与RAID分区对应关系
         </h2>
         
         <h3 class="post-subtitle">
-            Performance compare when get line numbers from file
+            Correspondence between VD and RAID partition
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-这次使用esrally进行elastic search性能测试，构造了产品自己生成的索引所需要的数据，由于数据比较大，行数有700million+，统计行数碰到了问题，主要是时间问题，统计太耗时，所以，想知道哪个统计效率更高。
+环境中创建了VD,lsblk可以看到创建好后的分区信息，如何获取分区与RAID VD之间的对应关系呢，比如/dev/sdc分区，对应RAID组哪个VD？
 
-本文介绍几种方法，以100million行数的文件，在Linux下统计文件行数，对比下统计性能如何。
+实践
 
-准备工作
-
-准备一个100million行数的文件：...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on May 28, 2020
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2020/05/21/keepalive-contro_VIP_floating_range/">
-        <h2 class="post-title">
-            控制keepalive VIP漂移范围
-        </h2>
-        
-        <h3 class="post-subtitle">
-            keepalive contro VIP floating range
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                概述
-
-产品有配置keepalive功能，但该功能目前仅通过priority来控制VIP在不同节点间漂移，此处的不同节点，是集群内部的所有节点。
-
-我们先看看下各个节点（以3节点为例），keepalive.conf内容信息，参考如下：
-
-== node243
+Step1. 获取RAID卡的Vendor Id和Device Id
 
 1
 2
 3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-root@node243:/e...
+root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -adpallinfo -aall | ...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on May 21, 2020
+        Posted by Gavin on June 8, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2020/05/21/boot_machine_met_welcome_to_emergency_mode/">
+    <a href="/2020/06/05/calc_cosbench_write_speed/">
         <h2 class="post-title">
-            Linux开机启动，进入welcome to emergency mode
+            统计cosbench写速度
         </h2>
         
         <h3 class="post-subtitle">
-            welcome to emergency mode after boot machine
+            Statistics cosbech write speed
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-Ubuntu 18.04系统, 执行reboot -f后，网络不通，通过IPMI console查看，发现出现 ‘welcome to emergency mode!’，详细信息如下图所示：
+BTW，今天是24节气的芒种，因新型冠状病毒疫情影响，高考延后了1个月。
 
-1
-2
-3
-welcome to emergency mode! after logging in, type "journalctl -xb" to view system logs，
-"s...
+言归正传，测试任务要求如下：
+
+需要知道当前集群，单一bucket中，存放1000万object，存放2000万object，存放3000万object，。。。。一直到存放110million个object，即每间隔存放1000万笔记录情况下，RGW性能是否伴随单一bucket中object数量的增加，写性能...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on May 21, 2020
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2020/05/13/pipeline-parallel-job/">
-        <h2 class="post-title">
-            Jenkins部署pipeline并发执行pytest自动化用例
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Jenkins pipeline parallel job for pytest automation
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                概述
-
-目前现有自动化用例数比较多了，在free style jenkins project中顺次执行，耗时1天左右，很明显，耗时太久，急需用例能够并发执行，从而实现节约时间。
-
-本文介绍如何通过pipeline project，实现现有用例执行流程的改造，实现并发执行。
-
-改造涉及内容
-
-针对当前automation project，需要做如下内容调整：
-
-
-  
-    (1) run....
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on May 13, 2020
+        Posted by Gavin on June 5, 2020
     </p>
 </div>
 <hr>
@@ -481,6 +469,41 @@ welcome to emergency mode! after logging in, type "journalctl -xb" to view syste
     
 </ul>
 <ul class="posts">
+    
+      <li>
+        <span class="post-date">Feb 8, 2023</span>
+        <a class="post-link" href="/2023/02/08/S3_object_encryption/">S3 object encryption by awscli</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 6, 2023</span>
+        <a class="post-link" href="/2023/02/06/function_timeout/">Python下使得function timeout</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 3, 2023</span>
+        <a class="post-link" href="/2023/02/03/Delete_md_device/">彻底删除Linux下md设备</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 19, 2023</span>
+        <a class="post-link" href="/2023/01/19/Linux_stat_family_of_vmstat/">Linux stat家族之vmstat</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 19, 2023</span>
+        <a class="post-link" href="/2023/01/19/Linux_stat_family_of_mpstat/">Linux stat家族之mpstat</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 19, 2023</span>
+        <a class="post-link" href="/2023/01/19/Install-docker-with-shell/">一键安装 docker 的 shell 脚本</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 13, 2023</span>
+        <a class="post-link" href="/2023/01/13/tmpfiles.d_guide/"></a>
+      </li>
     
       <li>
         <span class="post-date">Jan 9, 2023</span>
@@ -770,6 +793,11 @@ welcome to emergency mode! after logging in, type "journalctl -xb" to view syste
       <li>
         <span class="post-date">May 5, 2020</span>
         <a class="post-link" href="/2020/05/05/change-pip-install-source/">更改pip&easy_install默认安装源</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 6, 2020</span>
+        <a class="post-link" href="/2020/04/06/pytest_skip/">pytest skip</a>
       </li>
     
       <li>
@@ -1483,132 +1511,137 @@ welcome to emergency mode! after logging in, type "journalctl -xb" to view syste
         </a>
         
         
-                <a data-sort="0118" 
+                <a data-sort="0126" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0152" 
+                <a data-sort="0155" 
                     href="/archive/?tag=Linux"
                     title="Linux"
-                    rel="43">Linux</a>
+                    rel="48">Linux</a>
         
-                <a data-sort="0181" 
+                <a data-sort="0189" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="14">Automation</a>
         
-                <a data-sort="0183" 
+                <a data-sort="0190" 
                     href="/archive/?tag=shell"
                     title="shell"
-                    rel="12">shell</a>
+                    rel="13">shell</a>
         
-                <a data-sort="0184" 
+                <a data-sort="0191" 
                     href="/archive/?tag=ceph"
                     title="ceph"
-                    rel="11">ceph</a>
+                    rel="12">ceph</a>
         
-                <a data-sort="0190" 
+                <a data-sort="0198" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="5">S3</a>
         
-                <a data-sort="0190" 
+                <a data-sort="0198" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0198" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="5">python</a>
+        
+                <a data-sort="0199" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0199" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0199" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0199" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0191" 
-                    href="/archive/?tag=python"
-                    title="python"
-                    rel="4">python</a>
-        
-                <a data-sort="0192" 
+                <a data-sort="0200" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="2">JBOD</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="2">pytest</a>
+        
+                <a data-sort="0201" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0201" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
