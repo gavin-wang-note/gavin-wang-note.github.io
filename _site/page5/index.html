@@ -186,6 +186,8 @@
                     
                     
                     
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -287,91 +289,75 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2022/06/08/centos7_config_netconsole/">
+    <a href="/2022/07/20/Large-omap-objects/">
         <h2 class="post-title">
-            CentOS7设置netconsole
+            获取ceph large omap object
         </h2>
         
         <h3 class="post-subtitle">
-            Base on CentOS7 to config netconsole
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                Netconsole简述
-
-将内核打印的日志信息通过UDP方式发送至另一台服务器。
-
-本文概述的是基于CentOS7的配置设定，Ubuntu的设定会右差别，请参考之前的另外一篇博文。
-
-配置内核日志发送端（Client端）
-
-说明：
-
-这里的client端，表明的是当前哪台机器要将kernel log上报到rsyslog server去。
-
-写入/etc/rc.local中，开机自动设置
-
-...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on June 8, 2022
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2022/06/02/get_port_used_by_which_process/">
-        <h2 class="post-title">
-            在linux中查看端口号是哪个进程在占用
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Get proccss which used port
+            Get Large omap Object
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-今天升级一套存储，碰到了80端口被占用，导致RGW bind 80 port时bind失败，最终导致RGW服务启用失败，造成S3 业务不可用问题。
+前几天客户报自己的一套原生ceph集群出现 ‘Large omap objects’告警，请我们免费技术支持一下解决这个告警。
 
-查看端口信息
-
-Linux 上的 /etc/services 文件可以查看到更多关于保留端口的信息。
-
-可以使用以下三种方法查看端口信息。
+告警信息如下所示：
 
 
-  ss：可以用于转储套接字统计信息
-  netstat：可以显示打开的套接字列表
-  ls...
+
+过程
+
+网上找了个script，再此基础上完善了一下，获取到具体哪个Object omap较大，脚本内容参考如下：
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 2, 2022
+        Posted by Gavin on July 20, 2022
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2022/05/19/ceph-PG-allocate/">
+    <a href="/2022/07/11/Base_on_epoch_find_issue_occured_time/">
         <h2 class="post-title">
-            获取ceph PG 分布
+            记一次根据epoch查找问题触发时间点
         </h2>
         
         <h3 class="post-subtitle">
-            Get ceph PG allocate
+            Base on epoch to find when issue occured
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-第一版
+自动化用例执行期间，碰到crushmap中有一个Default pool，还有一个default pool，只是首字母大小写不一样，如下所示：
 
 1
 2
@@ -400,38 +386,47 @@ Linux 上的 /etc/services 文件可以查看到更多关于保留端口的信�
 25
 26
 27
-#!/bin/bash
-
-ceph_version=`ceph -v | awk '\{\{print \$3\}\}'`
-
-if [[ ${ceph_version} =~ '10.' ]]; then
-    pg_stat="...
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on May 19, 2022
+        Posted by Gavin on July 11, 2022
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2022/05/19/bind_relationship_between_OSD_CPUS/">
+    <a href="/2022/06/30/Multipart_upload_return_416/">
         <h2 class="post-title">
-            获取OSD与CPU绑定关系
+            S3 分片上传对象报416错误码
         </h2>
         
         <h3 class="post-subtitle">
-            bind relationship between OSD and CPUS
+            Multipart upload S3 object, raise HTTP 416
         </h3>
         
         <div class="post-content-preview">
             
-                代码
+                概述
 
-这里代码转自https://blog.51cto.com/zphj1987/3212869，在他基础上增加了+号的颜色显示(高亮)，表明当前ceph-osd运行在对应On-line CPU(s)上.
-
-CPU信息
+python boto上传一个2T大小的对象，产品报HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：
 
 1
 2
@@ -455,55 +450,70 @@ CPU信息
 20
 21
 22
-23
-24
-25
-[root@node163 ~]# l...
+root@node224:~# time python s3_upload.py                ...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on May 19, 2022
+        Posted by Gavin on June 30, 2022
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2022/04/08/Log_output_is_incomplete_or_unavailable/">
+    <a href="/2022/06/27/Multipart_upload_2T_S3_object/">
         <h2 class="post-title">
-            解决 Log output is incomplete or unavailable 问题
+            分片上传2T大小的一个S3对象
         </h2>
         
         <h3 class="post-subtitle">
-            Log output is incomplete or unavailable
+            Fragment Upload Object which size is 2T
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-今天碰到客户反馈通过systemctl status 查看某daemon状态时，显示如下图所示：
+客户询问，对于2T大小的一个S3对象，我司产品是否支持。
 
+原本计划使用GUI工具，诸如S3Browser，CloudBerry这样的可视化工具上传一下验证看看，考虑到本地磁盘大小无法容纳2T大小的文件，只能放弃，改成使用python code来上传看看。
 
+操作步骤
 
-客户询问，这个warn是否有影响？
+准备一个2T大小的对象文件
 
-根因
+fallocate -l 2T 2T.file
 
-客户现场的这个daemon已经长久运行有些年头了，journal会统计log大小，到了某种程度就自动删掉。
-
-解决方法
-
-放大journal，比如：
-
-journalctl --vacuum-size=1G
-
-示例的意思是：最大可存放1...
+快速生成一个含有大量hole的文件...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on April 8, 2022
+        Posted by Gavin on June 27, 2022
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2022/06/08/edac_to_check_memory/">
+        <h2 class="post-title">
+            使用edac工具来检测服务器内存故障
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Use edac to check memory
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                概述
+
+随着虚拟化，Redis,BDB内存数据库等应用的普及，现在越来越多的服务器配置了大容量内存，拿DELL的R620来说在配置双路CPU下，其24个内存插槽，支持的内存高达960GB。对于ECC,REG这些带有纠错功能的内存故障检测是一件很头疼的事情，出现故障，还是可以连续运行几个月甚至几年，但如果运气不好，随时都会挂掉，好在linux中提供了一个edac-utils 内存纠错诊断工具，...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on June 8, 2022
     </p>
 </div>
 <hr>
@@ -524,6 +534,26 @@ journalctl --vacuum-size=1G
     
 </ul>
 <ul class="posts">
+    
+      <li>
+        <span class="post-date">Apr 17, 2023</span>
+        <a class="post-link" href="/2023/04/17/Get_python_encoding/">一行命令获取python当前默认的编码格式</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 17, 2023</span>
+        <a class="post-link" href="/2023/04/17/Delete_Linux_tmpwatch_tmpreaper/">使用 tmpwatch/tmpreaper 删除旧文件</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 13, 2023</span>
+        <a class="post-link" href="/2023/04/13/JBOD_write_cache/">查看JBOD Write Cache Policy</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Mar 16, 2023</span>
+        <a class="post-link" href="/2023/03/16/Ubuntu22_LV_Capacity_Expansion/">LV 扩容</a>
+      </li>
     
       <li>
         <span class="post-date">Mar 8, 2023</span>
@@ -548,6 +578,11 @@ journalctl --vacuum-size=1G
       <li>
         <span class="post-date">Feb 3, 2023</span>
         <a class="post-link" href="/2023/02/03/Delete_md_device/">彻底删除Linux下md设备</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 20, 2023</span>
+        <a class="post-link" href="/2023/01/20/Linux_stat_family_of_pidstat/">Linux stat家族之pidstat</a>
       </li>
     
       <li>
@@ -1576,137 +1611,137 @@ journalctl --vacuum-size=1G
         </a>
         
         
-                <a data-sort="0128" 
+                <a data-sort="0133" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0157" 
+                <a data-sort="0159" 
                     href="/archive/?tag=Linux"
                     title="Linux"
-                    rel="48">Linux</a>
+                    rel="51">Linux</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0196" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="14">Automation</a>
         
-                <a data-sort="0192" 
+                <a data-sort="0197" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="13">shell</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0198" 
                     href="/archive/?tag=ceph"
                     title="ceph"
                     rel="12">ceph</a>
         
-                <a data-sort="0200" 
+                <a data-sort="0205" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="5">S3</a>
         
-                <a data-sort="0200" 
+                <a data-sort="0205" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0200" 
+                <a data-sort="0205" 
                     href="/archive/?tag=python"
                     title="python"
                     rel="5">python</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0206" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0202" 
+                <a data-sort="0207" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0203" 
-                    href="/archive/?tag=JBOD"
-                    title="JBOD"
-                    rel="2">JBOD</a>
-        
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=pytest"
                     title="pytest"
                     rel="2">pytest</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr

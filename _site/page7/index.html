@@ -186,6 +186,8 @@
                     
                     
                     
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -287,140 +289,135 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2021/07/01/Slove_cp_command_force_overwrite_issue/">
+    <a href="/2022/02/10/auto_yes_to_mkfs/">
         <h2 class="post-title">
-            CentOS中cp -f copy强制覆盖命令无效
+            自动化交互式格式化文件系统
         </h2>
         
         <h3 class="post-subtitle">
-            Solve 'cp' copy force overwrite issue
+            Auto format FS by expect
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-今天分几次执行了automation用例，产生不不用的allure需要的json文件，由于部分case执行失败，再次执行了这部分用例，对新产生的json文件覆盖掉旧的，
-结果在cp时提示是否要overwrite，由于文件数量很多，不可能每个交互信息都要输入y来确认覆盖，于是就要靠强制覆盖来解决，执行cp -rf时并没有起到预期效果。
+当格式化文件系统时，尤其是在脚本或代码中做这个操作，一旦出现需要输入’y’的时候，脚本或者代码就会卡住或者timeout，造成程序失败。
 
-本文记录解决Linux CentOS中cp -f...
+本文介绍几种方法，在format时自动填写yes or y，让format持续进行下去.
+
+实践
+
+方法1
+
+yes | mkfs.ext4 /dev/sdb
+
+方法2
+
+echo -e "y\n" | mkfs.ext4 /dev/sdx
+
+方...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on July 1, 2021
+        Posted by Gavin on February 10, 2022
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/">
+    <a href="/2022/02/09/Linux_json_format_output/">
         <h2 class="post-title">
-            如何知道CPU降频了呢
+            Linux 输出格式化成Json
         </h2>
         
         <h3 class="post-subtitle">
-            How do I know that the CPU frequency is down
+            Linux output format to Json
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；
+工作中经常会将Linux输出进行格式化，方便阅读。本文罗列几个常用的将输出转换为Json格式的方法。
 
-还有一次是设备两路电源线被同事拔掉了一根，只剩下一路了，供电不足，导致CPU主动降频；
+实践
 
-今天RD在tuning performance时，再次碰到了CPU降频问题，问题是tuning perf...
+方法1 ‘python -mjson.tool’
+
+此适用于多种OS
+
+ceph config-key get gateway_groups | python -mjson.tool
+
+方法2 ‘json_pp’ or ‘jq’
+
+适用于Debin系OS
+
+ceph con...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 30, 2021
+        Posted by Gavin on February 9, 2022
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2021/06/15/WebBIOS_disable_disk_JBOD/">
+    <a href="/2022/02/08/Show_which_package_the_file_belongs_to/">
         <h2 class="post-title">
-            WebBIOS里取消磁盘的JBOD设置
+            Linux下显示文件隶属于哪个包
         </h2>
         
         <h3 class="post-subtitle">
-            Disable JBOD for disks in WebBIOS
+            Show which package the file belongs to
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-环境之前有使用过storcli或megacli命令开启了JBOD模式，安装系统后始终无法进入系统，grub 引导出问题，BIOS的设置检查了几次，并未发现异常，boot device也是对的，始终无法解决重灌系统后开机问题。
-决定更换OS盘（换成其他的SAS盘），在更换后，碰到了本文要描述的问题：存在部分是RAID部分是JBOD盘，计划OS盘做RAID0,但WebBIOS里查看到此盘...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on June 15, 2021
-    </p>
-</div>
-<hr>
+RD在定位问题的时候，需要QA告知当前文件隶属于哪个包，方便到对应包下查询源码来定位问题，故本文介绍一下Ubuntu和CentOS两种OS下查看文件隶属于哪个包。
 
-<div class="post-preview">
-    <a href="/2021/06/03/is_my_hdd_wreched/">
-        <h2 class="post-title">
-            HDD损坏了么？
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Is my hdd wrecked?
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                概述
+查看当前文件隶属于哪个package
 
-今天同事使用产品对HDD做分区的时候，发现程序抛异常，寻求帮助。
 
-过程
+  CentOS
 
-由于是一个新安装OS的环境，对现有的HDD除了操作系统之外都可以做格式化处理，尝试格式化一下，出现了如下错误：
 
 1
 2
-3
-root@scaler:/home/btadmin# sgdisk -z /dev/sdb
-GPT data structures destroyed! You may now par...
+[root@83fc1 bin]# rpm -qf zerocopy_setup.py 
+ezgateway-8.3-211.git09ae02f....
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 3, 2021
+        Posted by Gavin on February 8, 2022
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2021/02/23/Pass_through_GPU_to_Ubuntu18_in_PVE_Cluster/">
+    <a href="/2022/01/28/auto_deploy_submit_analyser_cosbench_task/">
         <h2 class="post-title">
-            PVE集群给Ubuntu18.04直通GPU
+            自动部署cosbench并提交任务与结果处理解析
         </h2>
         
         <h3 class="post-subtitle">
-            Pass through GPU in PVE clusteri to Ubuntu18.04 VM
+            Auto deoloy cosbench, submit task and analyser result
         </h3>
         
         <div class="post-content-preview">
             
-                配置修改
+                概述
 
-ConvergerOne侧配置修改
+每次跑S3 Performance时，总要花费蛮多时间在构造xml以及xml调测上，避免xml内容有误影响测试。
 
-Step1 修改/etc/default/grub
+此次直接将整个过程（部署jre，部署cosbench，提交任务，自动收集存储信息以及对cosbench测试结果处理），整合成一套完整测试script，提高下工作效率。
 
-vi /etc/default/grub
-
-在 quiet后面，增加“intel_iommu=on video=efifb:off,vesafb:off”，完整内容如下所示：
+Script directory structure
 
 1
 2
@@ -429,12 +426,42 @@ vi /etc/default/grub
 5
 6
 7
-GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_io...
+8
+9
+10
+1...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on February 23, 2021
+        Posted by Gavin on January 28, 2022
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2021/12/13/PVE_VM_delay_boot/">
+        <h2 class="post-title">
+            Delay the first auto start VM in PVE
+        </h2>
+        
+        <h3 class="post-subtitle">
+            How to delay the first auto start virtual machinevm guest system in proxmox ve pve
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                概述
+
+一直以来，认为PVE提供的“延时启动”是针对宿主机完成启动后的XX设定的时间后VM自动启动，直到看到如下链接的内容中：
+https://dannyda.com/2020/06/24/how-to-delay-the-first-auto-start-virtual-machinevm-guest-system-in-proxmox-ve-pve/
+
+明确说明PVE VM boot d...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on December 13, 2021
     </p>
 </div>
 <hr>
@@ -455,6 +482,26 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_io...
     
 </ul>
 <ul class="posts">
+    
+      <li>
+        <span class="post-date">Apr 17, 2023</span>
+        <a class="post-link" href="/2023/04/17/Get_python_encoding/">一行命令获取python当前默认的编码格式</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 17, 2023</span>
+        <a class="post-link" href="/2023/04/17/Delete_Linux_tmpwatch_tmpreaper/">使用 tmpwatch/tmpreaper 删除旧文件</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 13, 2023</span>
+        <a class="post-link" href="/2023/04/13/JBOD_write_cache/">查看JBOD Write Cache Policy</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Mar 16, 2023</span>
+        <a class="post-link" href="/2023/03/16/Ubuntu22_LV_Capacity_Expansion/">LV 扩容</a>
+      </li>
     
       <li>
         <span class="post-date">Mar 8, 2023</span>
@@ -479,6 +526,11 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_io...
       <li>
         <span class="post-date">Feb 3, 2023</span>
         <a class="post-link" href="/2023/02/03/Delete_md_device/">彻底删除Linux下md设备</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 20, 2023</span>
+        <a class="post-link" href="/2023/01/20/Linux_stat_family_of_pidstat/">Linux stat家族之pidstat</a>
       </li>
     
       <li>
@@ -1507,137 +1559,137 @@ GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_io...
         </a>
         
         
-                <a data-sort="0128" 
+                <a data-sort="0133" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0157" 
+                <a data-sort="0159" 
                     href="/archive/?tag=Linux"
                     title="Linux"
-                    rel="48">Linux</a>
+                    rel="51">Linux</a>
         
-                <a data-sort="0191" 
+                <a data-sort="0196" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="14">Automation</a>
         
-                <a data-sort="0192" 
+                <a data-sort="0197" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="13">shell</a>
         
-                <a data-sort="0193" 
+                <a data-sort="0198" 
                     href="/archive/?tag=ceph"
                     title="ceph"
                     rel="12">ceph</a>
         
-                <a data-sort="0200" 
+                <a data-sort="0205" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="5">S3</a>
         
-                <a data-sort="0200" 
+                <a data-sort="0205" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0200" 
+                <a data-sort="0205" 
                     href="/archive/?tag=python"
                     title="python"
                     rel="5">python</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0206" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="4">Jenkins</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0201" 
+                <a data-sort="0206" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0202" 
+                <a data-sort="0207" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0203" 
-                    href="/archive/?tag=JBOD"
-                    title="JBOD"
-                    rel="2">JBOD</a>
-        
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="2">iSCSI</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=pytest"
                     title="pytest"
                     rel="2">pytest</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0203" 
+                <a data-sort="0208" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
