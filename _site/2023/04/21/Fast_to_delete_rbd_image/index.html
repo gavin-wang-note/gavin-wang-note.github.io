@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="快速清除rbd image - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2023-04-21T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="Linux">
+    
+    
+    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://172.17.73.80:4000/2023/04/21/Fast_to_delete_rbd_image/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>快速清除rbd image - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://172.17.73.80:4000/2023/04/21/Fast_to_delete_rbd_image/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=Linux" title="Linux">Linux</a>
+                        
+                    </div>
+                    <h1>快速清除rbd image</h1>
+                    
+                    <h2 class="subheading">Fast to delete rbd image</h2>
+                    <span class="meta">Posted by Gavin on April 21, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p>当集群里出现一个较大的rbd image时，如何快速清理掉它并释放空间，已经存在文章 ：https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/ 做了介绍。
+并且对不同的方法做了分析，这里先把结论说下:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>rbd类型</th>
+      <th>rbd rm 方法</th>
+      <th>rados -p rm方法</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>未填充很多</td>
+      <td>慢</td>
+      <td>快</td>
+    </tr>
+    <tr>
+      <td>已填充很多</td>
+      <td>快</td>
+      <td>慢</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>在rbd进行删除的时候，即使内部没有对象数据，也一样需要一个个对象去发请求，即使对象不存在，这个可以开日志看到:
+在/etc/ceph/ceph.conf中添加</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>[client]
+debug_ms=1
+log_file=/var/log/ceph/rados.log
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="实践">实践</h1>
+
+<p>dd写，bs=1M,写了40G的数据：</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@pytest-83-19:~# dd if=/dev/zero of=/dev/rbd0 bs=1M count=40960
+40960+0 records in
+40960+0 records out
+42949672960 bytes (43 GB, 40 GiB) copied, 261.264 s, 164 MB/s
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="rbd-image-信息">rbd image 信息</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td><td class="rouge-code"><pre>root@pytest-83-19:~# rbd ls
+889795de-fafb-4fca-9bf1-9b984e6124d2.img
+root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img
+rbd image '889795de-fafb-4fca-9bf1-9b984e6124d2.img':
+	size 600GiB in 614400 objects
+	order 20 (1MiB objects)
+	used objects: 0
+	block_name_prefix: rbd_data.30dc419495cff
+	format: 2
+	features: layering
+	flags: 
+	create_timestamp: Fri Apr 21 14:26:48 2023
+root@pytest-83-19:~#
+
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="原始的快速删除方法">原始的快速删除方法</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>root@pytest-83-19:~# time rados -p rbd ls | grep '^rbd_data.30dc419495cff' | xargs -n 200  rados -p rbd rm
+
+real	2m5.564s
+user	0m46.126s
+sys	0m4.718s
+root@pytest-83-19:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="开启多进程删除的方法">开启多进程删除的方法</h2>
+
+<p>这个比上面那种方法好的是：</p>
+
+<ul>
+  <li>可以显示当前删除的进度</li>
+  <li>可以指定删除的进程并发数</li>
+  <li>可以显示当时正在删除的对象</li>
+  <li>可以增加一个中断时间降低负载</li>
+</ul>
+
+<p>首先获取一个需要快速删除的rbd的列表:</p>
+
+<h3 id="获取prifix">获取prifix</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img | grep prefix
+	block_name_prefix: rbd_data.30dc419495cff
+root@pytest-83-19:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="获取列表">获取列表</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>root@pytest-83-19:~# rados -p rbd ls |grep rbd_data.30dc419495cff &gt; delobject
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>这里可以看下内容有没有问题，检查确认下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>root@pytest-83-19:~# vim delobject 
+rbd_data.30dc419495cff.0000000000008e90
+rbd_data.30dc419495cff.00000000000047a4
+rbd_data.30dc419495cff.000000000000063f
+............... 如下内容省略 ..........
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>删除的fast_remove.sh脚本如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+</pre></td><td class="rouge-code"><pre>root@node161:~# cat fast_remove.sh 
+#!/bin/bash
+
+process=400
+objectlistfile="./delobject"
+deletepool=san-pool
+
+
+delete_fun()
+  {
+      date "+%Y-%m-%d %H:%M:%S"
+      rados -p $deletepool rm $1
+      #sleep 1
+  }
+
+
+concurrent()
+ {
+     start=$1 &amp;&amp; end=$2 &amp;&amp; cur_num=$3
+     mkfifo   ./fifo.$$ &amp;&amp;  exec 4&lt;&gt; ./fifo.$$ &amp;&amp; rm -f ./fifo.$$
+     for ((i=$start; i&lt;$cur_num+$start; i++)); do
+         echo "init  start delete process $i" &gt;&amp;4
+     done
+
+     for((i=$start; i&lt;=$end; i++)); do
+         read -u 4
+         {
+             # echo -e "-- current delete: [:delete $i/$objectnum  $REPLY]"
+             delob=`sed -n "${i}p" $objectlistfile`
+             delete_fun $delob
+             # echo "delete $delob done"  1&gt;&amp;4  # write to $ff_file
+         } &amp;
+     done
+     wait
+ }
+
+objectnum=`cat $objectlistfile | wc -l`
+concurrent 1 $objectnum $process
+root@node161:~#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="测试结果">测试结果</h3>
+
+<p>如下为Physical node的测试结果：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="rouge-code"><pre>400 并发:
+root@node161:~# time rados -p san-pool ls | grep '^rbd_data.3bba6b8b4567' | xargs -n 400  rados -p san-pool rm
+
+real	0m55.853s
+user	0m40.324s
+sys	0m1.949s
+root@node161:~# 
+
+
+1200 并发:
+root@node161:~# time rados -p san-pool ls | grep '^rbd_data.3bba6b8b4567' | xargs -n 1200  rados -p san-pool rm
+
+real	0m53.060s
+user	0m38.611s
+sys	0m1.221s
+root@node161:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>脚本删除结果（400并发）：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre>400 并发:
+2023-04-21 17:55:16
+-- current delete: [:delete 40960/40960  delete rbd_data.3bba6b8b4567.00000000000007b1 done]
+2023-04-21 17:55:16
+2023-04-21 17:55:16
+
+real	1m59.236s
+user	30m37.312s
+sys	25m4.611s
+root@node161:~#
+
+
+1200 并发：
+
+real	1m30.148s
+user	24m40.103s
+sys	19m49.270s
+root@node161:~# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>尝试了VM以及Phsical Machine，多轮次测试验证，脚本删除的效果并不佳.</p>
+
+<p>本文，参考：
+<code class="highlighter-rouge">https://www.cnblogs.com/zphj1987/p/13575449.html</code></p>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2023/04/20/How_to_check_if_a_port_is_blocked/" data-toggle="tooltip" data-placement="top" title="如何查看端口是否被封">
+                        Previous<br>
+                        <span>如何查看端口是否被封</span>
+                        </a>
+                    </li>
+                    
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0135" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0159" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="53">Linux</a>
+        
+                <a data-sort="0198" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="14">Automation</a>
+        
+                <a data-sort="0199" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="13">shell</a>
+        
+                <a data-sort="0200" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="12">ceph</a>
+        
+                <a data-sort="0207" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="5">S3</a>
+        
+                <a data-sort="0207" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0207" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="5">python</a>
+        
+                <a data-sort="0208" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0208" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="4">Jenkins</a>
+        
+                <a data-sort="0208" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0208" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="4">awk</a>
+        
+                <a data-sort="0208" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0209" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=PVE"
+                    title="PVE"
+                    rel="2">PVE</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=bzip2"
+                    title="bzip2"
+                    rel="2">bzip2</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=cosbench"
+                    title="cosbench"
+                    rel="2">cosbench</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="2">iSCSI</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=netconsole"
+                    title="netconsole"
+                    rel="2">netconsole</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=pbzip2"
+                    title="pbzip2"
+                    rel="2">pbzip2</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="2">pytest</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0210" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+  <li><a href="http://bean-li.github.io/">Bean Li</a></li>
+  
+  <li><a href="https://zphj1987.com/">武汉-磨渣</a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2023/04/21/Fast_to_delete_rbd_image";
+    var disqus_url = "http://172.17.73.80:4000/2023/04/21/Fast_to_delete_rbd_image/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2023
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>
