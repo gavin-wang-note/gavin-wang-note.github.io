@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2023-04-26T13:22:18+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">快速清除S3 Bucket下Objects</title><link href="http://172.17.73.80:4000/2023/04/26/How_fast_to_delete_S3_objects/" rel="alternate" type="text/html" title="快速清除S3 Bucket下Objects" /><published>2023-04-26T00:00:00+08:00</published><updated>2023-04-26T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2023/04/26/How_fast_to_delete_S3_objects</id><content type="html" xml:base="http://172.17.73.80:4000/2023/04/26/How_fast_to_delete_S3_objects/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://172.17.73.80:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://172.17.73.80:4000/" rel="alternate" type="text/html" /><updated>2023-04-27T17:19:39+08:00</updated><id>http://172.17.73.80:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">快速清除S3 Bucket下Objects</title><link href="http://172.17.73.80:4000/2023/04/26/How_fast_to_delete_S3_objects/" rel="alternate" type="text/html" title="快速清除S3 Bucket下Objects" /><published>2023-04-26T00:00:00+08:00</published><updated>2023-04-26T00:00:00+08:00</updated><id>http://172.17.73.80:4000/2023/04/26/How_fast_to_delete_S3_objects</id><content type="html" xml:base="http://172.17.73.80:4000/2023/04/26/How_fast_to_delete_S3_objects/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;客户现场碰到ceph集群在 Recovery，但是 backfill full,需要清理掉部分数据。&lt;/p&gt;
 
@@ -459,7 +459,7 @@ Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;licen
       &lt;td&gt;From 734GiB to 1.38GiB&lt;/td&gt;
       &lt;td&gt;From 597759 to 541&lt;/td&gt;
       &lt;td&gt;Yes&lt;/td&gt;
-      &lt;td&gt;314s (-10s)&lt;/td&gt;
+      &lt;td&gt;314s&lt;/td&gt;
       &lt;td&gt;2.33 GiB/s; 1901 Objects/s&lt;/td&gt;
     &lt;/tr&gt;
     &lt;tr&gt;
@@ -472,17 +472,11 @@ Type &quot;help&quot;, &quot;copyright&quot;, &quot;credits&quot; or &quot;licen
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;p&gt;说明：&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;整个清理过程中，对于最后恰巧要处理的记录为1000笔，script在sed page-0.json文件上有瑕疵，10s左右会超时，导致额外浪费了10s时间（不影响删除效果，Script就不修改了）&lt;/li&gt;
-&lt;/ul&gt;
-
 &lt;h1 id=&quot;script-内容&quot;&gt;Script 内容&lt;/h1&gt;
 
 &lt;h2 id=&quot;prefixtxt文件说明&quot;&gt;prefix.txt文件说明&lt;/h2&gt;
 
-&lt;p&gt;prefixes.txt，这个文件要存在，里面记录被删除Object的前缀，如果有多个前缀，每行一个前缀记录，参考如下：&lt;/p&gt;
+&lt;p&gt;prefixes.txt，这个文件要存在，里面记录被删除Object的前缀(是目录哦，如果文件直接放在顶层Bucket下，需要修改脚本中 “aws s3api list-object-version” 动作里的 ‘–prefix &quot;$current_prefix/&quot;’ 变更成 ‘–prefix &quot;$current_prefix&quot;’)，如果有多个前缀，每行一个前缀记录，参考如下：&lt;/p&gt;
 
 &lt;p&gt;单个prefix信息：
 e.g:&lt;/p&gt;
@@ -714,206 +708,338 @@ root@node161:~#
 200
 201
 202
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c&quot;&gt;#!/bin/sh&lt;/span&gt;
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@node244:~# cat empty_bucket_v1.3.sh 
+#!/bin/bash
 
-&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;del.log&quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;TASK_NO&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;100        &lt;span class=&quot;c&quot;&gt;# Maximum deletion concurrency allowed&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;MAX_ITEMS&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;50000    &lt;span class=&quot;c&quot;&gt;# List-version fetches the maximum number of records at a time&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;BUCKET&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;bucket01&quot;&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;VERSION_SPLIT_NUMBER&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;4000  &lt;span class=&quot;c&quot;&gt;# One complete record every 4 line for query out if bucket enable version, i.e. 1000 Objects&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;NO_VERSION_SPLIT_NUMBER&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;3000  &lt;span class=&quot;c&quot;&gt;# One complete record every 3 line for query out if bucket not enable version, i.e. 1000 Objects&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;PREFIXES_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;prefixes.txt&quot;&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;# If has many preifix, each line one record&lt;/span&gt;
+LOG=&quot;del.log&quot;
+TASK_NO=100        # Maximum deletion concurrency allowed
+MAX_ITEMS=50000    # List-version fetches the maximum number of records at a time
+BUCKET=$1
+VERSION_SPLIT_NUMBER=4000  # One complete record every 4 line for query out if bucket enable version, i.e. 1000 Objects
+NO_VERSION_SPLIT_NUMBER=3000  # One complete record every 3 line for query out if bucket not enable version, i.e. 1000 Objects
+PREFIXES_FILE=&quot;prefixes.txt&quot;  # If has many preifix, each line one record
 
 
-&lt;span class=&quot;k&quot;&gt;function &lt;/span&gt;empty_bucket&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
-&lt;span class=&quot;nv&quot;&gt;version_tag&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;aws s3api get-bucket-versioning &lt;span class=&quot;nt&quot;&gt;--bucket&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;BUCKET&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;--endpoint-url&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;http://localhost&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;version_tag&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;~ &lt;span class=&quot;s1&quot;&gt;'Enabled'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;then
-    &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;version_flag&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'enable'&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;else
-    &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;version_flag&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'disable'&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;fi
+function usage()
+{
+   echo -e &quot;*****************************************&quot;
+   echo &quot;usae: $0 BUCKET_NAME&quot;
+   echo -e &quot;&quot;
+   echo &quot;  e.g.: $0 bucket01&quot;
+   echo -e &quot;&quot;
+   echo -e &quot;*****************************************&quot;
+   exit 1
+}
 
-if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PREFIXES_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-    while &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;read&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-r&lt;/span&gt; current_prefix
-    &lt;span class=&quot;k&quot;&gt;do
-        &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'***** This script will to delete objects which PREFIX is %s *****\n'&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
 
-        &lt;span class=&quot;nv&quot;&gt;OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;-all.json&quot;&lt;/span&gt;
+function check_jq()
+{
+    os_type=`hostnamectl | grep 'Operating System'`
+    if [[ ${os_type} =~ 'Ubuntu' ]]; then
+        grep_res=`dpkg -l | grep -w jq`
+        install_cmd=&quot;apt-get update;apt-get install jq -y&quot;
+    else
+        grep_res=`rpm -qa | grep jq-`
+        install_cmd=&quot;yum install jq -y&quot;
+    fi
 
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-            &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'Deleted %s...\n'&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
+    if [[ ${grep_res} =~ 'jq' ]]; then
+        echo
+    else
+        echo &quot;&quot;
+        echo -e &quot;[ERROR]  Not install jq, please run '${install_cmd}' to installl it&quot;
+        echo &quot;&quot;
+        exit 2
+    fi
+}
 
-            &lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-rf&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;nt&quot;&gt;-page-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.json
-        &lt;span class=&quot;k&quot;&gt;fi
 
-        &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*****************************************************************************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# At first, get output of 'ceph df'&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;cur_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  ceph df:&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        ceph &lt;span class=&quot;nb&quot;&gt;df&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*********************************  Generate Objects file  *******************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;gen_obj_start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gen_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Generate Objects file&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;version_flag&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'disable'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-            &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;aws s3api list-object-versions --endpoint-url=http://localhost --bucket &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$BUCKET&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --prefix &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --page-size 1000 --max-items &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;MAX_ITEMS&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --query &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;[Versions][].{Key: Key}&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; &amp;gt;&amp;gt; &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;else
-            &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;aws s3api list-object-versions --endpoint-url=http://localhost --bucket &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$BUCKET&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --prefix &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --page-size 1000 --max-items &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;MAX_ITEMS&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --query &lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;[Versions,DeleteMarkers][].{Key: Key, VersionId: VersionId}&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;  &amp;gt;&amp;gt; &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;fi
-
-        &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cmd&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;eval&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cmd&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;gen_obj_end_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;gen_obj_time_distance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gen_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt; - &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gen_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gen_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Generate &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; cost &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gen_obj_time_distance&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;s&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;nv&quot;&gt;no_of_obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; | jq &lt;span class=&quot;s1&quot;&gt;'length'&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$no_of_obj&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-            &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;no_of_obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0
-        &lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# Get old version Objects&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;gen_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Matched objects versions count : &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$no_of_obj&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; to delete&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# If $OLD_OBJECTS_FILE, means no need to generate again, exit&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;no_of_obj&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-eq&lt;/span&gt; 0 &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-            &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[WARN]  Matched (&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;no_of_obj&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;) object to delete, exit!!!&quot;&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;
-
-            &lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-            &lt;span class=&quot;nv&quot;&gt;time_distance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt; - &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;))&lt;/span&gt;
-
-            &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*********************************  Calc total cost time *********************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Total cost &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;time_distance&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;s&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&quot;&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;*****************************************************************************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;2
-        &lt;span class=&quot;k&quot;&gt;fi
-
-        &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;************************************  Split files  **************************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;split_obj_start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Split files&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# 1st, modify the $OLD_OBJECTS_FILE&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;## Delete the first line&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'1d'&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;## Replace the last line, change ']' to ','&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$s/]/,/'&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# 2nd, split file&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;## If enable version, each 4 line is one record&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;## If not enable version, each 3 line is one record&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;split_no&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;1000
-        &lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;$((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$no_of_obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}))&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;suffix_length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${#&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;paged_file_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;-page-&quot;&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# echo -e &quot;----  file_no : ${file_no}&quot; | tee -a ${LOG}&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# echo -e &quot;----  ${no_of_obj},${split_no}&quot; | tee -a ${LOG}&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name} &amp;amp;&amp;amp; ls | grep ${paged_file_name} | xargs -n1 -i mv {} {}.json&lt;/span&gt;
-
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;version_flag&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'disable'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then 
-            &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;split&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-l&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;NO_VERSION_SPLIT_NUMBER&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;suffix_length&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;paged_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;else
-            &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;split&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-l&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;VERSION_SPLIT_NUMBER&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$OLD_OBJECTS_FILE&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;suffix_length&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;paged_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# 3rd, rename file, e.g: Change name from Veeam-page-75 to Veeam-page-75.json, $3 is 75 in example&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# ls | grep Veeam-page- | awk -F &quot;-&quot; '{d=sprintf(&quot;%d&quot; ,$3);system(&quot;mv &quot;$0&quot; Veeam-page-&quot;d&quot;.json&quot;)}'&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;ls&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;grep&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;paged_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;awk&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-F&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;-&quot;&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'{d=sprintf(&quot;%d&quot; ,$3);system(&quot;mv &quot;$0&quot; '&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;paged_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'&quot;d&quot;.json&quot;)}'&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# 4th, modify each split file&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;## First line add content of '{&quot;Objects&quot;:['&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;## Last line replace ',' to '], &quot;Quiet&quot;:true}'&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i&amp;lt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$file_no&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i++&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;do
-            &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;src_file_name&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;paged_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$i&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;.json&quot;&lt;/span&gt;
-            &lt;span class=&quot;nb&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'1i{&quot;Objects&quot;:['&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;src_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;  &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;no_of_obj&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-le&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then&lt;/span&gt;  &lt;span class=&quot;c&quot;&gt;# Only one or two files need to split&lt;/span&gt;
-                &lt;span class=&quot;c&quot;&gt;# sed -i '$s/,/], &quot;Quiet&quot;:true}/' ${src_file_name}&lt;/span&gt;
-                &lt;span class=&quot;nb&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$a\], &quot;Quiet&quot;:true}'&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;src_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-            &lt;span class=&quot;k&quot;&gt;else
-                if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;$file_no&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;then
-                    &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$s/},/}\n], &quot;Quiet&quot;:true}/'&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;src_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-                &lt;span class=&quot;k&quot;&gt;else
-                    &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sed&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-i&lt;/span&gt; &lt;span class=&quot;s1&quot;&gt;'$s/,/], &quot;Quiet&quot;:true}/'&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;src_file_name&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-                &lt;span class=&quot;k&quot;&gt;fi
-            fi
-        done
-
-        &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_obj_end_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;split_obj_time_distance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt; - &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Split json file cost &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;split_obj_time_distance&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;s&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;***********************************  Delete Objects *************************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;del_obj_start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Delete Objects&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;page_file_prefix&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$current_prefix&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;-page&quot;&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  1000 records per pickup file, which will be delete from &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; file(s)&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-
-        &lt;span class=&quot;c&quot;&gt;# If file_no is too large, needs to be split into multiple tasks to be executed sequentially,&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# avoiding too much system resource usage due to simultaneous initiation&lt;/span&gt;
-        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-gt&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TASK_NO&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;then
-           &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;loop_times&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; / &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TASK_NO&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
-           &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[DEBUG]  Total loop times : &lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;loop_times&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; + 1&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-           &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i&amp;lt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;loop_times&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i++&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-           &lt;span class=&quot;k&quot;&gt;do
-               &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;_start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TASK_NO&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
-               &lt;span class=&quot;nv&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;_start&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; + 1&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
-               &lt;span class=&quot;nv&quot;&gt;multiplier&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; + 1&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
-               &lt;span class=&quot;nv&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;TASK_NO&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;se&quot;&gt;\*&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;multiplier&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt;
-               &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;[[&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-ge&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;]]&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;then 
-                   &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;file_no&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-               &lt;span class=&quot;k&quot;&gt;fi
-               &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[DEBUG]  Loop time : &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;, delete from &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; to &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-               &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;start&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;j&amp;lt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;end&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;j++&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-               &lt;span class=&quot;k&quot;&gt;do
-                   &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;aws s3api delete-objects --bucket &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$BUCKET&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --delete file://&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;page_file_prefix&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;j&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;.json --endpoint-url=http://localhost&quot;&lt;/span&gt;
-                   &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cmd&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-                   &lt;span class=&quot;nb&quot;&gt;eval&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cmd&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &amp;amp;
-               &lt;span class=&quot;k&quot;&gt;done
-               &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;wait
-           &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;done
+function empty_bucket()
+{
+    version_tag=`aws s3api get-bucket-versioning --bucket ${BUCKET} --endpoint-url=http://localhost`
+    flag=`echo $?`
+    if [[ ${version_tag} =~ 'Enabled' ]];then
+        version_flag='enable'
+    else
+        if [[ ${flag} -eq 0 ]]; then
+            version_flag='disable'
         else
-           for&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i&amp;lt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$file_no&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i++&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-           &lt;span class=&quot;k&quot;&gt;do
-               &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;aws s3api delete-objects --bucket &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$BUCKET&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; --delete file://&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;page_file_prefix&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;.json --endpoint-url=http://localhost&quot;&lt;/span&gt;
-               &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cmd&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-               &lt;span class=&quot;nb&quot;&gt;eval&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$cmd&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt; &amp;amp;
-           &lt;span class=&quot;k&quot;&gt;done
-           &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;wait
-        &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;fi
+            echo &quot;&quot;
+            echo -e &quot;[ERROR]  Reason:\n
+    1. No aws credentials, please type 'aws configure' to config \n
+    2. Configed aws credentials, but not match the S3 AKEY/SKEY \n
+    3. Bucket : [${BUCKET}] not exist \n&quot;
 
-        &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_end_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;del_obj_time_distance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;expr&lt;/span&gt; &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;)&lt;/span&gt; - &lt;span class=&quot;si&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; +%s &lt;span class=&quot;nt&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_start_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;si&quot;&gt;))&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_end_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  Delete Objects cost &lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;del_obj_time_distance&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;s&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+            exit 1
+        fi
+    fi
 
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;***************************************  ceph df ****************************************&quot;&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        &lt;span class=&quot;c&quot;&gt;# Get output of 'ceph df' again&lt;/span&gt;
-        &lt;span class=&quot;nv&quot;&gt;cur_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
-        &lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-e&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;[&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;cur_time&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;]  ceph df:&quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-        ceph &lt;span class=&quot;nb&quot;&gt;df&lt;/span&gt; | &lt;span class=&quot;nb&quot;&gt;tee&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-a&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;LOG&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt; &amp;lt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PREFIXES_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;else
-    &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$PREFIXES_FILE&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt; does not exist.&quot;&lt;/span&gt;
-    &lt;span class=&quot;nb&quot;&gt;exit &lt;/span&gt;1
-&lt;span class=&quot;k&quot;&gt;fi&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    if [[ -f &quot;$PREFIXES_FILE&quot; ]]; then
+        while read -r current_prefix
+        do
+            printf '***** This script will to delete objects which PREFIX is %s *****\n' &quot;$current_prefix&quot;
+
+            OLD_OBJECTS_FILE=&quot;$current_prefix-all.json&quot;
+
+            if [ -f &quot;$OLD_OBJECTS_FILE&quot; ]; then
+                printf 'Deleted %s...\n' &quot;$OLD_OBJECTS_FILE&quot;
+
+                rm &quot;$OLD_OBJECTS_FILE&quot;
+                rm -rf $current_prefix-page-*.json
+            fi
+
+            echo -e &quot;*****************************************************************************************&quot; | tee -a ${LOG}
+            # At first, get output of 'ceph df'
+            cur_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            echo -e &quot;[${cur_time}]  ceph df:&quot; &amp;gt;&amp;gt; ${LOG}
+            ceph df | tee -a ${LOG}
+
+            echo -e &quot;*********************************  Generate Objects file  *******************************&quot; | tee -a ${LOG}
+            gen_obj_start_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            echo -e &quot;[${gen_obj_start_time}]  Generate Objects file&quot; &amp;gt;&amp;gt; ${LOG}
+
+            if [[ ${version_flag} == 'disable' ]]; then
+               # cmd=&quot;aws s3api list-object-versions --endpoint-url=http://localhost --bucket \&quot;$BUCKET\&quot; --prefix \&quot;$current_prefix/\&quot; --page-size 1000 --max-items ${MAX_ITEMS} --query \&quot;[Versions][].{Key: Key}\&quot; &amp;gt;&amp;gt; $OLD_OBJECTS_FILE&quot;
+               cmd=&quot;aws s3api list-object-versions --endpoint-url=http://localhost --bucket \&quot;$BUCKET\&quot; --prefix \&quot;$current_prefix\&quot; --page-size 1000 --max-items ${MAX_ITEMS} --query \&quot;[Versions][].{Key: Key}\&quot; &amp;gt;&amp;gt; $OLD_OBJECTS_FILE&quot;
+            else
+               # cmd=&quot;aws s3api list-object-versions --endpoint-url=http://localhost --bucket \&quot;$BUCKET\&quot; --prefix \&quot;$current_prefix/\&quot; --page-size 1000 --max-items ${MAX_ITEMS} --query \&quot;[Versions,DeleteMarkers][].{Key: Key, VersionId: VersionId}\&quot;  &amp;gt;&amp;gt; $OLD_OBJECTS_FILE&quot;
+               cmd=&quot;aws s3api list-object-versions --endpoint-url=http://localhost --bucket \&quot;$BUCKET\&quot; --prefix \&quot;$current_prefix\&quot; --page-size 1000 --max-items ${MAX_ITEMS} --query \&quot;[Versions,DeleteMarkers][].{Key: Key, VersionId: VersionId}\&quot;  &amp;gt;&amp;gt; $OLD_OBJECTS_FILE&quot;
+            fi
+
+            echo -e &quot;$cmd&quot; | tee -a ${LOG}
+            eval &quot;$cmd&quot;
+            gen_obj_end_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            gen_obj_time_distance=$(expr $(date +%s -d &quot;${gen_obj_end_time}&quot;) - $(date +%s -d &quot;${gen_obj_start_time}&quot;))
+            echo -e &quot;[${gen_obj_end_time}]  Generate $OLD_OBJECTS_FILE cost ${gen_obj_time_distance}s&quot; | tee -a ${LOG}
+
+            no_of_obj=$(cat &quot;$OLD_OBJECTS_FILE&quot; | jq 'length')
+            if [[ &quot;$no_of_obj&quot; = &quot;&quot; ]]; then
+                no_of_obj=0
+            fi
+
+            # Get old version Objects
+            echo -e &quot;[${gen_obj_end_time}]  Matched objects versions count : $no_of_obj to delete&quot; | tee -a ${LOG}
+
+            # If $OLD_OBJECTS_FILE, means no need to generate again, exit
+            if [[ ${no_of_obj} -eq 0 ]]; then
+                echo -e &quot;[WARN]  Matched (${no_of_obj}) object to delete, exit!!!&quot;
+                echo &quot;&quot;
+
+                end_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+                time_distance=$(expr $(date +%s -d &quot;${end_time}&quot;) - $(date +%s -d &quot;${start_time}&quot;))
+
+                echo -e &quot;*********************************  Calc total cost time *********************************&quot; | tee -a ${LOG}
+                echo -e &quot;[${end_time}]  Total cost ${time_distance}s&quot; | tee -a ${LOG}
+                echo &quot;&quot;
+                echo -e &quot;*****************************************************************************************&quot; | tee -a ${LOG}
+                exit 2
+            fi
+
+            echo -e &quot;************************************  Split files  **************************************&quot; | tee -a ${LOG}
+            split_obj_start_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            echo -e &quot;[${split_obj_start_time}]  Split files&quot; &amp;gt;&amp;gt; ${LOG}
+
+            cp $OLD_OBJECTS_FILE ${OLD_OBJECTS_FILE}_bak
+            # 1st, modify the $OLD_OBJECTS_FILE
+            ## Delete the first line
+            sed -i '1d' $OLD_OBJECTS_FILE
+            ## Replace the last line, change ']' to ','
+            sed -i '$s/]/,/' $OLD_OBJECTS_FILE
+
+            # 2nd, split file
+            ## If enable version, each 4 line is one record
+            ## If not enable version, each 3 line is one record
+            split_no=1000
+            file_no=$(($no_of_obj/${split_no}))
+            previous_file_no=$((${file_no} - 1))
+            suffix_length=${#file_no} # penultimate file, appending '], &quot;Quiet&quot;:true}' to the end
+            paged_file_name=&quot;$current_prefix-page-&quot;
+
+            # split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name} &amp;amp;&amp;amp; ls | grep ${paged_file_name} | xargs -n1 -i mv {} {}.json
+
+            if [[ ${version_flag} == 'disable' ]]; then 
+                split -l ${NO_VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
+            else
+                split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
+            fi
+
+            # 3rd, rename file, e.g: Change name from Veeam-page-75 to Veeam-page-75.json, $3 is 75 in example
+            # ls | grep Veeam-page- | awk -F &quot;-&quot; '{d=sprintf(&quot;%d&quot; ,$3);system(&quot;mv &quot;$0&quot; Veeam-page-&quot;d&quot;.json&quot;)}'
+            ls | grep ${paged_file_name} | awk -F &quot;-&quot; '{d=sprintf(&quot;%d&quot; ,$3);system(&quot;mv &quot;$0&quot; '${paged_file_name}'&quot;d&quot;.json&quot;)}'
+
+            # 4th, modify each split file
+            ## First line add content of '{&quot;Objects&quot;:['
+            ## Last line replace ',' to '], &quot;Quiet&quot;:true}'
+            for((i=0;i&amp;lt;=$file_no;i++))
+            do
+                src_file_name=&quot;${paged_file_name}$i.json&quot;
+                sed -i '1i{&quot;Objects&quot;:[' ${src_file_name}
+                if  [[ ${no_of_obj} -eq ${split_no} ]]; then  # Only one file need to split
+                    # Last end of file, add ',/], &quot;Quiet&quot;:true}' to file, the ',' is in next page file, just break
+                    sed -i '$a\], &quot;Quiet&quot;:true}' ${src_file_name}
+                    # Just echo content to the next file, because it only has ',' in
+                    echo &quot;{\&quot;Objects\&quot;:[], \&quot;Quiet\&quot;:true}&quot; &amp;gt; ${paged_file_name}1.json
+                    break
+                else
+                    if [[ $i != $file_no ]]; then
+                        if [[ ${i} -eq ${previous_file_no} ]];then
+                            sed -i '$a\], &quot;Quiet&quot;:true}' ${src_file_name}  # penultimate file, appending '], &quot;Quiet&quot;:true}' to the end
+                        else
+                            sed -i '$s/},/}\n], &quot;Quiet&quot;:true}/' ${src_file_name}
+                        fi
+                    else
+                        sed -i '$s/,/], &quot;Quiet&quot;:true}/' ${src_file_name}
+                    fi
+                fi
+            done
+
+            split_obj_end_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            split_obj_time_distance=$(expr $(date +%s -d &quot;${split_obj_end_time}&quot;) - $(date +%s -d &quot;${split_obj_start_time}&quot;))
+            echo -e &quot;[${split_obj_end_time}]  Split json file cost ${split_obj_time_distance}s&quot; | tee -a ${LOG}
+
+            echo -e &quot;***********************************  Delete Objects *************************************&quot; | tee -a ${LOG}
+            del_obj_start_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            echo -e &quot;[${del_obj_start_time}]  Delete Objects&quot; &amp;gt;&amp;gt; ${LOG}
+            page_file_prefix=&quot;$current_prefix-page&quot;
+            echo -e &quot;[${del_obj_start_time}]  1000 records per pickup file, which will be delete from ${file_no} file(s)&quot; | tee -a ${LOG}
+
+            # If file_no is too large, needs to be split into multiple tasks to be executed sequentially,
+            # avoiding too much system resource usage due to simultaneous initiation
+            if [[ ${file_no} -gt ${TASK_NO} ]];then
+               loop_times=$(expr ${file_no} / ${TASK_NO})
+               echo -e &quot;[DEBUG]  Total loop times : $(expr ${loop_times} + 1)&quot; &amp;gt;&amp;gt; ${LOG}
+               for((i=0;i&amp;lt;=${loop_times};i++))
+               do
+                   _start=$(expr ${TASK_NO} \* ${i})
+                   start=$(expr ${_start} + 1)
+                   multiplier=$(expr ${i} + 1)
+                   end=$(expr ${TASK_NO} \* ${multiplier})
+                   if [[ ${end} -ge ${file_no} ]];then 
+                       end=${file_no}
+                   fi
+                   echo -e &quot;[DEBUG]  Loop time : ${i}, delete from ${start} to ${end}&quot; &amp;gt;&amp;gt; ${LOG}
+                   for((j=${start};j&amp;lt;=${end};j++))
+                   do
+                       cmd=&quot;aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${j}.json --endpoint-url=http://localhost&quot;
+                       echo &quot;$cmd&quot; &amp;gt;&amp;gt; ${LOG}
+                       eval &quot;$cmd&quot; &amp;amp;
+                   done
+                   wait
+               done
+            else
+               for((i=0;i&amp;lt;=$file_no;i++))
+               do
+                   cmd=&quot;aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${i}.json --endpoint-url=http://localhost&quot;
+                   echo &quot;$cmd&quot; &amp;gt;&amp;gt; ${LOG}
+                   eval &quot;$cmd&quot; &amp;amp;
+               done
+               wait
+            fi
+
+            del_obj_end_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            del_obj_time_distance=$(expr $(date +%s -d &quot;${del_obj_end_time}&quot;) - $(date +%s -d &quot;${del_obj_start_time}&quot;))
+            echo -e &quot;[${del_obj_end_time}]  Delete Objects cost ${del_obj_time_distance}s&quot; | tee -a ${LOG}
+
+            echo -e &quot;***************************************  ceph df ****************************************&quot; | tee -a ${LOG}
+            # Get output of 'ceph df' again
+            cur_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
+            echo -e &quot;[${cur_time}]  ceph df:&quot; &amp;gt;&amp;gt; ${LOG}
+            ceph df | tee -a ${LOG}
+        done &amp;lt; &quot;$PREFIXES_FILE&quot;
+    else
+        echo &quot;$PREFIXES_FILE does not exist.&quot;
+        exit 1
+    fi
+}
 
 
-&lt;span class=&quot;k&quot;&gt;function &lt;/span&gt;loop_delete&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;
-    &lt;span class=&quot;nv&quot;&gt;start_time&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;date&lt;/span&gt; &lt;span class=&quot;s2&quot;&gt;&quot;+%G-%m-%d %H:%M:%S&quot;&lt;/span&gt;&lt;span class=&quot;sb&quot;&gt;`&lt;/span&gt;
+function loop_delete()
+{
+    start_time=`date &quot;+%G-%m-%d %H:%M:%S&quot;`
 
-    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;0&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i&amp;lt;100000&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;i++&lt;span class=&quot;o&quot;&gt;))&lt;/span&gt;
-    &lt;span class=&quot;k&quot;&gt;do
-       &lt;/span&gt;empty_bucket
-    &lt;span class=&quot;k&quot;&gt;done&lt;/span&gt;
-&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    # Don't worry about the huge number of loops here, there is an exit mechanism in the called function
+    for((i=0;i&amp;lt;100000;i++))
+    do
+       empty_bucket
+    done
+}
 
 
-&lt;span class=&quot;c&quot;&gt;# Action&lt;/span&gt;
+# Usage
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+# Should install jq first
+check_jq
+
+# Action
 loop_delete
 
 &lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;

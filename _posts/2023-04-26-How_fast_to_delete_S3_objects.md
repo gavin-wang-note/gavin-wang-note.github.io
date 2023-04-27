@@ -279,22 +279,15 @@ Type "help", "copyright", "credits" or "license" for more information.
 | 删除的数据量    | 删除的Objects数   | Bucket是否启用Version |  耗时      |  删除速度        |
 | ------- | ------------------------- | ----------------------| ---------- | ---------------- |
 | From 726GiB to 16.2GiB | From 297854 to 3323 | No | 167s | 4.25GiB/s; 1763 Objects/s |
-| From 734GiB to 1.38GiB | From 597759 to 541  | Yes | 314s (-10s) | 2.33 GiB/s; 1901 Objects/s|
+| From 734GiB to 1.38GiB | From 597759 to 541  | Yes | 314s | 2.33 GiB/s; 1901 Objects/s|
 | From 8.83TiB to 73.5GiB | From 7784745 to 119043 | Yes |  3673s | 2.442GiB/s; 2087.04 Objects/s |
-
-
-
-说明：
-
-* 整个清理过程中，对于最后恰巧要处理的记录为1000笔，script在sed page-0.json文件上有瑕疵，10s左右会超时，导致额外浪费了10s时间（不影响删除效果，Script就不修改了）
-
 
 
 # Script 内容
 
 ## prefix.txt文件说明
 
-prefixes.txt，这个文件要存在，里面记录被删除Object的前缀，如果有多个前缀，每行一个前缀记录，参考如下：
+prefixes.txt，这个文件要存在，里面记录被删除Object的前缀(是目录哦，如果文件直接放在顶层Bucket下，需要修改脚本中 "aws s3api list-object-version" 动作里的 '--prefix \"$current_prefix/\"' 变更成 '--prefix \"$current_prefix\"')，如果有多个前缀，每行一个前缀记录，参考如下：
 
 单个prefix信息：
 e.g:
@@ -319,204 +312,270 @@ root@node161:~#
 ## Script 内容
 
 {% raw %}```
-#!/bin/sh
+root@node244:~# cat empty_bucket_v1.3.sh 
+#!/bin/bash
 
 LOG="del.log"
 TASK_NO=100        # Maximum deletion concurrency allowed
 MAX_ITEMS=50000    # List-version fetches the maximum number of records at a time
-BUCKET="bucket01"
+BUCKET=$1
 VERSION_SPLIT_NUMBER=4000  # One complete record every 4 line for query out if bucket enable version, i.e. 1000 Objects
 NO_VERSION_SPLIT_NUMBER=3000  # One complete record every 3 line for query out if bucket not enable version, i.e. 1000 Objects
 PREFIXES_FILE="prefixes.txt"  # If has many preifix, each line one record
 
 
-function empty_bucket(){
-version_tag=`aws s3api get-bucket-versioning --bucket ${BUCKET} --endpoint-url=http://localhost`
-if [[ ${version_tag} =~ 'Enabled' ]];then
-    version_flag='enable'
-else
-    version_flag='disable'
-fi
+function usage()
+{
+   echo -e "*****************************************"
+   echo "usae: $0 BUCKET_NAME"
+   echo -e ""
+   echo "  e.g.: $0 bucket01"
+   echo -e ""
+   echo -e "*****************************************"
+   exit 1
+}
 
-if [ -f "$PREFIXES_FILE" ]; then
-    while read -r current_prefix
-    do
-        printf '***** This script will to delete objects which PREFIX is %s *****\n' "$current_prefix"
 
-        OLD_OBJECTS_FILE="$current_prefix-all.json"
+function check_jq()
+{
+    os_type=`hostnamectl | grep 'Operating System'`
+    if [[ ${os_type} =~ 'Ubuntu' ]]; then
+        grep_res=`dpkg -l | grep -w jq`
+        install_cmd="apt-get update;apt-get install jq -y"
+    else
+        grep_res=`rpm -qa | grep jq-`
+        install_cmd="yum install jq -y"
+    fi
 
-        if [ -f "$OLD_OBJECTS_FILE" ]; then
-            printf 'Deleted %s...\n' "$OLD_OBJECTS_FILE"
+    if [[ ${grep_res} =~ 'jq' ]]; then
+        echo
+    else
+        echo ""
+        echo -e "[ERROR]  Not install jq, please run '${install_cmd}' to installl it"
+        echo ""
+        exit 2
+    fi
+}
 
-            rm "$OLD_OBJECTS_FILE"
-            rm -rf $current_prefix-page-*.json
-        fi
 
-        echo -e "*****************************************************************************************" | tee -a ${LOG}
-        # At first, get output of 'ceph df'
-        cur_time=`date "+%G-%m-%d %H:%M:%S"`
-        echo -e "[${cur_time}]  ceph df:" >> ${LOG}
-        ceph df | tee -a ${LOG}
-
-        echo -e "*********************************  Generate Objects file  *******************************" | tee -a ${LOG}
-        gen_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
-        echo -e "[${gen_obj_start_time}]  Generate Objects file" >> ${LOG}
-
-        if [[ ${version_flag} == 'disable' ]]; then
-            cmd="aws s3api list-object-versions --endpoint-url=http://localhost --bucket \"$BUCKET\" --prefix \"$current_prefix/\" --page-size 1000 --max-items ${MAX_ITEMS} --query \"[Versions][].{Key: Key}\" >> $OLD_OBJECTS_FILE"
+function empty_bucket()
+{
+    version_tag=`aws s3api get-bucket-versioning --bucket ${BUCKET} --endpoint-url=http://localhost`
+    flag=`echo $?`
+    if [[ ${version_tag} =~ 'Enabled' ]];then
+        version_flag='enable'
+    else
+        if [[ ${flag} -eq 0 ]]; then
+            version_flag='disable'
         else
-            cmd="aws s3api list-object-versions --endpoint-url=http://localhost --bucket \"$BUCKET\" --prefix \"$current_prefix/\" --page-size 1000 --max-items ${MAX_ITEMS} --query \"[Versions,DeleteMarkers][].{Key: Key, VersionId: VersionId}\"  >> $OLD_OBJECTS_FILE"
-        fi
-
-        echo -e "$cmd" | tee -a ${LOG}
-        eval "$cmd"
-        gen_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
-        gen_obj_time_distance=$(expr $(date +%s -d "${gen_obj_end_time}") - $(date +%s -d "${gen_obj_start_time}"))
-        echo -e "[${gen_obj_end_time}]  Generate $OLD_OBJECTS_FILE cost ${gen_obj_time_distance}s" | tee -a ${LOG}
-
-        no_of_obj=$(cat "$OLD_OBJECTS_FILE" | jq 'length')
-        if [[ "$no_of_obj" = "" ]]; then
-            no_of_obj=0
-        fi
-
-        # Get old version Objects
-        echo -e "[${gen_obj_end_time}]  Matched objects versions count : $no_of_obj to delete" | tee -a ${LOG}
-
-        # If $OLD_OBJECTS_FILE, means no need to generate again, exit
-        if [[ ${no_of_obj} -eq 0 ]]; then
-            echo -e "[WARN]  Matched (${no_of_obj}) object to delete, exit!!!"
             echo ""
+            echo -e "[ERROR]  Reason:\n
+    1. No aws credentials, please type 'aws configure' to config \n
+    2. Configed aws credentials, but not match the S3 AKEY/SKEY \n
+    3. Bucket : [${BUCKET}] not exist \n"
 
-            end_time=`date "+%G-%m-%d %H:%M:%S"`
-            time_distance=$(expr $(date +%s -d "${end_time}") - $(date +%s -d "${start_time}"))
-
-            echo -e "*********************************  Calc total cost time *********************************" | tee -a ${LOG}
-            echo -e "[${end_time}]  Total cost ${time_distance}s" | tee -a ${LOG}
-            echo ""
-            echo -e "*****************************************************************************************" | tee -a ${LOG}
-            exit 2
+            exit 1
         fi
+    fi
 
-        echo -e "************************************  Split files  **************************************" | tee -a ${LOG}
-        split_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
-        echo -e "[${split_obj_start_time}]  Split files" >> ${LOG}
-
-        # 1st, modify the $OLD_OBJECTS_FILE
-        ## Delete the first line
-        sed -i '1d' $OLD_OBJECTS_FILE
-        ## Replace the last line, change ']' to ','
-        sed -i '$s/]/,/' $OLD_OBJECTS_FILE
-
-        # 2nd, split file
-        ## If enable version, each 4 line is one record
-        ## If not enable version, each 3 line is one record
-        split_no=1000
-        file_no=$(($no_of_obj/${split_no}))
-        suffix_length=${#file_no}
-        paged_file_name="$current_prefix-page-"
-
-        # echo -e "----  file_no : ${file_no}" | tee -a ${LOG}
-        # echo -e "----  ${no_of_obj},${split_no}" | tee -a ${LOG}
-        # split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name} && ls | grep ${paged_file_name} | xargs -n1 -i mv {} {}.json
-
-        if [[ ${version_flag} == 'disable' ]]; then 
-            split -l ${NO_VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
-        else
-            split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
-        fi
-
-        # 3rd, rename file, e.g: Change name from Veeam-page-75 to Veeam-page-75.json, $3 is 75 in example
-        # ls | grep Veeam-page- | awk -F "-" '{d=sprintf("%d" ,$3);system("mv "$0" Veeam-page-"d".json")}'
-        ls | grep ${paged_file_name} | awk -F "-" '{d=sprintf("%d" ,$3);system("mv "$0" '${paged_file_name}'"d".json")}'
-
-        # 4th, modify each split file
-        ## First line add content of '{"Objects":['
-        ## Last line replace ',' to '], "Quiet":true}'
-        for((i=0;i<=$file_no;i++))
+    if [[ -f "$PREFIXES_FILE" ]]; then
+        while read -r current_prefix
         do
-            src_file_name="${paged_file_name}$i.json"
-            sed -i '1i{"Objects":[' ${src_file_name}
-            if  [[ ${no_of_obj} -le ${split_no} ]]; then  # Only one or two files need to split
-                # sed -i '$s/,/], "Quiet":true}/' ${src_file_name}
-                sed -i '$a\], "Quiet":true}' ${src_file_name}
-            else
-                if [[ $i != $file_no ]]; then
-                    sed -i '$s/},/}\n], "Quiet":true}/' ${src_file_name}
-                else
-                    sed -i '$s/,/], "Quiet":true}/' ${src_file_name}
-                fi
+            printf '***** This script will to delete objects which PREFIX is %s *****\n' "$current_prefix"
+
+            OLD_OBJECTS_FILE="$current_prefix-all.json"
+
+            if [ -f "$OLD_OBJECTS_FILE" ]; then
+                printf 'Deleted %s...\n' "$OLD_OBJECTS_FILE"
+
+                rm "$OLD_OBJECTS_FILE"
+                rm -rf $current_prefix-page-*.json
             fi
-        done
 
-        split_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
-        split_obj_time_distance=$(expr $(date +%s -d "${split_obj_end_time}") - $(date +%s -d "${split_obj_start_time}"))
-        echo -e "[${split_obj_end_time}]  Split json file cost ${split_obj_time_distance}s" | tee -a ${LOG}
+            echo -e "*****************************************************************************************" | tee -a ${LOG}
+            # At first, get output of 'ceph df'
+            cur_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${cur_time}]  ceph df:" >> ${LOG}
+            ceph df | tee -a ${LOG}
 
-        echo -e "***********************************  Delete Objects *************************************" | tee -a ${LOG}
-        del_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
-        echo -e "[${del_obj_start_time}]  Delete Objects" >> ${LOG}
-        page_file_prefix="$current_prefix-page"
-        echo -e "[${del_obj_start_time}]  1000 records per pickup file, which will be delete from ${file_no} file(s)" | tee -a ${LOG}
+            echo -e "*********************************  Generate Objects file  *******************************" | tee -a ${LOG}
+            gen_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${gen_obj_start_time}]  Generate Objects file" >> ${LOG}
 
-        # If file_no is too large, needs to be split into multiple tasks to be executed sequentially,
-        # avoiding too much system resource usage due to simultaneous initiation
-        if [[ ${file_no} -gt ${TASK_NO} ]];then
-           loop_times=$(expr ${file_no} / ${TASK_NO})
-           echo -e "[DEBUG]  Total loop times : $(expr ${loop_times} + 1)" >> ${LOG}
-           for((i=0;i<=${loop_times};i++))
-           do
-               _start=$(expr ${TASK_NO} \* ${i})
-               start=$(expr ${_start} + 1)
-               multiplier=$(expr ${i} + 1)
-               end=$(expr ${TASK_NO} \* ${multiplier})
-               if [[ ${end} -ge ${file_no} ]];then 
-                   end=${file_no}
-               fi
-               echo -e "[DEBUG]  Loop time : ${i}, delete from ${start} to ${end}" >> ${LOG}
-               for((j=${start};j<=${end};j++))
+            if [[ ${version_flag} == 'disable' ]]; then
+               # cmd="aws s3api list-object-versions --endpoint-url=http://localhost --bucket \"$BUCKET\" --prefix \"$current_prefix/\" --page-size 1000 --max-items ${MAX_ITEMS} --query \"[Versions][].{Key: Key}\" >> $OLD_OBJECTS_FILE"
+               cmd="aws s3api list-object-versions --endpoint-url=http://localhost --bucket \"$BUCKET\" --prefix \"$current_prefix\" --page-size 1000 --max-items ${MAX_ITEMS} --query \"[Versions][].{Key: Key}\" >> $OLD_OBJECTS_FILE"
+            else
+               # cmd="aws s3api list-object-versions --endpoint-url=http://localhost --bucket \"$BUCKET\" --prefix \"$current_prefix/\" --page-size 1000 --max-items ${MAX_ITEMS} --query \"[Versions,DeleteMarkers][].{Key: Key, VersionId: VersionId}\"  >> $OLD_OBJECTS_FILE"
+               cmd="aws s3api list-object-versions --endpoint-url=http://localhost --bucket \"$BUCKET\" --prefix \"$current_prefix\" --page-size 1000 --max-items ${MAX_ITEMS} --query \"[Versions,DeleteMarkers][].{Key: Key, VersionId: VersionId}\"  >> $OLD_OBJECTS_FILE"
+            fi
+
+            echo -e "$cmd" | tee -a ${LOG}
+            eval "$cmd"
+            gen_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
+            gen_obj_time_distance=$(expr $(date +%s -d "${gen_obj_end_time}") - $(date +%s -d "${gen_obj_start_time}"))
+            echo -e "[${gen_obj_end_time}]  Generate $OLD_OBJECTS_FILE cost ${gen_obj_time_distance}s" | tee -a ${LOG}
+
+            no_of_obj=$(cat "$OLD_OBJECTS_FILE" | jq 'length')
+            if [[ "$no_of_obj" = "" ]]; then
+                no_of_obj=0
+            fi
+
+            # Get old version Objects
+            echo -e "[${gen_obj_end_time}]  Matched objects versions count : $no_of_obj to delete" | tee -a ${LOG}
+
+            # If $OLD_OBJECTS_FILE, means no need to generate again, exit
+            if [[ ${no_of_obj} -eq 0 ]]; then
+                echo -e "[WARN]  Matched (${no_of_obj}) object to delete, exit!!!"
+                echo ""
+
+                end_time=`date "+%G-%m-%d %H:%M:%S"`
+                time_distance=$(expr $(date +%s -d "${end_time}") - $(date +%s -d "${start_time}"))
+
+                echo -e "*********************************  Calc total cost time *********************************" | tee -a ${LOG}
+                echo -e "[${end_time}]  Total cost ${time_distance}s" | tee -a ${LOG}
+                echo ""
+                echo -e "*****************************************************************************************" | tee -a ${LOG}
+                exit 2
+            fi
+
+            echo -e "************************************  Split files  **************************************" | tee -a ${LOG}
+            split_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${split_obj_start_time}]  Split files" >> ${LOG}
+
+            cp $OLD_OBJECTS_FILE ${OLD_OBJECTS_FILE}_bak
+            # 1st, modify the $OLD_OBJECTS_FILE
+            ## Delete the first line
+            sed -i '1d' $OLD_OBJECTS_FILE
+            ## Replace the last line, change ']' to ','
+            sed -i '$s/]/,/' $OLD_OBJECTS_FILE
+
+            # 2nd, split file
+            ## If enable version, each 4 line is one record
+            ## If not enable version, each 3 line is one record
+            split_no=1000
+            file_no=$(($no_of_obj/${split_no}))
+            previous_file_no=$((${file_no} - 1))
+            suffix_length=${#file_no} # penultimate file, appending '], "Quiet":true}' to the end
+            paged_file_name="$current_prefix-page-"
+
+            # split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name} && ls | grep ${paged_file_name} | xargs -n1 -i mv {} {}.json
+
+            if [[ ${version_flag} == 'disable' ]]; then 
+                split -l ${NO_VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
+            else
+                split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
+            fi
+
+            # 3rd, rename file, e.g: Change name from Veeam-page-75 to Veeam-page-75.json, $3 is 75 in example
+            # ls | grep Veeam-page- | awk -F "-" '{d=sprintf("%d" ,$3);system("mv "$0" Veeam-page-"d".json")}'
+            ls | grep ${paged_file_name} | awk -F "-" '{d=sprintf("%d" ,$3);system("mv "$0" '${paged_file_name}'"d".json")}'
+
+            # 4th, modify each split file
+            ## First line add content of '{"Objects":['
+            ## Last line replace ',' to '], "Quiet":true}'
+            for((i=0;i<=$file_no;i++))
+            do
+                src_file_name="${paged_file_name}$i.json"
+                sed -i '1i{"Objects":[' ${src_file_name}
+                if  [[ ${no_of_obj} -eq ${split_no} ]]; then  # Only one file need to split
+                    # Last end of file, add ',/], "Quiet":true}' to file, the ',' is in next page file, just break
+                    sed -i '$a\], "Quiet":true}' ${src_file_name}
+                    # Just echo content to the next file, because it only has ',' in
+                    echo "{\"Objects\":[], \"Quiet\":true}" > ${paged_file_name}1.json
+                    break
+                else
+                    if [[ $i != $file_no ]]; then
+                        if [[ ${i} -eq ${previous_file_no} ]];then
+                            sed -i '$a\], "Quiet":true}' ${src_file_name}  # penultimate file, appending '], "Quiet":true}' to the end
+                        else
+                            sed -i '$s/},/}\n], "Quiet":true}/' ${src_file_name}
+                        fi
+                    else
+                        sed -i '$s/,/], "Quiet":true}/' ${src_file_name}
+                    fi
+                fi
+            done
+
+            split_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
+            split_obj_time_distance=$(expr $(date +%s -d "${split_obj_end_time}") - $(date +%s -d "${split_obj_start_time}"))
+            echo -e "[${split_obj_end_time}]  Split json file cost ${split_obj_time_distance}s" | tee -a ${LOG}
+
+            echo -e "***********************************  Delete Objects *************************************" | tee -a ${LOG}
+            del_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${del_obj_start_time}]  Delete Objects" >> ${LOG}
+            page_file_prefix="$current_prefix-page"
+            echo -e "[${del_obj_start_time}]  1000 records per pickup file, which will be delete from ${file_no} file(s)" | tee -a ${LOG}
+
+            # If file_no is too large, needs to be split into multiple tasks to be executed sequentially,
+            # avoiding too much system resource usage due to simultaneous initiation
+            if [[ ${file_no} -gt ${TASK_NO} ]];then
+               loop_times=$(expr ${file_no} / ${TASK_NO})
+               echo -e "[DEBUG]  Total loop times : $(expr ${loop_times} + 1)" >> ${LOG}
+               for((i=0;i<=${loop_times};i++))
                do
-                   cmd="aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${j}.json --endpoint-url=http://localhost"
+                   _start=$(expr ${TASK_NO} \* ${i})
+                   start=$(expr ${_start} + 1)
+                   multiplier=$(expr ${i} + 1)
+                   end=$(expr ${TASK_NO} \* ${multiplier})
+                   if [[ ${end} -ge ${file_no} ]];then 
+                       end=${file_no}
+                   fi
+                   echo -e "[DEBUG]  Loop time : ${i}, delete from ${start} to ${end}" >> ${LOG}
+                   for((j=${start};j<=${end};j++))
+                   do
+                       cmd="aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${j}.json --endpoint-url=http://localhost"
+                       echo "$cmd" >> ${LOG}
+                       eval "$cmd" &
+                   done
+                   wait
+               done
+            else
+               for((i=0;i<=$file_no;i++))
+               do
+                   cmd="aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${i}.json --endpoint-url=http://localhost"
                    echo "$cmd" >> ${LOG}
                    eval "$cmd" &
                done
                wait
-           done
-        else
-           for((i=0;i<=$file_no;i++))
-           do
-               cmd="aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${i}.json --endpoint-url=http://localhost"
-               echo "$cmd" >> ${LOG}
-               eval "$cmd" &
-           done
-           wait
-        fi
+            fi
 
-        del_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
-        del_obj_time_distance=$(expr $(date +%s -d "${del_obj_end_time}") - $(date +%s -d "${del_obj_start_time}"))
-        echo -e "[${del_obj_end_time}]  Delete Objects cost ${del_obj_time_distance}s" | tee -a ${LOG}
+            del_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
+            del_obj_time_distance=$(expr $(date +%s -d "${del_obj_end_time}") - $(date +%s -d "${del_obj_start_time}"))
+            echo -e "[${del_obj_end_time}]  Delete Objects cost ${del_obj_time_distance}s" | tee -a ${LOG}
 
-        echo -e "***************************************  ceph df ****************************************" | tee -a ${LOG}
-        # Get output of 'ceph df' again
-        cur_time=`date "+%G-%m-%d %H:%M:%S"`
-        echo -e "[${cur_time}]  ceph df:" >> ${LOG}
-        ceph df | tee -a ${LOG}
-    done < "$PREFIXES_FILE"
-else
-    echo "$PREFIXES_FILE does not exist."
-    exit 1
-fi
+            echo -e "***************************************  ceph df ****************************************" | tee -a ${LOG}
+            # Get output of 'ceph df' again
+            cur_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${cur_time}]  ceph df:" >> ${LOG}
+            ceph df | tee -a ${LOG}
+        done < "$PREFIXES_FILE"
+    else
+        echo "$PREFIXES_FILE does not exist."
+        exit 1
+    fi
 }
 
 
-function loop_delete(){
+function loop_delete()
+{
     start_time=`date "+%G-%m-%d %H:%M:%S"`
 
+    # Don't worry about the huge number of loops here, there is an exit mechanism in the called function
     for((i=0;i<100000;i++))
     do
        empty_bucket
     done
 }
 
+
+# Usage
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+# Should install jq first
+check_jq
 
 # Action
 loop_delete
