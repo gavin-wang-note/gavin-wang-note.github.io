@@ -207,6 +207,156 @@ root@node161:~#
 尝试了VM以及Phsical Machine，多轮次测试验证，脚本删除的效果并不佳.
 
 
-本文，参考：
+
+
+# 改版(2024-04-28)
+
+{% raw %}```
+#!/bin/bash
+
+LOG="del.log"
+TASK_NO=100
+POOL_NAME=$1
+RBD_IMAGE_NAME=$2
+DEL_OBJECT="rbd_del_objects"
+PAGED_FILE_NAME='del-object-page-'
+
+
+function usage()
+{
+   echo -e "*****************************************"
+   echo "usae: $0 POOL_NAME IMAGE_NAME"
+   echo -e ""
+   echo "  e.g.: $0 rbd fad9f42b-a255-4871-8515-38b96e8e4fa2.img"
+   echo -e ""
+   echo -e "*****************************************"
+   exit 1
+}
+
+
+function env_check()
+{
+    rbd_info=`rbd info $1/$2`
+    if [[ -z ${rbd_info} ]]; then
+        echo ""
+        echo "[ERROR]  POOL ($1) or Image ($2) not found, eixt!!"
+        echo ""
+        exit 2
+    fi
+}
+
+
+function get_delete_object()
+{
+   start_time=`date "+%G-%m-%d %H:%M:%S"`
+
+   block_name_prefix=`rbd info $1/$2 | grep block_name_prefix | awk '{{print $NF}}'`
+   rados -p $1 ls | grep ${block_name_prefix} > ${DEL_OBJECT}
+
+   end_time=`date "+%G-%m-%d %H:%M:%S"`
+   time_distance=$(expr $(date +%s -d "${end_time}") - $(date +%s -d "${start_time}"))
+   echo -e "[${end_time}]  Generate ${DEL_OBJECT} cost ${time_distance}s" | tee -a ${LOG}
+}
+
+
+function clean_objects()
+{
+    del_no=`cat ${DEL_OBJECT} | wc -l`
+    if [[ $del_no -eq 1 ]]; then
+        echo ""
+        echo "[ERROR]  No record to delete, exit!!!" 
+        echo ""
+        exit 3
+    fi
+
+    rm -rf ${PAGED_FILE_NAME}*
+
+    split_no=1000
+    file_no=$(($del_no/${split_no}))
+    suffix_length=${#file_no}
+    PAGED_FILE_NAME="del-object-page-"
+
+
+    split_start_time=`date "+%G-%m-%d %H:%M:%S"`
+    echo -e "[${end_time}]  Generate ${DEL_OBJECT} cost ${time_distance}s" | tee -a ${LOG}
+
+    # Each file has 1000 lines
+    split -l 1000 $DEL_OBJECT -d -a ${suffix_length} ${PAGED_FILE_NAME}
+    ls | grep ${PAGED_FILE_NAME} | awk -F "-" '{d=sprintf("%d" ,$4);system("mv "$0" '${PAGED_FILE_NAME}'"d".txt")}'
+
+    split_end_time=`date "+%G-%m-%d %H:%M:%S"`
+    split_time_distance=$(expr $(date +%s -d "${split_end_time}") - $(date +%s -d "${split_start_time}"))
+    echo -e "[${split_end_time}]  Split ${file_no} file(s) cost ${split_time_distance}s" | tee -a ${LOG}
+
+    echo -e "***************************************  ceph df ****************************************" | tee -a ${LOG}
+    # Get output of 'ceph df' again
+    cur_time=`date "+%G-%m-%d %H:%M:%S"`
+    echo -e "[${cur_time}]  ceph df:" >> ${LOG}
+    ceph df | tee -a ${LOG}
+    echo "" >> ${LOG}
+
+    echo -e "***********************************  Delete Objects *************************************" | tee -a ${LOG}
+
+    del_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
+    echo -e "[${del_obj_start_time}]  Delete Objects" >> ${LOG}
+    echo -e "[${del_obj_start_time}]  1000 records per pickup file, which will be delete from ${file_no} file(s)" | tee -a ${LOG}
+
+    if [[ ${file_no} -gt ${TASK_NO} ]];then
+       loop_times=$(expr ${file_no} / ${TASK_NO})
+       echo -e "[DEBUG]  Total loop times : $(expr ${loop_times} + 1)" >> ${LOG}
+       for((i=0;i<=${loop_times};i++))
+       do
+           _start=$(expr ${TASK_NO} \* ${i})
+           start=$(expr ${_start} + 1)
+           multiplier=$(expr ${i} + 1)
+           end=$(expr ${TASK_NO} \* ${multiplier})
+
+           if [[ ${end} -ge ${file_no} ]];then
+               end=${file_no}
+           fi
+           echo -e "[DEBUG]  Loop time : ${i}, delete from ${start} to ${end}" >> ${LOG}
+           for((j=${start};j<=${end};j++))
+           do
+               cmd="cat ${PAGED_FILE_NAME}${j}.txt | xargs -I{} -P 10 rados -p rbd rm {}"
+               echo "$cmd" >> ${LOG}
+               eval "$cmd" &
+           done
+           wait
+       done
+    else
+       for((i=0;i<=$file_no;i++))
+       do
+           cmd="cat ${PAGED_FILE_NAME}${i}.txt | xargs -I{} -P 10 rados -p rbd rm {}"
+           echo "$cmd" >> ${LOG}
+           eval "$cmd" &
+       done
+       wait
+    fi
+
+    del_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
+    del_obj_time_distance=$(expr $(date +%s -d "${del_obj_end_time}") - $(date +%s -d "${del_obj_start_time}"))
+    echo -e "[${del_obj_end_time}]  Delete Objects cost ${del_obj_time_distance}s" | tee -a ${LOG}
+
+    echo -e "***************************************  ceph df ****************************************" | tee -a ${LOG}
+    # Get output of 'ceph df' again
+    cur_time=`date "+%G-%m-%d %H:%M:%S"`
+    echo -e "[${cur_time}]  ceph df:" >> ${LOG}
+    ceph df | tee -a ${LOG}
+}
+
+
+# Usage
+if [[ $# -lt 2 ]]; then
+    usage
+fi
+
+env_check $1 $2
+get_delete_object $1 $2
+clean_objects
+``` {% endraw %}
+
+
+本文参考：
+
 ``` https://www.cnblogs.com/zphj1987/p/13575449.html ```
 
