@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      "评测USB速度"
-subtitle:   "USB Version? in server"
+title:      "评测USB接口速度"
+subtitle:   "How to get USB speed"
 date:       2023-04-28
 author:     "Gavin"
 catalog:    true
