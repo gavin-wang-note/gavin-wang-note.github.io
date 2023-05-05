@@ -6,7 +6,9 @@ date:       2023-03-08
 author:     "Gavin"
 catalog:    true
 tags:
-    - jenkins
+    - Jenkins
+    - CI
+    - Automation 
 ---
 
 # 概述
