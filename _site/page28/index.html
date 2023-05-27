@@ -202,6 +202,12 @@
                     
                     
                     
+                    
+                    
+                    
+                    
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -303,170 +309,202 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2017/02/06/EXT4-FS-fix/">
+    <a href="/2018/03/02/security_of_memcache/">
         <h2 class="post-title">
-            EXT4修复FS error
+            记一次memcache安全漏洞修复记录
         </h2>
         
         <h3 class="post-subtitle">
-            Fix EXT4 FS error
+            security of memcache
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-早起产品因为没有很多的控制cache flush策略，导致服务器掉电后，有比较高的概率出现EXT4 FS error，本文介绍借助 e2fsck 如何修复这部分错误。
+分布式高速缓存系统Memcache存在高危安全漏洞，攻击者可利用该漏洞实施分布式反射拒绝服务（DRDoS）攻击。恶意攻击者向网络服务器发送大量伪造源IP地址的UDP协议数据包，这些源IP地址即为被攻击目标地址。服务器根据Memcache协议内容向源IP地址回复大量数据内容，从而造成被攻击目标网络拥堵进而无法对外提供服务。
 
-修复步骤
+实践
 
+解决方法
 
+增加iptables过滤
 
+操作步骤
+
+...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on February 6, 2017
+        Posted by Gavin on March 2, 2018
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2017/01/18/history-time/">
+    <a href="/2017/12/30/use-s3cmd-access-s3-object/">
         <h2 class="post-title">
-            History命令打印时间
+            使用s3cmd操作对象
         </h2>
         
         <h3 class="post-subtitle">
-            Record time in out put ot history
+            use s3cmd to access S3 object
         </h3>
         
         <div class="post-content-preview">
             
                 前言
 
-排查问题的时候，可能需要追踪出现问题的原因，尤其是怀疑有误操作或者受到攻击的时候，history命令只会展示出命令本身。
+ceph 天然支持对象存储，经常使用XShell访问server，习惯了在console里做一些操作，那么，如何
 
-方法
+获取S3 key
 
-vim /etc/bash.bashrc 添加如下信息：
-
-HISTTIMEFORMAT="%Y-%m-%d-%H:%M:%S: "
-
-重新登录后，执行history结果如下：
+ceph提供radosg-admin命令，方便查询S3账号的属性信息，诸如ACL，quota，AKEY，SKEY等等一些信息，如下所示：
 
 1
 2
 3
 4
 5
-  409  2017-01-18-11:50:55:...
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+2...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on January 18, 2017
+        Posted by Gavin on December 30, 2017
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2016/08/28/join-disk-to-raid/">
+    <a href="/2017/11/13/gdisk-partition-disk-device/">
         <h2 class="post-title">
-            磁盘加入RAID组
+            gdisk分区
         </h2>
         
         <h3 class="post-subtitle">
-            HDD join RAID5
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                背景
-
-测试场景中含有容灾测试，其中涉及到拔盘测试，本文以该场景为例，指导如何恢复RAID组到正常状态。
-
-新盘加入
-
-从RAID组中拔掉一块硬盘，重新插入一块新盘，无需执行任何megacli命令，新盘会自动加入RAID组，并处于rebuild状态，直至rebuild完成后，RAID组恢复正常。
-
-旧盘加入
-
-从RAID组中拔掉一块硬盘，再重新插入这块被拔下来的磁盘，RAID组的校验机制检测...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on August 28, 2016
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/06/24/use-curl-call-api/">
-        <h2 class="post-title">
-            Curl调用CGI完成UI操作
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Use curl call API
+            gdisk to partition disk device
         </h3>
         
         <div class="post-content-preview">
             
                 引言
 
-Web UI上的所有操作都对应一个CGI(大多是一个HTTP GET请求)，因此如果想快速地进行大量UI操作，可以直接call CGI去完成想要的工作。对于发送一个HTTP请求，绝大多数编程语言都可以做到。如果是自动化测试开发，可能会选择python等比较全面的工具，但如果只是偶尔用之，一个小小的curl，一两行命令就可以满足要求。
+对磁盘分区除了使用parted，还可以使用gdisk工具，不过gdisk只支持GPT格式的分区表，不过目前来说已经很少用到MBR了（由于其有2T的size限制）。
 
-示例
+操作示例
 
-Step1 记录下cookie文件tes...
+需求1： 将sdb分成三个区，第一个分区是32G，第二个分区也是32G，剩下的是第三个分区
+
+步骤：
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+  gdisk...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 24, 2016
+        Posted by Gavin on November 13, 2017
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2016/06/12/auto-mount-iscsi/">
+    <a href="/2017/10/26/Linux-command-summary/">
         <h2 class="post-title">
-            iSCSI自动挂载
+            测试中常用的Linux命令汇总
         </h2>
         
         <h3 class="post-subtitle">
-            auto mount iSCSI
+            Linux command
         </h3>
         
         <div class="post-content-preview">
             
-                概要
+                概述
 
-本篇介绍了iscsiadm常见命令和iSCSI自动挂载的方法。
+在日常测试工作中，产品是部署在Ubuntu上的，本文罗列一些在测试过程中，常用到的一些指令。
 
-iscsiadm工具用于Linux连接以太网上的iSCSI设备，我们的系统中内置本工具，如果是其他OS，可能需要先安装相应包。
+批量生成文件
 
-安装
+方法1：
 
-Ubuntu
+seq 1 10  | xargs -i{} -P 10 touch file_{} 
 
-1
-2
-apt-get install open-iscsi
-apt-get install open-iscsi-utils
+10个并发来touch file
 
+方法2：
 
-CentOS
-
-1
-yum ins...
+for i in {1..100}; do dd if=/dev/zero of=file_$i bs=1M count=1...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 12, 2016
+        Posted by Gavin on October 26, 2017
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2017/10/12/ftp-feature/">
+        <h2 class="post-title">
+            FTP需求汇总
+        </h2>
+        
+        <h3 class="post-subtitle">
+            FTP Feature
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                引言
+vsftpd(very secure FTP daemon)，如果你想在你的Linux/Unix服务器上搭建一个安全、高性能、稳定性好的FTP服务器，那么vsftpd可能是你的首选应用。
+我们的客户对FTP有需求，目前只能通过手动部署、配置的方式来实现客户的要求，工作往往重复。为了规范化FTP配置流程，本文整理一下FTP的需求，以供RD参考。
+
+
+基本配置
+默认如下拥有配置项：
+
+(1...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on October 12, 2017
     </p>
 </div>
 <hr>
@@ -491,6 +529,11 @@ yum ins...
       <li>
         <span class="post-date">May 27, 2023</span>
         <a class="post-link" href="/2023/05/27/auto_dump_core/">Ubuntu kdump dump core files</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 20, 2023</span>
+        <a class="post-link" href="/2023/05/20/fio_benchmark/">fio benchmark</a>
       </li>
     
       <li>
@@ -634,6 +677,11 @@ yum ins...
       </li>
     
       <li>
+        <span class="post-date">Jan 11, 2023</span>
+        <a class="post-link" href="/2023/01/11/Sync_ISO/">Sync ISO script</a>
+      </li>
+    
+      <li>
         <span class="post-date">Jan 9, 2023</span>
         <a class="post-link" href="/2023/01/09/Sync_ISO_from_SFTP_Server/">借助lftp从SFTP Server下载ISO</a>
       </li>
@@ -744,8 +792,18 @@ yum ins...
       </li>
     
       <li>
+        <span class="post-date">Nov 23, 2021</span>
+        <a class="post-link" href="/2021/11/23/PG_auto_repair/">ceph PG auto repair</a>
+      </li>
+    
+      <li>
         <span class="post-date">Nov 4, 2021</span>
         <a class="post-link" href="/2021/11/04/monitor_mds_failed/">Monitor mds failed</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Aug 9, 2021</span>
+        <a class="post-link" href="/2021/08/09/get_filemap/">Get filemap from OSD map</a>
       </li>
     
       <li>
@@ -964,6 +1022,11 @@ yum ins...
       </li>
     
       <li>
+        <span class="post-date">Apr 22, 2020</span>
+        <a class="post-link" href="/2020/04/22/Put_S3_object_with_metadata/">Put S3 objects with metadata</a>
+      </li>
+    
+      <li>
         <span class="post-date">Apr 6, 2020</span>
         <a class="post-link" href="/2020/04/06/pytest_skip/">pytest skip</a>
       </li>
@@ -1069,13 +1132,28 @@ yum ins...
       </li>
     
       <li>
+        <span class="post-date">Aug 8, 2019</span>
+        <a class="post-link" href="/2019/08/08/S3_Sample/">Summary of S3 Sample</a>
+      </li>
+    
+      <li>
         <span class="post-date">Jul 4, 2019</span>
         <a class="post-link" href="/2019/07/04/Debug_Kernel/">开启kernel debug</a>
       </li>
     
       <li>
+        <span class="post-date">Jul 1, 2019</span>
+        <a class="post-link" href="/2019/07/01/S3_placement_create_bucket/">S3_placement_create_bucket</a>
+      </li>
+    
+      <li>
         <span class="post-date">May 2, 2019</span>
         <a class="post-link" href="/2019/05/02/iscsi_option/">iSCSI 相关操作介绍</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 22, 2019</span>
+        <a class="post-link" href="/2019/02/22/s3_boto_set_content_from_filename/">S3 boto set content from filename</a>
       </li>
     
       <li>
@@ -1119,6 +1197,11 @@ yum ins...
       </li>
     
       <li>
+        <span class="post-date">Apr 28, 2018</span>
+        <a class="post-link" href="/2018/04/28/Get_objects_from_bucket/">List 3 object from Bucket</a>
+      </li>
+    
+      <li>
         <span class="post-date">Mar 2, 2018</span>
         <a class="post-link" href="/2018/03/02/security_of_memcache/">记一次memcache安全漏洞修复记录</a>
       </li>
@@ -1149,8 +1232,23 @@ yum ins...
       </li>
     
       <li>
+        <span class="post-date">Jun 30, 2017</span>
+        <a class="post-link" href="/2017/06/30/S3_put_1_million_objects/">Put 1Million S3 objects to bucket</a>
+      </li>
+    
+      <li>
         <span class="post-date">Jun 7, 2017</span>
         <a class="post-link" href="/2017/06/07/os-reserved-space/">操作系统空间预留</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jun 6, 2017</span>
+        <a class="post-link" href="/2017/06/06/ESXi_mount_vmfs/">ESXi remount VMFS</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 24, 2017</span>
+        <a class="post-link" href="/2017/04/24/S3_Big_metadata_upload_download/">Upload and download S3 Big metadata</a>
       </li>
     
       <li>
@@ -1171,6 +1269,11 @@ yum ins...
       <li>
         <span class="post-date">Jan 18, 2017</span>
         <a class="post-link" href="/2017/01/18/history-time/">History命令打印时间</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Oct 26, 2016</span>
+        <a class="post-link" href="/2016/10/26/ping/">ping test</a>
       </li>
     
       <li>
@@ -1196,6 +1299,11 @@ yum ins...
       <li>
         <span class="post-date">May 29, 2016</span>
         <a class="post-link" href="/2016/05/29/auto-close-ssh-session/">自动关闭ssh会话</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 21, 2016</span>
+        <a class="post-link" href="/2016/04/21/monitify_CIFS_open_time/">Slow to open CIFS</a>
       </li>
     
       <li>
@@ -1729,147 +1837,147 @@ yum ins...
         </a>
         
         
-                <a data-sort="0166" 
+                <a data-sort="0180" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0176" 
+                <a data-sort="0189" 
                     href="/archive/?tag=Linux"
                     title="Linux"
-                    rel="67">Linux</a>
+                    rel="68">Linux</a>
         
-                <a data-sort="0221" 
+                <a data-sort="0233" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="24">shell</a>
+        
+                <a data-sort="0235" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="22">Automation</a>
         
-                <a data-sort="0224" 
-                    href="/archive/?tag=shell"
-                    title="shell"
-                    rel="19">shell</a>
-        
-                <a data-sort="0226" 
+                <a data-sort="0240" 
                     href="/archive/?tag=ceph"
                     title="ceph"
                     rel="17">ceph</a>
         
-                <a data-sort="0236" 
+                <a data-sort="0242" 
                     href="/archive/?tag=python"
                     title="python"
-                    rel="7">python</a>
+                    rel="15">python</a>
         
-                <a data-sort="0237" 
+                <a data-sort="0251" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="6">Jenkins</a>
         
-                <a data-sort="0238" 
+                <a data-sort="0252" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="5">S3</a>
         
-                <a data-sort="0238" 
+                <a data-sort="0252" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0239" 
+                <a data-sort="0253" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="4">JBOD</a>
         
-                <a data-sort="0239" 
+                <a data-sort="0253" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0239" 
+                <a data-sort="0253" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0239" 
+                <a data-sort="0253" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0240" 
+                <a data-sort="0254" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="3">iSCSI</a>
         
-                <a data-sort="0240" 
+                <a data-sort="0254" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=Disk"
                     title="Disk"
                     rel="2">Disk</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=mds"
                     title="mds"
                     rel="2">mds</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=pytest"
                     title="pytest"
                     rel="2">pytest</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0241" 
+                <a data-sort="0255" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
