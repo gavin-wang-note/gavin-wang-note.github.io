@@ -16,8 +16,8 @@
     <meta property="og:type" content="website">
     <meta property="og:description" content="蹉跎错，消磨过，最是光阴化浮沫">
     
-    <meta property="og:image" content="http://172.17.73.80:4000/img/avatar-gavin.jpg">
-    <meta property="og:url" content="http://172.17.73.80:4000/page17/">
+    <meta property="og:image" content="http://0.0.0.0:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://0.0.0.0:4000/page17/">
     <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
     
     <title>Gavin的博客 | Gavin Blog</title>
@@ -29,7 +29,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://172.17.73.80:4000/page17/">
+    <link rel="canonical" href="http://0.0.0.0:4000/page17/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -94,6 +94,18 @@
                     <li>
                         <a href="/archive/">Archive</a>
                     </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     
                     
                     
@@ -291,50 +303,60 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2020/02/06/another-nose-html-report-template/">
+    <a href="/2020/06/11/shell_calculation_accuracy/">
         <h2 class="post-title">
-            Nose html report 模板调整
+            shell计算精度
         </h2>
         
         <h3 class="post-subtitle">
-            Adjust nose html report template
+            shell script calculation accuracy
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-网上找到了nose-html-report的另外一个模板，样式看着还可以，做了一些修改和调整，更契合自己的审美需要，现放出来.
+为何要写这篇文章，因为在上篇文章 stastic ES write speed by shell script有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。
 
-如果要使用，可以放在nose-html-report的安装包里，或者安装好nose-html-report后，替换掉：
+实践
 
-/usr/local/lib/python2.7/dist-packages/nose_html_reporting-0.2.3-py...
+bc
+
+bc是比较常用的Linux中计算器了，简单方便，而且是支持浮点的。一...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on February 6, 2020
+        Posted by Gavin on June 11, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2020/02/02/use-gparted-enlarge-root-partition/">
+    <a href="/2020/06/10/stastic_ES_write_speed_by_shell_script/">
         <h2 class="post-title">
-            利用gparted扩展根分区
+            脚本统计ES写入速度
         </h2>
         
         <h3 class="post-subtitle">
-            Use gparted to enlagre root partition
+            Stastic ES write speed by shell script
         </h3>
         
         <div class="post-content-preview">
             
-                前言
+                概述
 
-lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。
+本文介绍下如何call API的方式去统计ES的写速度，当然，你可以使用监控工具去统计，不在本文描述范围。
 
-后台通过VMware vSphere Client扩大了这个分区空间（扩大到60G）：
+哪些API可以获取到ES index中的数据量
+
+这里介绍两种API,参考如下：
+
+1
+_cat/count?v&amp;format=json&amp;pretty
+
+
+吐出信息参考如下：
 
 1
 2
@@ -343,115 +365,107 @@ lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，�
 5
 6
 7
-8
-9
-10
-root@ubuntu-16:~# lsblk
-NAME   MAJ:MIN...
+[
+  {
+    "epoch" : "159159...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on February 2, 2020
+        Posted by Gavin on June 10, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2020/01/22/user-modinfo-get-driver-version-used-by-kernel/">
+    <a href="/2020/06/08/Correspondence_between_VD_and_RAID_partition/">
         <h2 class="post-title">
-            利用modinfo查看kernel使用的driver版本
+            VD与RAID分区对应关系
         </h2>
         
         <h3 class="post-subtitle">
-            Use modinfo to get driver version which used in kernel
+            Correspondence between VD and RAID partition
         </h3>
         
         <div class="post-content-preview">
             
-                前言
+                概述
 
-Linux modinfo命令用于显示kernel模块的信息，确切讲，会显示kernel模块的对象文件，以及显示该模块的相关信息。
+环境中创建了VD,lsblk可以看到创建好后的分区信息，如何获取分区与RAID VD之间的对应关系呢，比如/dev/sdc分区，对应RAID组哪个VD？
 
-语法
+实践
+
+Step1. 获取RAID卡的Vendor Id和Device Id
 
 1
 2
 3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-root@node243:~# modinfo -h
-Usage:
-	modinfo [options] filename [args]
-Options:
-	-...
+root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -adpallinfo -aall | ...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on January 22, 2020
+        Posted by Gavin on June 8, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2020/01/22/get-ssd-life-span/">
+    <a href="/2020/06/05/calc_cosbench_write_speed/">
         <h2 class="post-title">
-            获取SSD寿命
+            统计cosbench写速度
         </h2>
         
         <h3 class="post-subtitle">
-            Get life span for SSD device
+            Statistics cosbech write speed
         </h3>
         
         <div class="post-content-preview">
             
-                前言
+                概述
 
-SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。
+BTW，今天是24节气的芒种，因新型冠状病毒疫情影响，高考延后了1个月。
 
-目前lab里常见的SSD，型号有S4610，S3700和NVME的，NVME的是PCI-e类型的，但intelS4600，S4610，S7300之类型号的SSD，有的设备是在RAID卡上，但...
+言归正传，测试任务要求如下：
+
+需要知道当前集群，单一bucket中，存放1000万object，存放2000万object，存放3000万object，。。。。一直到存放110million个object，即每间隔存放1000万笔记录情况下，RGW性能是否伴随单一bucket中object数量的增加，写性能...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on January 22, 2020
+        Posted by Gavin on June 5, 2020
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2020/01/16/modify-hostname-for-centos/">
+    <a href="/2020/06/03/gzip-vs-bzip2-vs-xz-vs-pbzip2-performance-comparison/">
         <h2 class="post-title">
-            三种方式修改CentOS hostname
+            gzip vs bzip2 vs xz vs pbzip2 性能对比
         </h2>
         
         <h3 class="post-subtitle">
-            Modify hostname for Centos with different method
+            gzip vs bzip2 vs xz vs pbzip2 performance comparison
         </h3>
         
         <div class="post-content-preview">
             
-                三种方法修改Centos hostname
+                概述
 
-在CentOS7中，有三种定义的主机名:静态的（static）、瞬态的（transient）、灵活的（pretty）。“静态”主机名也称为内核主机名，是系统在启动时从/etc/hostname自动初始化的主机名。“瞬态”主机名是在系统运行时临时分配的主机名，例如，通过DHCP或mDNS服务器分配。静态主机名和瞬态主机名都遵从作为互联网域名同样的字...
+两天前，简单写了篇bzip2 与 pbzip2 压缩哪个更快，当时是处于使用esrally压测Elastic search性能，并没有太多的关注几种压缩工具的性能如何。本文介绍常用的几种压缩命令，分别汇总出各个命令的压缩&amp;解压缩全方面性能对比。
+
+准备工作
+
+看了下gzip，bzip2，pbzip2，xz这4个命令的help信息，帮助信息比较相似：
+
+
+
+准备了一个测试文件方...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on January 16, 2020
+        Posted by Gavin on June 3, 2020
     </p>
 </div>
 <hr>
@@ -474,8 +488,38 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
 <ul class="posts">
     
       <li>
-        <span class="post-date">Apr 28, 2023</span>
-        <a class="post-link" href="/2023/04/28/get_USB_speed/">评测USB接口速度</a>
+        <span class="post-date">May 27, 2023</span>
+        <a class="post-link" href="/2023/05/27/auto_dump_core/">Ubuntu kdump dump core files</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 19, 2023</span>
+        <a class="post-link" href="/2023/05/19/Testlink_xml_excel/">Testlink support Excel import/export test cases</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 13, 2023</span>
+        <a class="post-link" href="/2023/05/13/Lock_test/">Dead lock test</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 12, 2023</span>
+        <a class="post-link" href="/2023/05/12/jenkins_email_template/">Jenkins Email Template</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 11, 2023</span>
+        <a class="post-link" href="/2023/05/11/iperf/">Type iperf to test BW between different Hosts</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 4, 2023</span>
+        <a class="post-link" href="/2023/05/04/list_used_fiber/">PowerCLI Scirpt: list_used_fiber.ps</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 1, 2023</span>
+        <a class="post-link" href="/2023/05/01/scan_host_plugin_device/">快速识别热插拔硬盘</a>
       </li>
     
       <li>
@@ -514,13 +558,28 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       </li>
     
       <li>
+        <span class="post-date">Mar 10, 2023</span>
+        <a class="post-link" href="/2023/03/10/Disk_Performance_Evaluation/">磁盘性能评估与实测</a>
+      </li>
+    
+      <li>
         <span class="post-date">Mar 8, 2023</span>
         <a class="post-link" href="/2023/03/08/Ubuntu22_deploy_Jenkins/">Ubuntu 22.04上部署、配置Jenkins</a>
       </li>
     
       <li>
         <span class="post-date">Mar 1, 2023</span>
-        <a class="post-link" href="/2023/03/01/PG_deep_scrub/">Pg_deep_scrub</a>
+        <a class="post-link" href="/2023/03/01/PG_deep_scrub/">提升 PG scrub速度</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 28, 2023</span>
+        <a class="post-link" href="/2023/02/28/get_USB_speed/">评测USB接口速度</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 17, 2023</span>
+        <a class="post-link" href="/2023/02/17/Deploy_kerberos/">kerberos安装与客户端配置</a>
       </li>
     
       <li>
@@ -530,12 +589,22 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
     
       <li>
         <span class="post-date">Feb 6, 2023</span>
-        <a class="post-link" href="/2023/02/06/function_timeout/">Python下使得function timeout</a>
+        <a class="post-link" href="/2023/02/06/function_timeout/">Python下使用function timeout</a>
       </li>
     
       <li>
         <span class="post-date">Feb 3, 2023</span>
         <a class="post-link" href="/2023/02/03/Delete_md_device/">彻底删除Linux下md设备</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 30, 2023</span>
+        <a class="post-link" href="/2023/01/30/blocktrace/">blocktrace跟踪磁盘</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 23, 2023</span>
+        <a class="post-link" href="/2023/01/23/Disk_Health_Assessment/">磁盘健康评估</a>
       </li>
     
       <li>
@@ -576,6 +645,11 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       <li>
         <span class="post-date">Dec 28, 2022</span>
         <a class="post-link" href="/2022/12/28/Modify_hostname/">修改主机名</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Oct 26, 2022</span>
+        <a class="post-link" href="/2022/10/26/systemtap/">systemtap部署与实战</a>
       </li>
     
       <li>
@@ -669,6 +743,11 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       </li>
     
       <li>
+        <span class="post-date">Nov 4, 2021</span>
+        <a class="post-link" href="/2021/11/04/monitor_mds_failed/">Monitor mds failed</a>
+      </li>
+    
+      <li>
         <span class="post-date">Jul 1, 2021</span>
         <a class="post-link" href="/2021/07/01/Slove_cp_command_force_overwrite_issue/">CentOS中cp -f copy强制覆盖命令无效</a>
       </li>
@@ -689,6 +768,16 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       </li>
     
       <li>
+        <span class="post-date">Apr 6, 2021</span>
+        <a class="post-link" href="/2021/04/06/NAS_write_speed/">Calc NAS write speed by oceanfile tools</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Mar 19, 2021</span>
+        <a class="post-link" href="/2021/03/19/parsync/">Parsync</a>
+      </li>
+    
+      <li>
         <span class="post-date">Feb 23, 2021</span>
         <a class="post-link" href="/2021/02/23/Pass_through_GPU_to_Ubuntu18_in_PVE_Cluster/">PVE集群给Ubuntu18.04直通GPU</a>
       </li>
@@ -696,6 +785,16 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       <li>
         <span class="post-date">Feb 19, 2021</span>
         <a class="post-link" href="/2021/02/19/ps_mem/">ps_mem:报告Linux内存用量的指令</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 9, 2021</span>
+        <a class="post-link" href="/2021/02/09/config_QCT_network_config/">Config QCT switch port network</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jan 10, 2021</span>
+        <a class="post-link" href="/2021/01/10/Demo_for_trasferring_large_file/">Demo for trasferring large file from break point</a>
       </li>
     
       <li>
@@ -716,6 +815,11 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       <li>
         <span class="post-date">Aug 31, 2020</span>
         <a class="post-link" href="/2020/08/31/more_filesystem_detected/">因存在多文件系统导致OSD启用失败</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Aug 26, 2020</span>
+        <a class="post-link" href="/2020/08/26/mds_damaged/">mds damaged test script</a>
       </li>
     
       <li>
@@ -821,6 +925,11 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       <li>
         <span class="post-date">May 28, 2020</span>
         <a class="post-link" href="/2020/05/28/get-line-no-performace-compare/">Linux下统计行数性能对比</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 28, 2020</span>
+        <a class="post-link" href="/2020/05/28/calc_cosbench_RGW_speed/">Cosbench wirte speed scenario test script</a>
       </li>
     
       <li>
@@ -949,8 +1058,23 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       </li>
     
       <li>
+        <span class="post-date">Sep 9, 2019</span>
+        <a class="post-link" href="/2019/09/09/Linux_SWAP/"></a>
+      </li>
+    
+      <li>
         <span class="post-date">Aug 23, 2019</span>
         <a class="post-link" href="/2019/08/23/fix_pylint_warn_error/">消除pylint warn/error</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jul 4, 2019</span>
+        <a class="post-link" href="/2019/07/04/Debug_Kernel/">开启kernel debug</a>
+      </li>
+    
+      <li>
+        <span class="post-date">May 2, 2019</span>
+        <a class="post-link" href="/2019/05/02/iscsi_option/">iSCSI 相关操作介绍</a>
       </li>
     
       <li>
@@ -964,8 +1088,18 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       </li>
     
       <li>
-        <span class="post-date">Aug 10, 2018</span>
-        <a class="post-link" href="/2018/08/10/bond-package-lost/">网卡丢包解决案例</a>
+        <span class="post-date">Aug 19, 2018</span>
+        <a class="post-link" href="/2018/08/19/SSD_performance_with_different_FS/">SSD在不同控制器下不同文件系统类型性能</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Aug 15, 2018</span>
+        <a class="post-link" href="/2018/08/15/vim_copy/">vim无法黏贴</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Jul 10, 2018</span>
+        <a class="post-link" href="/2018/07/10/bond-package-lost/">网络时延--Linux模拟复杂网络环境下的传输（netem和tc）</a>
       </li>
     
       <li>
@@ -981,6 +1115,11 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       <li>
         <span class="post-date">May 1, 2018</span>
         <a class="post-link" href="/2018/05/01/jenkins-html-report/">Jenkins Email发送HTML测试报告模板</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Mar 2, 2018</span>
+        <a class="post-link" href="/2018/03/02/security_of_memcache/">记一次memcache安全漏洞修复记录</a>
       </li>
     
       <li>
@@ -1004,8 +1143,28 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
       </li>
     
       <li>
+        <span class="post-date">Sep 13, 2017</span>
+        <a class="post-link" href="/2017/09/13/calc_IOPS/">IOPS计算</a>
+      </li>
+    
+      <li>
         <span class="post-date">Jun 7, 2017</span>
         <a class="post-link" href="/2017/06/07/os-reserved-space/">操作系统空间预留</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Apr 20, 2017</span>
+        <a class="post-link" href="/2017/04/20/EXT_FS_length/">EXT3/4 FS 长度</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 17, 2017</span>
+        <a class="post-link" href="/2017/02/17/disable_core_dump/">Disable core dump</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Feb 6, 2017</span>
+        <a class="post-link" href="/2017/02/06/EXT4-FS-fix/">EXT4修复FS error</a>
       </li>
     
       <li>
@@ -1569,137 +1728,147 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
         </a>
         
         
-                <a data-sort="0137" 
+                <a data-sort="0166" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0160" 
+                <a data-sort="0176" 
                     href="/archive/?tag=Linux"
                     title="Linux"
-                    rel="54">Linux</a>
+                    rel="67">Linux</a>
         
-                <a data-sort="0199" 
+                <a data-sort="0221" 
                     href="/archive/?tag=Automation"
                     title="Automation"
-                    rel="15">Automation</a>
+                    rel="22">Automation</a>
         
-                <a data-sort="0201" 
-                    href="/archive/?tag=ceph"
-                    title="ceph"
-                    rel="13">ceph</a>
-        
-                <a data-sort="0201" 
+                <a data-sort="0224" 
                     href="/archive/?tag=shell"
                     title="shell"
-                    rel="13">shell</a>
+                    rel="19">shell</a>
         
-                <a data-sort="0209" 
+                <a data-sort="0226" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="17">ceph</a>
+        
+                <a data-sort="0236" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="7">python</a>
+        
+                <a data-sort="0237" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
-                    rel="5">Jenkins</a>
+                    rel="6">Jenkins</a>
         
-                <a data-sort="0209" 
+                <a data-sort="0238" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="5">S3</a>
         
-                <a data-sort="0209" 
+                <a data-sort="0238" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0209" 
-                    href="/archive/?tag=python"
-                    title="python"
-                    rel="5">python</a>
-        
-                <a data-sort="0210" 
+                <a data-sort="0239" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="4">JBOD</a>
         
-                <a data-sort="0210" 
+                <a data-sort="0239" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0210" 
+                <a data-sort="0239" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0210" 
+                <a data-sort="0239" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0211" 
+                <a data-sort="0240" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="3">iSCSI</a>
+        
+                <a data-sort="0240" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="3">performance</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
+                    href="/archive/?tag=Disk"
+                    title="Disk"
+                    rel="2">Disk</a>
+        
+                <a data-sort="0241" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="2">cosbench</a>
         
-                <a data-sort="0212" 
-                    href="/archive/?tag=iSCSI"
-                    title="iSCSI"
-                    rel="2">iSCSI</a>
+                <a data-sort="0241" 
+                    href="/archive/?tag=mds"
+                    title="mds"
+                    rel="2">mds</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=pytest"
                     title="pytest"
                     rel="2">pytest</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0212" 
+                <a data-sort="0241" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr

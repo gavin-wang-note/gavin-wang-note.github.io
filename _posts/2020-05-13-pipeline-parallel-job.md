@@ -9,6 +9,7 @@ tags:
     - Jenkins
     - pipeline
     - pytest
+    - Automation
 ---
 
 

@@ -7,6 +7,7 @@ author:     "Gavin"
 catalog:    true
 tags:
     - nose
+    - Automation
 ---
 
 
