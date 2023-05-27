@@ -6,7 +6,8 @@ date:       2022-01-28
 author:     "Gavin"
 catalog:    true
 tags:
-    - Cosbench
+    - cosbench
+    - shell
 ---
 
 
