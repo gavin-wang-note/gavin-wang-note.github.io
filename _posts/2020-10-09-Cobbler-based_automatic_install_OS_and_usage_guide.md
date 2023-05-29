@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "基于Cobbler自动部署OS与使用指"
+title:      "基于Cobbler自动部署OS与使用指南"
 subtitle:   "Cobbler-based automatic install OS and usage guide"
 date:       2020-10-09
 author:     "Gavin"
