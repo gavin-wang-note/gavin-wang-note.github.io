@@ -15,7 +15,7 @@ tags:
 
 Recently in organizing the documentation, I remembered that some time ago, I redid the jenkins environment, using the latest version, and the email template was adjusted a bit, so here is a record of the recent template used in the current CI environment (Jenkins).
 
-# Script of email teplate
+# Script of email template
 
 ```
 <STYLE>
@@ -337,7 +337,16 @@ Description:
 This file, placed in the email-templates directory in the Jenkins installation directory (if this directory does not exist, just create it manually, and note this directory's ownership information), for example: ${JENKINS_INSTALL_PATH}/email-templates/v1.1_allure-pipeline- report.groovy
 
 
-# Cell phone terminal display effect picture:
+# E-Mail shows info
+
+## Cell phone terminal display effect picture:
 
 <img class="shadow" src="/img/in-post/cell_phone_of_jenkins_email.jpg" width="1200">
 
+## All cases are in success stat
+
+<img class="shadow" src="/img/in-post/jenkins_build_success.png" width="1200" />
+
+Parts of failed cases:
+
+<img class="shadow" src="/img/in-post/jenkins_build_unstable.png" width="1200" />
