@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "NJ Office of VPN Account Auth"
+title:      "NJ Office OpenVPN 账号访问认证"
 subtitle:   "NJ Office of VPN Account Auth"
 date:       2023-05-30
 author:     "Gavin"
