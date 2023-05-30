@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Linux下部署HDFS - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="HDFS 安装部署
+">
+    
+    <meta property="article:published_time" content="2023-04-09T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="HDFS">
+    
+    <meta property="article:tag" content="HadoopFS">
+    
+    
+    <meta property="og:image" content="http://0.0.0.0:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://0.0.0.0:4000/2023/04/09/Deploy_HDFS/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>Linux下部署HDFS - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://0.0.0.0:4000/2023/04/09/Deploy_HDFS/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=HDFS" title="HDFS">HDFS</a>
+                        
+                        <a class="tag" href="/archive/?tag=HadoopFS" title="HadoopFS">HadoopFS</a>
+                        
+                    </div>
+                    <h1>Linux下部署HDFS</h1>
+                    
+                    <h2 class="subheading">Deploy HDFS</h2>
+                    <span class="meta">Posted by Gavin on April 9, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="hdfs-安装部署">HDFS 安装部署</h1>
+
+<h2 id="一系统浅析">一、系统浅析</h2>
+
+<p>HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。</p>
+
+<p>NameNode（名称节点）：</p>
+
+<p>保存整个文件系统的目录信息、文件信息及分块信息，如果主 NameNode 失效，切换到Secondary NameNode。</p>
+
+<p>NameNode管理文件系统的命名空间，它维护着文件系统树及整棵树内所有的文件和目录，即元数据（MetaData）。</p>
+
+<p>如果NameNode不可用，那么等同于整个HDFS文件系统不可用。如果NameNode由于故障导致磁盘数据丢失，那么等同于整个HDFS文件系统数据丢失。如果NameNode块映射关系的内存爆满，那么等同于整个HDFS文件系统无法再继续存储，也就是意味着NameNode内存决定了HDFS能够存储的块数量。</p>
+
+<p>DataNode（数据节点）：</p>
+
+<p>分布在廉价的计算机上，用于存储Block块文件。 DataNode角色的节点是真正存放块（block）数据的节点，当DataNode启动时，它将扫描其本地文件系统，生成与每个本地文件相对应的所有HDFS数据块的列表，并将此报告发送到NameNode。该报告称为BlockReport。</p>
+
+<p>现在需要将hdfs部署在我司scaler之上。即可以通过 HDFS客户端上载文件，然后底层存储接入scaler，以scaler存储HDFS数据。</p>
+
+<h2 id="二scaler-集群部署">二、scaler 集群部署</h2>
+
+<p>本文以scaler 8.3 版本详细说明HDFS部署在scaler上的操作过程。</p>
+
+<p>1、创建集群</p>
+
+<p>关于scaler 8.3部分的部署暂不描述。</p>
+
+<p>2、创建pool hdfs</p>
+
+<p>3、将pool hdfs 加入cephfs data pool</p>
+
+<p>4、新建sharefolder，名字为hdfs</p>
+
+<p>5、在hdfs下创建文件夹备HDFS的namenode、datanode、jornalnode使用</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre>root@host11:/var/share/ezfs/shareroot/hdfs# mkdir host11 host12 host13
+root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host11/name host11/data host11/jn
+root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host12/name host12/data host12/jn
+root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host13/name host13/data host13/jn
+查看目录结构：
+root@host11:/var/share/ezfs/shareroot/hdfs# tree
+├── host11
+│   ├── data
+│   └── name
+│   └── jn
+├── host12
+│   ├── data
+│   └── name
+│   └── jn
+├── host13
+│   ├── data
+│   └── name
+│   └── jn
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="三hdfs部署">三、HDFS部署</h2>
+
+<h3 id="1hadoop下载">1、hadoop下载</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="2解压">2、解压</h3>
+
+<p>在所有节点上解压hadoop包， 命令如下</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>tar -zxvf hadoop-3.3.2.tar.gz -C /usr/local/
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="3重命名">3、重命名</h3>
+
+<p>在所有节点上重命名hadoop</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>onnode all mv /usr/local/hadoop-3.3.2 /usr/local/hadoop
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="4环境变量配置">4、环境变量配置</h3>
+
+<p>Hadoop安装时需要配置一些环境变量，如指定HADOOP_HOME位置，指定java环境变量等，主要集中在两个配置文件中。</p>
+
+<p>修改/etc/profile配置</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>vim /etc/profile
+# 添加如下配置
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
+# export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# export PATH=$JAVA_HOME/bin:$PATH
+# export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>加载环境变量</p>
+
+<p>source /etc/profile</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>source /etc/profile
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>修改hadoop-env.sh配置</p>
+
+<p>hadoop-env.sh为hadoop运行环境定义hadoop运行环境相关的配置信息</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre>vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+# 添加如下配置
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+export HADOOP_SECURE_LOG=/var/log/hdfs
+export HADOOP_ROOT_LOGGER=INFO,console
+export HADOOP_DAEMON_ROOT_LOGGER=INFO,RFA
+export HADOOP_SECURITY_LOGGER=INFO,NullAppender
+export HADOOP_AUDIT_LOGGER=INFO,NullAppender
+export HDFS_NAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
+export HDFS_SECONDARYNAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>修改dev_env.sh配置</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>vim /etc/profile.d/dev_env.sh
+# 添加如下配置
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>以上配置文件完成，需要同步复制到其它所有节点</p>
+
+<h3 id="5修改目录权限">5、修改目录权限</h3>
+
+<p>用户名及用户组</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>chown -R root /usr/local/hadoop
+chgrp -R root /usr/local/hadoop
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="6验证">6、验证</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre>root@host12:/usr/local/hadoop/etc/hadoop#  hadoop version
+Hadoop 3.3.2
+Source code repository git@github.com:apache/hadoop.git -r 0bcb014209e219273cb6fd4152df7df713cbac61
+Compiled by chao on 2022-02-21T18:39Z
+Compiled with protoc 3.7.1
+From source with checksum 4b40fff8bb27201ba07b6fa5651217fb
+This command was run using /usr/local/hadoop/share/hadoop/common/hadoop-common-3.3.2.jar
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如上提示即为配置成功</p>
+
+<h3 id="7修改hdfs配置文件">7、修改HDFS配置文件</h3>
+
+<p>Hadoop所有的配置文件都存在于安装目录下的etc/hadoop中，需要修改如下配置文件</p>
+
+<h4 id="71core-sitexml配置">7.1、core-site.xml配置</h4>
+
+<p>core-site.xml：集群全局参数，用于定义系统级别的参数，如HDFS URL 、Hadoop的临时目录等</p>
+
+<p>·    fs.defaultFS：HDFS的默认访问路径。</p>
+
+<p>·    hadoop.tmp.dir：Hadoop临时文件的存放目录，可自定义。</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre></td><td class="rouge-code"><pre>vim /usr/local/hadoop/etc/hadoop/core-site.xml
+
+&lt;configuration&gt;
+   &lt;property&gt;
+       &lt;name&gt;fs.defaultFS&lt;/name&gt;
+       &lt;value&gt;hdfs://mycluster&lt;/value&gt; 
+   &lt;/property&gt;
+   &lt;property&gt;
+       &lt;name&gt;hadoop.tmp.dir&lt;/name&gt;
+       &lt;value&gt;/usr/local/hadoop/tmp&lt;/value&gt;
+   &lt;/property&gt;
+   &lt;property&gt;
+       &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;
+       &lt;value&gt;host11:2181,host12:2181,host13:2181&lt;/value&gt;
+   &lt;/property&gt;
+&lt;/configuration&gt;
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="72修改hdfs-hdfs-sitexml配置">7.2、修改hdfs hdfs-site.xml配置</h4>
+
+<p>hdfs-site.xml HDFS 如名称节点和数据节点的存放位置、文件副本的个数、文件的读取权限等</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+</pre></td><td class="rouge-code"><pre>vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+
+&lt;configuration&gt;
+    &lt;!-- 定义集群名称 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.nameservices&lt;/name&gt;
+        &lt;value&gt;mycluster&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 定义集群中NameNode节点 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.namenodes.mycluster&lt;/name&gt;
+        &lt;value&gt;nn1,nn2,nn3&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn1的RPC通信地址 host11为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.mycluster.nn1&lt;/name&gt;
+        &lt;value&gt;host11:9000&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn2的RPC通信地址 host12为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.mycluster.nn2&lt;/name&gt;
+        &lt;value&gt;host12:9000&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn3的RPC通信地址 host13为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.mycluster.nn3&lt;/name&gt;
+        &lt;value&gt;host13:9000&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn1的http通信地址  host11为实际机器的hostname--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.mycluster.nn1&lt;/name&gt;
+        &lt;value&gt;host11:50070&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn2的http通信地址 host12为实际机器的hostname--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.mycluster.nn2&lt;/name&gt;
+        &lt;value&gt;host12:50070&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn3的http通信地址 host13为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.mycluster.nn3&lt;/name&gt;
+        &lt;value&gt;host13:50070&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 指定NameNode元数据在JournalNode上的存放位置 hostname以实际配置为准 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.shared.edits.dir&lt;/name&gt;
+        &lt;value&gt;qjournal://host11:8485;host12:8485;host13:8485/mycluster&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 配置隔离机制，即同一时刻只能有一台服务器对外响应 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.fencing.methods&lt;/name&gt;
+        &lt;value&gt;sshfence&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 使用隔离机制时需要ssh无秘钥登录--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.fencing.ssh.private-key-files&lt;/name&gt;
+        &lt;value&gt;/root/.ssh/id_rsa&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 1、声明journalnode服务器存储目录 目录结构在上文中已经创建，如果不创建则会报错
+         2、/host11/jn， 每个节点都需要修改为自己节点hostname，三个节点各不相同
+    --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.journalnode.edits.dir&lt;/name&gt;
+        &lt;value&gt;/var/share/ezfs/shareroot/hdfs/host11/jn&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 关闭权限检查--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.permissions.enable&lt;/name&gt;
+        &lt;value&gt;false&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 访问代理类：client，mycluster，active配置失败自动切换实现方式--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.client.failover.proxy.provider.mycluster&lt;/name&gt;             
+        &lt;value&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- namenode存储目录，每个节点各不相同，目录结构已经在上文中创建--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.name.dir&lt;/name&gt;
+        &lt;value&gt;/var/share/ezfs/shareroot/hdfs/host11/name&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!--DateNode存储目录，没有则新建--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.data.dir&lt;/name&gt;
+        &lt;value&gt;/var/share/ezfs/shareroot/hdfs/host11/data&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!--文件在HDFS系统中的副本数--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.replication&lt;/name&gt;
+        &lt;value&gt;3&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+        &lt;name&gt;hadoop.http.staticuser.user&lt;/name&gt;
+        &lt;value&gt;root&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.automatic-failover.enabled&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/configuration&gt;
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="73修改启停配置">7.3、修改启停配置</h4>
+
+<p>修改启动的配置文件：start-dfs.sh</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>vim /usr/local/hadoop/sbin/start-dfs.sh
+# 添加如下配置
+HDFS_DATANODE_USER=root
+HADOOP_SECURE_USER=root
+HDFS_NAMENODE_USER=root
+HDFS_SECONDARYNAMENODE_USER=root
+HDFS_ZKFC_USER=root
+HDFS_JOURNALNODE_USER=root
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>修改停用的配置文件：stop-dfs.sh</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td><td class="rouge-code"><pre>vim /usr/local/hadoop/sbin/stop-dfs.sh
+# 添加如下配置
+HDFS_DATANODE_USER=root
+HADOOP_SECURE_USER=root
+HDFS_NAMENODE_USER=root
+HDFS_SECONDARYNAMENODE_USER=root
+HDFS_ZKFC_USER=root
+HDFS_JOURNALNODE_USER=root
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="74workers-设置">7.4、workers 设置</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>vim /usr/local/hadoop/etc/hadoop/workers
+host11
+host12
+host13
+# 以实际机器的hostname为准
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="75hosts设置">7.5、hosts设置</h4>
+
+<p>服务器端host配置</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre>vim /etc/hosts
+172.17.73.11 host11
+172.17.73.12 host12
+172.17.73.13 host13
+# 需要把127.0.1.1 注释掉，否则后面会出错。
+# 以实际机器的hostname为准
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="76创建软件链接">7.6、创建软件链接</h4>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>onnode all ln -s /usr/share/elasticsearch/jdk/bin/jps /bin/jps
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="四zookeeper部分">四、zookeeper部分：</h2>
+
+<h3 id="1解压">1、解压</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>tar -zxvf /home/btadmin/zookeeper.tar.gz -C /usr/local
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="2创建文件夹">2、创建文件夹</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>mkdir -p /usr/local/zookeeper/zkData
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="3修改文件名">3、修改文件名</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>mv /usr/local/zookeeper/conf/zoo_sample.cfg /usr/local/zookeeper/conf/zoo.cfg
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="4修改文件zoocfg">4、修改文件zoo.cfg</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>vim /usr/local/zookeeper/conf/zoo.cfg
+
+#添加如下配置
+
+dataDir=/usr/local/zookeeper/zkData/
+server.1=host11:2888:3888
+server.2=host12:2888:3888
+server.3=host13:2888:3888
+ 
+admin.serverPort=8085
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="5修改目录权限-1">5、修改目录权限</h3>
+
+<p>用户名及用户组</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>chown -R root /usr/local/zookeeper
+chgrp -R root /usr/local/zookeeper
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="6修改文件myid文件">6、修改文件myid文件</h3>
+
+<p>在多个节点上分别配置myid文件，序号依次增加</p>
+
+<p>在第一个节点值为1</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>vim /usr/local/zookeeper/zkData/myid
+1
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>在第二个节点值为2</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>vim /usr/local/zookeeper/zkData/myid
+2
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>在第三个节点值为3</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>vim /usr/local/zookeeper/zkData/myid
+3
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="五启动集群">五、启动集群</h2>
+
+<p>HDFS HA配置完成后，下面我们将集群启动</p>
+
+<h3 id="1先启动zookeeper集群">1、先启动zookeeper集群</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre># 在所有节点分别执行如下命令：
+/usr/local/zookeeper/bin/zkServer.sh start
+ 
+# 在第一个节点执行如下命令：
+hdfs zkfc -formatZK
+ 
+# 在所有节点执行如下命令：
+hdfs --daemon start zkfc
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>执行成功后可看：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>root@host13:/home/btadmin# jps
+180491 Jps
+154684 DFSZKFailoverController
+ 
+# 看到DFSZKFailoverController表示启动成功
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="2启动hdfs">2、启动HDFS</h3>
+
+<p>删除各个节点的$HADOOP_HOME/tmp目录下的所有文件（如果是新建环境不需要此步）</p>
+
+<p>在各个节点分别执行下面命令，启动三台JournalNode ：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>hdfs --daemon start journalnode
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>启动结果如下</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@host11:/usr/local/hadoop/sbin# jps
+494797 JournalNode
+ 
+# 表示JournalNode启动成功
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="3格式化namenode">3、格式化namenode</h3>
+
+<p>只在第一个节点上执行namenode格式化。</p>
+
+<p>注意：如果没有启动JournalNode，格式化将失败</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>hdfs namenode -format
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>出现如下输出代表格式化成功：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+</pre></td><td class="rouge-code"><pre>2023-04-21 13:51:54,909 INFO util.GSet: 0.25% max memory 1.7 GB = 4.4 MB
+2023-04-21 13:51:54,909 INFO util.GSet: capacity      = 2^19 = 524288 entries
+2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.window.num.buckets = 10
+2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.num.users = 10
+2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.windows.minutes = 1,5,25
+2023-04-21 13:51:54,932 INFO namenode.FSNamesystem: Retry cache on namenode is enabled
+2023-04-21 13:51:54,932 INFO namenode.FSNamesystem: Retry cache will use 0.03 of total heap and retry cache entry expiry time is 600000 millis
+2023-04-21 13:51:54,934 INFO util.GSet: Computing capacity for map NameNodeRetryCache
+2023-04-21 13:51:54,934 INFO util.GSet: VM type       = 64-bit
+2023-04-21 13:51:54,934 INFO util.GSet: 0.029999999329447746% max memory 1.7 GB = 538.1 KB
+2023-04-21 13:51:54,934 INFO util.GSet: capacity      = 2^16 = 65536 entries
+2023-04-21 13:51:56,366 INFO namenode.FSImage: Allocated new BlockPoolId: BP-1632620897-127.0.1.1-1682056316366
+2023-04-21 13:51:56,461 INFO common.Storage: Storage directory /var/share/ezfs/shareroot/hdfs/host11/name has been successfully formatted.
+2023-04-21 13:51:57,003 INFO namenode.FSImageFormatProtobuf: Saving image file /var/share/ezfs/shareroot/hdfs/host11/name/current/fsimage.ckpt_0000000000000000000 using no compression
+2023-04-21 13:51:57,139 INFO namenode.FSImageFormatProtobuf: Image file /var/share/ezfs/shareroot/hdfs/host11/name/current/fsimage.ckpt_0000000000000000000 of size 399 bytes saved in 0 seconds .
+2023-04-21 13:51:57,171 INFO namenode.NNStorageRetentionManager: Going to retain 1 images with txid &gt;= 0
+2023-04-21 13:51:57,230 INFO namenode.FSNamesystem: Stopping services started for active state
+2023-04-21 13:51:57,231 INFO namenode.FSNamesystem: Stopping services started for standby state
+2023-04-21 13:51:57,235 INFO namenode.FSImage: FSImageSaver clean checkpoint: txid=0 when meet shutdown.
+2023-04-21 13:51:57,235 INFO namenode.NameNode: SHUTDOWN_MSG: 
+/************************************************************
+SHUTDOWN_MSG: Shutting down NameNode at host11/127.0.0.1
+************************************************************
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="4启动第一个节点的namenode">4、启动第一个节点的namenode</h3>
+
+<p>注意：namenode在启动前必须执行格式化namenode操作，如果不执行，则启动namenode操作失败</p>
+
+<p>如果先启动namenode失败后，需要再格式化namenode的话，需要把name data jn文件夹下的内容全部删除，/tmp/下hadoop部分的内容删除后，格式化namenode才能成功</p>
+
+<p>在第一个节点启动namenode， 启动namenode后会生成images元数据</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>hdfs --daemon start namenode
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="5启动第二三个节点的bootstrapstandby">5、启动第二，三个节点的bootstrapStandby</h3>
+
+<p>在启动第二，三节点的namenode之前 ，需要先执行同步数据操作，将第一个节点上的NameNode元数据拷贝到第二个，第三个节点上。命令如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>hdfs namenode -bootstrapStandby
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>输出以下信息代表拷贝成功：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>18/03/15 14:28:01 INFO common.Storage: Storage directory /opt/modules/hadoop-2.7.1/tmp/dfs/name has been successfully formatted.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>启动第二，三节点namenode，命令如下</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>hdfs --daemon start namenode
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="6启动所有节点的datanode">6、启动所有节点的datanode</h3>
+
+<p>在所有节点上启动datanode</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>hdfs --daemon start datanode
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>7、切换nn1为namenode active</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>hdfs haadmin -transitionToActive nn1
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>8、确认服务状态</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+</pre></td><td class="rouge-code"><pre>onnode all jps
+ 
+&gt;&gt; NODE: 10.10.10.11 &lt;&lt;
+439493 Jps
+416240 DataNode
+377026 DFSZKFailoverController
+380124 JournalNode
+368555 QuorumPeerMain
+421097 NameNode
+ 
+&gt;&gt; NODE: 10.10.10.12 &lt;&lt;
+218659 Jps
+163971 JournalNode
+213088 DataNode
+178596 NameNode
+161803 DFSZKFailoverController
+155512 QuorumPeerMain
+ 
+&gt;&gt; NODE: 10.10.10.13 &lt;&lt;
+206103 DataNode
+156919 JournalNode
+209579 NameNode
+148043 QuorumPeerMain
+154684 DFSZKFailoverController
+209885 Jps
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>至此，HDAP集群搭建完成</p>
+
+<h2 id="六客户端配置">六、客户端配置</h2>
+
+<p>修改客户端hosts配置文件：</p>
+
+<p>打开文件c:\Windows\System32\drivers\etc\hosts</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>172.17.73.11 host11
+172.17.73.12 host12
+172.17.73.13 host13
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="七hdfs使用">七、HDFS使用</h2>
+
+<p>使用浏览器打开HDFS 客户端</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>http://172.17.73.11:50070/
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><img class="shadow" src="/img/in-post/HDFS-1.png" width="1200" /></p>
+
+<p>可以看到当前节点是NN1且处于active状态</p>
+
+<p>上传文件，打开如下界面</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-2.png" width="1200" /></p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-3.png" width="1200" /></p>
+
+<p>上传文件后如下：</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-4.png" width="1200" /></p>
+
+<p>上传成功！</p>
+
+<h2 id="八遇到问题及解决方法">八、遇到问题及解决方法</h2>
+
+<p>问题1、第二或第三个节点执行BootstrapStandby 格式无法成功。 显示如下</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre></td><td class="rouge-code"><pre>2023-04-21 13:55:00,314 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 0 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:01,315 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 1 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:02,316 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 2 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:03,317 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 3 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:04,319 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 4 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:05,320 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 5 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:06,322 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 6 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:07,323 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 7 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:08,324 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 8 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:09,326 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 9 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:09,335 WARN ha.BootstrapStandby: Unable to fetch namespace information from remote NN at host11/172.17.73.11:9000: Call From host15/172.17.73.15 to host11:9000 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused
+2023-04-21 13:55:19,352 WARN ha.BootstrapStandby: Unable to fetch namespace information from remote NN at host16/172.17.73.16:9000: Call From host15/172.17.73.12 to host16:9000 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused
+2023-04-21 13:55:19,353 ERROR ha.BootstrapStandby: Unable to fetch namespace information from any remote NN. Possible NameNodes: [RemoteNameNodeInfo [nnId=nn1, ipcAddress=host11/172.17.73.11:9000, httpAddress=http://host11:50070], RemoteNameNodeInfo [nnId=nn3, ipcAddress=host16/172.17.73.16:9000, httpAddress=http://host16:50070]]
+2023-04-21 13:55:19,357 INFO util.ExitUtil: Exiting with status 2: ExitException
+2023-04-21 13:55:19,360 INFO namenode.NameNode: SHUTDOWN_MSG: 
+/************************************************************
+SHUTDOWN_MSG: Shutting down NameNode at host12/172.17.73.12
+************************************************************/
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>解决：</p>
+
+<p>查看端口的使用情况，发现请求的9000端口使用情况如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>root@host11:/tmp# lsof -i:9000
+COMMAND    PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    498909 root  330u  IPv4 689923      0t0  TCP 127.0.1.1:9000 (LISTEN)
+端口的ip是127.0.1.1
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>进一步查原因，发现/etc/hosts里host11的ip是127.0.1.1，而请求的是172.17.13.11</p>
+
+<p>把/etc/hosts里127.0.1.1注释掉。重启node1</p>
+
+<p>然后按顺序重新启动journalnode. namenode</p>
+
+<p>再次查看</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>root@host11:/usr/local/hadoop/sbin# lsof -i:9000
+COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>结果正常</p>
+
+<p>问题二：无法上传文件，如下</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-5.png" width="1200" /></p>
+
+<p>解决方法：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>root@host11:/usr/local/hadoop/sbin# hdfs haadmin -getServiceState nn2
+active
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>从UI上登录active节点即可</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-6.png" width="1200" /></p>
+
+<p>问题三：上传文件失败</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-7.png" width="1200" /></p>
+
+<p>解决方法：</p>
+
+<p>客户端没有配置host</p>
+
+<p>打开文件c:\Windows\System32\drivers\etc\hosts</p>
+
+<p>添加三个节点的host</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>172.17.73.11 host11
+172.17.73.12 host12
+172.17.73.13 host13
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>再次尝试</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-8.png" width="1200" /></p>
+
+<p>文件上传成功！</p>
+
+<p>问题四：启动zookeeper失败</p>
+
+<p>bug现象：</p>
+
+<p><img class="shadow" src="/img/in-post/HDFS-9.png" width="1200" /></p>
+
+<p>log：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre></td><td class="rouge-code"><pre>2023-04-24 14:37:11,952 [myid:] - WARN  [main:ConstraintSecurityHandler@759] - ServletContext@o.e.j.s.ServletContextHandler@1b68ddbd{/,null,STARTING} has uncovered http methods for path: /*
+2023-04-24 14:37:11,961 [myid:] - INFO  [main:ContextHandler@915] - Started o.e.j.s.ServletContextHandler@1b68ddbd{/,null,AVAILABLE}
+2023-04-24 14:37:11,970 [myid:] - ERROR [main:ZooKeeperServerMain@86] - Unable to start AdminServer, exiting abnormally
+org.apache.zookeeper.server.admin.AdminServer$AdminServerException: Problem starting AdminServer on address 0.0.0.0, port 8080 and command URL /commands
+        at org.apache.zookeeper.server.admin.JettyAdminServer.start(JettyAdminServer.java:188)
+        at org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(ZooKeeperServerMain.java:155)
+        at org.apache.zookeeper.server.ZooKeeperServerMain.initializeAndRun(ZooKeeperServerMain.java:113)
+        at org.apache.zookeeper.server.ZooKeeperServerMain.main(ZooKeeperServerMain.java:68)
+        at org.apache.zookeeper.server.quorum.QuorumPeerMain.initializeAndRun(QuorumPeerMain.java:141)
+        at org.apache.zookeeper.server.quorum.QuorumPeerMain.main(QuorumPeerMain.java:91)
+Caused by: java.io.IOException: Failed to bind to /0.0.0.0:8080
+        at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:349)
+        at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310)
+        at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80)
+        at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234)
+        at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73)
+        at org.eclipse.jetty.server.Server.doStart(Server.java:401)
+        at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73)
+        at org.apache.zookeeper.server.admin.JettyAdminServer.start(JettyAdminServer.java:179)
+        ... 5 more
+Caused by: java.net.BindException: Address already in use
+        at sun.nio.ch.Net.bind0(Native Method)
+        at sun.nio.ch.Net.bind(Net.java:461)
+        at sun.nio.ch.Net.bind(Net.java:453)
+        at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:222)
+        at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:85)
+        at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+        ... 12 more
+Unable to start AdminServer, exiting abnormally
+ 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>原因：</p>
+
+<p>端口占用是8080…</p>
+
+<p>解决办法：</p>
+
+<p>在zoo.cfg中增加admin.serverPort=没有被占用的端口号</p>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2023/03/31/assign_gw_to_VS/" data-toggle="tooltip" data-placement="top" title="Loop assign GWs to different VS">
+                        Previous<br>
+                        <span>Loop assign GWs to different VS</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2023/04/13/JBOD_write_cache/" data-toggle="tooltip" data-placement="top" title="查看JBOD Write Cache Policy">
+                        Next<br>
+                        <span>查看JBOD Write Cache Policy</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0190" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0198" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="69">Linux</a>
+        
+                <a data-sort="0241" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="26">shell</a>
+        
+                <a data-sort="0245" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="22">Automation</a>
+        
+                <a data-sort="0249" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="18">ceph</a>
+        
+                <a data-sort="0251" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="16">python</a>
+        
+                <a data-sort="0261" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="6">Jenkins</a>
+        
+                <a data-sort="0262" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="5">S3</a>
+        
+                <a data-sort="0262" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0263" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0263" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0263" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="4">awk</a>
+        
+                <a data-sort="0263" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="4">performance</a>
+        
+                <a data-sort="0263" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0264" 
+                    href="/archive/?tag=ESXi"
+                    title="ESXi"
+                    rel="3">ESXi</a>
+        
+                <a data-sort="0264" 
+                    href="/archive/?tag=cosbench"
+                    title="cosbench"
+                    rel="3">cosbench</a>
+        
+                <a data-sort="0264" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="3">iSCSI</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=%E8%99%9A%E6%8B%9F%E5%8C%96"
+                    title="虚拟化"
+                    rel="2">虚拟化</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=Disk"
+                    title="Disk"
+                    rel="2">Disk</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=PVE"
+                    title="PVE"
+                    rel="2">PVE</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=bzip2"
+                    title="bzip2"
+                    rel="2">bzip2</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=mds"
+                    title="mds"
+                    rel="2">mds</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=netconsole"
+                    title="netconsole"
+                    rel="2">netconsole</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=pbzip2"
+                    title="pbzip2"
+                    rel="2">pbzip2</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="2">pytest</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0265" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+  <li><a href="http://bean-li.github.io/">Bean Li</a></li>
+  
+  <li><a href="https://zphj1987.com/">武汉-磨渣</a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2023/04/09/Deploy_HDFS";
+    var disqus_url = "http://0.0.0.0:4000/2023/04/09/Deploy_HDFS/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2023
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>
