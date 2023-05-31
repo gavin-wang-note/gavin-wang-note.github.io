@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Redis入门 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2014-08-17T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="Redis">
+    
+    
+    <meta property="og:image" content="http://0.0.0.0:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://0.0.0.0:4000/2014/08/17/Introduction_to_Redis/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>Redis入门 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://0.0.0.0:4000/2014/08/17/Introduction_to_Redis/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=Redis" title="Redis">Redis</a>
+                        
+                    </div>
+                    <h1>Redis入门</h1>
+                    
+                    <h2 class="subheading">Getting Started with Redis</h2>
+                    <span class="meta">Posted by Gavin on August 17, 2014</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p>Gikoo的产品后端使用的数据库是Redis，本文介绍Redis的入门。</p>
+
+<h1 id="redis概念">Redis概念</h1>
+
+<p><img class="shadow" src="/img/in-post/redis/overview_of_various_databases.png" width="1200" /></p>
+
+<p>Redis是一款高性能的NOSQL系列的非关系型数据库。</p>
+
+<h2 id="11什么是nosql">1.1、什么是NOSQL</h2>
+
+<p>NOSQL（NOSQL = Not Only SQL），意即“不仅仅是SQL”，是一项全新的数据库理念，泛指非关系型的数据库。随着互联网Web2.0网站的兴起，传统的关系型数据库在应付Web2.0网站，特别是超大规模和高并发的SNS类型的Web2.0纯动态网站已经显得力不从心，暴露了很多难以克服的问题，而非关系型的数据库则由于其本身的特点得到了非常迅速的发展。NOSQL数据库的产生就是为了解决大规模数据集合多重数据种类带来的挑战，尤其是大数据应用难题。</p>
+
+<h3 id="111nosql和关系型数据库比较">1.1.1、NOSQL和关系型数据库比较</h3>
+
+<p>优点：</p>
+
+<ul>
+  <li>成本：NOSQL数据库简单易部署，基本都是开源软件，不需要像使用oracle那样花费大量成本购买使用，相比关系型数据库价格便宜。</li>
+  <li>查询速度：NOSQL数据库将数据存储于缓存之中，关系型数据库将数据存储在硬盘中，自然查询速度远不及NOSQL数据库。</li>
+  <li>查询数据的格式：NOSQL的存储格式是key，value形式、文档形式、图片形式等等，所以可以存储基础类型以及对象或者是集合等各种格式，而数据库则只支持基础类型。</li>
+  <li>扩展性：关系型数据库有类似join这样的多表查询机制的限制导致扩展很艰难。</li>
+</ul>
+
+<p>缺点：</p>
+
+<ul>
+  <li>维护的工具和资料有限，因为NOSQL是属于新的技术，不能和关系型数据库十几年的技术同日而语。</li>
+  <li>不提供对SQL的支持，如果不支持SQL这样的工页标准，将产生一定用户的学习和使用成本。</li>
+  <li>不提供关系型数据库对事务的处理。</li>
+</ul>
+
+<h3 id="112非关系型数据库的优势">1.1.2、非关系型数据库的优势</h3>
+
+<p>性能NOSQL是基于键值对的，可以想象成表中的主键和值的对应关系，而且不需要经过SQL层的解析，所以性能非常高。</p>
+
+<p>可扩展性同样也是因为基于键值对，数据之间没有耦合性，所以非常容易水平扩展。</p>
+
+<h3 id="113关系型数据库的优势">1.1.3、关系型数据库的优势</h3>
+
+<p>复杂查询可以用SQL语句方便地在一个表以及多个表之间做非常复杂的数据查询。</p>
+
+<p>事务支持使得对于安全性能很高的数据访问要求得以实现。对于这两类数据库，对方的优势就是就是自己的弱势，反之亦然。</p>
+
+<h3 id="114总结">1.1.4、总结</h3>
+
+<p>关系型数据库与NOSQL数据库并非对立而是互补的关系，即通常情况下使用关系型数据库，在适合使用NOSQL的时候使用NOSQL数据库，让NOSQL数据库对关系型数据库的不足进行弥补。一般会将数据存储在关系型数据库中，在NOSQL数据库中备份存储关系型数据库的数据。</p>
+
+<h2 id="12主流的nosql产品">1.2、主流的NOSQL产品</h2>
+
+<h3 id="121键值key-value存储数据库">1.2.1、键值（Key-Value）存储数据库</h3>
+
+<ul>
+  <li>相关产品：Tokyo Cabinet/Tyrant、Redis、Voldemort、Berkeley DB。</li>
+  <li>典型应用：内容缓存，主要用于处理大量数据的高访问负载。</li>
+  <li>数据模型：一系列键值对。</li>
+  <li>优势：快速查询。</li>
+  <li>劣势：存储的数据缺少结构化。</li>
+</ul>
+
+<h3 id="122列存储数据库">1.2.2、列存储数据库</h3>
+
+<ul>
+  <li>相关产品：Cassandra、HBase、Riak。</li>
+  <li>典型应用：分布式的文件系统。</li>
+  <li>数据模型：以列簇式存储，将同一列数据存在一起。</li>
+  <li>优势：查找速度快，可扩展性强，更容易进行分布式扩展。</li>
+  <li>劣势：功能相对局限。</li>
+</ul>
+
+<h3 id="123文档型数据库">1.2.3、文档型数据库</h3>
+
+<ul>
+  <li>相关产品：CouchDB、MongoDB。</li>
+  <li>典型应用：Web应用（与Key-Value类似，Value是结构化的）。</li>
+  <li>数据模型：一系列键值对。</li>
+  <li>优势：数据结构要求不严格。</li>
+  <li>劣势：查询性能不高，而且缺乏统一的查询语法。</li>
+</ul>
+
+<h3 id="124图形graph数据库">1.2.4、图形（Graph）数据库</h3>
+
+<ul>
+  <li>相关数据库：Neo4J、InfoGrid、Infinite Graph。</li>
+  <li>典型应用：社交网络。</li>
+  <li>数据模型：图结构。</li>
+  <li>优势：利用图结构相关算法。</li>
+  <li>劣势：需要对整个图做计算才能得出结果，不容易做分布式的集群方案。</li>
+</ul>
+
+<h2 id="13什么是redis">1.3、什么是Redis</h2>
+
+<p>Redis使用C语言开发的一个开源的高性能键值对（Key-Value）数据库，官方提供测试数据，50个并发执行的100000个请求，读的速度是110000次/s，写的速度是81000次/s，且Redis通过提供多种键值数据类型来适应不同场景下的存储需求，摸钱为止Redis支持的键值数据类型如下：</p>
+
+<ul>
+  <li>字符串类型：string</li>
+  <li>哈希类型：hash</li>
+  <li>列表类型：list</li>
+  <li>集合类型：set</li>
+  <li>有序集合类型：sortedset</li>
+</ul>
+
+<h3 id="131redis的应用场景">1.3.1、Redis的应用场景</h3>
+
+<ul>
+  <li>缓存（数据查询、短连接、新闻内容、商品内容等等）；</li>
+  <li>聊天室的在线好友列表；</li>
+  <li>任务队列（秒杀、抢购、12306等等）；</li>
+  <li>应用排行榜；</li>
+  <li>网站访问统计；</li>
+  <li>数据过期处理（可以精确到毫秒）；</li>
+  <li>分布式集群架构中的session分离。</li>
+</ul>
+
+<h1 id="2下载安装">2、下载安装</h1>
+
+<p>1、官网：https://redis.io</p>
+
+<p>2、中文网：www.redis.net.cn/download/</p>
+
+<p>3、解压直接可以使用：</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="n">redis</span><span class="o">.</span><span class="na">windows</span><span class="o">.</span><span class="na">conf</span><span class="err">：</span><span class="n">配置文件</span>
+<span class="n">redis</span><span class="o">-</span><span class="n">cli</span><span class="o">.</span><span class="na">exe</span><span class="err">：</span><span class="n">redis的客户端</span>
+<span class="n">redis</span><span class="o">-</span><span class="n">server</span><span class="o">.</span><span class="na">exe</span><span class="err">：</span><span class="n">redis的服务器端</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="3命令操作">3、命令操作</h1>
+
+<h2 id="3-1redis的数据结构">3. 1、Redis的数据结构</h2>
+
+<p><img class="shadow" src="/img/in-post/redis/redis-struct.png" width="1200" /></p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="n">redis存储的是key</span><span class="o">-</span><span class="n">value格式的数据</span><span class="err">，</span><span class="n">其中key都是字符串</span><span class="err">，</span><span class="n">value有5种不同的数据结构</span><span class="err">。</span>
+
+<span class="n">value</span> <span class="n">的数据结构</span><span class="err">：</span>
+    <span class="mi">1</span><span class="err">）</span><span class="n">字符串类型</span> <span class="n">string</span>
+    <span class="mi">2</span><span class="err">）</span><span class="n">哈希类型</span> <span class="n">hash</span> <span class="err">：</span> <span class="n">map格式</span>
+    <span class="mi">3</span><span class="err">）</span><span class="n">列表类型</span> <span class="n">list</span> <span class="err">：</span> <span class="n">linkedlist格式</span>
+    <span class="mi">4</span><span class="err">）</span><span class="n">集合类型</span> <span class="n">set</span> <span class="err">：</span> <span class="err">（</span><span class="n">与list相比不允许重复元素</span><span class="err">）</span>
+    <span class="mi">5</span><span class="err">）</span><span class="n">有序集合类型</span> <span class="n">sortedset</span> <span class="err">：</span> <span class="n">不允许重复元素</span><span class="err">，</span><span class="n">且元素有顺序</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="32字符串类型-string">3.2、字符串类型 string</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="mi">1</span><span class="err">、</span><span class="n">存储</span><span class="err">：</span><span class="n">set</span> <span class="n">key</span> <span class="n">value</span>
+<span class="mi">2</span><span class="err">、</span><span class="n">获取</span><span class="err">：</span><span class="n">get</span> <span class="n">key</span>
+<span class="mi">3</span><span class="err">、</span><span class="n">删除</span><span class="err">：</span><span class="n">del</span> <span class="n">key</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="33哈希类型-hash">3.3、哈希类型 hash</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="mi">1</span><span class="err">、</span><span class="n">存储</span><span class="err">：</span><span class="n">hset</span> <span class="n">key</span> <span class="n">field</span> <span class="n">value</span>
+<span class="mi">2</span><span class="err">、</span><span class="n">获取</span><span class="err">：</span>
+    <span class="n">hget</span> <span class="n">key</span> <span class="n">field</span><span class="err">：</span><span class="n">获取指定的field对应的value</span>
+    <span class="n">hgetall</span> <span class="n">key</span><span class="err">：</span><span class="n">获取所有的field和value</span>
+<span class="mi">3</span><span class="err">、</span><span class="n">删除</span><span class="err">：</span><span class="n">hdel</span> <span class="n">key</span> <span class="n">field</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="34列表类型-list">3.4、列表类型 list</h2>
+
+<p>列表类型list：可以添加一个元素到列表的头部（左边）或者尾部（右边）。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="mi">1</span><span class="err">、</span><span class="n">存储</span><span class="err">：</span>
+    <span class="n">lpush</span> <span class="n">key</span> <span class="n">value</span><span class="err">：</span><span class="n">将元素加入列表左边</span><span class="err">。</span>
+    <span class="n">rpush</span> <span class="n">key</span> <span class="n">value</span><span class="err">：</span><span class="n">将元素加入列表右边</span><span class="err">。</span>
+<span class="mi">2</span><span class="err">、</span><span class="n">获取</span><span class="err">：</span><span class="n">get</span> <span class="n">key</span>
+    <span class="n">lrange</span> <span class="n">key</span> <span class="n">start</span> <span class="n">end</span><span class="err">：</span><span class="n">范围获取</span>
+<span class="mi">3</span><span class="err">、</span><span class="n">删除</span><span class="err">：</span><span class="n">del</span> <span class="n">key</span>
+    <span class="n">lpop</span> <span class="n">key</span><span class="err">：</span><span class="n">删除列表最左边的元素</span><span class="err">，</span><span class="n">并将元素返回</span><span class="err">。</span>
+    <span class="n">rpop</span> <span class="n">key</span><span class="err">：</span><span class="n">删除列表最右边的元素</span><span class="err">，</span><span class="n">并将元素返回</span><span class="err">。</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="35集合类型-set">3.5、集合类型 set</h2>
+
+<p>集合类型set：不允许重复元素。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="mi">1</span><span class="err">、</span><span class="n">存储</span><span class="err">：</span><span class="n">sadd</span> <span class="n">key</span> <span class="n">value</span>
+<span class="mi">2</span><span class="err">、</span><span class="n">获取</span><span class="err">：</span><span class="n">smembers</span> <span class="n">key</span><span class="err">：</span><span class="n">获取set集合中所有元素</span>
+<span class="mi">3</span><span class="err">、</span><span class="n">删除</span><span class="err">：</span><span class="n">srem</span> <span class="n">key</span> <span class="n">value</span><span class="err">：</span><span class="n">删除set集合中的某个元素</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="36有序集合类型">3.6、有序集合类型</h2>
+
+<p>有序集合类型sortedset：不允许重复元素，且元素有顺序。</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="mi">1</span><span class="err">、</span><span class="n">存储</span><span class="err">：</span><span class="n">zadd</span> <span class="n">key</span> <span class="n">score</span> <span class="n">value</span>
+<span class="mi">2</span><span class="err">、</span><span class="n">获取</span><span class="err">：</span><span class="n">zrange</span> <span class="n">key</span> <span class="n">start</span> <span class="n">end</span>
+<span class="mi">3</span><span class="err">、</span><span class="n">删除</span><span class="err">：</span><span class="n">zrem</span> <span class="n">key</span> <span class="n">value</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="37通用命令">3.7、通用命令</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre><span class="mi">1</span><span class="err">、</span><span class="n">keys</span> <span class="o">*</span> <span class="err">：</span><span class="n">查询所有的键</span>
+<span class="mi">2</span><span class="err">、</span><span class="n">type</span> <span class="n">key</span><span class="err">：</span><span class="n">获取键对应的value的类型</span>
+<span class="mi">3</span><span class="err">、</span><span class="n">del</span> <span class="n">key</span><span class="err">：</span><span class="n">删除指定的key</span> <span class="n">value</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h1 id="4持久化操作">4、持久化操作</h1>
+
+<p>1、Redis是一个内存数据库，当Redis服务器重启，或者电脑重启，数据会丢失，我们可以将Redis内存中的数据持久化保存到硬盘中的文件中。</p>
+
+<p>2、Redis的持久化机制：</p>
+
+<ul>
+  <li>
+    <p>RDB：默认方式，不需要进行配置，默认就是用这种机制。在一定的间隔时间中，检测key的变化情况，然后持久化数据。</p>
+
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre><span class="n">使用步骤</span><span class="err">：</span>
+<span class="mi">1</span><span class="err">、</span><span class="n">编辑redis</span><span class="o">.</span><span class="na">windows</span><span class="o">.</span><span class="na">conf文件</span><span class="err">；</span>
+    <span class="err">#</span> <span class="n">after</span> <span class="mi">900</span> <span class="n">sec</span> <span class="o">(</span><span class="mi">15</span> <span class="n">min</span><span class="o">)</span> <span class="k">if</span> <span class="n">at</span> <span class="n">least</span> <span class="mi">1</span> <span class="n">key</span> <span class="n">changed</span>
+    <span class="n">save</span> <span class="mi">900</span> <span class="mi">1</span>
+    <span class="err">#</span> <span class="n">after</span> <span class="mi">300</span> <span class="n">sec</span> <span class="o">(</span><span class="mi">5</span> <span class="n">min</span><span class="o">)</span> <span class="k">if</span> <span class="n">at</span> <span class="n">least</span> <span class="mi">10</span> <span class="n">key</span> <span class="n">changed</span>
+    <span class="n">save</span> <span class="mi">300</span> <span class="mi">10</span>
+    <span class="err">#</span> <span class="n">after</span> <span class="mi">60</span> <span class="n">sec</span> <span class="o">(</span><span class="mi">15</span> <span class="n">min</span><span class="o">)</span> <span class="k">if</span> <span class="n">at</span> <span class="n">least</span> <span class="mi">10000</span> <span class="n">key</span> <span class="n">changed</span>
+    <span class="n">save</span> <span class="mi">60</span> <span class="mi">10000</span>
+  
+<span class="mi">2</span><span class="err">、</span><span class="n">重新启动redis服务器</span><span class="err">，</span><span class="n">并指定配置文件名称</span><span class="err">。</span>
+    <span class="nl">D:</span><span class="err">\</span><span class="n">redis</span><span class="o">-</span><span class="mf">2.8</span><span class="o">.</span><span class="mi">9</span><span class="o">|</span><span class="n">redis</span><span class="o">-</span><span class="n">server</span><span class="o">.</span><span class="na">exe</span> <span class="n">redis</span><span class="o">.</span><span class="na">windows</span><span class="o">.</span><span class="na">conf</span>
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+  </li>
+  <li>
+    <p>AOF：日志记录的方式，记录每一条命令的操作。可以每一次命令操作后，持久化数据。</p>
+
+    <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre><span class="n">使用步骤</span><span class="err">：</span>
+<span class="mi">1</span><span class="err">、</span><span class="n">编辑redis</span><span class="o">.</span><span class="na">windows</span><span class="o">.</span><span class="na">conf文件</span>
+    <span class="n">appendonly</span> <span class="n">on</span> <span class="err">（</span><span class="n">关闭aof</span><span class="err">）</span> <span class="o">--&gt;</span> <span class="n">appendonly</span> <span class="n">yes</span> <span class="err">（</span><span class="n">开启aof</span><span class="err">）</span>
+  
+    <span class="err">#</span> <span class="n">appendfsync</span> <span class="n">always</span> <span class="err">：</span><span class="n">每一次操作都进行持久化</span>
+    <span class="n">appendfsync</span> <span class="n">everysec</span> <span class="err">：</span><span class="n">每隔一秒进行一次持久化</span>
+    <span class="err">#</span> <span class="n">appendfsync</span> <span class="n">no</span> <span class="err">：</span><span class="n">不进行持久化</span>
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+  </li>
+</ul>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2014/06/13/perl-script-summary/" data-toggle="tooltip" data-placement="top" title="Perl常用代码汇总">
+                        Previous<br>
+                        <span>Perl常用代码汇总</span>
+                        </a>
+                    </li>
+                    
+                    
+                    <li class="next">
+                        <a href="/2014/09/06/pylot-use-guide/" data-toggle="tooltip" data-placement="top" title="pylot安装与使用">
+                        Next<br>
+                        <span>pylot安装与使用</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0185" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0193" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="69">Linux</a>
+        
+                <a data-sort="0237" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="25">shell</a>
+        
+                <a data-sort="0240" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="22">Automation</a>
+        
+                <a data-sort="0245" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="17">ceph</a>
+        
+                <a data-sort="0246" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="16">python</a>
+        
+                <a data-sort="0256" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="6">Jenkins</a>
+        
+                <a data-sort="0257" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="5">S3</a>
+        
+                <a data-sort="0257" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0258" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0258" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0258" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="4">awk</a>
+        
+                <a data-sort="0258" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0259" 
+                    href="/archive/?tag=cosbench"
+                    title="cosbench"
+                    rel="3">cosbench</a>
+        
+                <a data-sort="0259" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="3">iSCSI</a>
+        
+                <a data-sort="0259" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="3">performance</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=Disk"
+                    title="Disk"
+                    rel="2">Disk</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=PVE"
+                    title="PVE"
+                    rel="2">PVE</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=bzip2"
+                    title="bzip2"
+                    rel="2">bzip2</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=mds"
+                    title="mds"
+                    rel="2">mds</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=netconsole"
+                    title="netconsole"
+                    rel="2">netconsole</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=pbzip2"
+                    title="pbzip2"
+                    rel="2">pbzip2</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="2">pytest</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0260" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+  <li><a href="http://bean-li.github.io/">Bean Li</a></li>
+  
+  <li><a href="https://zphj1987.com/">武汉-磨渣</a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2014/08/17/Introduction_to_Redis";
+    var disqus_url = "http://0.0.0.0:4000/2014/08/17/Introduction_to_Redis/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2023
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>
