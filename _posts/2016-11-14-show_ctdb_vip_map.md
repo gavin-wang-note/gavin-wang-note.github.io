@@ -6,7 +6,7 @@ date:       2016-11-14
 author:     "Gavin"
 catalog:    true
 tags:
-    - Shell
+    - shell
 ---
 
 

@@ -6,7 +6,7 @@ date:       2016-04-11
 author:     "Gavin"
 catalog:    true
 tags:
-    - robotframework
+    - Robot Framework
     - Automation
 ---
 
