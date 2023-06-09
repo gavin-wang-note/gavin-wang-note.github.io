@@ -25,7 +25,7 @@ tags:
 
 ```
 run_fio.py
-retart_osd.py
+restart_osd.py
 check_fio.py
 ```
 

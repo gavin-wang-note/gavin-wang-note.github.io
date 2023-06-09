@@ -514,6 +514,17 @@ ln -s /var/lib/tftpboot /var/www/html
 ### 4. autoinit.sh配置文件的存放
 
 
+autiinit.sh脚本，作用于通过PXE网络安装OS最后时刻，修改apache2.conf，修改ssh_config，重置avahi扫描网络所需的配置信息（避免节点avahi config中配置的IP是PXE网络的IP，而非预期设定的public或storage或class网络），内容参考如下：
+
+
+```
+#!/bin/sh
+sed -i 's/KeepAlive On/KeepAlive Off/' /etc/apache2/apache2.conf;
+sed -i.bak 's/^#\ \ \ StrictHostKeyChecking ask/\ \ \ \ StrictHostKeyChecking no/' /etc/ssh/ssh_config
+python -c "from ezs3.utils import start_web_ui,start_freenode_service;start_web_ui();start_freenode_service()"
+python -c "from ezs3.config import Ezs3CephConfig; Ezs3CephConfig()"
+sed -i '/\/root\/autoinit.sh/d' /etc/rc.local
+```
 
 将autoinit.sh脚本，复制到 /var/lib/tftpboot/netconf/目录下：
 
