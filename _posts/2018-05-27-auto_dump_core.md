@@ -2,7 +2,7 @@
 layout:     post
 title:      "Ubuntu kdump dump core files"
 subtitle:   "Ubuntu kdump"
-date:       2023-05-27
+date:       2018-05-27
 author:     "Gavin"
 catalog:    true
 tags:
