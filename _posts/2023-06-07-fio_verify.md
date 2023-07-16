@@ -8,6 +8,7 @@ catalog:    true
 tags:
     - ceph
     - python
+    - fio
 ---
 
 
