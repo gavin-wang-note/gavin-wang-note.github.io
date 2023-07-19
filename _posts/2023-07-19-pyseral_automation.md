@@ -6,7 +6,7 @@ date:       2023-07-19
 author:     "Gavin"
 catalog:    true
 tags:
-    - automation
+    - Automation
     - python
     - pytest
     - serial
