@@ -1,4 +1,1091 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://0.0.0.0:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://0.0.0.0:4000/" rel="alternate" type="text/html" /><updated>2023-07-16T19:32:52+08:00</updated><id>http://0.0.0.0:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">修改默认shell</title><link href="http://0.0.0.0:4000/2023/07/16/Edit_shell/" rel="alternate" type="text/html" title="修改默认shell" /><published>2023-07-16T00:00:00+08:00</published><updated>2023-07-16T00:00:00+08:00</updated><id>http://0.0.0.0:4000/2023/07/16/Edit_shell</id><content type="html" xml:base="http://0.0.0.0:4000/2023/07/16/Edit_shell/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.0.1">Jekyll</generator><link href="http://0.0.0.0:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://0.0.0.0:4000/" rel="alternate" type="text/html" /><updated>2023-07-19T19:49:01+08:00</updated><id>http://0.0.0.0:4000/feed.xml</id><title type="html">Gavin Blog</title><subtitle>关于软件测试, 与你一起发现更大的世界</subtitle><entry><title type="html">Windows下pyserial嵌入式自动化测试框架</title><link href="http://0.0.0.0:4000/2023/07/19/pyseral_automation/" rel="alternate" type="text/html" title="Windows下pyserial嵌入式自动化测试框架" /><published>2023-07-19T00:00:00+08:00</published><updated>2023-07-19T00:00:00+08:00</updated><id>http://0.0.0.0:4000/2023/07/19/pyseral_automation</id><content type="html" xml:base="http://0.0.0.0:4000/2023/07/19/pyseral_automation/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
+
+&lt;p&gt;本文介绍如何基于 python + pytest + pyserial + allure，完成嵌入式产品自动化框架的设计与用例编写。&lt;/p&gt;
+
+&lt;h1 id=&quot;预期目标&quot;&gt;预期目标&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;有可视化报告输出，展示被测版本信息、串口ID，以及运行过程中日志，包括但不限制于串口的输入与输出信息&lt;/li&gt;
+  &lt;li&gt;根据产测工具输入的命令行，解析串口输出数据，校验输出结果是否符合预期要求，如果满足要求，则判断此测试项测试通过；否则测试项测试失败&lt;/li&gt;
+  &lt;li&gt;细化每一个测试程序的每一个测试项与测试子项，封装成独立函数，便于后期用例组合参数完成用例功能设计工作&lt;/li&gt;
+  &lt;li&gt;支持指定用例或用例集合下测试用例的执行&lt;/li&gt;
+  &lt;li&gt;支持指定用例执行次数，默认1次&lt;/li&gt;
+  &lt;li&gt;先兼容一个产品，再逐步兼容其他产品，优先打磨框架&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;设计思路&quot;&gt;设计思路&lt;/h1&gt;
+
+&lt;p&gt;理应画个设计思路与流程图的，比较懒，略了吧……&lt;/p&gt;
+
+&lt;h1 id=&quot;基础环境安装部署&quot;&gt;基础环境安装/部署&lt;/h1&gt;
+
+&lt;p&gt;windows下安装python2.x系列，由于python lib有相互依赖关系，本文介绍python-2.7.13下部署pytest。&lt;/p&gt;
+
+&lt;p&gt;所需安装包信息，参考下文信息(不全，仅展示部分重要lib)。&lt;/p&gt;
+
+&lt;h2 id=&quot;pytest相关基础包&quot;&gt;pytest相关基础包&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;allure-pytest-2.8.11
+allure-python-commons-2.8.11
+allure-commandline-2.13.2
+configobj-4.7.2
+coverage-5.1
+func_timeout-4.3.5
+pylint-1.7.6
+pytest-4.6.11
+pytest-progress-1.2.1
+pytest-repeat-0.8.0
+pytest-ordering-develop
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;安装成功后，显示如下信息，表明安装成功：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\src&amp;gt;pytest --version
+This is pytest version 4.6.11, imported from C:\Python27\lib\site-packages\pytest.pyc
+setuptools registered plugins:
+  pytest-cov-2.12.1 at C:\Python27\lib\site-packages\pytest_cov\plugin.py
+  pytest-timeout-1.3.4 at C:\Python27\lib\site-packages\pytest_timeout-1.3.4-py2.7.egg\pytest_timeout.pyc
+  pytest-ordering-0.6 at C:\Python27\lib\site-packages\pytest_ordering-0.6-py2.7.egg\pytest_ordering\__init__.pyc
+  pytest-progress-1.2.1 at C:\Python27\lib\site-packages\pytest_progress-1.2.1-py2.7.egg\pytest_progress.pyc
+  pytest-repeat-0.8.0 at C:\Python27\lib\site-packages\pytest_repeat-0.8.0-py2.7.egg\pytest_repeat.pyc
+  allure-pytest-2.8.11 at C:\Python27\lib\site-packages\allure_pytest-2.8.11-py2.7.egg\allure_pytest\plugin.pyc
+
+E:\automation\src&amp;gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;java相关安装包&quot;&gt;java相关安装包&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;jdk-8u171-windows-x64
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;安装好 JRE 后，配置 windows下 allure 环境变量信息，让 windows 的 dos 命令或 PowerShell 能够识别到allure命令。出现如下信息，说明 allure 始终正常：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/allure_help.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;框架目录结构&quot;&gt;框架目录结构&lt;/h1&gt;
+
+&lt;h2 id=&quot;整体目录结构介绍&quot;&gt;整体目录结构介绍&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt; E:\automation 的目录
+
+2023/07/19  10:31    &amp;lt;DIR&amp;gt;          .
+2023/07/19  10:31    &amp;lt;DIR&amp;gt;          ..
+2023/07/19  10:44    &amp;lt;DIR&amp;gt;          doc
+2023/07/19  10:37    &amp;lt;DIR&amp;gt;          report
+2023/07/19  10:36    &amp;lt;DIR&amp;gt;          src
+               0 个文件              0 字节
+               8 个目录 459,405,893,632 可用字节
+
+E:\automation&amp;gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;doc 目录下存放一些介绍文档，包括但不限制于当前框架使用说明、用例编写规范说明、pytest 框架介绍等&lt;/li&gt;
+  &lt;li&gt;report 目录下存放生成的 allure 报告，主体内容以 json 格式存放，借助allure 生成可视化html报告&lt;/li&gt;
+  &lt;li&gt;src 目录存放源码，为框架核心内容&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;report目录介绍&quot;&gt;report目录介绍&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\report&amp;gt;dir
+ 驱动器 E 中的卷没有标签。
+ 卷的序列号是 EE05-33CD
+
+ E:\automation\report 的目录
+
+2023/07/19  10:37    &amp;lt;DIR&amp;gt;          .
+2023/07/19  10:37    &amp;lt;DIR&amp;gt;          ..
+2023/07/19  10:36            31,765 coverage.xml
+2023/07/19  10:37    &amp;lt;DIR&amp;gt;          html
+2023/07/19  10:36    &amp;lt;DIR&amp;gt;          json
+2023/07/19  10:31             4,842 pylint.out
+2023/07/19  10:36             9,271 pytest_autotest.log
+2023/07/19  10:31                13 version.txt
+               4 个文件         45,891 字节
+               4 个目录 459,405,893,632 可用字节
+
+E:\automation\report&amp;gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;coverage.xml 为 当前测试用例代码覆盖率统计信息，供 CI/CD 解析使用&lt;/li&gt;
+  &lt;li&gt;html 目录为 allure 可视化报告&lt;/li&gt;
+  &lt;li&gt;json 目录为生成的 allure 原始报告数据&lt;/li&gt;
+  &lt;li&gt;pylint.out 文件为当前测试框架 python 代码相关规范、语法统计信息，供 CI/CD 解析使用&lt;/li&gt;
+  &lt;li&gt;pytest_autotest.log 文件为用例执行过程中记录的日志信息&lt;/li&gt;
+  &lt;li&gt;version.txt 文件记录被测版本信息，用于 allure 生成 html 测试报告展示版本信息使用&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;src目录介绍&quot;&gt;src目录介绍&lt;/h2&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\src&amp;gt;dir
+ 驱动器 E 中的卷没有标签。
+ 卷的序列号是 EE05-33CD
+
+ E:\automation\src 的目录
+
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          .
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          ..
+2023/06/25  16:37            17,584 .pylintrc
+2023/06/25  16:37               579 clear_pyc.py
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          common
+2023/07/14  15:34    &amp;lt;DIR&amp;gt;          config
+2023/06/25  16:37               806 conftest.py
+2023/06/26  14:44               647 pytest.ini
+2023/07/17  17:18             7,626 run.py
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          testcase
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          testcasebase
+2023/06/25  16:37                 0 __init__.py
+               7 个文件         47,722 字节
+               6 个目录 459,405,946,880 可用字节
+
+E:\automation\src&amp;gt;dir common
+ 驱动器 E 中的卷没有标签。
+ 卷的序列号是 EE05-33CD
+
+ E:\automation\src\common 的目录
+
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          .
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          ..
+2023/07/11  14:58               804 config.py
+2023/06/25  16:37               711 path_util.py
+2023/07/19  09:31             6,410 pyserial.py
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          tools
+2023/07/18  17:28             7,813 util.py
+2023/06/25  16:37                 0 __init__.py
+               5 个文件         15,738 字节
+               3 个目录 459,405,946,880 可用字节
+
+E:\automation\src&amp;gt;dir config
+ 驱动器 E 中的卷没有标签。
+ 卷的序列号是 EE05-33CD
+
+ E:\automation\src\config 的目录
+
+2023/07/14  15:34    &amp;lt;DIR&amp;gt;          .
+2023/07/14  15:34    &amp;lt;DIR&amp;gt;          ..
+2023/07/14  15:34               160 autotest.config
+               1 个文件            160 字节
+               2 个目录 459,405,946,880 可用字节
+
+E:\automation\src&amp;gt;dir testcase
+ 驱动器 E 中的卷没有标签。
+ 卷的序列号是 EE05-33CD
+
+ E:\automation\src\testcase 的目录
+
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          .
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          ..
+2023/06/25  16:37               364 conftest.py
+2023/07/19  10:25               980 test_01_comprehensive_test.py
+2023/07/18  18:43                30 test_02_watch_dog.py
+2023/07/19  10:26             1,468 test_03_electronic_disk.py
+2023/06/25  16:37                 0 __init__.py
+               7 个文件          4,393 字节
+               2 个目录 459,405,946,880 可用字节
+
+E:\automation\src&amp;gt;dir testcasebase
+ 驱动器 E 中的卷没有标签。
+ 卷的序列号是 EE05-33CD
+
+ E:\automation\src\testcasebase 的目录
+
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          .
+2023/07/19  11:09    &amp;lt;DIR&amp;gt;          ..
+2023/07/19  10:30             1,696 ComprehensiveTest.py
+2023/07/19  10:28             5,722 ElectronicDisk.py
+2023/07/19  10:24             2,552 ProductInit.py
+2023/07/18  17:30               335 WatchDog.py
+2023/06/25  16:37                 0 __init__.py
+               5 个文件         10,305 字节
+               2 个目录 459,405,946,880 可用字节
+
+E:\automation\src&amp;gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;说明：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;common 目录，存放公用基类&lt;/li&gt;
+  &lt;li&gt;config 目录，存放配置信息，诸如设置的串口信息，波特率等&lt;/li&gt;
+  &lt;li&gt;run.py 是程序主入口，支持根据传参执行全部用例与部分用例&lt;/li&gt;
+  &lt;li&gt;testcase 目录存放具体的测试用例&lt;/li&gt;
+  &lt;li&gt;testcasebase 目录存放各个功能的基类&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;框架核心内容&quot;&gt;框架核心内容&lt;/h1&gt;
+
+&lt;p&gt;重点在pyserial串口操作上，以及各个功能点的基类中发送串口命令、解析串口命令、判断串口输出结果正确与否。&lt;/p&gt;
+
+&lt;p&gt;pyserial 部分代码如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c1&quot;&gt;#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;  pyserial operation  &quot;&quot;&quot;&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;__future__&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unicode_literals&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;sys&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;glob&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;json&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;time&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;serial&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;logging&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;config&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;GetConfig&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;util&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;change_timestamp_to_time&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;PySerial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send_str&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Send Test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Send Test&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;baudrate&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;config&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;baudrate&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send_str&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;send_str&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;
+
+    &lt;span class=&quot;o&quot;&gt;@&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;staticmethod&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;list_serial_ports&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        Lists serial port names
+        :raises EnvironmentError:   On unsupported or unknown platforms
+        :returns: A list of the serial ports available on the system
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startswith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'win'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;ports&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'COM%s'&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;%&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;range&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;256&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startswith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'linux'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startswith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'cygwin'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;# this excludes your current terminal &quot;/dev/tty&quot;
+&lt;/span&gt;            &lt;span class=&quot;n&quot;&gt;ports&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;glob&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;glob&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'/dev/tty[A-Za-z]*'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;platform&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;startswith&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'darwin'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;ports&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;glob&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;glob&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'/dev/tty.*'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;EnvironmentError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Unsupported platform'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    
+        &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ports&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;s&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;OSError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;SerialException&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;pass&lt;/span&gt;
+    
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;serial_alive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;   If port alive, return True, else return False   &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;port_status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;isOpen&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;port_status&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;port_status&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check_loop_send&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+            Connect to the serial port
+            :param check_loop_send， bool， True means send and receive message from COM1 to COM1 in cc=ycle
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;try&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;baudrate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;check_loop_send&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;except&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;Exception&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[ERROR]  Port: (%s), baudrate: (%s), timeout: (%s)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;port&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                          &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;baudrate&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;timeout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;[ERROR]  Connect to serial failed, backend return : (%s)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;sys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;check_device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;  Check the device  &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;write_len&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send_str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--   write_len: %s&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;write_len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mf&quot;&gt;0.1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;byteData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--  self.send_str : (%s)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send_str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--  byteData : (%s)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;byteData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;byteData&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;ValueError&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Check Device Failed:send_str: '{}' not equal to receive: '{}', &quot;&lt;/span&gt;
+                             &lt;span class=&quot;s&quot;&gt;&quot;actually receive : '{}'&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;send_str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;receive&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;byteData&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd_str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;  Send command  &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# Clean the input buffer, clean the return values
+&lt;/span&gt;        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;reset_input_buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--  [DEBUG]  Write command string : (%s)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd_str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;((&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd_str&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\r\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;encode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;all_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flush_flag&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;  Read the data, count Unit is byte, default is 1 byte  &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'--  [DEBUG]  Read count : (%s), all_data : (%s)'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;all_data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;flush_flag&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;# Flush current serial cache, if clean cache, can call serial.readline() to get new data
+&lt;/span&gt;            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flushInput&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+        &lt;span class=&quot;c1&quot;&gt;# Enlarge the buffer, default is 4096bytes, if the output which is larger than 4096bytes,
+&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;# call read_all() only get 4096bytes content, max is 2147483647(but not works, so set it less)
+&lt;/span&gt;        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_buffer_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rx_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2147483600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tx_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2147483600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;all_data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read_all&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;is&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;None&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;count&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;read_last_line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        Read the last line of output of serial, if not match, return None
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_buffer_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rx_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2147483600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tx_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2147483600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;all_line&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;read_all&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--  [DEBUG]  all_line : ({})&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;format&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;all_line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;all_line_list&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;all_line&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;split&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;all_line_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;all_line_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;write_serial_output_to_file&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        Write serial output into a file
+        @param file_name: string, a file name which to record the serial output information
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'--  [DEBUG]  Write data into file : (%s)'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_buffer_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;rx_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2147483600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tx_size&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2147483600&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+        &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_waiting&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;c1&quot;&gt;# If serial has data to read
+&lt;/span&gt;                &lt;span class=&quot;n&quot;&gt;full_data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;readline&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;().&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decode&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'GBK'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;strip&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+                &lt;span class=&quot;c1&quot;&gt;# split_data = full_data.splitlines()
+&lt;/span&gt;                &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;file_name&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;'a+'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;full_data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;has_buffer&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;
+        Get serial buffer
+        @return: True or False
+        &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;# self.serial.set_buffer_size(rx_size=2147483600, tx_size=2147483600)
+&lt;/span&gt;        &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;--  [DEBUG]  ser.in_waiting : (%s)&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_waiting&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_waiting&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;buffer_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_waiting&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'--  [DEBUG]  buffer size : (%s)'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buffer_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sleep&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;15&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;current_buffer_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;in_waiting&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'---  [DEBUG]  current buffer size : (%s)'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;current_buffer_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;buffer_size&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;current_buffer_size&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+                &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;logging&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;debug&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'--  [DEBUG]  Enter else, return False, has no serial buffer'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+            &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;bp&quot;&gt;False&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;  Close serial connection  &quot;&quot;&quot;&lt;/span&gt;
+        &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;用例编写基本规则要求&quot;&gt;用例编写基本规则要求&lt;/h1&gt;
+
+&lt;h2 id=&quot;1-能编写但需要延迟编写的用例增加-raise-skiptest&quot;&gt;1. 能编写但需要延迟编写的用例，增加 raise SkipTest&lt;/h2&gt;
+
+&lt;p&gt;如果两个功能之间有依赖，某个功能尚未编码结束，先写了其中一个功能，另外一个功能需要先标记成skip状态，这样做的目的：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;意在提醒 skip 状态的用例要在将来被完成&lt;/li&gt;
+  &lt;li&gt;某些用例需要手工执行上下电动作，只能手工测试，需要增加skip&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;2-base-class-里禁止函数名称含有-test&quot;&gt;2. Base Class 里，禁止函数名称含有 test&lt;/h2&gt;
+
+&lt;p&gt;pytest 运行用例的时候，根据正则匹配测试用例，会匹配到含有 test 开头的函数，会认为这个函 数是一个测试用例，故而要避免此种情况的发生，如果一定要在基类里写test，可以使用单词 examination 代替。&lt;/p&gt;
+
+&lt;h2 id=&quot;3-test_xxpy-无逻辑内容&quot;&gt;3. test_xx.py 无逻辑内容&lt;/h2&gt;
+
+&lt;p&gt;test_xxxx.py是用例集，此用例集里纯粹是函数的调用，无任何业务逻辑，业务逻辑全部在testcasebase里。&lt;/p&gt;
+
+&lt;h2 id=&quot;4-测试用例名称携带编号&quot;&gt;4. 测试用例名称携带编号&lt;/h2&gt;
+
+&lt;p&gt;用例需携带上 __doc__，此信息为用例Title， 且以服务器上（如TestLink）记录的名称为准。&lt;/p&gt;
+
+&lt;p&gt;例如：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;test_143_same_daemon_different_signal&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;对应 TestLink 的用例为：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;FC-143:Same daemon, different signal core file&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;5-测试用例的__doc__不得含有中文字符&quot;&gt;5. 测试用例的__doc__，不得含有中文字符&lt;/h2&gt;
+
+&lt;p&gt;例如： &lt;code class=&quot;highlighter-rouge&quot;&gt;FC-143:Same daemon，different signal core file&lt;/code&gt; 这里的逗号，是中文符号，会导致用例报错。&lt;/p&gt;
+
+&lt;h2 id=&quot;6避免测试用例之间存在依赖关系&quot;&gt;6、避免测试用例之间存在依赖关系&lt;/h2&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;每个测试 suite 中的测试用例互相不依赖&lt;/li&gt;
+  &lt;li&gt;测试 suite 中的用例，尽可能避免依赖关系，如 TestLink 中上一个用例是创建，下一个用例是删除，则合并这两个用例为一个自动化测试用例。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;7日志记录对齐要求&quot;&gt;7、日志记录对齐要求&lt;/h2&gt;
+
+&lt;p&gt;为了让记录的log内容看起来更对其，对于code中的日志记录，规则要求如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;执行动作的记录，开头增加[Action]&lt;/li&gt;
+  &lt;li&gt;检查动作的记录，开头增加[Check]&lt;/li&gt;
+  &lt;li&gt;断言记录的 log，开头增加[ERROR]&lt;/li&gt;
+  &lt;li&gt;操作成功的 log，开头增加[SUCCESS]&lt;/li&gt;
+  &lt;li&gt;不需要检查点 的，开头增加[Skip]&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;具体要求如下：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;[Prepare] 后面跟 2 个空格&lt;/li&gt;
+  &lt;li&gt;[Action] 后面跟 3 个空格&lt;/li&gt;
+  &lt;li&gt;[Start] 后面跟 4 个空格&lt;/li&gt;
+  &lt;li&gt;[Check] 后面跟 4 个空格&lt;/li&gt;
+  &lt;li&gt;[Success] 后面跟 2 个空格&lt;/li&gt;
+  &lt;li&gt;[Skip] 后面跟 5 个空格&lt;/li&gt;
+  &lt;li&gt;debug 级别的 log，内容前面跟 2 个-，之后 再加 2 个空格&lt;/li&gt;
+  &lt;li&gt;assert 中，[ERROR] 后面跟 2 个空格&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&quot;8用例的执行顺序&quot;&gt;8、用例的执行顺序&lt;/h2&gt;
+
+&lt;p&gt;pytest用例执行顺序，根据 ASSII 进行排序，单个用例文件中则是以用例编写先后顺序执行。&lt;/p&gt;
+
+&lt;p&gt;在用例有关联情 况下，需要对用例名称增加数字编号，人为的干预用例执行顺序，比如 test_1_xxx, test_2_yyy；或者借助pytest-order plugin来约束住用例见关系。&lt;/p&gt;
+
+&lt;h2 id=&quot;9代码规范要求&quot;&gt;9、代码规范要求&lt;/h2&gt;
+
+&lt;p&gt;执行 pylint，确保检查结果分值等于10, e.g :&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pylint -r y common/pyserial.py --rcfile=.pylintrc&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/run-pylint.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;MESSAGE_TYPE 有如下几种：&lt;/p&gt;
+
+&lt;p&gt;(C) 惯例，违反了编码风格标准&lt;/p&gt;
+
+&lt;p&gt;(R) 重构，写得非常糟糕的代码&lt;/p&gt;
+
+&lt;p&gt;(W) 警告，某些 Python 特定的问题&lt;/p&gt;
+
+&lt;p&gt;(E) 错误，很可能是代码中的错误&lt;/p&gt;
+
+&lt;p&gt;(F) 致命错误，阻止 Pylint 进一步运行的错误&lt;/p&gt;
+
+&lt;h2 id=&quot;10-用例文件名称用例中定义变量名称全局唯一&quot;&gt;10. 用例文件名称、用例中定义变量名称全局唯一&lt;/h2&gt;
+
+&lt;p&gt;对于测试用例中定义的变量，要保持全局唯一，当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰，尤其对于用例规模上千后，此笨方法会比较有效。&lt;/p&gt;
+
+&lt;p&gt;当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰。&lt;/p&gt;
+
+&lt;h1 id=&quot;用例编写&quot;&gt;用例编写&lt;/h1&gt;
+
+&lt;p&gt;测试用例仅仅是逻辑的调用，组合各个函数，构造成一个完整的测试场景。&lt;/p&gt;
+
+&lt;p&gt;这里以电子盘测试为示例，参考如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;test_03_electronic_disk.py&lt;/code&gt; 内容参考如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;c1&quot;&gt;#!/usr/bin/env python
+# -*- coding: GBK -*-
+&lt;/span&gt;
+&lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;  Check output of electronic disk test information  &quot;&quot;&quot;&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;__future__&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unicode_literals&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;allure&lt;/span&gt;
+
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;src.common.pyserial&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PySerial&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;from&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;src.testcasebase.ElectronicDisk&lt;/span&gt; &lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ElectronicDiskTest&lt;/span&gt;
+
+
+&lt;span class=&quot;k&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;TestElectronicDiskTest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ElectronicDiskTest&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;s&quot;&gt;&quot;&quot;&quot;    Test case of electronic disk test   &quot;&quot;&quot;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;PySerial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setup&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;连接到串口&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;connect&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;teardown&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;关闭串口连接&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;serial&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;close&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_electronic_disk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;输入 '1' 开始电子盘测试&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;check_electronic_disk_test_menu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_filesystem_performance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;电子盘测试 --&amp;gt; 1.电子盘文件系统读写性能测试&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_storage_filesystem_read_write_performance_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_emcc_performance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;电子盘测试 --&amp;gt; 2.EMMC多任务读写测试&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;emmc_multi_task_read_write_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_data_encry_performance_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;电子盘测试 --&amp;gt; 3.电子盘文件系统数据加密解密性能测试&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data_encry_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+
+    &lt;span class=&quot;k&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;test_folder_files_created_performance_test&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;with&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;allure&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;step&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;电子盘测试 --&amp;gt; 4.电子盘文件夹与文件数创建性能测试&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+            &lt;span class=&quot;bp&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;folder_file_created_performance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;非常明显的看出来，这里没有逻辑，完全是具体函数的调用。对应测试项功能的发起、返回结果的校验，完全在被调用函数里，所以，框架的另外一个重心，就是各个功能点的基类函数。&lt;/p&gt;
+
+&lt;h1 id=&quot;用例执行&quot;&gt;用例执行&lt;/h1&gt;
+
+&lt;h2 id=&quot;执行全部用例&quot;&gt;执行全部用例&lt;/h2&gt;
+
+&lt;p&gt;src 目录下，执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;python run.py&lt;/code&gt;, 如下所示：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\src&amp;gt;python run.py
+--------------------------------------------------------------------------------
+[Step 1]  [Check]    Check if the report directory is deleted
+
+          [SKIP]     No need to delete report directory
+--------------------------------------------------------------------------------
+[Step 2]  Check test case execution node.
+
+    2-1 [Check]    Current node should install python, pyest
+
+        [Success]  List some serial ports success
+
+    2-2 [Check]    Should be able to access the serial ports
+
+        [Success]  Access serial port : (COM7) success
+
+--------------------------------------------------------------------------------
+[Step 3]  Start to run test case
+
+    3-1 Start to run all of test case
+
+============================= test session starts =============================
+platform win32 -- Python 2.7.13, pytest-4.6.11, py-1.11.0, pluggy-0.13.1 -- C:\Python27\python.exe
+cachedir: .pytest_cache
+rootdir: E:\automation\src, inifile: pytest.ini
+plugins: cov-2.12.1, timeout-1.3.4, ordering-0.6, progress-1.2.1, repeat-0.8.0, allure-pytest-2.8.11
+collected 11 items
+
+testcase/test_01.py::test_a PASSED                                      [ 1/11]
+_ 1 of 11 completed, 1 Pass, 0 Fail, 0 Skip, 0 XPass, 0 XFail, 0 Error, 0 ReRun _
+
+testcase/test_01.py::test_b PASSED                                      [ 2/11]
+_ 2 of 11 completed, 2 Pass, 0 Fail, 0 Skip, 0 XPass, 0 XFail, 0 Error, 0 ReRun _
+
+testcase/test_01.py::TestFramework::test_eq PASSED                      [ 3/11]
+_ 3 of 11 completed, 3 Pass, 0 Fail, 0 Skip, 0 XPass, 0 XFail, 0 Error, 0 ReRun _
+
+testcase/test_01.py::TestFramework::test_not_eq PASSED                  [ 4/11]
+_ 4 of 11 completed, 4 Pass, 0 Fail, 0 Skip, 0 XPass, 0 XFail, 0 Error, 0 ReRun _
+
+testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
+
+---------- coverage: platform win32, python 2.7.13-final-0 -----------
+Coverage XML written to file ../report/coverage.xml
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;执行部分用例&quot;&gt;执行部分用例&lt;/h2&gt;
+
+&lt;p&gt;执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;python run.py -t xxx yyy zzz&lt;/code&gt;， 其中xxx yyy zzz表示不同的用例文件&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\src&amp;gt;python run.py -t testcase/test_01_comprehensive_test.py testcase/test_02_watch_dog.py
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;执行某个测试用例&quot;&gt;执行某个测试用例&lt;/h2&gt;
+
+&lt;p&gt;方法1： run.py为入口&lt;/p&gt;
+
+&lt;p&gt;e.g:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;python run.py -t testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/run_single_case_1.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;方法2： pytest命令行执行&lt;/p&gt;
+
+&lt;p&gt;e.g:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/run_single_case_2.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;循环执行用例&quot;&gt;循环执行用例&lt;/h2&gt;
+
+&lt;p&gt;用例执行有多种方式，一是指定整个py文件，而是指定到具体测试用例，无论哪种方式，携带上–count，示例如下：&lt;/p&gt;
+
+&lt;h3 id=&quot;某个用例循环多次执行&quot;&gt;某个用例循环多次执行&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\src&amp;gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive --count=10
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/case_counts.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;某个测试集合下用例循环多次执行&quot;&gt;某个测试集合下用例循环多次执行&lt;/h3&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\src&amp;gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01.py --count=10
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/case_counts-2.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;测试报告&quot;&gt;测试报告&lt;/h1&gt;
+
+&lt;h2 id=&quot;html可视化报告的展示&quot;&gt;HTML可视化报告的展示&lt;/h2&gt;
+
+&lt;p&gt;run.py运行结束后，会在report目录下生成json目录与文件，执行allure相关命令，生成可视化 html 报告：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+5
+6
+7
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation&amp;gt;cd report
+E:\automation\report&amp;gt;allure generate json -o html --clean
+Report successfully generated to html
+E:\automation\report&amp;gt;allure open html -p 11111
+Starting web server...
+2023-07-19 14:56:21.859:INFO::main: Logging initialized @183ms to org.eclipse.jetty.util.log.StdErrLog
+Server started at &amp;lt;http://192.168.56.1:11111/&amp;gt;. Press &amp;lt;Ctrl+C&amp;gt; to exit
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;浏览器打开 &lt;code class=&quot;highlighter-rouge&quot;&gt;http://192.168.56.1:11111&lt;/code&gt;地址，预览如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img class=&quot;shadow&quot; src=&quot;/img/in-post/serial/allure_report.png&quot; width=&quot;1200&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;如果 allure 命令生成 report 时，未指定 -p 参数，会随机生成一个未被占用的5位数字的端口号：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
+2
+3
+4
+&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;E:\automation\report&amp;gt;allure open html
+Starting web server...
+2023-07-19 15:00:17.760:INFO::main: Logging initialized @180ms to org.eclipse.jetty.util.log.StdErrLog
+Server started at &amp;lt;http://192.168.56.1:52014/&amp;gt;. Press &amp;lt;Ctrl+C&amp;gt; to exit
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;失败用例的检查&quot;&gt;失败用例的检查&lt;/h2&gt;
+
+&lt;p&gt;html可视化报告中给出哪些用例失败，可根据记录到的log信息进行用例失败检查，判断是产品存在Bug还是用例编写问题。&lt;/p&gt;</content><author><name>Gavin</name></author><category term="automation" /><category term="python" /><category term="pytest" /><category term="serial" /><summary type="html">概述</summary></entry><entry><title type="html">修改默认shell</title><link href="http://0.0.0.0:4000/2023/07/16/Edit_shell/" rel="alternate" type="text/html" title="修改默认shell" /><published>2023-07-16T00:00:00+08:00</published><updated>2023-07-16T00:00:00+08:00</updated><id>http://0.0.0.0:4000/2023/07/16/Edit_shell</id><content type="html" xml:base="http://0.0.0.0:4000/2023/07/16/Edit_shell/">&lt;h1 id=&quot;概述&quot;&gt;概述&lt;/h1&gt;
 
 &lt;p&gt;今天在Ubuntu22环境下安装LANMP，执行&lt;code class=&quot;highlighter-rouge&quot;&gt;sh lanmp.sh&lt;/code&gt;命令运行LANMP，如果出现如下错误：&lt;/p&gt;
 
@@ -2043,1492 +3130,4 @@ Testlink version using with this tool is TestLink 1.9.10(El D1eG0).&lt;/p&gt;
     &lt;span class=&quot;n&quot;&gt;xem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xmlnode_to_list&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
     &lt;span class=&quot;n&quot;&gt;xem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;write_list_to_excel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'output.xls'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Testlink" /><category term="Python" /><summary type="html">Overview</summary></entry><entry><title type="html">Dead lock test</title><link href="http://0.0.0.0:4000/2023/05/13/Lock_test/" rel="alternate" type="text/html" title="Dead lock test" /><published>2023-05-13T00:00:00+08:00</published><updated>2023-05-13T00:00:00+08:00</updated><id>http://0.0.0.0:4000/2023/05/13/Lock_test</id><content type="html" xml:base="http://0.0.0.0:4000/2023/05/13/Lock_test/">&lt;h1 id=&quot;scripts&quot;&gt;Scripts&lt;/h1&gt;
-
-&lt;p&gt;file_lock_test.py&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;import fcntl
-import os, time
-import logging
-
-
-logger = logging.getLogger()
-hdlr = logging.FileHandler(logfile)
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-hdlr.setFormatter(formatter)
-logger.addHandler(hdlr)
-logger.setLevel(logging.INFO)
-
-
-FILE = &quot;lockf.txt&quot;
-
-if not os.path.exists(FILE):
-    file = open(FILE, &quot;a+&quot;)
-    file.write(&quot;0&quot;)
-    file.close()
-
-for i in xrange(50):
-    file = open(FILE, &quot;r+&quot;)
-    start_time = time.time()
-    fcntl.lockf(file.fileno(), fcntl.LOCK_EX)
-    # fcntl.flock(file.fileno(), fcntl.LOCK_EX)
-    
-    counter = int(file.readline()) + 1
-    file.seek(0)
-    file.write(str(counter))
-    
-    end_time = time.time()
-    
-    print 'used time: ' + str(end_time - start_time), '\n'
-    logger.info(u'used time: {}'.format(str(end_time - start_time)))
-        
-    # unlocks the file
-    file.close()
-    
-    # print os.getpid(), &quot;=&amp;gt;&quot;, counter
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;lock_test.py&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;import time
-import random
-import logging
-
-from ezs3.log import EZLog
-from ezs3.lock import RESOURCE, SingleLock
-
-logger = EZLog.get_logger(__name__)
-EZLog.init_handler(logging.INFO, &quot;./lock_test.log&quot;)
-
-resource_list = [RESOURCE.FS_MANAGER, RESOURCE.VS_MANAGER, RESOURCE.MDS_HOST_PRIOR, RESOURCE.SHARED_FOLDER_MGR, RESOURCE.EXPORT_LOGS, RESOURCE.CENTRAL_FLUSH_LOCK, RESOURCE.POOL, RESOURCE.FEATURE_NODES]
-sum = 0.0 
-min = 0.0 
-max = 0.0 
-loop = 0 
-fail_cnt = 0
-for i in xrange(200):
-    random.shuffle(resource_list) 
-    for each_resource in resource_list:
-        try:
-            begin = time.time()
-            with SingleLock(resource=each_resource, auto_renew=True):
-                interval = time.time() - begin
-                if min == 0.0 or min &amp;gt; interval:
-                    min = interval
-                if interval &amp;gt; max :
-                    max = interval
-                sum += interval
-                loop += 1
-                logger.info(&quot;avg {} min {} max {} loop = {}&quot;.format(sum/loop, min, max, loop))
-                print(&quot;avg {} min {} max {} loop = {}&quot;.format(sum/loop, min, max, loop))
-                random_sleep = random.randint(1,3)
-                time.sleep(random_sleep)
-                logger.info(&quot;[Success] (%s) time(s) to get and release lock : (%s), random sleep ; (%s)&quot;, i+1, each_resource, random_sleep)
-        except Exception as ex:
-            fail_cnt += 1
-            interval = time.time() - begin 
-            print(&quot;cost time {} and FAILURE,  failed cnt {} &quot;.format(interval, fail_cnt))
-            logger.info(&quot;cost time {} and FAILURE,  failed cnt {} &quot;.format(interval, fail_cnt))
-            time.sleep(1)
-
-
-if __name__ == '__main__':
-    pass
-
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;root@scaler80:/usr/lib/python2.7/dist-packages/ezs3# cat log.py
-import os
-import sys
-import logging
-import threading
-from logging.handlers import SysLogHandler, WatchedFileHandler
-from logging import StreamHandler
-from contextlib import contextmanager
-
-from ezs3.distro import get_syslog_file_name_by_distro
-
-logging.raiseExceptions = False
-
-
-class SysLogFile:
-    DEFAULT = (SysLogHandler.LOG_USER, &quot;/var/log/{}&quot;.format(get_syslog_file_name_by_distro()))
-    EZS3_ADMIN = (SysLogHandler.LOG_LOCAL0, &quot;/var/log/ezcloudstor/ezs3admin.log&quot;)
-    EZS3_GMOND = (SysLogHandler.LOG_LOCAL2, &quot;/var/log/ezcloudstor/ezgmond.log&quot;)
-    EZS3_CENTRAL = (SysLogHandler.LOG_LOCAL3, &quot;/var/log/ezcloudstor/ezcentral.cache&quot;)
-    BTSNMP = (SysLogHandler.LOG_LOCAL4, &quot;/var/log/ezcloudstor/btsnmp.log&quot;)
-
-
-# ref: http://www.electricmonk.nl/log/2011/08/14/redirect-stdout-and-stderr-to-a-logger-in-python/
-class StreamToLogger(object):
-    &quot;&quot;&quot;
-    Fake file-like stream object that redirects writes to a logger instance.
-    &quot;&quot;&quot;
-    def __init__(self, fno, logger, log_level=logging.INFO):
-        self.logger = logger
-        self.log_level = log_level
-        self.linebuf = ''
-        self.fno = fno
-
-    def write(self, buf):
-        for line in buf.rstrip().splitlines():
-            self.logger.log(self.log_level, line.rstrip())
-
-    def flush(self):
-        # StreamToLogger flushes every write so this function should be no-op
-        pass
-
-    def fileno(self):
-        return self.fno
-
-
-class EZLog:
-    _handler = None
-    _modules = []  # modules with uninitialized loggers
-    _initial_level = logging.INFO
-    _debug_ref_cnt = 0
-    _debug_enable_lock = threading.Lock()
-
-
-    @classmethod
-    def init_handler(cls, level=logging.INFO, logfile=None, syslog=False,
-                     syslogfile=SysLogFile.DEFAULT, redirect_stderr=False,
-                     fmt=None):
-        if cls._handler:
-            raise Exception(&quot;EZLog handler initailized twice&quot;)
-
-        if not fmt:
-            fmt = &quot;[%(asctime)s] [%(levelname)s] [%(process)d] [%(name)s] &quot; \
-                    &quot;[%(funcName)s:%(lineno)d] %(message)s&quot;
-        if syslog:
-            sys_formatter = logging.Formatter(fmt)
-            cls._handler = SysLogHandler(address='/dev/log', facility=syslogfile[0])
-            cls._handler.setFormatter(sys_formatter)
-        elif logfile:
-            dirpath = os.path.dirname(logfile)
-            if not os.path.exists(dirpath):
-                os.makedirs(dirpath)
-            file_formatter = logging.Formatter(fmt)
-            cls._handler = WatchedFileHandler(logfile, encoding='UTF-8')
-            cls._handler.setFormatter(file_formatter)
-        else:
-            cls._handler = StreamHandler(sys.stdout)
-            cls._handler.setFormatter(logging.Formatter('%(message)s'))
-
-        if os.environ.get(&quot;EZDEBUG&quot;):
-            level = logging.DEBUG
-
-        cls._handler.setLevel(level)
-        cls._initial_level = level
-        for module in cls._modules:
-            logger = logging.getLogger(module)
-            if cls._handler not in logger.handlers:
-                logger.addHandler(cls._handler)
-
-        if redirect_stderr:
-            logger = EZLog.get_logger('stderr')
-            sys.stderr = StreamToLogger(sys.stderr.fileno(), logger, logging.ERROR)
-
-    @classmethod
-    def get_logger(cls, module):
-        logger = logging.getLogger(module)
-        logger.setLevel(logging.DEBUG)
-
-        if cls._handler is None:
-            cls._modules.append(module)
-        elif cls._handler not in logger.handlers:
-            logger.addHandler(cls._handler)
-
-        return logger
-
-    @classmethod
-    def setLevel(cls, level):
-        cls._initial_level = level
-        cls._handler.setLevel(level)
-
-    @classmethod
-    def getLevel(cls):
-        return cls._handler.level
-
-    @classmethod
-    def setTmpLevel(cls, level):
-        cls._handler.setLevel(level)
-
-    @classmethod
-    def getInitialLevel(cls):
-        return cls._initial_level
-
-
-# context helper to enable debug logging in a code block
-@contextmanager
-def enable_debug_log():
-    with EZLog._debug_enable_lock:
-        EZLog._debug_ref_cnt += 1
-
-    old_level = EZLog.getInitialLevel()
-    EZLog.setTmpLevel(logging.DEBUG)
-    try:
-        yield
-    finally:
-        with EZLog._debug_enable_lock:
-            EZLog._debug_ref_cnt -= 1
-            if EZLog._debug_ref_cnt == 0:
-                EZLog.setTmpLevel(old_level)
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20
-21
-22
-23
-24
-25
-26
-27
-28
-29
-30
-31
-32
-33
-34
-35
-36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-67
-68
-69
-70
-71
-72
-73
-74
-75
-76
-77
-78
-79
-80
-81
-82
-83
-84
-85
-86
-87
-88
-89
-90
-91
-92
-93
-94
-95
-96
-97
-98
-99
-100
-101
-102
-103
-104
-105
-106
-107
-108
-109
-110
-111
-112
-113
-114
-115
-116
-117
-118
-119
-120
-121
-122
-123
-124
-125
-126
-127
-128
-129
-130
-131
-132
-133
-134
-135
-136
-137
-138
-139
-140
-141
-142
-143
-144
-145
-146
-147
-148
-149
-150
-151
-152
-153
-154
-155
-156
-157
-158
-159
-160
-161
-162
-163
-164
-165
-166
-167
-168
-169
-170
-171
-172
-173
-174
-175
-176
-177
-178
-179
-180
-181
-182
-183
-184
-185
-186
-187
-188
-189
-190
-191
-192
-193
-194
-195
-196
-197
-198
-199
-200
-201
-202
-203
-204
-205
-206
-207
-208
-209
-210
-211
-212
-213
-214
-215
-216
-217
-218
-219
-220
-221
-222
-223
-224
-225
-226
-227
-228
-229
-230
-231
-232
-233
-234
-235
-236
-237
-238
-239
-240
-241
-242
-243
-244
-245
-246
-247
-248
-249
-250
-251
-252
-253
-254
-255
-256
-257
-258
-259
-260
-261
-262
-263
-264
-265
-266
-267
-268
-269
-270
-271
-272
-273
-274
-275
-276
-277
-278
-279
-280
-281
-282
-283
-284
-285
-286
-287
-288
-289
-290
-291
-292
-293
-294
-295
-296
-297
-298
-299
-300
-301
-302
-303
-304
-305
-306
-307
-308
-309
-310
-311
-312
-313
-314
-315
-316
-317
-318
-319
-320
-321
-322
-323
-324
-325
-326
-327
-328
-329
-330
-331
-332
-333
-334
-335
-336
-337
-338
-339
-340
-341
-342
-343
-344
-345
-346
-347
-348
-349
-350
-351
-352
-353
-354
-355
-356
-357
-358
-359
-360
-361
-362
-363
-364
-365
-366
-367
-368
-369
-370
-371
-372
-373
-374
-375
-376
-377
-378
-379
-380
-381
-382
-383
-384
-385
-386
-387
-388
-389
-390
-391
-392
-393
-394
-395
-396
-397
-398
-399
-400
-401
-402
-403
-404
-405
-406
-407
-408
-409
-410
-411
-412
-413
-414
-415
-416
-417
-418
-419
-420
-421
-422
-423
-424
-425
-426
-427
-428
-429
-430
-431
-432
-433
-434
-435
-436
-437
-438
-439
-440
-441
-442
-443
-444
-445
-446
-447
-448
-449
-450
-451
-452
-453
-454
-455
-456
-457
-458
-459
-460
-461
-462
-463
-464
-465
-466
-467
-468
-469
-470
-471
-472
-473
-474
-475
-476
-477
-478
-479
-480
-481
-482
-483
-484
-485
-486
-487
-488
-489
-490
-491
-492
-493
-494
-495
-496
-497
-498
-499
-500
-501
-502
-503
-504
-505
-506
-507
-508
-509
-510
-511
-512
-513
-514
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;
-t@scaler80:/usr/lib/python2.7/dist-packages/ezs3# cat lock.py
-import errno
-import fcntl
-import json
-import os
-import time
-import signal
-import Queue
-import multiprocessing
-from ezs3.command import do_cmd
-from ezs3.log import EZLog
-from functools import wraps
-from threading import Lock, Event, Thread
-from ezs3.ezrados import SafeRados
-
-
-logger = EZLog.get_logger(__name__)
-
-
-class LOCK_TYPE:
-    SHARED = &quot;shared&quot;
-    EXCLUSIVE = &quot;exclusive&quot;
-
-
-class RESOURCE(object):
-    FS_PROGRESS = 'fs_progress'
-    FS_MANAGER = 'fs_manager'
-    FS_INSTANCE = 'fs_instance'
-    MDS_INSTANCE = 'mds_instance'
-    EVENT_CACHE = 'event_cache'
-    CTDB = 'ctdb'
-    SDS_CONTROLLERS = 'sds_controllers'
-    FEATURE_NODES = 'feature_nodes'
-    EZZERO_COPY = 'ezzero_copy'
-    EZDEEP_COPY = 'ezdeep_copy'
-    EZ_NAS_TO_S3 = 'ez_nas_to_s3'
-    EZ_S3_TO_NAS = 'ez_s3_to_nas'
-    EZFS_AGENT = 'ezfs_agent'
-    SMB_MANAGEMENT = 'samba_management'
-    EXPORT_LOGS = 'export_logs'
-    NODE_STATUS = 'node_status'
-    POOL = 'pool.{}'
-    NODE_MANAGEMENT = 'node_management'
-    CENTRAL_CONFIG_LOCK = 'central.config'
-    CENTRAL_FLUSH_LOCK = 'central.flush'
-    VS_MANAGER = 'vs_manager'   # protect &quot;gateway_groups&quot; config key
-    MDS_HOST_PRIOR = 'mds_host_prior'
-    DISK_RECOVERY = 'disk_recovery'
-    RGW_MANAGER = 'rgw_manager'
-    CRUSH_REWEIGHT = &quot;crush_reweight&quot;
-    CEPH_CRUSHMAP = &quot;ceph_crushmap&quot;
-    HARDWARE_INFO = 'hardware_info'
-    POOLS_INFO = 'POOLS_INFO'
-    USER_MAPPING_MANAGEMENT = 'user_mapping_management'
-    SDS_ADMIN_ACCOUNT = 'sds_admin_account'
-    SNS_CONFIG = 'sns_config'
-    SQS_CONFIG = 'sqs_config'
-    S3NOTIF_CONFIG = 's3notif_config'
-    STORCLS_SERVICE = 'storage_class_service'
-    IMPORT_ACCOUNT_CONFIG = 'import_account_config'
-    MIGRATE_CEPH_ACCOUNTS = 'migrate_ceph_accounts'
-    MIGRATE_JOB = 'migrate_job'
-    MIGRATE_INDEX_JOB = 'migrate_index_job'
-    MIGRATE_META_JOB = 'migrate_meta_job'
-    MIGRATE_DATA_JOB = 'migrate_data_job'
-    MIGRATE_QUOTA_JOB = 'migrate_quota_job'
-    MIGRATE_FAILUE_JOB = 'migrate_failue_job'
-    MIGRATE_DOMAIN = 'migrate_domain'
-    IPMI_CONFIG = 'ipmi_config'
-    RAID_STATE = 'raid_state'
-    LICENSE = 'license'
-    ISCSI_MANAGER = 'iscsi_manager'
-    OSD_ID_ASSIGN = 'osd_id_assign'
-    SYSTEM_UID = 'system_uid'
-    ALLOW_POOL_DELETE = 'allow_pool_delete'
-    PUBLIC_IPS = 'public_ips'
-
-
-class FILE_RESOURCE(object):
-    HOSTS = &quot;hosts&quot;
-    STORAGE_CONF_WRITE = 'storage_conf_write'
-    STORAGE_CONF_READ = 'storage_conf_read'
-    LSBLK = 'lsblk'
-    NAS_DISK_CONF = 'nas_disk_conf'
-    ISCSI_SESSIONS = 'iscsi_sessions'
-    CEPH_CONF = 'ceph_conf'
-    AD = 'ad'
-
-
-def rbd_task_lock_name(pool, img):
-    return &quot;rbd_task.{}.{}&quot;.format(pool, img)
-
-
-file_resource_thread_locks = {}
-
-
-def init_file_resource_thread_locks():
-    global file_resource_thread_locks
-    file_resources = [r for r in dir(FILE_RESOURCE) if not r.startswith('__')]
-    file_resource_thread_locks = {
-        FILE_RESOURCE.__dict__[r]: Lock() for r in file_resources}
-
-init_file_resource_thread_locks()
-
-
-def list_locked_resources():
-    output = do_cmd('ceph lock list')
-    return json.loads(output)
-
-
-def delete_resource_lock(resource):
-    do_cmd('ceph lock delete {}'.format(resource))
-
-
-class MonitorLockError(RuntimeError):
-    def __str__(self):
-        return &quot;CephMonitorLockError: {}&quot;.format(self.message)
-
-
-class SingleLock(object):
-    def __init__(self, resource, lock_type=LOCK_TYPE.EXCLUSIVE,
-                 auto_renew=False):
-        self.resource = resource
-        self.lock_type = lock_type
-        self.timestamp = ''
-
-        self._auto_renew = auto_renew   # default config
-        self._enable_auto_renew = False # state of current lock
-        self._autorenew_thread = None
-        self._stop_renew = Event()
-        self._renew_interval = 10
-        self._rds = SafeRados.get_instance()
-
-    def acquire(self, blocking=True, auto_renew=None, renew_interval=10):
-        self._enable_auto_renew = (auto_renew == True) or \
-            (auto_renew == None and self._auto_renew)
-        json_cmd = {'prefix': 'lock acquire', 'type': self.lock_type, 'key': self.resource}
-        acquire_retry_cnt = 0
-        while True:
-            ret, outbuf, outs = self._rds.json_command(argdict=json_cmd,
-                                                       timeout=30, do_retry=False)
-            if ret == 0:
-                self.timestamp = outbuf
-                if self._enable_auto_renew:
-                    logger.debug('Got lock {} and auto renew is enabled, timestamp={}'
-                                 .format(self.resource, self.timestamp))
-                    self._stop_renew.clear()
-                    self._renew_interval = renew_interval
-                    self._autorenew_thread = Thread(target=self.renew_thread)
-                    self._autorenew_thread.start()
-                else:
-                    logger.debug('Got lock and auto renew is disabled')
-                return True
-            elif ret == -errno.EBUSY or ret == -errno.EAGAIN:
-                acquire_retry_cnt += 1
-                if ret == -errno.EBUSY:
-                    message = 'Lock {} is occupied ({})...'.format(self.resource, acquire_retry_cnt)
-                else:
-                    message = 'Lock {} acquire cannot exec, may not in quorum ({}) ...'.format(self.resource, acquire_retry_cnt)
-                if acquire_retry_cnt in [5,10,20,50,100,300]:
-                    logger.warn(message)
-                elif acquire_retry_cnt &amp;gt; 300:
-                    logger.error(message)
-                else:
-                    logger.debug(message)
-                if not blocking:
-                    return False
-                time.sleep(1)
-            else:
-                raise MonitorLockError('Monitor returned: {}({})'.format(errno.errorcode[-ret], ret))
-
-    def release(self):
-        if not self.timestamp:
-            return
-
-        if self._enable_auto_renew:
-            self._stop_renew.set()
-            self._autorenew_thread.join()
-
-        json_cmd = {'prefix': 'lock release', 'ts': self.timestamp, 'key': self.resource}
-        ret, _outbuf, _outs = self._rds.json_command(argdict=json_cmd,
-                                                     timeout=30, do_retry=False)
-
-        if ret == 0:
-            self.timestamp = ''
-            return True
-        elif ret == -errno.ENOENT:
-            logger.warning('lock {} release with no entry, ret={}, timestemp={}'.format(self.resource, ret, self.timestamp))
-        else:
-            logger.error('lock {} release failed, ret={}, timestemp={}'.format(self.resource, ret, self.timestamp))
-        return False
-
-    def renew(self):
-        logger.debug(&quot;renew monitor lock {} with timestamp={}&quot;.format(self.resource, self.timestamp))
-        json_cmd = {'prefix': 'lock renew', 'ts': self.timestamp, 'key': self.resource}
-        ret, outbuf, _ = self._rds.json_command(argdict=json_cmd, timeout=30, do_retry=False)
-        if ret == 0:
-            self.timestamp = outbuf
-            return True
-        else:
-            logger.error('lock {} renew failed, ret={}, timestemp={}'.format(
-                self.resource, ret, self.timestamp))
-            return False
-
-    def renew_thread(self):
-        while not self._stop_renew.wait(self._renew_interval):
-            self.renew()
-
-    def __enter__(self):
-        blocking = True
-        self.acquire(blocking, self._auto_renew)
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.release()
-
-
-class MultiLock(object):
-    def __init__(self, resources, lock_type=LOCK_TYPE.EXCLUSIVE, auto_renew=False):
-        self.resources = resources
-        self.lock_type = lock_type
-        self.auto_renew = auto_renew
-        self.locks = []
-
-    def acquire(self):
-        for resource in self.resources:
-            lock = SingleLock(resource, self.lock_type, self.auto_renew)
-            self.locks.append(lock)
-
-        for lock in self.locks:
-            lock.acquire()
-
-    def release(self):
-        for lock in self.locks:
-            lock.release()
-
-    def renew(self):
-        for lock in self.locks:
-            lock.renew()
-
-    def __enter__(self):
-        self.acquire()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.release()
-
-
-class GroupLock(SingleLock):
-    def __init__(self, gwgroup, resource, lock_type=LOCK_TYPE.EXCLUSIVE,
-                 auto_renew=False):
-        SingleLock.__init__(self, '{}.{}'.format(gwgroup, resource), lock_type,
-                            auto_renew)
-
-
-class ProcessLockTimeout(RuntimeError):
-    pass
-
-
-class ProcessLockFailed(RuntimeError):
-    pass
-
-
-# The process lock is implemented by flock syscall, and it can only be interrupted by SIGALRM.
-# In order to allow background threads having their own process lock with timeout ability,
-# we implement a worker process for every ProcessLock to do flock operations (if timeout is specified).
-class ProcessLock:
-    def __init__(self, resource, lock_type=LOCK_TYPE.EXCLUSIVE, blocking=True, timeout=0):
-        self.resource = resource
-        self.lock_type = lock_type
-        self.blocking = blocking
-        self.timeout = timeout
-        self.flock_result = None
-        self.release_event = None
-        self.worker = None
-        self.process_lock = None
-
-    def acquire(self):
-        # currently we forbid re-entrant lock to simplify the cases
-        if self.process_lock:
-            raise ProcessLockFailed('Unable to re-acquire lock {}'.format(self.resource))
-
-        self.process_lock = _ProcessLock(self.resource, self.lock_type, self.blocking)
-
-        if self.timeout &amp;gt; 0:
-            self.flock_result = multiprocessing.Queue(1)
-            self.release_event = multiprocessing.Event()
-            self.worker = ProcessLockWorker(self.flock_result,
-                                            self.release_event,
-                                            self.process_lock)
-            self.worker.start()
-            try:
-                res = self.flock_result.get(timeout=self.timeout)
-                if res[0] &amp;lt; 0:
-                    self.process_lock = None
-                    raise ProcessLockFailed('Unable to lock {}, err={}'.format(self.resource, res[1]))
-            except Queue.Empty:
-                self.process_lock = None
-                # interrupt blocking flock syscall in worker
-                os.kill(self.worker.pid, signal.SIGALRM)
-                while self.worker.is_alive():
-                    self.worker.terminate()
-                raise ProcessLockTimeout('Timeout to lock {}'.format(self.resource))
-        else:
-            try:
-                self.process_lock.acquire()
-            except Exception as e:
-                self.process_lock = None
-                logger.exception(&quot;Acquire lock failed..&quot;)
-                raise ProcessLockFailed('Unable to lock {}, err={}'.format(self.resource, e.message))
-
-    def release(self):
-        if self.process_lock:
-            if self.worker:
-                self.release_event.set()
-                self.worker.join()
-                self.worker = None
-            else:
-                self.process_lock.release()
-            self.process_lock = None
-
-    def __enter__(self):
-        self.acquire()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.release()
-
-
-class _ProcessLock:
-    FILE_LOCK_PATH = '/var/lock/ezs3'
-
-    def __init__(self, resource, lock_type, blocking):
-        self.resource = resource
-        self.lock_type = lock_type
-        self.blocking = blocking
-        self.handle = None
-        self.thread_lock = file_resource_thread_locks[self.resource]
-
-    def acquire(self):
-        self.thread_lock.acquire()
-        if not os.path.exists(_ProcessLock.FILE_LOCK_PATH):
-            os.mkdir(_ProcessLock.FILE_LOCK_PATH)
-
-        filename = os.path.join(_ProcessLock.FILE_LOCK_PATH, self.resource)
-        self.handle = open(filename, 'w')
-
-        lock_op = 0
-
-        if self.lock_type == LOCK_TYPE.EXCLUSIVE:
-            lock_op = fcntl.LOCK_EX
-        else:
-            lock_op = fcntl.LOCK_SH
-
-        if self.blocking:
-            fcntl.flock(self.handle, lock_op)
-        else:
-            fcntl.flock(self.handle, lock_op | fcntl.LOCK_NB)
-
-    def release(self):
-        if self.handle:
-            fcntl.flock(self.handle, fcntl.LOCK_UN)
-            self.handle.close()
-            self.handle = None
-        if self.thread_lock.locked():
-            self.thread_lock.release()
-
-
-# NOTE: do not logging in ProcessLockWorker because logging in
-# another process without syslog handler might corrupt the log.
-class ProcessLockWorker(multiprocessing.Process):
-    def __init__(self, flock_result, release_event, process_lock):
-        multiprocessing.Process.__init__(self)
-        self.flock_result = flock_result
-        self.release_event = release_event
-        self.process_lock = process_lock
-
-    def run(self):
-        try:
-            self.process_lock.acquire()
-            self.flock_result.put([0, ''])
-            self.release_event.wait()
-            self.process_lock.release()
-        except Exception as e:
-            self.flock_result.put([-1, e.message])
-
-
-internal_lock = {}
-
-
-def get_internal_lock(lock_name):
-    global internal_lock
-    if lock_name not in internal_lock:
-        internal_lock[lock_name] = Lock()
-    return internal_lock[lock_name]
-
-
-external_lock = {}
-
-
-def get_external_lock(lock_name, rds=None, timeout=60):
-    global external_lock
-    if lock_name not in external_lock or external_lock[lock_name] is None:
-        try:
-            rl = SingleLock(lock_name)
-        except:
-            rl = None
-            logger.warn('Faile to create monitor lock')
-        external_lock[lock_name] = rl
-    return external_lock[lock_name]
-
-
-def monlock(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        lock_name = kwargs.get('_lock_name')
-        if not lock_name:
-            lock_name = func.__module__
-        else:
-            del kwargs['_lock_name']
-
-        ret = None
-        try:
-            # Honestly, we should only using rados lock here, but due to the memory leak issue of rados lock, we added a internal lock so one process can share one rados lock.
-            in_lock = get_internal_lock(lock_name)
-            ex_lock = get_external_lock(lock_name)
-            in_lock.acquire()
-            if ex_lock:
-                ex_lock.acquire(auto_renew=True)
-            ret = func(*args, **kwargs)
-        except Exception, ex:
-            logger.error('Running wrapped function {} error: {}'.format(str(func), str(ex)))
-            raise ex
-        finally:
-            if ex_lock:
-                ex_lock.release()
-            if in_lock:
-                in_lock.release()
-
-        return ret
-    return wrapper
-
-class MonLockWithName(object):
-    def __init__(self, lock_name):
-        self.lock_name = lock_name
-
-    def __call__(self, func):
-        def wrapped_f(*args):
-            ret = None
-            try:
-                in_lock = get_internal_lock(self.lock_name)
-                ex_lock = get_external_lock(self.lock_name)
-                in_lock.acquire()
-                if ex_lock:
-                    ex_lock.acquire(auto_renew=True)
-                ret = func(*args)
-            except Exception, ex:
-                logger.error('Running wrapped function {} error: {}'.format(str(func), str(ex)))
-                raise ex
-            finally:
-                if ex_lock:
-                    ex_lock.release()
-                if in_lock:
-                    in_lock.release()
-
-            return ret
-        return wrapped_f
-
-
-class RWLock(object):
-    class _Switch(object):
-        def __init__(self):
-            self._count = 0
-            self._mutex = Lock()
-
-        def acquire(self, lock):
-            self._mutex.acquire()
-            self._count += 1
-            if self._count == 1:
-                lock.acquire()
-            self._mutex.release()
-
-        def release(self, lock):
-            self._mutex.acquire()
-            self._count -= 1
-            if self._count == 0:
-                lock.release()
-            self._mutex.release()
-
-    def __init__(self):
-        self._read_switch = self._Switch()
-        self._write_switch = self._Switch()
-        self._no_readers = Lock()
-        self._no_writers = Lock()
-        self._readers_queue = Lock()
-
-    def read_acquire(self):
-        self._readers_queue.acquire()
-        self._no_readers.acquire()
-        self._read_switch.acquire(self._no_writers)
-        self._no_readers.release()
-        self._readers_queue.release()
-
-    def read_release(self):
-        self._read_switch.release(self._no_writers)
-
-    def write_acquire(self):
-        self._write_switch.acquire(self._no_readers)
-        self._no_writers.acquire()
-
-    def write_release(self):
-        self._no_writers.release()
-        self._write_switch.release(self._no_readers)
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;table class=&quot;rouge-table&quot;&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;rouge-gutter gl&quot;&gt;&lt;pre class=&quot;lineno&quot;&gt;1
-&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;rouge-code&quot;&gt;&lt;pre&gt;
-&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Lock" /><summary type="html">Scripts</summary></entry></feed>
+&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;</content><author><name>Gavin</name></author><category term="Testlink" /><category term="Python" /><summary type="html">Overview</summary></entry></feed>
