@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="pyserial 使用指导 - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2023-07-26T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="python">
+    
+    <meta property="article:tag" content="serial">
+    
+    
+    <meta property="og:image" content="http://0.0.0.0:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://0.0.0.0:4000/2023/07/26/pyserial_use_guide/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>pyserial 使用指导 - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://0.0.0.0:4000/2023/07/26/pyserial_use_guide/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=python" title="python">python</a>
+                        
+                        <a class="tag" href="/archive/?tag=serial" title="serial">serial</a>
+                        
+                    </div>
+                    <h1>pyserial 使用指导</h1>
+                    
+                    <h2 class="subheading">pyserial use guide</h2>
+                    <span class="meta">Posted by Gavin on July 26, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p>利用pyserial，可以访问串口，发送串口命令，当然，根据串口返回结果，判断命令执行正确性。</p>
+
+<p>本文简介pyserial一些常用函数的使用方法与场景，并做一些阐述。</p>
+
+<h1 id="实践">实践</h1>
+
+<h2 id="初始化连接串口">初始化(连接串口)</h2>
+
+<h3 id="串口连接示例">串口连接示例</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; import serial
+&gt;&gt;&gt; ser = serial.Serial('COM7', 115200, timeout=1)
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>不同平台连接不同类型串口，示例如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=0.5) # 使用USB连接串行口
+ser = serial.Serial("/dev/ttyAMA0", 9600, timeout=0.5) # 使用树莓派的GPIO口连接串行口
+ser = serial.Serial("com1", 9600, timeout=0.5)# winsows系统使用com1口连接串行口
+ser = serial.Serial("/dev/ttyS1", 9600, timeout=0.5)# Linux系统使用com1口连接串行口
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>连接串口时，除了主要的几个参数显示携带外，其他参数可以使用默认值，当然，可以携带全部参数，示例如下：</p>
+
+<p>当然， 可以在连接串口时，携带上全部参数：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td><td class="rouge-code"><pre>ser = serial.Serial(
+port=None,              # number of device, numbering starts at
+# zero. if everything fails, the user
+# can specify a device string, note
+# that this isn't portable anymore
+# if no port is specified an unconfigured
+# an closed serial port object is created
+baudrate=9600,          # baud rate
+bytesize=EIGHTBITS,     # number of databits
+parity=PARITY_NONE,     # enable parity checking
+stopbits=STOPBITS_ONE,  # number of stopbits
+timeout=None,           # set a timeout value, None for waiting forever
+xonxoff=0,              # enable software flow control
+rtscts=0,               # enable RTS/CTS flow control
+interCharTimeout=None   # Inter-character timeout, None to disable
+)
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="对象属性"><strong>对象属性</strong></h3>
+
+<ul>
+  <li>name —— 设备名字</li>
+  <li>port —— 读或者写端口，比如示例中的’COM7’，这里只接受字符串类型内容</li>
+  <li>baudrate —— 波特率，比如示例中的115200，波特率端口，默认9600</li>
+  <li>bytesize —— 字节大小</li>
+  <li>parity —— 校验位</li>
+  <li>stopbits —— 停止位，取值(1,2)</li>
+  <li>timeout —— 读超时设置</li>
+  <li>writeTimeout —— 写超时</li>
+  <li>xonxoff —— 软件流控</li>
+  <li>rtscts —— 硬件流控</li>
+  <li>dsrdtr —— 硬件流控</li>
+  <li>interCharTimeout —— 字符间隔超时</li>
+</ul>
+
+<h3 id="属性介绍">属性介绍</h3>
+
+<p>说明：</p>
+
+<p>​    如未显示携带，pyserial设有默认值。</p>
+
+<p><strong>name</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.name
+COM7
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>port</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.port
+COM7
+&gt;&gt;&gt; print ser.portstr
+COM7
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>baudrate</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.baudrate
+115200
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>bytesize</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.bytesize
+8
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>parity</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.parity
+N
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>stopbits</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.stopbits
+1
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>timeout</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.timeout
+None
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>关于timeout：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>timeout=None            # wait forever
+timeout=0               # non-blocking mode (return immediately on read)
+timeout=x               # set timeout to x seconds (float allowed)
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>writeTimeout</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.writeTimeout
+None
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>xonxoff</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.xonxoff
+False
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>rtscts</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.rtscts
+False
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>dsrdtr</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.dsrdtr
+False
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>interCharTimeout</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; print ser.interCharTimeout
+None
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>一个命令获取当前串口属性信息</strong>：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; ser.getSettingsDict
+&lt;bound method Serial.getSettingsDict of Serial&lt;id=0x2cc3358, open=True&gt;(port='com7', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=None, xonxoff=False, rtscts=False, dsrdtr=False)&gt;
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="查看pyserial-属性信息">查看pyserial 属性信息</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; import serial
+&gt;&gt;&gt; ser = serial.Serial('COM7', 115200)
+&gt;&gt;&gt; dir(ser)
+['BAUDRATES', 'BYTESIZES', 'PARITIES', 'STOPBITS', '_GetCommModemStatus', '_SAVED_SETTINGS', '__abstractmethods__', '__class__', '__delattr__', '__doc__', '__enter__', '__exit__', '__format__', '__getattribute__', '__hash__', '__init__', '__iter__', '__metaclass__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '_abc_cache', '_abc_negative_cache', '_abc_negative_cache_version', '_abc_registry', '_cancel_overlapped_io', '_checkClosed', '_checkReadable', '_checkSeekable', '_checkWritable', '_close', '_reconfigure_port', '_update_break_state', '_update_dtr_state', '_update_rts_state', 'applySettingsDict', 'apply_settings', 'baudrate', 'break_condition', 'bytesize', 'cancel_read', 'cancel_write', 'cd', 'close', 'closed', 'cts', 'dsr', 'dsrdtr', 'dtr', 'exclusive', 'fileno', 'flush', 'flushInput', 'flushOutput', 'getCD', 'getCTS', 'getDSR', 'getRI', 'getSettingsDict', 'get_settings', 'inWaiting', 'in_waiting', 'interCharTimeout', 'inter_byte_timeout', 'iread_until', 'isOpen', 'isatty', 'next', 'open', 'out_waiting', 'parity', 'port', 'read', 'read_all', 'read_until', 'readable', 'readall', 'readinto', 'readline', 'readlines', 'reset_input_buffer', 'reset_output_buffer', 'ri', 'rs485_mode', 'rts', 'rtscts', 'seek', 'seekable', 'sendBreak', 'send_break', 'setDTR', 'setPort', 'setRTS', 'set_buffer_size', 'set_output_flow_control', 'stopbits', 'tell', 'timeout', 'truncate', 'writable', 'write', 'writeTimeout', 'write_timeout', 'writelines', 'xonxoff']
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p><strong>对象常用方法</strong></p>
+
+<ul>
+  <li>ser.isOpen() —— 查看端口是否被打开</li>
+  <li>ser.open() —— 打开端口</li>
+  <li>ser.close() —— 关闭端口</li>
+  <li>ser.read() —— 从端口读字节数据。默认1个字节</li>
+  <li>ser.read_all() —— 从端口接收全部数据，默认4096字节</li>
+  <li>ser.write(“s”) —— 向端口写数据 “s”</li>
+  <li>ser.readline() —— 读一行数据</li>
+  <li>ser.readlines() —— 读多行数据</li>
+  <li>in_waiting —— 返回接收缓存中的字节数，方法同inWaiting()</li>
+  <li>flush() —— 等待所有数据写出</li>
+  <li>flushInput() —— 丢弃接收缓存中的所有数据</li>
+  <li>flushOutput() —— 终止当前写操作，并丢弃发送缓存中的数据</li>
+  <li>read_until(“s”) —— 读取串口数据，知道出现预期字符串”s”就终止读取</li>
+  <li>set_buffer_size(rx_size=value1, tx_size=value2) —— 设置buffer 大小，默认4096bytes，上限2147483647</li>
+  <li>sendBreak()   —— send break condition</li>
+  <li>setRTS(level=1)  —— set RTS line to specified logic level</li>
+  <li>setDTR(level=1) —— set DTR line to specified logic level</li>
+  <li>getCTS()  —— return the state of the CTS line</li>
+  <li>getDSR()  —— return the state of the DSR line</li>
+  <li>getRI()  —— return the state of the RI line</li>
+  <li>getCD() —— return the state of the CD line</li>
+</ul>
+
+<h1 id="常用代码示例">常用代码示例</h1>
+
+<p>说明：</p>
+
+<p>​      如下示例，借助虚拟串口软件（Virtual Serial Port Driver Pro）创建了两个虚拟串口（COM7 和 COM8），并将两个串口短接（即COM7与COM8互通，形成回环）</p>
+
+<h3 id="获取当前设备上所有串口信息">获取当前设备上所有串口信息</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre>    @staticmethod
+    def list_serial_ports():
+        """
+        Lists serial port names
+        :raises EnvironmentError:   On unsupported or unknown platforms
+        :returns: A list of the serial ports available on the system
+        """
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        elif sys.platform.startswith('darwin'):
+            ports = glob.glob('/dev/tty.*')
+        else:
+            raise EnvironmentError('Unsupported platform')
+    
+        result = []
+        for port in ports:
+            try:
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+    
+        return result
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="字符串的发送接收">字符串的发送接收</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>import serial
+ser = serial.Serial('COM7', 115200)
+writen = ser.write('Hello, i send a string command to serial')
+print writen
+recevied = ser.read(writen )
+print recevied
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>其中，read(value)方法的参数value为需要读取的字符长度：</p>
+
+<ul>
+  <li>如果指定了value的值，当且仅当串口 buffer内容长度小于value值时，read动作会一直等待，直到串口buffer &gt;= value时，read结束。比如read(10)，而buffer内容长度超过10字节，则只读取前面10个字节内容。</li>
+  <li>如果想要全部读取，提供两个方法：</li>
+</ul>
+
+<p>​     （1）inWaiting() 或者 in_waiting：监测接收字符。 inWaitting返回接收字符串的长度值，然后把这个值赋给read做参数。</p>
+
+<p>​     （2）read_all() ：读取全部字符</p>
+
+<p>说明:</p>
+
+<p>​    inWaiting()或者in_wating，使用如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; ser.inWaiting()
+36L
+&gt;&gt;&gt; ser.in_waiting
+36L
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>如果有非零值，说明串口buffer中有内容可读。</p>
+
+<p>​    read_all() 使用如下:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; ser.read_all()
+'I received what you send, thanks.'
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>还有另外一个方法readall()，但是没有理解掉这个方法，使用readall()读取数据时，无论设置多大的buffer size，无论发送多大的数据包过去，命令始终卡着，无任何输出，即使携带上回车换行也没有效果。</p>
+
+<h3 id="十六进制显示">十六进制显示</h3>
+
+<p>十六进制显示的实质是把接收到的字符串转换成其对应的ASCII码，然后将ASCII码值再转换成十六进制数显示出来，这样就可以显示特殊字符了。</p>
+
+<p>在这里定义了一个函数，如hexShow(argv)，代码如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre><span class="c1">#!/usr/bin/env python
+# -*- coding:UTF-8 -*
+</span>
+<span class="kn">import</span> <span class="nn">serial</span>
+
+
+<span class="k">def</span> <span class="nf">hexShow</span><span class="p">(</span><span class="n">argv</span><span class="p">):</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">''</span>
+    <span class="n">hLen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="n">hLen</span><span class="p">):</span>
+        <span class="n">hvol</span> <span class="o">=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">argv</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">hhex</span> <span class="o">=</span> <span class="s">'%02x'</span><span class="o">%</span><span class="n">hvol</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">hhex</span><span class="o">+</span><span class="s">' '</span>
+
+    <span class="k">print</span> <span class="s">'hexShow:'</span><span class="p">,</span> <span class="n">result</span>
+
+<span class="n">ser</span> <span class="o">=</span> <span class="n">serial</span><span class="p">.</span><span class="n">Serial</span><span class="p">(</span><span class="s">'COM8'</span><span class="p">,</span><span class="mi">9600</span><span class="p">)</span>
+<span class="n">str_input</span> <span class="o">=</span> <span class="nb">raw_input</span><span class="p">(</span><span class="s">'Enter some words:'</span><span class="p">)</span>
+<span class="n">writen_str</span> <span class="o">=</span> <span class="n">ser</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">str_input</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">"--  writen_str : ({})"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">writen_str</span><span class="p">)</span>
+
+<span class="n">read_str</span> <span class="o">=</span> <span class="n">ser</span><span class="p">.</span><span class="n">read</span><span class="p">(</span><span class="n">writen_str</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">"--  read_str : ({})"</span><span class="p">.</span><span class="nb">format</span><span class="p">(</span><span class="n">read_str</span><span class="p">)</span>
+
+<span class="n">hexShow</span><span class="p">(</span><span class="n">read_str</span><span class="p">)</span>
+
+<span class="n">ser</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>测试结果如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>C:\Users\Administrator&gt;python C:\Users\Administrator\Desktop\hexShow.py
+Enter some words:hex shows test
+--  writen_str : (14)
+--  read_str : (hex shows test)
+hexShow: 68 65 78 20 73 68 6f 77 73 20 74 65 73 74
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="十六进制发送">十六进制发送</h3>
+
+<p>十六进制发送实质是发送十六进制格式的字符串，如’\xaa’，’\x0b’。重点在于怎么样把一个字符串转换成十六进制的格式，有两个误区：</p>
+
+<p>1）’\x’+’aa’是不可以的，涉及到转义符反斜杠</p>
+
+<p>2）’\x’+’aa’和r’\x’+’aa’也不可以的，这样的打印结果虽然是\xaa，但赋给变量的值却是’\xaa’</p>
+
+<p>这里用到decode函数：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; s ='aabbccddee'
+&gt;&gt;&gt; s.decode('hex')
+'\xaa\xbb\xcc\xdd\xee'
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>需要注意一点，如果字符串 s 的长度为奇数，则decode会报错：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>&gt;&gt;&gt; s ='aabbccdde'
+&gt;&gt;&gt; s.decode('hex')
+Traceback (most recent call last):
+  File "&lt;stdin&gt;", line 1, in &lt;module&gt;
+  File "C:\Python27\lib\encodings\hex_codec.py", line 42, in hex_decode
+    output = binascii.a2b_hex(input)
+TypeError: Odd-length string
+&gt;&gt;&gt;
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>可以按照实际情况，用字符串的切片操作，在字符串的开头或结尾加一个’0’。</p>
+
+<p>假如在串口助手以十六进制发送字符串”abc”，那么你在python中则这样操作：</p>
+
+<p><code class="highlighter-rouge">serial.write(”\x61\x62\x63")</code></p>
+
+<p>当然，还有另外一个方法也可以达到相同目的：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>s = "abc"
+strHex = binascii.b2a_hex(s)
+# print strHex
+strhex = strHex.decode("hex")
+# print strhex
+ser.write(strhex);
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="读取串口记录的最后一行">读取串口记录的最后一行</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+</pre></td><td class="rouge-code"><pre>    def read_last_line(self):
+        """
+        Read the last line of output of serial, if not match, return None
+        """
+        all_line = self.serial.read_all().decode('GBK')
+        logging.debug("--  [DEBUG]  all_line : ({})".format(all_line))
+        all_line_list = [x for x in all_line.split('\n') if x]
+        if len(all_line_list):
+            return all_line_list[-1]
+        else:
+            return
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="判断-buffer-是否有内容">判断 buffer 是否有内容</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>    def has_buffer(self):
+        """
+        Get serial buffer
+        @return: True or False
+        """
+        if self.serial.in_waiting &gt; 0:
+            buffer_size = self.serial.in_waiting
+            time.sleep(5)
+            current_buffer_size = self.serial.in_waiting
+            if buffer_size != current_buffer_size:
+                return True
+        else:
+            return False
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="读取串口内容并记录到文件">读取串口内容并记录到文件</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>    def write_serial_output_to_file(self, file_name):
+        """
+        Write serial output into a file
+        @param file_name: string, a file name which to record the serial output information
+        """
+        logging.debug('--  [DEBUG]  Write data into file : (%s)', file_name)
+
+        while True:
+            if self.serial.in_waiting &gt; 0:  # If serial has data to read
+                full_data = self.serial.readline().decode('GBK').strip()
+                # split_data = full_data.splitlines()
+                with open(file_name, 'a+') as f:
+                    f.write(full_data)
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="读取串口内容直到匹配到预期字符串">读取串口内容直到匹配到预期字符串</h3>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre></td><td class="rouge-code"><pre>    def read_until_matched(self, key_words):
+        """
+        Get some info when read from serial until match some key words
+        @return:
+        """
+        logging.debug("--  Get key words : (%s) from serial cache", key_words)
+
+        matched = self.serial.read_until(key_words).decode('GBK')
+
+        return matched
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2023/07/19/pyseral_automation/" data-toggle="tooltip" data-placement="top" title="Windows下pyserial嵌入式自动化测试框架">
+                        Previous<br>
+                        <span>Windows下pyserial嵌入式自动化测试框架</span>
+                        </a>
+                    </li>
+                    
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0199" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0207" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="69">Linux</a>
+        
+                <a data-sort="0246" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="30">shell</a>
+        
+                <a data-sort="0253" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="23">Automation</a>
+        
+                <a data-sort="0255" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="21">ceph</a>
+        
+                <a data-sort="0256" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="20">python</a>
+        
+                <a data-sort="0270" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="6">Jenkins</a>
+        
+                <a data-sort="0271" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="5">S3</a>
+        
+                <a data-sort="0271" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0272" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0272" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0272" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="4">awk</a>
+        
+                <a data-sort="0272" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="4">performance</a>
+        
+                <a data-sort="0272" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0273" 
+                    href="/archive/?tag=ESXi"
+                    title="ESXi"
+                    rel="3">ESXi</a>
+        
+                <a data-sort="0273" 
+                    href="/archive/?tag=cosbench"
+                    title="cosbench"
+                    rel="3">cosbench</a>
+        
+                <a data-sort="0273" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="3">iSCSI</a>
+        
+                <a data-sort="0273" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="3">pytest</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=%E8%99%9A%E6%8B%9F%E5%8C%96"
+                    title="虚拟化"
+                    rel="2">虚拟化</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=Disk"
+                    title="Disk"
+                    rel="2">Disk</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=PVE"
+                    title="PVE"
+                    rel="2">PVE</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=bzip2"
+                    title="bzip2"
+                    rel="2">bzip2</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=fio"
+                    title="fio"
+                    rel="2">fio</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=mds"
+                    title="mds"
+                    rel="2">mds</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=netconsole"
+                    title="netconsole"
+                    rel="2">netconsole</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=pbzip2"
+                    title="pbzip2"
+                    rel="2">pbzip2</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=serial"
+                    title="serial"
+                    rel="2">serial</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0274" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+  <li><a href="http://bean-li.github.io/">Bean Li</a></li>
+  
+  <li><a href="https://zphj1987.com/">武汉-磨渣</a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2023/07/26/pyserial_use_guide";
+    var disqus_url = "http://0.0.0.0:4000/2023/07/26/pyserial_use_guide/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2023
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>
