@@ -19,7 +19,7 @@ Gavin Wang
 ##### Contact information 
 
     Web Site: https://gavin-wang-note.github.io
-    E-Mail:   250556531@qq.com
+    E-Mail:   wangyun_zeng@163.com
     GitHub:   https://github.com/gavin-wang-note
 
 

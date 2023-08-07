@@ -23,7 +23,8 @@ S3性能测试， 向单一Bucket下持续灌入4K大下的对象，观察存储
 
 watch_inode_bt_cach_dump.sh
 
-```
+
+{% raw %}```
 #!/bin/bash
 
 osd_ids=`ps -ef |grep ceph-osd | grep -v grep | awk '{{print $13}}' | sort`
@@ -71,6 +72,4 @@ do
         sleep 600
     fi
 done
-```
-
-
+``` {% endraw %}
