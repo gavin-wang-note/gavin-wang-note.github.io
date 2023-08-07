@@ -2,7 +2,7 @@
 layout:     post
 title:      "修复memcache 未授权访问漏洞"
 subtitle:   "memcache of limit 11211 port"
-date:       2023-07-30
+date:       2017-07-30
 author:     "Gavin"
 catalog:    true
 tags:

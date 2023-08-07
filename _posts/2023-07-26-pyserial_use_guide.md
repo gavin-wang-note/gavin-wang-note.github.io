@@ -8,6 +8,7 @@ catalog:    true
 tags:
     - python
     - serial
+    - Automation
 ---
 
 
