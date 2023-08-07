@@ -267,12 +267,12 @@ E:\automation\src>
 
 
 
-pyserial 部分代码如下：
+适配产品的 python serial 部分代码如下：
 
 
 ```
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- coding: GBK -*-
 
 """  pyserial operation  """
 
@@ -280,23 +280,43 @@ from __future__ import unicode_literals
 
 import sys
 import glob
-import json
 import time
 import serial
 import logging
 
-from config import  GetConfig as config
+from config import GetConfig as config
 from util import change_timestamp_to_time
 
 
 class PySerial():
-    def __init__(self, send_str="Send Test", receive="Send Test", timeout=0.2):
+    def __init__(self, send_str="Send Test", receive="Send Test", timeout=3):
+        # super(PySerial, self).__init__()
         self.port = config.port
         self.baudrate = config.baudrate
         self.send_str = send_str
         self.receive = receive
         self.timeout = timeout
-        self.serial = None
+
+    def serial_connect(self, check_loop_send=False):
+        """
+        Connect to the serial port
+        :param check_loop_send， bool， True means send and receive message from COM1 to COM1 in recycle
+        """
+        try:
+            self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
+            # Enlarge the buffer, default is 4096bytes, if the output which is larger than 4096bytes,
+            # call read_all() only get 4096bytes content, max is 2147483647(but not works, so set it less)
+            self.serial.set_buffer_size(rx_size=2147483600, tx_size=2147483600)
+
+            if check_loop_send:
+                self.check_device()
+        except Exception as ex:
+            logging.error("[ERROR]  Port: (%s), baud rate: (%s), timeout: (%s)", self.port,
+                          self.baudrate, self.timeout)
+            logging.error("[ERROR]  Connect to serial failed, backend return : (%s)", str(ex))
+            sys.exit(1)
+
+        return self.serial
 
     @staticmethod
     def list_serial_ports():
@@ -335,36 +355,19 @@ class PySerial():
 
         return port_status
 
-    def connect(self, check_loop_send=False):
-        """
-            Connect to the serial port
-            :param check_loop_send， bool， True means send and receive message from COM1 to COM1 in cc=ycle
-        """
-        try:
-            self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-            if check_loop_send:
-                self.check_device()
-        except Exception as ex:
-            logging.error("[ERROR]  Port: (%s), baudrate: (%s), timeout: (%s)", self.port,
-                          self.baudrate, self.timeout)
-            logging.error("[ERROR]  Connect to serial failed, backend return : (%s)", str(ex))
-            sys.exit(1)
-
-        return self.serial
-
     def check_device(self):
         """  Check the device  """
         write_len = self.serial.write(self.send_str.encode('GBK'))
         logging.debug("--   write_len: %s", write_len)
-        serial.time.sleep(0.1)
-        byteData = self.serial.read(write_len).decode('GBK')
+        time.sleep(0.5)
+        byte_data = self.serial.read(write_len).decode('GBK')
         logging.debug("--  self.send_str : (%s)", self.send_str)
-        logging.debug("--  byteData : (%s)", byteData)
-        if byteData != self.receive.encode('GBK'):
+        logging.debug("--  byte_data : (%s)", byte_data)
+        if byte_data != self.receive.encode('GBK'):
             raise ValueError("Check Device Failed:send_str: '{}' not equal to receive: '{}', "
-                             "actually receive : '{}'".format(self.send_str, self.receive, byteData))
+                             "actually receive : '{}'".format(self.send_str, self.receive, byte_data))
 
-    def write(self, cmd_str):
+    def send_command(self, cmd_str):
         """  Send command  """
         # Clean the input buffer, clean the return values
         self.serial.reset_input_buffer()
@@ -372,17 +375,13 @@ class PySerial():
         logging.debug("--  [DEBUG]  Write command string : (%s)", cmd_str)
         self.serial.write((cmd_str + '\r\n').encode('GBK'))
 
-    def read(self, count=None, all_data=False, flush_flag=False):
+    def read_serial_data(self, count=None, all_data=False, flush_flag=False):
         """  Read the data, count Unit is byte, default is 1 byte  """
         logging.debug('--  [DEBUG]  Read count : (%s), all_data : (%s)', count, all_data)
 
         if flush_flag:
             # Flush current serial cache, if clean cache, can call serial.readline() to get new data
             self.serial.flushInput()
-
-        # Enlarge the buffer, default is 4096bytes, if the output which is larger than 4096bytes,
-        # call read_all() only get 4096bytes content, max is 2147483647(but not works, so set it less)
-        self.serial.set_buffer_size(rx_size=2147483600, tx_size=2147483600)
 
         if all_data:
             return self.serial.read_all().decode('GBK')
@@ -394,7 +393,6 @@ class PySerial():
         """
         Read the last line of output of serial, if not match, return None
         """
-        self.serial.set_buffer_size(rx_size=2147483600, tx_size=2147483600)
         all_line = self.serial.read_all().decode('GBK')
         logging.debug("--  [DEBUG]  all_line : ({})".format(all_line))
         all_line_list = [x for x in all_line.split('\n') if x]
@@ -403,6 +401,17 @@ class PySerial():
         else:
             return
 
+    def read_until_matched(self, key_words):
+        """
+        Get some info when read from serial until match some key words
+        @return:
+        """
+        logging.debug("--  Get key words : (%s) from serial cache", key_words)
+
+        matched = self.serial.read_until(key_words).decode('GBK')
+
+        return matched
+
     def write_serial_output_to_file(self, file_name):
         """
         Write serial output into a file
@@ -410,39 +419,49 @@ class PySerial():
         """
         logging.debug('--  [DEBUG]  Write data into file : (%s)', file_name)
 
-        self.serial.set_buffer_size(rx_size=2147483600, tx_size=2147483600)
-
         while True:
             if self.serial.in_waiting > 0:  # If serial has data to read
                 full_data = self.serial.readline().decode('GBK').strip()
                 # split_data = full_data.splitlines()
                 with open(file_name, 'a+') as f:
                     f.write(full_data)
+            else:
+                break
 
     def has_buffer(self):
         """
         Get serial buffer
         @return: True or False
         """
-        # self.serial.set_buffer_size(rx_size=2147483600, tx_size=2147483600)
         logging.debug("--  [DEBUG]  ser.in_waiting : (%s)", self.serial.in_waiting)
         if self.serial.in_waiting > 0:
             buffer_size = self.serial.in_waiting
             logging.debug('--  [DEBUG]  buffer size : (%s)', buffer_size)
             time.sleep(15)
             current_buffer_size = self.serial.in_waiting
-            logging.debug('---  [DEBUG]  current buffer size : (%s)', current_buffer_size)
+            logging.debug('--  [DEBUG]  current buffer size : (%s)', current_buffer_size)
             if buffer_size != current_buffer_size:
                 return True
         else:
             logging.debug('--  [DEBUG]  Enter else, return False, has no serial buffer')
             return False
 
-    def close(self):
+    def wait_serial_output(self):
+        logging.info("[Action]  等待串口回显信息")
+        time.sleep(5)
+
+        for i in range(120):
+            if self.has_buffer():
+                logging.debug("--  [%d times] 有串口缓存信息，等待2秒钟", i+1)
+                time.sleep(2)
+            else:
+                break
+
+    def serial_close(self):
         """  Close serial connection  """
         self.serial.close()
-```
 
+```
 
 
 # 用例编写基本规则要求
