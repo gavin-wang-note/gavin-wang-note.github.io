@@ -7,7 +7,7 @@ author:     "Gavin"
 catalog:    true
 tags:
     - Testlink
-    - Python 
+    - python 
 ---
 
 
