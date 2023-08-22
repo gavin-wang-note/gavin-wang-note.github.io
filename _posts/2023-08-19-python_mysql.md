@@ -1,7 +1,7 @@
 ---
 layout:     post
-title:      "python操作mysql数据库基础操作"
-subtitle:   "python operation mysql database basic operation"
+title:      "python操作MySQL数据库基础操作"
+subtitle:   "python operation MySQL database basic operation"
 date:       2023-08-19
 author:     "Gavin"
 catalog:    true
@@ -85,7 +85,7 @@ class MysqlDB(object):
         print 'creatTable:'+sql
         self.executeCommit(sql)
 
-    def execute_sql(self,sql=''):
+    def execute_sql(self, sql=''):
         """
         Execute a sql statement that returns a result set against a read operation
 
@@ -100,7 +100,7 @@ class MysqlDB(object):
             error = 'MySQL execute failed! ERROR (%s): %s' %(e.args[0],e.args[1])
             print error
 
-    def execute_commit(self,sql=''):
+    def execute_commit(self, sql=''):
         """
         Execute database sql statements and rollback for failed updates, 
         deletions, transactions, etc.
@@ -170,7 +170,7 @@ class MysqlDB(object):
         print 'select:' + sql
         return self.executeSql(sql)
 
-    def insert_many(self,table, attrs, values):
+    def insert_many(self, table, attrs, values):
         """
         Inserting Multiple Data
 

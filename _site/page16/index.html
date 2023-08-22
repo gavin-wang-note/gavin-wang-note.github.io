@@ -218,6 +218,8 @@
                     
                     
                     
+                    
+                    
                 </ul>
             </div>
         </div>
@@ -319,107 +321,63 @@
             ">
     			
 <div class="post-preview">
-    <a href="/2021/06/15/WebBIOS_disable_disk_JBOD/">
+    <a href="/2021/10/09/watch_inode_bt_cache_dump/">
         <h2 class="post-title">
-            WebBIOS里取消磁盘的JBOD设置
+            监控BigteraStore cache中inode消耗状况
         </h2>
         
         <h3 class="post-subtitle">
-            Disable JBOD for disks in WebBIOS
+            Watch inode from BigteraStore cache
         </h3>
         
         <div class="post-content-preview">
             
                 概述
 
-环境之前有使用过storcli或megacli命令开启了JBOD模式，安装系统后始终无法进入系统，grub 引导出问题，BIOS的设置检查了几次，并未发现异常，boot device也是对的，始终无法解决重灌系统后开机问题。
-决定更换OS盘（换成其他的SAS盘），在更换后，碰到了本文要描述的问题：存在部分是RAID部分是JBOD盘，计划OS盘做RAID0,但WebBIOS里查看到此盘...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on June 15, 2021
-    </p>
-</div>
-<hr>
+S3性能测试， 向单一Bucket下持续灌入4K大下的对象，观察存储是否会随着Bucket下Objects熟的增多而出现性能衰减现象。
 
-<div class="post-preview">
-    <a href="/2021/06/03/is_my_hdd_wreched/">
-        <h2 class="post-title">
-            HDD损坏了么？
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Is my hdd wrecked?
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                概述
+在此测试过程中，增加了一个脚本，用于监控BigteraStore cache中inode消耗状况，记录之。
 
-今天同事使用产品对HDD做分区的时候，发现程序抛异常，寻求帮助。
+Script
 
-过程
-
-由于是一个新安装OS的环境，对现有的HDD除了操作系统之外都可以做格式化处理，尝试格式化一下，出现了如下错误：
+watch_inode_bt_cach_dump.sh
 
 1
 2
 3
-root@scaler:/home/btadmin# sgdisk -z /dev/sdb
-GPT data structures destroyed! You may now par...
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on June 3, 2021
+        Posted by Gavin on October 9, 2021
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2021/05/30/Office_VPN_account_check/">
+    <a href="/2021/08/09/get_filemap/">
         <h2 class="post-title">
-            NJ Office OpenVPN 账号访问认证
+            Get filemap from OSD map
         </h2>
         
         <h3 class="post-subtitle">
-            NJ Office of VPN Account Auth
+            Get filemap from OSD map
         </h3>
         
         <div class="post-content-preview">
             
-                Overview
-
-NJ Office 开放了Open VPN，方便大家远程办公，但没有对访问者进行鉴权认证，任何一个人拿到VPN Config后，都可以接入到NJ Office LAB 网络，存在极大的安全隐患。
-
-本文介绍如何对 Open VPN 账号的鉴权认证，对于非法用户，禁止登录；对于长期休眠账户，禁止登录（解禁后方可恢复正常）。
-
-实践
-
-修改 Open VPN 的 server...
-            
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Gavin on May 30, 2021
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2021/04/06/NAS_write_speed/">
-        <h2 class="post-title">
-            Calc NAS write speed by oceanfile tools
-        </h2>
-        
-        <h3 class="post-subtitle">
-            Calc NAS write speed by oceanfile tools
-        </h3>
-        
-        <div class="post-content-preview">
-            
-                Script
+                Script of get_fibmap.py
 
 1
 2
@@ -457,74 +415,95 @@ NJ Office 开放了Open VPN，方便大家远程办公，但没有对访问者�
 34
 35
 36
-37
-38
-39
-40
-41
-42
-43
-44
-45
-46
-47
-48
-49
-50
-51
-52
-53
-54
-55
-56
-57
-58
-59
-60
-61
-62
-63
-64
-65
-66
-...
+#!/usr/bin/env python
+import sys
+import argparse
+from ezs3.command import...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on April 6, 2021
+        Posted by Gavin on August 9, 2021
     </p>
 </div>
 <hr>
 
 <div class="post-preview">
-    <a href="/2021/03/19/parsync/">
+    <a href="/2021/07/01/Slove_cp_command_force_overwrite_issue/">
         <h2 class="post-title">
-            Parsync
+            CentOS中cp -f copy强制覆盖命令无效
         </h2>
         
         <h3 class="post-subtitle">
-            multiple rsync command in parallel to speed up the sync progress
+            Solve 'cp' copy force overwrite issue
         </h3>
         
         <div class="post-content-preview">
             
-                Overview
+                概述
 
-What is parsync?
+今天分几次执行了automation用例，产生不不用的allure需要的json文件，由于部分case执行失败，再次执行了这部分用例，对新产生的json文件覆盖掉旧的，
+结果在cp时提示是否要overwrite，由于文件数量很多，不可能每个交互信息都要输入y来确认覆盖，于是就要靠强制覆盖来解决，执行cp -rf时并没有起到预期效果。
 
-Parsync is a script that tries to run multiple rsync command in parallel to speed up the sync progress.
-
-Why not rsync?
-
-
-  
-    rsync is a single process program, it ca...
+本文记录解决Linux CentOS中cp -f...
             
         </div>
     </a>
     <p class="post-meta">
-        Posted by Gavin on March 19, 2021
+        Posted by Gavin on July 1, 2021
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2021/06/30/How_do_I_know_that_the_CPU_frequency_is_down/">
+        <h2 class="post-title">
+            如何知道CPU降频了呢
+        </h2>
+        
+        <h3 class="post-subtitle">
+            How do I know that the CPU frequency is down
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                概述
+
+最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；
+
+还有一次是设备两路电源线被同事拔掉了一根，只剩下一路了，供电不足，导致CPU主动降频；
+
+今天RD在tuning performance时，再次碰到了CPU降频问题，问题是tuning perf...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on June 30, 2021
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
+    <a href="/2021/06/15/WebBIOS_disable_disk_JBOD/">
+        <h2 class="post-title">
+            WebBIOS里取消磁盘的JBOD设置
+        </h2>
+        
+        <h3 class="post-subtitle">
+            Disable JBOD for disks in WebBIOS
+        </h3>
+        
+        <div class="post-content-preview">
+            
+                概述
+
+环境之前有使用过storcli或megacli命令开启了JBOD模式，安装系统后始终无法进入系统，grub 引导出问题，BIOS的设置检查了几次，并未发现异常，boot device也是对的，始终无法解决重灌系统后开机问题。
+决定更换OS盘（换成其他的SAS盘），在更换后，碰到了本文要描述的问题：存在部分是RAID部分是JBOD盘，计划OS盘做RAID0,但WebBIOS里查看到此盘...
+            
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Gavin on June 15, 2021
     </p>
 </div>
 <hr>
@@ -547,8 +526,18 @@ Why not rsync?
 <ul class="posts">
     
       <li>
+        <span class="post-date">Aug 22, 2023</span>
+        <a class="post-link" href="/2023/08/22/mysql_auto_backup/">mysql 增量备份</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Aug 20, 2023</span>
+        <a class="post-link" href="/2023/08/20/mysql_backup_restore/">mysql 备份与恢复详解</a>
+      </li>
+    
+      <li>
         <span class="post-date">Aug 19, 2023</span>
-        <a class="post-link" href="/2023/08/19/python_mysql/">python操作mysql数据库基础操作</a>
+        <a class="post-link" href="/2023/08/19/python_mysql/">python操作MySQL数据库基础操作</a>
       </li>
     
       <li>
@@ -598,7 +587,7 @@ Why not rsync?
     
       <li>
         <span class="post-date">Jun 3, 2023</span>
-        <a class="post-link" href="/2023/06/03/backup_mysql_db/">备份Mysql数据库</a>
+        <a class="post-link" href="/2023/06/03/backup_mysql_db/">备份 TestLink MySQL数据库</a>
       </li>
     
       <li>
@@ -792,6 +781,11 @@ Why not rsync?
       </li>
     
       <li>
+        <span class="post-date">Oct 3, 2022</span>
+        <a class="post-link" href="/2022/10/03/windows_python_fnctl/">Windows下python fnctl</a>
+      </li>
+    
+      <li>
         <span class="post-date">Sep 21, 2022</span>
         <a class="post-link" href="/2022/09/21/Deploy_k8s/">部署k8s</a>
       </li>
@@ -804,6 +798,11 @@ Why not rsync?
       <li>
         <span class="post-date">Aug 25, 2022</span>
         <a class="post-link" href="/2022/08/25/Remove_pool_raise_error/">移除pool时提示'must unset nodelete flag'</a>
+      </li>
+    
+      <li>
+        <span class="post-date">Aug 22, 2022</span>
+        <a class="post-link" href="/2022/08/22/python_max_function/">python max 函数介绍</a>
       </li>
     
       <li>
@@ -1982,172 +1981,172 @@ Why not rsync?
         </a>
         
         
-                <a data-sort="0205" 
+                <a data-sort="0209" 
                     href="/archive/?tag=oracle"
                     title="oracle"
                     rel="77">oracle</a>
         
-                <a data-sort="0210" 
+                <a data-sort="0214" 
                     href="/archive/?tag=Linux"
                     title="Linux"
                     rel="72">Linux</a>
         
-                <a data-sort="0251" 
+                <a data-sort="0255" 
                     href="/archive/?tag=shell"
                     title="shell"
                     rel="31">shell</a>
         
                 <a data-sort="0258" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="28">python</a>
+        
+                <a data-sort="0262" 
                     href="/archive/?tag=Automation"
                     title="Automation"
                     rel="24">Automation</a>
         
-                <a data-sort="0258" 
-                    href="/archive/?tag=python"
-                    title="python"
-                    rel="24">python</a>
-        
-                <a data-sort="0261" 
+                <a data-sort="0265" 
                     href="/archive/?tag=ceph"
                     title="ceph"
                     rel="21">ceph</a>
         
-                <a data-sort="0276" 
+                <a data-sort="0280" 
                     href="/archive/?tag=Jenkins"
                     title="Jenkins"
                     rel="6">Jenkins</a>
         
-                <a data-sort="0276" 
+                <a data-sort="0280" 
                     href="/archive/?tag=S3"
                     title="S3"
                     rel="6">S3</a>
         
-                <a data-sort="0277" 
+                <a data-sort="0281" 
                     href="/archive/?tag=nose"
                     title="nose"
                     rel="5">nose</a>
         
-                <a data-sort="0277" 
+                <a data-sort="0281" 
                     href="/archive/?tag=performance"
                     title="performance"
                     rel="5">performance</a>
         
-                <a data-sort="0278" 
+                <a data-sort="0282" 
                     href="/archive/?tag=JBOD"
                     title="JBOD"
                     rel="4">JBOD</a>
         
-                <a data-sort="0278" 
+                <a data-sort="0282" 
                     href="/archive/?tag=Megacli"
                     title="Megacli"
                     rel="4">Megacli</a>
         
-                <a data-sort="0278" 
+                <a data-sort="0282" 
                     href="/archive/?tag=awk"
                     title="awk"
                     rel="4">awk</a>
         
-                <a data-sort="0278" 
+                <a data-sort="0282" 
+                    href="/archive/?tag=mysql"
+                    title="mysql"
+                    rel="4">mysql</a>
+        
+                <a data-sort="0282" 
                     href="/archive/?tag=perl"
                     title="perl"
                     rel="4">perl</a>
         
-                <a data-sort="0279" 
+                <a data-sort="0283" 
                     href="/archive/?tag=ESXi"
                     title="ESXi"
                     rel="3">ESXi</a>
         
-                <a data-sort="0279" 
+                <a data-sort="0283" 
                     href="/archive/?tag=cosbench"
                     title="cosbench"
                     rel="3">cosbench</a>
         
-                <a data-sort="0279" 
+                <a data-sort="0283" 
                     href="/archive/?tag=iSCSI"
                     title="iSCSI"
                     rel="3">iSCSI</a>
         
-                <a data-sort="0279" 
+                <a data-sort="0283" 
                     href="/archive/?tag=pytest"
                     title="pytest"
                     rel="3">pytest</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=%E8%99%9A%E6%8B%9F%E5%8C%96"
                     title="虚拟化"
                     rel="2">虚拟化</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=APP"
                     title="APP"
                     rel="2">APP</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=Disk"
                     title="Disk"
                     rel="2">Disk</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=PVE"
                     title="PVE"
                     rel="2">PVE</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=RAID"
                     title="RAID"
                     rel="2">RAID</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=bzip2"
                     title="bzip2"
                     rel="2">bzip2</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=fio"
                     title="fio"
                     rel="2">fio</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=mds"
                     title="mds"
                     rel="2">mds</a>
         
-                <a data-sort="0280" 
-                    href="/archive/?tag=mysql"
-                    title="mysql"
-                    rel="2">mysql</a>
-        
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=netconsole"
                     title="netconsole"
                     rel="2">netconsole</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=network"
                     title="network"
                     rel="2">network</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=pbzip2"
                     title="pbzip2"
                     rel="2">pbzip2</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=sed"
                     title="sed"
                     rel="2">sed</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=serial"
                     title="serial"
                     rel="2">serial</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=ssh"
                     title="ssh"
                     rel="2">ssh</a>
         
-                <a data-sort="0280" 
+                <a data-sort="0284" 
                     href="/archive/?tag=tr"
                     title="tr"
                     rel="2">tr
