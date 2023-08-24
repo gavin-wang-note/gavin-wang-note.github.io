@@ -361,14 +361,101 @@ mysqldump -uroot -pp@ssw0rd test > test.sql
 ```
 
 
-
-
-
 注意：
 
 * mysqldump 可以导出存储过程，导出触发器，导出事件，导出数据，但不能导出视图
 * 如果用户的数据库中还使用了视图，则在用mysqldump备份完数据库后，还需要导出视图的定义，或者备份视图定义的frm文件，并在恢复时进行导入，这样才能保证mysqldump数据库的完全恢复和数据的完整
 
+
+视图备份与恢复：
+
+
+```
+root@ubuntu:~# mysql -uroot -pp@ssw0rd test
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 12
+Server version: 5.7.42-0ubuntu0.18.04.1-log (Ubuntu)
+
+Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| user           |
+| user_view      |
++----------------+
+2 rows in set (0.00 sec)
+
+mysql> drop view user_view;
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> commit;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| user           |
++----------------+
+1 row in set (0.00 sec)
+
+mysql> exit;
+Bye
+root@ubuntu:~# mysql -uroot -pp@ssw0rd test < view.sql 
+mysql: [Warning] Using a password on the command line interface can be insecure.
+root@ubuntu:~# mysql -uroot -pp@ssw0rd test
+mysql: [Warning] Using a password on the command line interface can be insecure.
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 14
+Server version: 5.7.42-0ubuntu0.18.04.1-log (Ubuntu)
+
+Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+
+Oracle is a registered trademark of Oracle Corporation and/or its
+affiliates. Other names may be trademarks of their respective
+owners.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+mysql> show tables;
++----------------+
+| Tables_in_test |
++----------------+
+| user           |
+| user_view      |
++----------------+
+2 rows in set (0.00 sec)
+
+mysql> select * from user_view;
++----------+------+
+| name     | age  |
++----------+------+
+| zhangsan |   30 |
+| lisi     |   31 |
+| wangwu   |   38 |
+| cat      |    2 |
++----------+------+
+4 rows in set (0.00 sec)
+
+mysql> exit;
+Bye
+root@ubuntu:~# 
+```
 
 
 ### 3.2.2 mysqldump 恢复
