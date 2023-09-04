@@ -9,7 +9,7 @@ Gavin Wang
 
 ##### Self Introduction
 
-    Software test engineer, working with Liunx for his whole career, engaged in streaming media, communication, APP terminal, storage industry
+    Software test engineer, working with Linux for his whole career, engaged in streaming media, communication, APP terminal, storage industry
     Linux platform Shell/Python programming
     Proficient in various testing tools
     Proficient in nose, pytest, RF, Appium, Selenium and other testing frameworks
