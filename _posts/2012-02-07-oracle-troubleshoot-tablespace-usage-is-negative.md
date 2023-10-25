@@ -153,7 +153,7 @@ FROM sys.dba_tablespaces d,
 and d.tablespace_name like 'YJH%' ORDER BY 1
 ```
 
-上述commond查询结果如下：
+上述command查询结果如下：
 
 ```
 TABLESPACE_NAME  NVL(A.BYTES/1024/1024,0) DECODE(D.CONTENTS,'UNDO',NVL(U.BYTES,0)/1024/1024,NVL(A.BYTES-NVL(F.BYTES,0),0)/1024/1024) STATUS     COUNT CONTENTS  EXTENT_MAN SEGMEN
@@ -271,7 +271,7 @@ where a.file_id=b.file_id
 and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
 ```
 
-发布上述commond命令，是有查询结果的，也就是当前虽然表空间使用率为负，但对数据库的操作应该处于一种正常状态，并不影响当前数据库系统的正常运行与使用。
+发布上述command命令，是有查询结果的，也就是当前虽然表空间使用率为负，但对数据库的操作应该处于一种正常状态，并不影响当前数据库系统的正常运行与使用。
 
 ### 彩信网关相关话题
 
@@ -290,7 +290,9 @@ and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
 这个最直接，也最简单。
 
 方法二也是对当前彩信网关 存储过程 的一个优化，以及setdb.sh脚本调用createdb.sql这个脚本中的 drop表操作 的一个优化，都可以通过增加purge参数解决。类似于windows的shift+delete，不经过回收站了。
-其他
+
+
+# 其他
 
 表空间使用率为负，从oracle 10g引入（具体版本暂时不知），以前为负的情况时候，OEM的统计表空间的使用率也是负值，该问题应该是修改不完善，导致OEM查询是正确的，而通过表查询是错误的。
 
