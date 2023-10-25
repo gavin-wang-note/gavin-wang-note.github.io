@@ -12,11 +12,6 @@ tags:
 
 
 
-
-
-
-
-
 # 概述
 
 
@@ -72,7 +67,6 @@ def test_click_3():
 # 分析
 
 
-
 从示例用例来看，每个test_case中，都有driver的初始化和URL的get动作，以及close()动作；另外就是find_elements要做的事情，除了传递的XPATH元素不一样外，其他动作都一样，所以优化的点有：
 
 * 封装driver初始化与URL的get动作
@@ -80,19 +74,7 @@ def test_click_3():
 * 优化find_elements，借助pytest.mark.parametrize实现参数化
 
 
-
-PS：
-
-​    由于测试用例并没有书写在class中，无法使用setup/teardown来封装driver的初始化和close动作，同时pytest也不推荐使用setup/teardown，这里借助fixture完成。
-
-
-
-
-
 # 优化结果
-
-
-
 
 
 ```
