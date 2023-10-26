@@ -94,7 +94,7 @@ def fixture_driver():
 
 
 @pytest.mark.parametrize('item', ['item'+str(x) for x in range(1,4)])
-def test_case(run_close_driver, item):
+def test_case(fixture_driver, item):
     driver.find_elements(By.XPATH, item).click()
 ```
 
