@@ -64,7 +64,9 @@ addopts =-vrs --show-progress --cache-clear --full-trace -p no:warnings
 这里我主要使用：
 
 (1) log记录日志，规定了log level&format&path
+
 (2) 要忽略扫描测试用例的目录（如上，忽略了.svn 和 .git 目录，因为pytest会全目录扫描，指定忽略相关目录，避免无效扫描）
+
 (3) colsole output style
 
 ```
