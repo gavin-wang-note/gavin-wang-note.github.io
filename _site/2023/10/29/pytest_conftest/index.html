@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="xBT4GhYoi5qRD5tr338pgPM5OWHHIDR6mNg1a3euekI" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="description" content="关于软件测试, 与你一起发现更大的世界">
+    <meta name="keywords"  content="Gavin的博客, Gavin Blog, 博客, 个人网站">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="pytest 之 conftest.py - Gavin的博客 | Gavin Blog">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="概述
+">
+    
+    <meta property="article:published_time" content="2023-10-29T00:00:00Z">
+    
+    
+    <meta property="article:author" content="Gavin">
+    
+    
+    <meta property="article:tag" content="Automation">
+    
+    <meta property="article:tag" content="pytest">
+    
+    
+    <meta property="og:image" content="http://0.0.0.0:4000/img/avatar-gavin.jpg">
+    <meta property="og:url" content="http://0.0.0.0:4000/2023/10/29/pytest_conftest/">
+    <meta property="og:site_name" content="Gavin的博客 | Gavin Blog">
+    
+    <title>pytest 之 conftest.py - Gavin的博客 | Gavin Blog</title>
+
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="/pwa/manifest.json">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/img/favicon.ico">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="http://0.0.0.0:4000/2023/10/29/pytest_conftest/">
+
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/gavin-blog.min.css">
+
+    <!-- Custom Fonts -->
+    <!-- <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css"> -->
+    <!-- Gavin change font-awesome CDN to qiniu -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- ga & ba script hoook -->
+    <script></script>
+</head>
+
+
+<!-- hack iOS CSS :active style -->
+<body ontouchstart="">
+
+    <!-- Navigation -->
+
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Gavin Blog</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div id="gavinblog_navbar">
+            <div class="navbar-collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="/index.html">Home</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    <li>
+                        <a href="/about/">About</a>
+                    </li>
+                    
+                    
+                    
+                    <li>
+                        <a href="/archive/">Archive</a>
+                    </li>
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                </ul>
+            </div>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+<script>
+    // Drop Bootstarp low-performance Navbar
+    // Use customize navbar with high-quality material design animation
+    // in high-perf jank-free CSS3 implementation
+    var $body   = document.body;
+    var $toggle = document.querySelector('.navbar-toggle');
+    var $navbar = document.querySelector('#gavinblog_navbar');
+    var $collapse = document.querySelector('.navbar-collapse');
+
+    var __GavinNav__ = {
+        close: function(){
+            $navbar.className = " ";
+            // wait until animation end.
+            setTimeout(function(){
+                // prevent frequently toggle
+                if($navbar.className.indexOf('in') < 0) {
+                    $collapse.style.height = "0px"
+                }
+            },400)
+        },
+        open: function(){
+            $collapse.style.height = "auto"
+            $navbar.className += " in";
+        }
+    }
+
+    // Bind Event
+    $toggle.addEventListener('click', function(e){
+        if ($navbar.className.indexOf('in') > 0) {
+            __GavinNav__.close()
+        }else{
+            __GavinNav__.open()
+        }
+    })
+
+    /**
+     * Since Fastclick is used to delegate 'touchstart' globally
+     * to hack 300ms delay in iOS by performing a fake 'click',
+     * Using 'e.stopPropagation' to stop 'touchstart' event from 
+     * $toggle/$collapse will break global delegation.
+     * 
+     * Instead, we use a 'e.target' filter to prevent handler
+     * added to document close GavinNav.  
+     *
+     * Also, we use 'click' instead of 'touchstart' as compromise
+     */
+    document.addEventListener('click', function(e){
+        if(e.target == $toggle) return;
+        if(e.target.className == 'icon-bar') return;
+        __GavinNav__.close();
+    })
+</script>
+
+
+    <!-- Post Header -->
+
+
+
+<style type="text/css">
+    header.intro-header{
+        position: relative;
+        background-image: url('/img/home-bg.jpg');
+        background: ;
+    }
+
+    
+</style>
+
+<header class="intro-header" >
+
+    <div class="header-mask"></div>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <div class="tags">
+                        
+                        <a class="tag" href="/archive/?tag=Automation" title="Automation">Automation</a>
+                        
+                        <a class="tag" href="/archive/?tag=pytest" title="pytest">pytest</a>
+                        
+                    </div>
+                    <h1>pytest 之 conftest.py</h1>
+                    
+                    <h2 class="subheading">pytest of conftest.py</h2>
+                    <span class="meta">Posted by Gavin on October 29, 2023</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+
+
+
+
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+    <!-- Post Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                post-container">
+
+                <!-- Multi-Lingual -->
+                
+
+				<h1 id="概述">概述</h1>
+
+<p><code class="highlighter-rouge">conftest.py</code>文件是pytest框架里面一个很重要的东西，它可以在这个文件里面编写fixture函数，这个fixture函数的作用，就相当于Unittest框架里面的<code class="highlighter-rouge">setup()</code>前置函数和<code class="highlighter-rouge">teardown()</code>后置函数，虽然pytest框架也有<code class="highlighter-rouge">setup()</code>前置函数和<code class="highlighter-rouge">teardown()</code>后置函数，但是在实际工作中没必要写在测试用例文件中，直接写在<code class="highlighter-rouge">conftests.py</code>里面就好了，pytest框架会自动去找<code class="highlighter-rouge">conftest.py</code>文件里面的东西，这样更灵活。</p>
+
+<p>可以看出 conftest.py是 fixture函数的一个集合， 提取公共部分放在这个文件里，然后供其它模块调用。不同于普通被调用的模块，conftest.py使用时不需要导入，pytest会自动查找。</p>
+
+<p>在实际工作中，通常<code class="highlighter-rouge">conftest.py</code>和<code class="highlighter-rouge">@pytest.fixture()</code>结合使用，实现全局的前后置应用。</p>
+
+<h1 id="conftestpy使用场景">conftest.py使用场景</h1>
+
+<ul>
+  <li>每个接口用例需共用到的token/session/cookie</li>
+  <li>每个接口用例需共用到的测试用例数据</li>
+  <li>每个接口用例需共用到的配置信息</li>
+</ul>
+
+<p>​    ….</p>
+
+<p>简而言之：</p>
+
+<p>​    多个py文件使用同一个前/后置函数，一个fixture函数，在很多case模块中都要用到。</p>
+
+<h1 id="conftestpy中fixture的作用域">conftest.py中fixture的作用域</h1>
+
+<p>fixture的scope参数也适用<code class="highlighter-rouge">conftest.py</code>文件中fixture的特性，即有如下范围：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>取值</th>
+      <th>范围</th>
+      <th>说明</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>function</td>
+      <td>函数级</td>
+      <td>每个函数或方法都会调用</td>
+    </tr>
+    <tr>
+      <td>class</td>
+      <td>类级别</td>
+      <td>每个测试类只运行一次</td>
+    </tr>
+    <tr>
+      <td>module</td>
+      <td>模块级别</td>
+      <td>每一个.py文件只调用一次</td>
+    </tr>
+    <tr>
+      <td>package</td>
+      <td>包级</td>
+      <td>每一个python包只调用一次</td>
+    </tr>
+    <tr>
+      <td>session</td>
+      <td>会话级</td>
+      <td>每次会话只需要运行一次，会话内所有方法及类、模块都共享这个方法</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="不同位置conftestpy文件的优先级">不同位置conftest.py文件的优先级</h2>
+
+<p><strong>其作用范围是当前目录包括子目录里的测试模块。</strong></p>
+
+<ul>
+  <li>比如在测试框架的根目录创建<code class="highlighter-rouge">conftest.py</code>文件，文件中的fixture的作用范围是所有测试模块</li>
+  <li>比如在某个单独的测试文件夹里创建<code class="highlighter-rouge">conftest.py</code>文件，文件中fixture的作用范围，就仅局限于该测试文件夹里的测试模块；该测试文件夹外的测试模块，或者该测试文件夹外的测试文件夹，是无法调用到这个<code class="highlighter-rouge">conftest.py</code>文件中的fixture。</li>
+  <li>如果测试框架的根目录和子包中都有<code class="highlighter-rouge">conftest.py</code>文件，并且这两个<code class="highlighter-rouge">conftest.py</code>文件中都有一个同名的fixture，实际生效的是测试框架中子包目录下的<code class="highlighter-rouge">conftest.py</code>文件中配置的fixture（即此场景下子目录下的conftest.py会覆盖父目录的conftest.py）</li>
+</ul>
+
+<h1 id="示例">示例</h1>
+
+<p>代码目录结构：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+</pre></td><td class="rouge-code"><pre>root@Gavin:~/src# tree
+.
+├── clear_pyc.py
+├── conftest.py
+├── __init__.py
+├── pytest.ini
+└── testcase
+    ├── account
+    │   ├── conftest.py
+    │   ├── __init__.py
+    │   └── test_account.py
+    ├── __init__.py
+    └── ldap
+        ├── __init__.py
+        └── test_ldap.py
+
+3 directories, 10 files
+root@Gavin:~/src# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>两个conftest.py内容参考如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td><td class="rouge-code"><pre>root@Gavin:~/src# cat conftest.py 
+import os
+import pytest
+import logging
+
+
+@pytest.fixture(scope='package', autouse=True)
+def testsuite_setup_teardown():
+    logging.info('------------------------------------- Start to run test case ---------------------------------\n')
+    yield
+    logging.info('------------------------------------- End to run test case -----------------------------------')
+
+
+@pytest.fixture(scope='function', autouse=True)
+def testcase_setup_teardown():
+    case_name = os.environ.get('PYTEST_CURRENT_TEST').split(':')[-1].split(' ')[0]
+
+    logging.info('----------------------------------- Begin ----------------------------------------')
+    logging.info('Current test case name : (%s)', case_name)
+    yield
+    logging.info('----------------------------------- End ------------------------------------------\n')
+root@Gavin:~/src# cat testcase/account/conftest.py 
+import pytest
+import logging
+
+
+@pytest.fixture(scope='function', autouse="true")
+def testsuit_env_check():
+    logging.info('----------- [testsuit_env_check] Begin ------------')
+
+    logging.info('--------------- [testsuit_env_check] End ----------------\n')
+
+root@Gavin:~/src# 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>执行用例记录的日志：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td><td class="rouge-code"><pre>root@Gavin:~/src# cat ../report/pytest_autotest.log 
+2023-10-30 06:50:48 [conftest.py:8   ] [ INFO] ------------------------------------- Start to run test case ---------------------------------
+
+2023-10-30 06:50:48 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2023-10-30 06:50:48 [conftest.py:18  ] [ INFO] Current test case name : (test_account_01)
+2023-10-30 06:50:48 [conftest.py:7   ] [ INFO] ----------- [testsuit_env_check] Begin ------------
+2023-10-30 06:50:48 [conftest.py:9   ] [ INFO] --------------- [testsuit_env_check] End ----------------
+
+2023-10-30 06:50:48 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2023-10-30 06:50:48 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2023-10-30 06:50:48 [conftest.py:18  ] [ INFO] Current test case name : (test_account_02)
+2023-10-30 06:50:48 [conftest.py:7   ] [ INFO] ----------- [testsuit_env_check] Begin ------------
+2023-10-30 06:50:48 [conftest.py:9   ] [ INFO] --------------- [testsuit_env_check] End ----------------
+
+2023-10-30 06:50:48 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2023-10-30 06:50:48 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2023-10-30 06:50:48 [conftest.py:18  ] [ INFO] Current test case name : (test_ldap_01)
+2023-10-30 06:50:48 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2023-10-30 06:50:48 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2023-10-30 06:50:48 [conftest.py:18  ] [ INFO] Current test case name : (test_ldap_02)
+2023-10-30 06:50:48 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2023-10-30 06:50:48 [conftest.py:10  ] [ INFO] ------------------------------------- End to run test case -----------------------------------
+root@Gavin:~/src#
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>从测试log看：</p>
+
+<p><img class="shadow" src="/img/in-post/conftest_scope.png" width="400" /></p>
+
+<h1 id="结语">结语</h1>
+
+<ul>
+  <li>conftest.py文件名字是固定的，不能做任何修改，把hook或者fixture写在这个文件里，就会自动去调用</li>
+  <li>文件和用例文件在同一个目录下，那么conftest.py作用于整个目录，即所有同目录测试文件运行前都会执行conftest.py文件</li>
+  <li>conftest.py文件不能被其他文件导入</li>
+  <li>pytest框架中的<code class="highlighter-rouge">setup()/teardown()</code>函数，<code class="highlighter-rouge">setup_class()/teardown_class()</code>函数，他们是作用于所有用例或者所有类的</li>
+  <li><code class="highlighter-rouge">@pytest.fixtrue()</code>的作用域是既可以部分用例，也可以全部用例的前后置</li>
+  <li><code class="highlighter-rouge">conftest.py</code>文件和<code class="highlighter-rouge">@pytest.fxtrue()</code>装饰器结合使用，作用于全局用例的前后置</li>
+</ul>
+
+
+
+                <hr style="visibility: hidden;">
+                <ul class="pager">
+                    
+                    <li class="previous">
+                        <a href="/2023/10/25/pytest_fixture_guide/" data-toggle="tooltip" data-placement="top" title="pytest 之 fixture">
+                        Previous<br>
+                        <span>pytest 之 fixture</span>
+                        </a>
+                    </li>
+                    
+                    
+                </ul>
+                <hr style="visibility: hidden;">
+
+                
+                <!-- disqus 评论框 start -->
+                <div class="comment">
+                    <div id="disqus_thread" class="disqus-thread"></div>
+                </div>
+                <!-- disqus 评论框 end -->
+                
+
+                
+            </div>  
+
+    <!-- Side Catalog Container -->
+        
+            <div class="
+                col-lg-2 col-lg-offset-0
+                visible-lg-block
+                sidebar-container
+                catalog-container">
+                <div class="side-catalog">
+                    <hr class="hidden-sm hidden-xs">
+                    <h5>
+                        <a class="catalog-toggle" href="#">CATALOG</a>
+                    </h5>
+                    <ul class="catalog-body"></ul>
+                </div>
+            </div>
+        
+
+    <!-- Sidebar Container -->
+            <div class="
+                col-lg-8 col-lg-offset-2
+                col-md-10 col-md-offset-1
+                sidebar-container">
+
+                <!-- Featured Tags -->
+                
+
+
+<section>
+    
+        <hr class="hidden-sm hidden-xs">
+    
+    <h5><a href="/archive/">FEATURED TAGS</a></h5>
+    <div class="tags">
+        
+        
+        
+        </a>
+        
+        
+                <a data-sort="0213" 
+                    href="/archive/?tag=oracle"
+                    title="oracle"
+                    rel="77">oracle</a>
+        
+                <a data-sort="0218" 
+                    href="/archive/?tag=Linux"
+                    title="Linux"
+                    rel="72">Linux</a>
+        
+                <a data-sort="0259" 
+                    href="/archive/?tag=shell"
+                    title="shell"
+                    rel="31">shell</a>
+        
+                <a data-sort="0262" 
+                    href="/archive/?tag=Automation"
+                    title="Automation"
+                    rel="28">Automation</a>
+        
+                <a data-sort="0262" 
+                    href="/archive/?tag=python"
+                    title="python"
+                    rel="28">python</a>
+        
+                <a data-sort="0269" 
+                    href="/archive/?tag=ceph"
+                    title="ceph"
+                    rel="21">ceph</a>
+        
+                <a data-sort="0283" 
+                    href="/archive/?tag=pytest"
+                    title="pytest"
+                    rel="7">pytest</a>
+        
+                <a data-sort="0284" 
+                    href="/archive/?tag=Jenkins"
+                    title="Jenkins"
+                    rel="6">Jenkins</a>
+        
+                <a data-sort="0284" 
+                    href="/archive/?tag=S3"
+                    title="S3"
+                    rel="6">S3</a>
+        
+                <a data-sort="0285" 
+                    href="/archive/?tag=nose"
+                    title="nose"
+                    rel="5">nose</a>
+        
+                <a data-sort="0285" 
+                    href="/archive/?tag=performance"
+                    title="performance"
+                    rel="5">performance</a>
+        
+                <a data-sort="0286" 
+                    href="/archive/?tag=JBOD"
+                    title="JBOD"
+                    rel="4">JBOD</a>
+        
+                <a data-sort="0286" 
+                    href="/archive/?tag=Megacli"
+                    title="Megacli"
+                    rel="4">Megacli</a>
+        
+                <a data-sort="0286" 
+                    href="/archive/?tag=awk"
+                    title="awk"
+                    rel="4">awk</a>
+        
+                <a data-sort="0286" 
+                    href="/archive/?tag=mysql"
+                    title="mysql"
+                    rel="4">mysql</a>
+        
+                <a data-sort="0286" 
+                    href="/archive/?tag=perl"
+                    title="perl"
+                    rel="4">perl</a>
+        
+                <a data-sort="0287" 
+                    href="/archive/?tag=ESXi"
+                    title="ESXi"
+                    rel="3">ESXi</a>
+        
+                <a data-sort="0287" 
+                    href="/archive/?tag=cosbench"
+                    title="cosbench"
+                    rel="3">cosbench</a>
+        
+                <a data-sort="0287" 
+                    href="/archive/?tag=iSCSI"
+                    title="iSCSI"
+                    rel="3">iSCSI</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=%E8%99%9A%E6%8B%9F%E5%8C%96"
+                    title="虚拟化"
+                    rel="2">虚拟化</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=APP"
+                    title="APP"
+                    rel="2">APP</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=Disk"
+                    title="Disk"
+                    rel="2">Disk</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=PVE"
+                    title="PVE"
+                    rel="2">PVE</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=RAID"
+                    title="RAID"
+                    rel="2">RAID</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=bzip2"
+                    title="bzip2"
+                    rel="2">bzip2</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=fio"
+                    title="fio"
+                    rel="2">fio</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=mds"
+                    title="mds"
+                    rel="2">mds</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=netconsole"
+                    title="netconsole"
+                    rel="2">netconsole</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=network"
+                    title="network"
+                    rel="2">network</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=pbzip2"
+                    title="pbzip2"
+                    rel="2">pbzip2</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=sed"
+                    title="sed"
+                    rel="2">sed</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=serial"
+                    title="serial"
+                    rel="2">serial</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=ssh"
+                    title="ssh"
+                    rel="2">ssh</a>
+        
+                <a data-sort="0288" 
+                    href="/archive/?tag=tr"
+                    title="tr"
+                    rel="2">tr
+    </div>
+</section>
+
+
+                <!-- Friends Blog -->
+                
+<hr>
+<h5>FRIENDS</h5>
+<ul class="list-inline">
+  
+  <li><a href=""></a></li>
+  
+  <li><a href="http://bean-li.github.io/">Bean Li</a></li>
+  
+  <li><a href="https://zphj1987.com/">武汉-磨渣</a></li>
+  
+</ul>
+
+            </div>
+        </div>
+    </div>
+</article>
+
+<!-- add support for mathjax by voleking-->
+
+
+
+
+
+
+<!-- disqus 公共JS代码 start (一个网页只需插入一次) -->
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = "Gavin";
+    var disqus_identifier = "/2023/10/29/pytest_conftest";
+    var disqus_url = "http://0.0.0.0:4000/2023/10/29/pytest_conftest/";
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<!-- disqus 公共JS代码 end -->
+
+
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+<!-- anchor-js, Doc:http://bryanbraun.github.io/anchorjs/ -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/anchor-js/1.1.1/anchor.min.js",function(){
+        anchors.options = {
+          visible: 'hover',
+          placement: 'right',
+          // icon: '#'
+        };
+        anchors.add().remove('.intro-header h1').remove('.subheading').remove('.sidebar-container h5');
+    })
+</script>
+<style>
+    /* place left on bigger screen */
+    @media all and (min-width: 800px) {
+        .anchorjs-link{
+            position: absolute;
+            left: -0.75em;
+            font-size: 1.1em;
+            margin-top : -0.1em;
+        }
+    }
+</style>
+
+
+
+    <!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <!-- SNS Link -->
+                
+
+
+<ul class="list-inline text-center">
+
+
+  
+  
+  
+  
+  
+  
+  
+</ul>
+
+                <p class="copyright text-muted">
+                    Copyright &copy; Gavin Blog 2023
+                    <br>
+                    Powered by <a href="https://gavin-wang-note.github.io/index.html">Gavin Blog</a> |
+                    <iframe
+                        style="margin-left: 2px; margin-bottom:-5px;"
+                        frameborder="0" scrolling="0" width="100px" height="20px"
+                        src="https://ghbtns.com/github-btn.html?user=gavinpro&repo=gavin.github.io&type=star&count=true" >
+                    </iframe>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="/js/jquery.min.js "></script>
+
+<!-- Bootstrap Core JavaScript -->
+<!-- Currently, only navbar scroll-down effect at desktop still depends on this -->
+<script src="/js/bootstrap.min.js "></script>
+
+<!-- Custom Theme JavaScript -->
+<script src="/js/gavin-blog.min.js "></script>
+
+<!-- Service Worker -->
+
+<script src="/js/snackbar.js "></script>
+<script src="/js/sw-registration.js "></script>
+
+
+<!-- async load function -->
+<script>
+    function async(u, c) {
+      var d = document, t = 'script',
+          o = d.createElement(t),
+          s = d.getElementsByTagName(t)[0];
+      o.src = u;
+      if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+      s.parentNode.insertBefore(o, s);
+    }
+</script>
+
+<!--
+     Because of the native support for backtick-style fenced code blocks
+     right within the Markdown is landed in Github Pages,
+     From V1.6, There is no need for Highlight.js,
+     so Gavinblog drops it officially.
+
+     - https://github.com/blog/2100-github-pages-now-faster-and-simpler-with-jekyll-3-0
+     - https://help.github.com/articles/creating-and-highlighting-code-blocks/
+     - https://github.com/jneen/rouge/wiki/list-of-supported-languages-and-lexers
+-->
+<!--
+    <script>
+        async("http://cdn.bootcss.com/highlight.js/8.6/highlight.min.js", function(){
+            hljs.initHighlightingOnLoad();
+        })
+    </script>
+    <link href="http://cdn.bootcss.com/highlight.js/8.6/styles/github.min.css" rel="stylesheet">
+-->
+
+
+
+
+
+<!--fastClick.js -->
+<script>
+    async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+        var $nav = document.querySelector("nav");
+        if($nav) FastClick.attach($nav);
+    })
+</script>
+
+
+<!-- Google Analytics -->
+
+<script>
+    // dynamic User by Gavin
+    var _gaId = 'UA-49627206-1';
+    var _gaDomain = '';
+
+    // Originial
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', _gaId, _gaDomain);
+    ga('send', 'pageview');
+</script>
+
+
+
+<!-- Baidu Tongji -->
+
+
+
+<!-- Side Catalog -->
+
+<script type="text/javascript">
+    function generateCatalog (selector) {
+
+        // interop with multilangual 
+        if ('' == 'true') {
+            _containerSelector = 'div.post-container.active'
+        } else {
+            _containerSelector = 'div.post-container'
+        }
+
+        // init
+        var P = $(_containerSelector),a,n,t,l,i,c;
+        a = P.find('h1,h2,h3,h4,h5,h6');
+
+        // clean
+        $(selector).html('')
+
+        // appending
+        a.each(function () {
+            n = $(this).prop('tagName').toLowerCase();
+            i = "#"+$(this).prop('id');
+            t = $(this).text();
+            c = $('<a href="'+i+'" rel="nofollow">'+t+'</a>');
+            l = $('<li class="'+n+'_nav"></li>').append(c);
+            $(selector).append(l);
+        });
+        return true;
+    }
+
+    generateCatalog(".catalog-body");
+
+    // toggle side catalog
+    $(".catalog-toggle").click((function(e){
+        e.preventDefault();
+        $('.side-catalog').toggleClass("fold")
+    }))
+
+    /*
+     * Doc: https://github.com/davist11/jQuery-One-Page-Nav
+     * Fork by Gavin to support padding
+     */
+    async("/js/jquery.nav.js", function () {
+        $('.catalog-body').onePageNav({
+            currentClass: "active",
+            changeHash: !1,
+            easing: "swing",
+            filter: "",
+            scrollSpeed: 700,
+            scrollOffset: 0,
+            scrollThreshold: .2,
+            begin: null,
+            end: null,
+            scrollChange: null,
+            padding: 80
+        });
+    });
+</script>
+
+
+
+<!-- Multi-Lingual -->
+
+
+
+</body>
+
+</html>
