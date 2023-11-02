@@ -98,8 +98,6 @@ params将在下一篇文章中进行描述。
 
 ids将在下篇文章，和params一起进行描述。
 
-参考链接： https://zhuanlan.zhihu.com/p/272099387
-
 
 
 **(5) name**
