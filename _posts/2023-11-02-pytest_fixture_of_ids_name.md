@@ -6,7 +6,8 @@ date:       2023-11-02
 author:     "Gavin"
 catalog:    true
 tags:
-    - Linux
+    - pytest
+    - Automation
 ---
 
 
