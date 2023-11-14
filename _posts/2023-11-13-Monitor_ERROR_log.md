@@ -31,12 +31,12 @@ parser.add_argument("file_full_path", type=str)
 args = parser.parse_args()
 
 
-def send_notification():
+def send_notification(content):
     url = "https://oapi.dingtalk.com/robot/send?access_token=xxxxxxxx"
     data = {
         "msgtype": "text",
         "text": {
-            "content": "监控报警: 在[{}]中发现异常日志".format(args.file_full_path)
+            "content": "监控报警: 在[{}]中发现异常日志：[{}]".format(args.file_full_path, content)
          }
     }
 
@@ -55,15 +55,15 @@ def follow(file_handler):
 
 
 if __name__  == '__main__':
-    kws = ["ERROR", "exception =", "INFO"]
+    kws = ["ERROR", "exception =", "INFO", "DEBUG"]  # Level of INFO and DEBUG, just for debug the script
 
     print("Monitor log : {}".format(args.file_full_path))
     with open(args.file_full_path, "r") as log_file:
         log_lines = follow(log_file)
         for line in log_lines:
-            if (any (kw in line for kw in kws)):
-                print(line)
-                send_notification()
+            if (any(kw in line for kw in kws)):
+                # print(line)
+                send_notification(content)
 ```
 
 
@@ -71,7 +71,7 @@ if __name__  == '__main__':
 执行过程示例如下：
 
 ```
-[hzhy@iZbp1fl8ef9wkdizi6soq1Z ~]$ python monitor_debug_log.py "/mnt/logs/marketingservice/debug.log"
+[qatest@iZbp1fl8ef9wkdizi6soq1Z ~]$ python monitor_debug_log.py "/mnt/logs/marketingservice/debug.log"
 /usr/lib/python2.7/site-packages/requests/__init__.py:91: RequestsDependencyWarning: urllib3 (1.25.3) or chardet (2.2.1) doesn't match a supported version!
   RequestsDependencyWarning)
 Monitor log : /mnt/logs/marketingservice/debug.log
