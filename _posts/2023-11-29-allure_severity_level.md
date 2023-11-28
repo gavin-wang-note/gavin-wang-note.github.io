@@ -50,13 +50,11 @@ allure支持的用例级别为："blocker", "critical", "normal", "minor", "triv
 
 找到了allure的源码：
 
-```allure2-2.24.1/allure-generator/src/main/javascript/components/graph-severity-chart/SeverityChartView.js```
+``` allure2-2.24.1/allure-generator/src/main/javascript/components/graph-severity-chart/SeverityChartView.js ```
 
 这个js文件中定义了用例的级别：
 
-```
-const severities = ["blocker", "critical", "normal", "minor", "trivial"];
-```
+``` const severities = ["blocker", "critical", "normal", "minor", "trivial"]; ```
 
 在 ``` allure2-2.24.1/allure-generator/src/main/java/io/qameta/allure/severity/SeverityLevel.java ```文件中定义了一个枚举类型：
 
