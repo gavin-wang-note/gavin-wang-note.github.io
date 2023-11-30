@@ -7,7 +7,7 @@ author:     "Gavin"
 catalog:    true
 tags:
     - memchche
-    - securite
+    - security
     - Linux
 ---
 
