@@ -1,0 +1,2846 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="Oracle RMAN实践篇1, 努力，奋进">
+    <meta name="description" content="概述本文主要介绍RMAN的一些实战操作。
+准备工作1、数据库运行在归档方式下；
+2、备份整个数据库；
+3、rman备份整个数据库与归档日志。
+rman备份脚本如下（运行日志）：
+RMAN&amp;gt; #script:fullbakup.rcv
+">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>Oracle RMAN实践篇1 | 努力，奋进</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
+</head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">努力，奋进</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">努力，奋进</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/gavin-wang-note" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/gavin-wang-note" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+<script src="/libs/cryptojs/crypto-js.min.js"></script>
+<script>
+    (function() {
+        let pwd = '';
+        if (pwd && pwd.length > 0) {
+            if (pwd !== CryptoJS.SHA256(prompt('AFC12F031CC76E24A96592E3E829CF41F2B87F9A079735A0C7BD1C25B5BAFA74')).toString(CryptoJS.enc.Hex)) {
+                alert('密码错误，将返回主页！');
+                location.href = '/';
+            }
+        }
+    })();
+</script>
+
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/180.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">Oracle RMAN实践篇1</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/oracle/">
+                                <span class="chip bg-color">oracle</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/oracle/" class="post-category">
+                                oracle
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2011-03-07
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2024-01-26
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    9.4k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    44 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文主要介绍RMAN的一些实战操作。</p>
+<h1 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h1><p>1、数据库运行在归档方式下；</p>
+<p>2、备份整个数据库；</p>
+<p>3、rman备份整个数据库与归档日志。</p>
+<p>rman备份脚本如下（运行日志）：</p>
+<pre><code class="line-numbers language-shell">RMAN&gt; #script:fullbakup.rcv
+2&gt; # creater:wangyunzeng
+3&gt; # date:3.1.2011
+4&gt; # desc:backup all database datafile in archive with rman
+5&gt; # connect database
+6&gt; #rman target/;
+7&gt; #connect catalog rman/rman@inomc;
+8&gt; connect catalog *
+9&gt; connect target *
+10&gt; 
+11&gt; #start backup
+12&gt; run
+13&gt; {
+14&gt;   allocate channel c1 type disk;
+15&gt;   backup tag 'dbfull' format 'fullbak_%u_%s_%p' database
+16&gt;   archivelog all;
+17&gt;   sql 'alter system archive log current';
+18&gt;   release channel c1;
+19&gt; }
+</code></pre>
+<h1 id="归档模式下丢失或损坏一个数据文件"><a href="#归档模式下丢失或损坏一个数据文件" class="headerlink" title="归档模式下丢失或损坏一个数据文件"></a>归档模式下丢失或损坏一个数据文件</h1><h2 id="OS备份方案"><a href="#OS备份方案" class="headerlink" title="OS备份方案"></a>OS备份方案</h2><p>在归档方式下，丢失或损坏一个数据文件，如果有响应的物理文件的备用以及该备份以来的归档日志，恢复数据库是比较容易的，而且可以减少宕机时间。</p>
+<h3 id="步骤一-创建测试表"><a href="#步骤一-创建测试表" class="headerlink" title="步骤一 创建测试表"></a>步骤一 创建测试表</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 10:30:57 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; create table sybex(id int);    
+
+表已创建。
+
+
+SQL&gt; insert into  sybex values(0);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(1);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(2);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(3);
+
+已创建 1 行。
+
+SQL&gt; insert into  sybex values(4);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         0
+         1
+         2
+         3
+         4
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤二-关闭数据库，模拟数据文件损坏或丢失"><a href="#步骤二-关闭数据库，模拟数据文件损坏或丢失" class="headerlink" title="步骤二 关闭数据库，模拟数据文件损坏或丢失"></a>步骤二 关闭数据库，模拟数据文件损坏或丢失</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 10:44:24 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; alter database datafile 5 online;
+
+数据库已更改。
+
+SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; 
+删除数据文件
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01 
+oracle@mmsc103:~/oradata/mmsgdb&gt; 
+</code></pre>
+<h3 id="步骤三-启动数据库，并脱机数据文件"><a href="#步骤三-启动数据库，并脱机数据文件" class="headerlink" title="步骤三 启动数据库，并脱机数据文件"></a>步骤三 启动数据库，并脱机数据文件</h3><pre><code class="line-numbers language-shell">SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 5 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 5: '/opt/oracle/oradata/mmsgdb/mmsgdata01'
+
+
+SQL&gt; alter database datafile 5 offline drop;
+
+数据库已更改。
+
+SQL&gt; alter database open;
+
+数据库已更改。
+</code></pre>
+<h3 id="步骤四-拷贝文件，恢复并联机该数据文件"><a href="#步骤四-拷贝文件，恢复并联机该数据文件" class="headerlink" title="步骤四 拷贝文件，恢复并联机该数据文件"></a>步骤四 拷贝文件，恢复并联机该数据文件</h3><p>拷贝过程省略。</p>
+<pre><code class="line-numbers language-shell">SQL&gt; recover datafile 5
+ORA-00279: 更改 427060 (在 03/05/2011 09:46:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_29_6q3jw83d
+_.arc
+ORA-00280: 更改 427060 (用于线程 1) 在序列 #29 中
+
+
+指定日志: {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
+auto
+ORA-00279: 更改 433844 (在 03/05/2011 13:00:55 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_30_6q477cfq
+_.arc
+ORA-00280: 更改 433844 (用于线程 1) 在序列 #30 中
+
+
+ORA-00279: 更改 462078 (在 03/05/2011 19:22:19 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_31_6q4w04c0
+_.arc
+ORA-00280: 更改 462078 (用于线程 1) 在序列 #31 中
+
+
+ORA-00279: 更改 489270 (在 03/06/2011 01:16:52 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_32_6q5dmrx0
+_.arc
+ORA-00280: 更改 489270 (用于线程 1) 在序列 #32 中
+
+
+ORA-00279: 更改 519023 (在 03/06/2011 06:00:24 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_33_6q5rg0mj
+_.arc
+ORA-00280: 更改 519023 (用于线程 1) 在序列 #33 中
+
+
+ORA-00279: 更改 537366 (在 03/06/2011 09:22:08 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_34_6q5yl1sz
+_.arc
+ORA-00280: 更改 537366 (用于线程 1) 在序列 #34 中
+
+
+ORA-00279: 更改 549703 (在 03/06/2011 11:06:41 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_35_6q6d89j5
+_.arc
+ORA-00280: 更改 549703 (用于线程 1) 在序列 #35 中
+
+
+ORA-00279: 更改 567132 (在 03/06/2011 15:00:25 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_36_6q6t01c4
+_.arc
+ORA-00280: 更改 567132 (用于线程 1) 在序列 #36 中
+
+
+ORA-00279: 更改 584372 (在 03/06/2011 18:54:57 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_37_6q77sdpv
+_.arc
+ORA-00280: 更改 584372 (用于线程 1) 在序列 #37 中
+
+
+ORA-00279: 更改 601986 (在 03/06/2011 22:50:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议:
+/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_38_6q7sz1gn
+_.arc
+ORA-00280: 更改 601986 (用于线程 1) 在序列 #38 中
+
+
+已应用的日志。
+完成介质恢复。
+SQL&gt; alter database datafile 5 online;
+
+数据库已更改。
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤五-查询数据，检查恢复效果"><a href="#步骤五-查询数据，检查恢复效果" class="headerlink" title="步骤五   查询数据，检查恢复效果"></a>步骤五   查询数据，检查恢复效果</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 11:04:52 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         0
+         1
+         2
+         3
+         4
+
+SQL&gt;
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>1、采用热备份，需要运行在归档模式下，可以实现数据库的完全恢复，也就是说，从备份后到数据库崩溃时的数据都不会丢失。</li>
+<li>2、可以采用全备份数据库的方式备份，对于特殊情况，也可以只备份特定的数据文件，如只备份用户表空间（一般情况下对于某些写特别频繁的数据文件，可以单独加大备份频率）</li>
+<li>3、如果在恢复过程中，发现损坏的是多个数据文件，即可以采用一个一个数据文件的恢复方法（第5步中需要对数据文件一一脱机，第6步中需要对数据文件分别恢复），也可以采用整个数据库的恢复方法。</li>
+<li>4、如果是系统表空间的损坏，不能采用此方法</li>
+</ul>
+<h2 id="RMAN备份方案"><a href="#RMAN备份方案" class="headerlink" title="RMAN备份方案"></a>RMAN备份方案</h2><h3 id="步骤一-表中插入记录"><a href="#步骤一-表中插入记录" class="headerlink" title="步骤一  表中插入记录"></a>步骤一  表中插入记录</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 11:51:31 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; insert into sybex values(5);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         5
+         0
+         1
+         2
+         3
+         4
+
+已选择6行。   #备份前表中有6条记录
+</code></pre>
+<h3 id="步骤二-备份表空间"><a href="#步骤二-备份表空间" class="headerlink" title="步骤二  备份表空间"></a>步骤二  备份表空间</h3><pre><code class="line-numbers language-shell">RMAN&gt; backup tablespace MMSG;
+
+启动 backup 于 07-3月 -11
+分配的通道: ORA_DISK_1
+通道 ORA_DISK_1: SID=289 设备类型=DISK
+通道 ORA_DISK_1: 正在启动全部数据文件备份集
+通道 ORA_DISK_1: 正在指定备份集内的数据文件
+输入数据文件: 文件号=00005 名称=/opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 ORA_DISK_1: 正在启动段 1 于 07-3月 -11
+通道 ORA_DISK_1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T115233_6q8on44m_.bkp 标记=TAG20110307T115233 注释=NONE
+通道 ORA_DISK_1: 备份集已完成, 经过时间:00:00:01
+完成 backup 于 07-3月 -11
+
+启动 Control File and SPFILE Autobackup 于 07-3月 -11
+段 handle=/opt/oracle/flash_recovery_area/MMSGDB/autobackup/2011_03_07/o1_mf_s_745156357_6q8on8c8_.bkp comment=NONE
+完成 Control File and SPFILE Autobackup 于 07-3月 -11
+
+RMAN&gt;
+</code></pre>
+<h3 id="步骤三-再次向表中插入记录"><a href="#步骤三-再次向表中插入记录" class="headerlink" title="步骤三  再次向表中插入记录"></a>步骤三  再次向表中插入记录</h3><pre><code class="line-numbers language-shell">SQL&gt; insert into sybex values(6);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择7行。     #备份后，表中记录为7条，比备份前增加了一条
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤四-切换relog日志记录"><a href="#步骤四-切换relog日志记录" class="headerlink" title="步骤四  切换relog日志记录"></a>步骤四  切换relog日志记录</h3><pre><code class="line-numbers language-shell">SQL&gt; alter system switch logfile;
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+</code></pre>
+<h3 id="步骤五-关闭数据库，模拟数据文件丢失"><a href="#步骤五-关闭数据库，模拟数据文件丢失" class="headerlink" title="步骤五  关闭数据库，模拟数据文件丢失"></a>步骤五  关闭数据库，模拟数据文件丢失</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host   
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01 
+oracle@mmsc103:~/oradata/mmsgdb&gt; exit
+exit
+</code></pre>
+<h3 id="步骤六-启动数据库，并脱机数据文件"><a href="#步骤六-启动数据库，并脱机数据文件" class="headerlink" title="步骤六  启动数据库，并脱机数据文件"></a>步骤六  启动数据库，并脱机数据文件</h3><pre><code class="line-numbers language-shell">SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 5 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 5: '/opt/oracle/oradata/mmsgdb/mmsgdata01'
+
+
+SQL&gt; alter database datafile 5 offline;
+
+数据库已更改。
+
+SQL&gt; alter database open;
+
+数据库已更改。
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤七-恢复表空间"><a href="#步骤七-恢复表空间" class="headerlink" title="步骤七  恢复表空间"></a>步骤七  恢复表空间</h3><p>恢复脚本可以是恢复单个数据文件</p>
+<pre><code class="line-numbers language-shell">RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restore datafile 5;
+5&gt; recover datafile 5;
+6&gt; sql 'alter database datafile 5 online';
+7&gt; release channel c1;
+8&gt; }
+</code></pre>
+<p>也可以是表空间</p>
+<pre><code class="line-numbers language-shell">RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restoretablespace MMSG;
+5&gt; recover tablespace MMSG;
+6&gt; sql 'alter database datafile 5 online';
+7&gt; release channel c1;
+8&gt; }
+</code></pre>
+<p>过程如下：</p>
+<pre><code class="line-numbers language-shell">使用目标数据库控制文件替代恢复目录
+分配的通道: c1
+通道 c1: SID=293 设备类型=DISK
+
+启动 restore 于 07-3月 -11
+
+通道 c1: 正在开始还原数据文件备份集
+通道 c1: 正在指定从备份集还原的数据文件
+通道 c1: 将数据文件 00005 还原到 /opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 c1: 正在读取备份片段 /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T115233_6q8on44m_.bkp
+通道 c1: 段句柄 = /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T115233_6q8on44m_.bkp 标记 = TAG20110307T115233
+通道 c1: 已还原备份片段 1
+通道 c1: 还原完成, 用时: 00:00:15
+完成 restore 于 07-3月 -11
+
+启动 recover 于 07-3月 -11
+
+正在开始介质的恢复
+介质恢复完成, 用时: 00:00:00
+
+完成 recover 于 07-3月 -11
+
+sql 语句: alter database datafile 5 online
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre>
+<h3 id="步骤八-检查恢复效果"><a href="#步骤八-检查恢复效果" class="headerlink" title="步骤八 检查恢复效果"></a>步骤八 检查恢复效果</h3><pre><code class="line-numbers language-shell">SQL&gt; select * from sybex;
+
+        ID
+----------
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择7行。   #恢复后，数据是7条，没有丢失
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>1、RMAN也可以实现单个表空间或数据文件的恢复，恢复过程可以在mount下或open方式下，如果在open方式下恢复，可以减少down机时间</li>
+<li>2、如果损坏的是一个数据文件，建议offline并在open方式下恢复</li>
+<li>3、这里可以看到，RMAN进行数据文件与表空间恢复的时候，代码都比较简单，而且能保证备份与恢复的可靠性，所以建议采用RMAN的备份与恢复</li>
+</ul>
+<h1 id="丢失多个数据文件的数据库恢复"><a href="#丢失多个数据文件的数据库恢复" class="headerlink" title="丢失多个数据文件的数据库恢复"></a>丢失多个数据文件的数据库恢复</h1><h2 id="OS备份方案-1"><a href="#OS备份方案-1" class="headerlink" title="OS备份方案"></a>OS备份方案</h2><h3 id="步骤一-表中插入记录-1"><a href="#步骤一-表中插入记录-1" class="headerlink" title="步骤一  表中插入记录"></a>步骤一  表中插入记录</h3><pre><code class="line-numbers language-shell">SQL&gt; insert into sybex values(7);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择8行。        #故障前有8条记录
+</code></pre>
+<h3 id="步骤二-关闭数据库，删除除临时文件外的所有数据文件"><a href="#步骤二-关闭数据库，删除除临时文件外的所有数据文件" class="headerlink" title="步骤二  关闭数据库，删除除临时文件外的所有数据文件"></a>步骤二  关闭数据库，删除除临时文件外的所有数据文件</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; l
+total 2255540
+drwxr-x--- 2 oracle oinstall       4096 2011-03-07 11:59 ./
+drwxr-x--- 3 oracle oinstall       4096 2011-03-03 18:20 ../
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 12:38 control01.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 12:38 control02.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 12:38 control03.ctl
+-rw-r----- 1 oracle oinstall 1048584192 2011-03-07 12:38 mmsgdata01
+-rw-r----- 1 oracle oinstall  524296192 2011-03-05 11:47 mmsgdata02
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 12:38 redo01.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 11:57 redo02.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 11:57 redo03.log
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 12:38 rman_data.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 11:47 rman_tmp.dbf
+-rw-r----- 1 oracle oinstall  287186944 2011-03-07 12:38 sysaux01.dbf
+-rw-r----- 1 oracle oinstall  356524032 2011-03-07 12:38 system01.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-07 10:45 temp01.dbf
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 12:38 undotbs01.dbf
+-rw-r----- 1 oracle oinstall    5251072 2011-03-07 12:38 users01.dbf
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01  sysaux01.dbf  system01.dbf  users01.dbf  undotbs01.dbf 
+oracle@mmsc103:~/oradata/mmsgdb&gt; exit
+exit
+</code></pre>
+<h3 id="步骤三-启动数据库，并查看告警日志"><a href="#步骤三-启动数据库，并查看告警日志" class="headerlink" title="步骤三 启动数据库，并查看告警日志"></a>步骤三 启动数据库，并查看告警日志</h3><pre><code class="line-numbers language-shell">SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 1 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
+
+
+SQL&gt;
+</code></pre>
+<p>查看告警日志</p>
+<pre><code class="line-numbers language-shell">&lt;msg time='2011-03-07T12:41:50.153+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 1 - ??? DBWR ????
+ORA-01110: ???? 1: &amp;apos;/opt/oracle/oradata/mmsgdb/system01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 2 - ??? DBWR ????
+ORA-01110: ???? 2: &amp;apos;/opt/oracle/oradata/mmsgdb/sysaux01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 3 - ??? DBWR ????
+ORA-01110: ???? 3: &amp;apos;/opt/oracle/oradata/mmsgdb/undotbs01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 4 - ??? DBWR ????
+ORA-01110: ???? 4: &amp;apos;/opt/oracle/oradata/mmsgdb/users01.dbf&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.154+08:00' org_id='oracle' comp_id='rdbms'
+ client_id='' type='UNKNOWN' level='16'
+ module='' pid='22906'&gt;
+ &lt;txt&gt;Errors in file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_dbw0_22906.trc:
+ORA-01157: ????/?????? 5 - ??? DBWR ????
+ORA-01110: ???? 5: &amp;apos;/opt/oracle/oradata/mmsgdb/mmsgdata01&amp;apos;
+ORA-27037: ????????
+Linux-x86_64 Error: 2: No such file or directory
+Additional information: 3
+ &lt;/txt&gt;
+&lt;/msg&gt;
+&lt;msg time='2011-03-07T12:41:50.156+08:00' org_id='oracle' comp_id='rdbms'
+ msg_id='opiexe:2986:2780954927' client_id='' type='NOTIFICATION'
+ group='admin_ddl' level='16' module='sqlplus@mmsc103 (TNS V1-V3)'
+ pid='23023'&gt;
+ &lt;txt&gt;ORA-1157 signalled during: ALTER DATABASE OPEN...
+ &lt;/txt&gt;
+&lt;/msg&gt;
+</code></pre>
+<p>通过查询视图v$recover_file可以发现</p>
+<pre><code class="line-numbers language-shell">SQL&gt; select * from v$recover_file;
+
+     FILE# ONLINE  ONLINE_ ERROR                                                                CHANGE# TIME
+---------- ------- ------- ----------------------------------------------------------------- ---------- --------------
+         1 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         2 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         3 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         4 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         5 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+
+SQL&gt;
+</code></pre>
+<p>有5个数据文件需要恢复，整改是我删除的那5个数据文件。</p>
+<h3 id="步骤四-拷贝数据文件到目录，着手恢复"><a href="#步骤四-拷贝数据文件到目录，着手恢复" class="headerlink" title="步骤四   拷贝数据文件到目录，着手恢复"></a>步骤四   拷贝数据文件到目录，着手恢复</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; cd bak_oradata/mmsgdb/
+oracle@mmsc103:~/bak_oradata/mmsgdb&gt; l
+total 2206832
+drwxr-x--- 2 oracle oinstall       4096 2011-03-05 09:48 ./
+drwxr-x--- 3 oracle oinstall       4096 2011-03-05 09:48 ../
+-rw-r----- 1 oracle oinstall    9748480 2011-03-05 09:48 control01.ctl
+-rw-r----- 1 oracle oinstall    9748480 2011-03-05 09:48 control02.ctl
+-rw-r----- 1 oracle oinstall    9748480 2011-03-05 09:48 control03.ctl
+-rw-r----- 1 oracle oinstall 1048584192 2011-03-05 09:48 mmsgdata01
+-rw-r----- 1 oracle oinstall  524296192 2011-03-05 09:48 mmsgdata02
+-rw-r----- 1 oracle oinstall   52429312 2011-03-05 09:48 redo01.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-05 09:48 redo02.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-05 09:48 redo03.log
+-rw-r----- 1 oracle oinstall  209723392 2011-03-05 09:48 rman_data.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 09:48 rman_tmp.dbf
+-rw-r----- 1 oracle oinstall  249438208 2011-03-05 09:48 sysaux01.dbf
+-rw-r----- 1 oracle oinstall  346038272 2011-03-05 09:48 system01.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 09:48 temp01.dbf
+-rw-r----- 1 oracle oinstall  209723392 2011-03-05 09:48 undotbs01.dbf
+-rw-r----- 1 oracle oinstall    5251072 2011-03-05 09:48 users01.dbf
+oracle@mmsc103:~/bak_oradata/mmsgdb&gt; cp mmsgdata01  sysaux01.dbf  system01.dbf  users01.dbf  undotbs01.dbf  ../../oradata/mmsgdb/
+oracle@mmsc103:~/bak_oradata/mmsgdb&gt;
+</code></pre>
+<p>恢复过程如下：</p>
+<pre><code class="line-numbers language-shell">SQL&gt; recover database;
+ORA-00279: 更改 427060 (在 03/05/2011 09:46:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_29_6q3jw83d_.arc
+ORA-00280: 更改 427060 (用于线程 1) 在序列 #29 中
+
+
+指定日志: {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
+auto
+ORA-00279: 更改 433844 (在 03/05/2011 13:00:55 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_30_6q477cfq_.arc
+ORA-00280: 更改 433844 (用于线程 1) 在序列 #30 中
+
+
+ORA-00279: 更改 462078 (在 03/05/2011 19:22:19 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_31_6q4w04c0_.arc
+ORA-00280: 更改 462078 (用于线程 1) 在序列 #31 中
+
+
+ORA-00279: 更改 489270 (在 03/06/2011 01:16:52 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_32_6q5dmrx0_.arc
+ORA-00280: 更改 489270 (用于线程 1) 在序列 #32 中
+
+
+ORA-00279: 更改 519023 (在 03/06/2011 06:00:24 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_33_6q5rg0mj_.arc
+ORA-00280: 更改 519023 (用于线程 1) 在序列 #33 中
+
+
+ORA-00279: 更改 537366 (在 03/06/2011 09:22:08 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_34_6q5yl1sz_.arc
+ORA-00280: 更改 537366 (用于线程 1) 在序列 #34 中
+
+
+ORA-00279: 更改 549703 (在 03/06/2011 11:06:41 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_35_6q6d89j5_.arc
+ORA-00280: 更改 549703 (用于线程 1) 在序列 #35 中
+
+
+ORA-00279: 更改 567132 (在 03/06/2011 15:00:25 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_36_6q6t01c4_.arc
+ORA-00280: 更改 567132 (用于线程 1) 在序列 #36 中
+
+
+ORA-00279: 更改 584372 (在 03/06/2011 18:54:57 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_06/o1_mf_1_37_6q77sdpv_.arc
+ORA-00280: 更改 584372 (用于线程 1) 在序列 #37 中
+
+
+ORA-00279: 更改 601986 (在 03/06/2011 22:50:20 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_38_6q7sz1gn_.arc
+ORA-00280: 更改 601986 (用于线程 1) 在序列 #38 中
+
+
+ORA-00279: 更改 624387 (在 03/07/2011 04:00:33 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_39_6q8k2j5f_.arc
+ORA-00280: 更改 624387 (用于线程 1) 在序列 #39 中
+
+
+ORA-00279: 更改 642232 (在 03/07/2011 10:34:56 生成) 对于线程 1 是必需的
+ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_40_6q8kl8sg_.arc
+ORA-00280: 更改 642232 (用于线程 1) 在序列 #40 中
+
+
+已应用的日志。
+完成介质恢复。
+SQL&gt; alter database open;
+
+数据库已更改。
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤五-检查数据完整性"><a href="#步骤五-检查数据完整性" class="headerlink" title="步骤五  检查数据完整性"></a>步骤五  检查数据完整性</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 12:48:35 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择8行。   #数据还是8条，未丢失.
+
+SQL&gt;
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>1、只要有备份与归档存在，就可以实现数据库的完全恢复（不丢失数据）</li>
+<li>2、适合于丢失大量数据文件，或包含系统数据文件在内的数据库的恢复</li>
+<li>3、恢复过程在mount下进行，如果恢复成功，再打开数据库，down机时间可能比较长一些。</li>
+</ul>
+<h2 id="RMAN备份方案-1"><a href="#RMAN备份方案-1" class="headerlink" title="RMAN备份方案"></a>RMAN备份方案</h2><p>rman备份归档模式下数据库，损坏或丢失多个数据文件，可进行整个数据库的恢复。</p>
+<h3 id="步骤一-表中插入记录-2"><a href="#步骤一-表中插入记录-2" class="headerlink" title="步骤一  表中插入记录"></a>步骤一  表中插入记录</h3><pre><code class="line-numbers language-shell">SQL&gt; insert into sybex values(8);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         8
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择9行。       #备份前有9条记录
+</code></pre>
+<h3 id="步骤二-备份整个数据库"><a href="#步骤二-备份整个数据库" class="headerlink" title="步骤二   备份整个数据库"></a>步骤二   备份整个数据库</h3><p>备份日志如下：</p>
+<pre><code class="line-numbers language-shell">恢复管理器: Release 11.1.0.6.0 - Production on 星期一 3月 7 13:52:27 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+RMAN&gt; #script:fullbakup.rman
+2&gt; # creater:wangyunzeng
+3&gt; # date:2011-03-01
+4&gt; # desc:backup all database datafile in archive with rman
+5&gt; # connect database
+6&gt; connect target *
+7&gt; connect catalog *
+8&gt; 
+9&gt; #start backup database
+10&gt; run
+11&gt; {
+12&gt;   allocate channel c1 type disk;
+13&gt;   backup tag 'dbfull' format 'fullbak_%u_%s_%p' database
+14&gt;   archivelog all;
+15&gt;   sql 'alter system archive log current';
+16&gt;   release channel c1;
+17&gt; }
+18&gt; #end
+19&gt; 
+连接到目标数据库: MMSGDB (DBID=3148145279)
+
+连接到恢复目录数据库
+
+正在启动全部恢复目录的 resync
+完成全部 resync
+分配的通道: c1
+通道 c1: SID=288 设备类型=DISK
+
+启动 backup 于 07-3月 -11
+通道 c1: 正在启动归档日志备份集
+通道 c1: 正在指定备份集内的归档日志
+输入归档日志线程=1 序列=29 RECID=30 STAMP=744987657
+输入归档日志线程=1 序列=30 RECID=32 STAMP=745010540
+输入归档日志线程=1 序列=31 RECID=34 STAMP=745031813
+输入归档日志线程=1 序列=32 RECID=36 STAMP=745048826
+输入归档日志线程=1 序列=33 RECID=38 STAMP=745060929
+输入归档日志线程=1 序列=34 RECID=40 STAMP=745067203
+输入归档日志线程=1 序列=35 RECID=42 STAMP=745081226
+输入归档日志线程=1 序列=36 RECID=44 STAMP=745095298
+输入归档日志线程=1 序列=37 RECID=46 STAMP=745109422
+输入归档日志线程=1 序列=38 RECID=48 STAMP=745128034
+输入归档日志线程=1 序列=39 RECID=50 STAMP=745151697
+输入归档日志线程=1 序列=40 RECID=52 STAMP=745152201
+输入归档日志线程=1 序列=41 RECID=54 STAMP=745156439
+输入归档日志线程=1 序列=42 RECID=56 STAMP=745156440
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/product/11g/dbs/fullbak_0bm6kip0_11_1 标记=DBFULL 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:07
+通道 c1: 正在启动全部数据文件备份集
+通道 c1: 正在指定备份集内的数据文件
+输入数据文件: 文件号=00005 名称=/opt/oracle/oradata/mmsgdb/mmsgdata01
+输入数据文件: 文件号=00001 名称=/opt/oracle/oradata/mmsgdb/system01.dbf
+输入数据文件: 文件号=00002 名称=/opt/oracle/oradata/mmsgdb/sysaux01.dbf
+输入数据文件: 文件号=00003 名称=/opt/oracle/oradata/mmsgdb/undotbs01.dbf
+输入数据文件: 文件号=00006 名称=/opt/oracle/oradata/mmsgdb/rman_data.dbf
+输入数据文件: 文件号=00004 名称=/opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/product/11g/dbs/fullbak_0cm6kip9_12_1 标记=DBFULL 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:15
+完成 backup 于 07-3月 -11
+
+启动 Control File and SPFILE Autobackup 于 07-3月 -11
+段 handle=/opt/oracle/flash_recovery_area/MMSGDB/autobackup/2011_03_07/o1_mf_s_745163579_6q8woy7q_.bkp comment=NONE
+完成 Control File and SPFILE Autobackup 于 07-3月 -11
+
+sql 语句: alter system archive log current
+
+释放的通道: c1
+
+恢复管理器完成。
+</code></pre>
+<h3 id="步骤三-表中再次插入记录"><a href="#步骤三-表中再次插入记录" class="headerlink" title="步骤三   表中再次插入记录"></a>步骤三   表中再次插入记录</h3><pre><code class="line-numbers language-shell">SQL&gt; insert into sybex values(9);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select count(0) from sybex;
+
+  COUNT(0)
+----------
+        10    #出故障前，表中有10条记录
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤四-关闭数据库，模拟多个数据文件丢失或损坏"><a href="#步骤四-关闭数据库，模拟多个数据文件丢失或损坏" class="headerlink" title="步骤四  关闭数据库，模拟多个数据文件丢失或损坏"></a>步骤四  关闭数据库，模拟多个数据文件丢失或损坏</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host
+oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+oracle@mmsc103:~/oradata/mmsgdb&gt; l
+total 2255540
+drwxr-x--- 2 oracle oinstall       4096 2011-03-07 12:46 ./
+drwxr-x--- 3 oracle oinstall       4096 2011-03-03 18:20 ../
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 13:55 control01.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 13:55 control02.ctl
+-rw-r----- 1 oracle oinstall    9912320 2011-03-07 13:55 control03.ctl
+-rw-r----- 1 oracle oinstall 1048584192 2011-03-07 13:55 mmsgdata01
+-rw-r----- 1 oracle oinstall  524296192 2011-03-05 11:47 mmsgdata02
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 13:53 redo01.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 13:55 redo02.log
+-rw-r----- 1 oracle oinstall   52429312 2011-03-07 12:48 redo03.log
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 13:55 rman_data.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-05 11:47 rman_tmp.dbf
+-rw-r----- 1 oracle oinstall  287186944 2011-03-07 13:55 sysaux01.dbf
+-rw-r----- 1 oracle oinstall  356524032 2011-03-07 13:55 system01.dbf
+-rw-r----- 1 oracle oinstall   20979712 2011-03-07 10:45 temp01.dbf
+-rw-r----- 1 oracle oinstall  209723392 2011-03-07 13:55 undotbs01.dbf
+-rw-r----- 1 oracle oinstall    5251072 2011-03-07 13:55 users01.dbf
+oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf mmsgdata01  system01.dbf  sysaux01.dbf  users01.dbf  undotbs01.dbf 
+oracle@mmsc103:~/oradata/mmsgdb&gt; exit
+exit
+
+SQL&gt; startup
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+ORA-01157: 无法标识/锁定数据文件 1 - 请参阅 DBWR 跟踪文件
+ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
+
+
+SQL&gt;
+</code></pre>
+<pre><code class="line-numbers language-shell">SQL&gt; select * from v$recover_file;
+
+     FILE# ONLINE  ONLINE_ ERROR                                                                CHANGE# TIME
+---------- ------- ------- ----------------------------------------------------------------- ---------- --------------
+         1 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         2 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         3 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         4 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+         5 ONLINE  ONLINE  FILE NOT FOUND                                                             0
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤五-恢复数据库"><a href="#步骤五-恢复数据库" class="headerlink" title="步骤五  恢复数据库"></a>步骤五  恢复数据库</h3><pre><code class="line-numbers language-shell">RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restore database;
+5&gt; recover database;
+6&gt; sql 'alter database open';
+7&gt; release channel c1;
+8&gt; }
+
+使用目标数据库控制文件替代恢复目录
+分配的通道: c1
+通道 c1: SID=317 设备类型=DISK
+
+启动 restore 于 07-3月 -11
+
+通道 c1: 正在开始还原数据文件备份集
+通道 c1: 正在指定从备份集还原的数据文件
+通道 c1: 将数据文件 00001 还原到 /opt/oracle/oradata/mmsgdb/system01.dbf
+通道 c1: 将数据文件 00002 还原到 /opt/oracle/oradata/mmsgdb/sysaux01.dbf
+通道 c1: 将数据文件 00003 还原到 /opt/oracle/oradata/mmsgdb/undotbs01.dbf
+通道 c1: 将数据文件 00004 还原到 /opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 将数据文件 00005 还原到 /opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 c1: 将数据文件 00006 还原到 /opt/oracle/oradata/mmsgdb/rman_data.dbf
+通道 c1: 正在读取备份片段 /opt/oracle/product/11g/dbs/fullbak_0cm6kip9_12_1
+通道 c1: 段句柄 = /opt/oracle/product/11g/dbs/fullbak_0cm6kip9_12_1 标记 = DBFULL
+通道 c1: 已还原备份片段 1
+通道 c1: 还原完成, 用时: 00:00:35
+完成 restore 于 07-3月 -11
+
+启动 recover 于 07-3月 -11
+
+正在开始介质的恢复
+介质恢复完成, 用时: 00:00:02
+
+完成 recover 于 07-3月 -11
+
+sql 语句: alter database open
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre>
+<h3 id="步骤六-恢复结果检查"><a href="#步骤六-恢复结果检查" class="headerlink" title="步骤六  恢复结果检查"></a>步骤六  恢复结果检查</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 14:00:33 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select count(0) from sybex;
+
+  COUNT(0)
+----------
+        10       #数据库恢复后，10条记录，未丢失数据.
+
+SQL&gt;
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>1、只要有备份与归档存在，RMAN也可以实现数据库的完全恢复（不丢失数据）</li>
+<li>2、同OS备份数据库恢复，适合于丢失大量数据文件，或包含系统数据文件在内的数据库的恢复</li>
+<li>3、目标数据库在mount下进行，如果恢复成功，再打开数据库。</li>
+<li>4、RMAN的备份与恢复命令相对比较简单并可靠，建议有条件的话，都采用RMAN进行数据库的备份。</li>
+</ul>
+<h1 id="不完全恢复"><a href="#不完全恢复" class="headerlink" title="不完全恢复"></a>不完全恢复</h1><h2 id="OS备份下的基于时间的恢复"><a href="#OS备份下的基于时间的恢复" class="headerlink" title="OS备份下的基于时间的恢复"></a>OS备份下的基于时间的恢复</h2><p>不完全恢复分为三种，基于时间（TIME）、基于撤销（CANCLE）、基于改变（SCN），这里以基于时间的恢复为例。</p>
+<h3 id="步骤一-创建表"><a href="#步骤一-创建表" class="headerlink" title="步骤一  创建表"></a>步骤一  创建表</h3><pre><code class="line-numbers language-shell">SQL&gt; select * from sybex;
+
+        ID
+----------
+         7
+         8
+         9
+         5
+         6
+         0
+         1
+         2
+         3
+         4
+
+已选择10行。
+
+SQL&gt; create table time(id int);
+
+表已创建。
+
+SQL&gt; insert into time values(0);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤二-备份数据库"><a href="#步骤二-备份数据库" class="headerlink" title="步骤二  备份数据库"></a>步骤二  备份数据库</h3><p>这里冷备整个数据库，包括临时数据文件，热物理备份也可以，这里不在赘述。</p>
+<h3 id="步骤三-再次插入数据，并归档"><a href="#步骤三-再次插入数据，并归档" class="headerlink" title="步骤三  再次插入数据，并归档"></a>步骤三  再次插入数据，并归档</h3><h4 id="应用用户创建表并插入数据。"><a href="#应用用户创建表并插入数据。" class="headerlink" title="应用用户创建表并插入数据。"></a>应用用户创建表并插入数据。</h4><pre><code class="line-numbers language-shell">SQL&gt; insert into time values(1);
+
+已创建 1 行。
+
+SQL&gt; commit
+  2  ;
+
+提交完成。
+
+SQL&gt; 
+SQL&gt; select count(0) from time;
+
+  COUNT(0)
+----------
+         2
+</code></pre>
+<h4 id="sysdba用户切换日志归档"><a href="#sysdba用户切换日志归档" class="headerlink" title="sysdba用户切换日志归档"></a>sysdba用户切换日志归档</h4><pre><code class="line-numbers language-shell">SQL&gt; alter system archive log current;
+
+系统已更改。
+
+SQL&gt; alter system archive log current;
+
+系统已更改。
+
+SQL&gt; alter system archive log current;
+
+系统已更改。
+</code></pre>
+<h4 id="应用用户执行如下操作"><a href="#应用用户执行如下操作" class="headerlink" title="应用用户执行如下操作"></a>应用用户执行如下操作</h4><pre><code class="line-numbers language-shell">SQL&gt; select to_char(sysdate,'yyyy-mm-dd HH24:MI:SS') from dual;
+
+TO_CHAR(SYSDATE,'YY
+-------------------
+2011-03-07 15:49:29
+
+SQL&gt; drop table time;
+
+表已删除。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤四-关闭数据库，拷贝回之前备份的数据文件（这个数据文件中无数据记录）"><a href="#步骤四-关闭数据库，拷贝回之前备份的数据文件（这个数据文件中无数据记录）" class="headerlink" title="步骤四  关闭数据库，拷贝回之前备份的数据文件（这个数据文件中无数据记录）"></a>步骤四  关闭数据库，拷贝回之前备份的数据文件（这个数据文件中无数据记录）</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; host
+oracle@mmsc103:~&gt; cp bak_20110307/mmsgdb/* ./oradata/mmsgdb/
+oracle@mmsc103:~&gt;
+</code></pre>
+<h3 id="步骤五-mount数据库，执行不完全恢复"><a href="#步骤五-mount数据库，执行不完全恢复" class="headerlink" title="步骤五  mount数据库，执行不完全恢复"></a>步骤五  mount数据库，执行不完全恢复</h3><pre><code class="line-numbers language-shell">SQL&gt; startup mount    
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+SQL&gt; recover database until time '2011-03-07 15:49:29';
+完成介质恢复。
+SQL&gt; alter database open resetlogs;
+
+数据库已更改。
+
+SQL&gt;
+数据库已更改。
+
+SQL&gt;
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>不完全恢复，必须使用resetlogs打开数据库。</li>
+</ul>
+<h3 id="步骤六-数据验证"><a href="#步骤六-数据验证" class="headerlink" title="步骤六  数据验证"></a>步骤六  数据验证</h3><pre><code class="line-numbers language-shell">SQL&gt; select * from time;
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>1、不完全恢复最好备份所有的数据，冷备份亦可，因为恢复过程是从备份点往后恢复的，如果因为其中一个数据文件的时间戳(SCN)大于要恢复的时间点，那么恢复都是不可能成功的（报错，例如：</li>
+</ul>
+<pre><code class="line-numbers language-shell">SQL&gt; recover database until time '2011-03-07 15:06:07';
+ORA-01547: 警告: RECOVER 成功但 OPEN RESETLOGS 将出现如下错误
+ORA-01152: 文件 1 没有从过旧的备份中还原
+ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
+）。
+</code></pre>
+<ul>
+<li>2、不完全恢复有三种方式，过程都一样，仅仅是recover命令有所不一样，这里用基于时间的恢复作为示例。</li>
+<li>3、不完全恢复之后，都必须用resetlogs的方式打开数据库，建议马上再做一次全备份，因为resetlogs之后再用以前的备份恢复是很难了。</li>
+<li>4、以上是在删除之前获得时间，但是实际应用中，很难知道删除之前的实际时间，但可以采用大致时间即可，或可以采用分析日志文件(logmnr)，取得精确的需要恢复的时间。</li>
+<li>5、一般都是在测试机后备用机器上采用这种不完全恢复，恢复之后导出/导入被误删的表回生产系统</li>
+</ul>
+<h2 id="RMAN备份下的基于改变的恢复"><a href="#RMAN备份下的基于改变的恢复" class="headerlink" title="RMAN备份下的基于改变的恢复"></a>RMAN备份下的基于改变的恢复</h2><h3 id="步骤一-创建表，表中插入记录"><a href="#步骤一-创建表，表中插入记录" class="headerlink" title="步骤一  创建表，表中插入记录"></a>步骤一  创建表，表中插入记录</h3><pre><code class="line-numbers language-shell">SQL&gt; create table scn(id int);
+
+表已创建。
+
+SQL&gt; insert into scn values(0);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from scn;
+
+        ID
+----------
+         0
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤二-rman备份整个数据库"><a href="#步骤二-rman备份整个数据库" class="headerlink" title="步骤二  rman备份整个数据库"></a>步骤二  rman备份整个数据库</h3><pre><code class="line-numbers language-shell">RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; backup database
+5&gt; (archivelog all);
+6&gt; release channel c1;
+7&gt; }
+
+在恢复目录中注册的数据库的新原型
+正在启动全部恢复目录的 resync
+完成全部 resync
+分配的通道: c1
+通道 c1: SID=286 设备类型=DISK
+
+启动 backup 于 07-3月 -11
+通道 c1: 正在启动归档日志备份集
+通道 c1: 正在指定备份集内的归档日志
+输入归档日志线程=1 序列=29 RECID=30 STAMP=744987657
+输入归档日志线程=1 序列=30 RECID=32 STAMP=745010540
+输入归档日志线程=1 序列=31 RECID=34 STAMP=745031813
+输入归档日志线程=1 序列=32 RECID=36 STAMP=745048826
+输入归档日志线程=1 序列=33 RECID=38 STAMP=745060929
+输入归档日志线程=1 序列=34 RECID=40 STAMP=745067203
+输入归档日志线程=1 序列=35 RECID=42 STAMP=745081226
+输入归档日志线程=1 序列=36 RECID=44 STAMP=745095298
+输入归档日志线程=1 序列=37 RECID=46 STAMP=745109422
+输入归档日志线程=1 序列=38 RECID=48 STAMP=745128034
+输入归档日志线程=1 序列=39 RECID=50 STAMP=745151697
+输入归档日志线程=1 序列=40 RECID=52 STAMP=745152201
+输入归档日志线程=1 序列=41 RECID=54 STAMP=745156439
+输入归档日志线程=1 序列=42 RECID=56 STAMP=745156440
+输入归档日志线程=1 序列=43 RECID=58 STAMP=745163589
+输入归档日志线程=1 序列=44 RECID=60 STAMP=745165838
+输入归档日志线程=1 序列=45 RECID=62 STAMP=745167957
+输入归档日志线程=1 序列=46 RECID=64 STAMP=745167959
+输入归档日志线程=1 序列=47 RECID=66 STAMP=745169653
+输入归档日志线程=1 序列=48 RECID=68 STAMP=745169660
+输入归档日志线程=1 序列=49 RECID=70 STAMP=745169670
+输入归档日志线程=1 序列=50 RECID=72 STAMP=745169894
+输入归档日志线程=1 序列=51 RECID=74 STAMP=745169909
+输入归档日志线程=1 序列=52 RECID=76 STAMP=745169920
+输入归档日志线程=1 序列=53 RECID=78 STAMP=745170730
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_annnn_TAG20110307T160808_6q94mc1l_.bkp 标记=TAG20110307T160808 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:16
+通道 c1: 正在启动全部数据文件备份集
+通道 c1: 正在指定备份集内的数据文件
+输入数据文件: 文件号=00005 名称=/opt/oracle/oradata/mmsgdb/mmsgdata01
+输入数据文件: 文件号=00001 名称=/opt/oracle/oradata/mmsgdb/system01.dbf
+输入数据文件: 文件号=00002 名称=/opt/oracle/oradata/mmsgdb/sysaux01.dbf
+输入数据文件: 文件号=00003 名称=/opt/oracle/oradata/mmsgdb/undotbs01.dbf
+输入数据文件: 文件号=00006 名称=/opt/oracle/oradata/mmsgdb/rman_data.dbf
+输入数据文件: 文件号=00004 名称=/opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 正在启动段 1 于 07-3月 -11
+通道 c1: 已完成段 1 于 07-3月 -11
+段句柄=/opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T160808_6q94my75_.bkp 标记=TAG20110307T160808 注释=NONE
+通道 c1: 备份集已完成, 经过时间:00:00:15
+完成 backup 于 07-3月 -11
+
+启动 Control File and SPFILE Autobackup 于 07-3月 -11
+段 handle=/opt/oracle/flash_recovery_area/MMSGDB/autobackup/2011_03_07/o1_mf_s_745171724_6q94ngyy_.bkp comment=NONE
+完成 Control File and SPFILE Autobackup 于 07-3月 -11
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre>
+<h3 id="步骤三-继续插入记录，应用归档以及获取删除前scn"><a href="#步骤三-继续插入记录，应用归档以及获取删除前scn" class="headerlink" title="步骤三  继续插入记录，应用归档以及获取删除前scn"></a>步骤三  继续插入记录，应用归档以及获取删除前scn</h3><h4 id="应用用户执行"><a href="#应用用户执行" class="headerlink" title="应用用户执行"></a>应用用户执行</h4><pre><code class="line-numbers language-shell">SQL&gt; insert into scn values(1);
+
+已创建 1 行。
+
+SQL&gt; commit;
+
+提交完成。
+
+SQL&gt; select * from scn;
+
+        ID
+----------
+         0
+         1
+#2条记录
+</code></pre>
+<h4 id="dba用户执行"><a href="#dba用户执行" class="headerlink" title="dba用户执行"></a>dba用户执行</h4><pre><code class="line-numbers language-shell">SQL&gt; alter system switch logfile;
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+
+SQL&gt; /
+
+系统已更改。
+
+SQL&gt; select max(ktuxescnw * power(2, 32) + ktuxescnb) scn from x$ktuxe;
+
+       SCN
+----------
+    690969
+
+SQL&gt;
+</code></pre>
+<h3 id="步骤四-删除表"><a href="#步骤四-删除表" class="headerlink" title="步骤四  删除表"></a>步骤四  删除表</h3><pre><code class="line-numbers language-shell">SQL&gt; drop table scn;
+
+表已删除。
+
+SQL&gt; commit;
+
+提交完成。
+</code></pre>
+<h3 id="步骤五-基于SCN恢复"><a href="#步骤五-基于SCN恢复" class="headerlink" title="步骤五  基于SCN恢复"></a>步骤五  基于SCN恢复</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate 
+数据库已经关闭。
+已经卸载数据库。
+ORACLE 例程已经关闭。
+SQL&gt; startup mount
+ORACLE 例程已经启动。
+
+Total System Global Area 8417955840 bytes
+Fixed Size                  2146024 bytes
+Variable Size            4429185304 bytes
+Database Buffers         3959422976 bytes
+Redo Buffers               27201536 bytes
+数据库装载完毕。
+SQL&gt;
+
+RMAN&gt; run
+2&gt; {
+3&gt; allocate channel c1 type disk;
+4&gt; restore database;
+5&gt; recover database until scn 690969;
+6&gt; sql 'alter database open resetlogs';
+7&gt; release channel c1;
+8&gt; }
+
+使用目标数据库控制文件替代恢复目录
+分配的通道: c1
+通道 c1: SID=317 设备类型=DISK
+
+启动 restore 于 07-3月 -11
+
+通道 c1: 正在开始还原数据文件备份集
+通道 c1: 正在指定从备份集还原的数据文件
+通道 c1: 将数据文件 00001 还原到 /opt/oracle/oradata/mmsgdb/system01.dbf
+通道 c1: 将数据文件 00002 还原到 /opt/oracle/oradata/mmsgdb/sysaux01.dbf
+通道 c1: 将数据文件 00003 还原到 /opt/oracle/oradata/mmsgdb/undotbs01.dbf
+通道 c1: 将数据文件 00004 还原到 /opt/oracle/oradata/mmsgdb/users01.dbf
+通道 c1: 将数据文件 00005 还原到 /opt/oracle/oradata/mmsgdb/mmsgdata01
+通道 c1: 将数据文件 00006 还原到 /opt/oracle/oradata/mmsgdb/rman_data.dbf
+通道 c1: 正在读取备份片段 /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T160808_6q94my75_.bkp
+通道 c1: 段句柄 = /opt/oracle/flash_recovery_area/MMSGDB/backupset/2011_03_07/o1_mf_nnndf_TAG20110307T160808_6q94my75_.bkp 标记 = TAG20110307T160808
+通道 c1: 已还原备份片段 1
+通道 c1: 还原完成, 用时: 00:00:35
+完成 restore 于 07-3月 -11
+
+启动 recover 于 07-3月 -11
+
+正在开始介质的恢复
+
+线程 1 序列 1 的归档日志已作为文件 /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_1_6q9526m9_.arc 存在于磁盘上
+线程 1 序列 2 的归档日志已作为文件 /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_2_6q9527t3_.arc 存在于磁盘上
+线程 1 序列 3 的归档日志已作为文件 /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_3_6q952bqb_.arc 存在于磁盘上
+归档日志文件名=/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_1_6q9526m9_.arc 线程=1 序列=1
+归档日志文件名=/opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_07/o1_mf_1_2_6q9527t3_.arc 线程=1 序列=2
+介质恢复完成, 用时: 00:00:02
+完成 recover 于 07-3月 -11
+
+sql 语句: alter database open resetlogs
+
+释放的通道: c1
+
+RMAN&gt;
+</code></pre>
+<h3 id="步骤六-数据检查"><a href="#步骤六-数据检查" class="headerlink" title="步骤六 数据检查"></a>步骤六 数据检查</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus mmsg/mmsg@mmsgdb
+
+SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 16:23:01 2011
+
+Copyright (c) 1982, 2007, Oracle.  All rights reserved.
+
+
+连接到: 
+Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
+With the Partitioning, OLAP, Data Mining and Real Application Testing options
+
+SQL&gt; select * from scn;
+
+        ID
+----------
+         0
+         1
+
+SQL&gt;     #两条记录，数据未丢失
+</code></pre>
+<p>说明：</p>
+<ul>
+<li>1、RMAN也可以实现不完全恢复，方法比OS备份恢复的方法更简单可靠</li>
+<li>2、RMAN可以基于时间，基于改变与基于日志序列的不完全恢复，基于日志序列的恢复可以指定恢复到哪个日志序列，如</li>
+</ul>
+<pre><code class="line-numbers language-shell">run { 
+allocate channel ch1 type disk; 
+allocate channel ch2 type 'sbt_tape'; 
+set until logseq 1234 thread 1; 
+restore controlfile to '$ORACLE_HOME/dbs/cf1.f' ; 
+replicate controlfile from '$ORACLE_HOME/dbs/cf1.f'; 
+alter database mount; 
+restore database; 
+recover database; 
+sql "ALTER DATABASE OPEN RESETLOGS";
+}
+</code></pre>
+<ul>
+<li>3、与所有的不完全恢复一样，必须在mount下，restore所有备份数据文件，需要resetlogs</li>
+<li>4、基于改变的恢复比基于时间的恢复更可靠，但是可能也更复杂，需要知道需要恢复到哪一个改变号(SCN)，在正常生产中，获取SCN的办法其实也有很多，如查询数据库字典表(V$archived_log or v$log_history)，或分析归档与联机日志(logmnr)等。</li>
+</ul>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2011/03/07/2011-03-07-oracle-rman-rman-practice-part1/">https://gavin-wang-note.github.io/2011/03/07/2011-03-07-oracle-rman-rman-practice-part1/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/oracle/">
+                                    <span class="chip bg-color">oracle</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+        <style>
+    .valine-card {
+        margin: 1.5rem auto;
+    }
+
+    .valine-card .card-content {
+        padding: 20px 20px 5px 20px;
+    }
+
+    #vcomments textarea {
+        box-sizing: border-box;
+        background: url("/medias/comment_bg.png") 100% 100% no-repeat;
+    }
+
+    #vcomments p {
+        margin: 2px 2px 10px;
+        font-size: 1.05rem;
+        line-height: 1.78rem;
+    }
+
+    #vcomments blockquote p {
+        text-indent: 0.2rem;
+    }
+
+    #vcomments a {
+        padding: 0 2px;
+        color: #4cbf30;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    #vcomments img {
+        max-width: 100%;
+        height: auto;
+        cursor: pointer;
+    }
+
+    #vcomments ol li {
+        list-style-type: decimal;
+    }
+
+    #vcomments ol,
+    ul {
+        display: block;
+        padding-left: 2em;
+        word-spacing: 0.05rem;
+    }
+
+    #vcomments ul li,
+    ol li {
+        display: list-item;
+        line-height: 1.8rem;
+        font-size: 1rem;
+    }
+
+    #vcomments ul li {
+        list-style-type: disc;
+    }
+
+    #vcomments ul ul li {
+        list-style-type: circle;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    #vcomments table, th, td {
+        border: 0;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments h1 {
+        font-size: 1.85rem;
+        font-weight: bold;
+        line-height: 2.2rem;
+    }
+
+    #vcomments h2 {
+        font-size: 1.65rem;
+        font-weight: bold;
+        line-height: 1.9rem;
+    }
+
+    #vcomments h3 {
+        font-size: 1.45rem;
+        font-weight: bold;
+        line-height: 1.7rem;
+    }
+
+    #vcomments h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    #vcomments h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: 1.4rem;
+    }
+
+    #vcomments h6 {
+        font-size: 1rem;
+        line-height: 1.3rem;
+    }
+
+    #vcomments p {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+
+    #vcomments hr {
+        margin: 12px 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+
+    #vcomments blockquote {
+        margin: 15px 0;
+        border-left: 5px solid #42b983;
+        padding: 1rem 0.8rem 0.3rem 0.8rem;
+        color: #666;
+        background-color: rgba(66, 185, 131, .1);
+    }
+
+    #vcomments pre {
+        font-family: monospace, monospace;
+        padding: 1.2em;
+        margin: .5em 0;
+        background: #272822;
+        overflow: auto;
+        border-radius: 0.3em;
+        tab-size: 4;
+    }
+
+    #vcomments code {
+        font-family: monospace, monospace;
+        padding: 1px 3px;
+        font-size: 0.92rem;
+        color: #e96900;
+        background-color: #f8f8f8;
+        border-radius: 2px;
+    }
+
+    #vcomments pre code {
+        font-family: monospace, monospace;
+        padding: 0;
+        color: #e8eaf6;
+        background-color: #272822;
+    }
+
+    #vcomments pre[class*="language-"] {
+        padding: 1.2em;
+        margin: .5em 0;
+    }
+
+    #vcomments code[class*="language-"],
+    pre[class*="language-"] {
+        color: #e8eaf6;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+
+    #vcomments b,
+    strong {
+        font-weight: bold;
+    }
+
+    #vcomments dfn {
+        font-style: italic;
+    }
+
+    #vcomments small {
+        font-size: 85%;
+    }
+
+    #vcomments cite {
+        font-style: normal;
+    }
+
+    #vcomments mark {
+        background-color: #fcf8e3;
+        padding: .2em;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+</style>
+
+<div class="card valine-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="vcomments" class="card-content" style="display: grid">
+    </div>
+</div>
+
+<script src="/libs/valine/av-min.js"></script>
+<script src="/libs/valine/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        appId: 'KwdHYxl35AMSyYmRusfD4jAb-MdYXbMMI',
+        appKey: 'Fmya2ecU2tXuNNihFWGH9V0P',
+        serverURLs: 'https://kwdhyxl3.api.lncldglobal.com',
+        notify: 'false' === 'true',
+        verify: 'false' === 'true',
+        visitor: 'true' === 'true',
+        avatar: 'mm',
+        pageSize: '12',
+        lang: 'zh-cn',
+        placeholder: 'just go go'
+    });
+</script>
+
+<!--酷Q推送-->
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2011/03/08/2011-03-08-oracle-troubleshoot-online-log-recovery/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/58.jpg" class="responsive-img" alt="Oracle案例--联机日志损坏">
+                        
+                        <span class="card-title">Oracle案例--联机日志损坏</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2011-03-08
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/oracle/" class="post-category">
+                                    oracle
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/oracle/">
+                        <span class="chip bg-color">oracle</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2011/03/05/2011-03-05-oracle-troubleshoot-rman/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/181.jpg" class="responsive-img" alt="Oracle案例--RMAN常见问题总结">
+                        
+                        <span class="card-title">Oracle案例--RMAN常见问题总结</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2011-03-05
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/oracle/" class="post-category">
+                                    oracle
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/oracle/">
+                        <span class="chip bg-color">oracle</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="/libs/aplayer/Meting.min.js"></script>
+
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 15px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2009-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">464.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+                <span id="sitetime"> Loading ...</span>
+                <script>
+                    var calcSiteTime = function () {
+                        var seconds = 1000;
+                        var minutes = seconds * 60;
+                        var hours = minutes * 60;
+                        var days = hours * 24;
+                        var years = days * 365;
+                        var today = new Date();
+                        var startYear = "2009";
+                        var startMonth = "2";
+                        var startDate = "28";
+                        var startHour = "0";
+                        var startMinute = "0";
+                        var startSecond = "0";
+                        var todayYear = today.getFullYear();
+                        var todayMonth = today.getMonth() + 1;
+                        var todayDate = today.getDate();
+                        var todayHour = today.getHours();
+                        var todayMinute = today.getMinutes();
+                        var todaySecond = today.getSeconds();
+                        var t1 = Date.UTC(startYear, startMonth, startDate, startHour, startMinute, startSecond);
+                        var t2 = Date.UTC(todayYear, todayMonth, todayDate, todayHour, todayMinute, todaySecond);
+                        var diff = t2 - t1;
+                        var diffYears = Math.floor(diff / years);
+                        var diffDays = Math.floor((diff / days) - diffYears * 365);
+
+                        // 区分是否有年份.
+                        var language = 'zh-CN';
+                        if (startYear === String(todayYear)) {
+                            document.getElementById("year").innerHTML = todayYear;
+                            var daysTip = 'This site has been running for ' + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                daysTip = '本站已运行 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                daysTip = '本站已運行 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = daysTip;
+                        } else {
+                            document.getElementById("year").innerHTML = startYear + " - " + todayYear;
+                            var yearsAndDaysTip = 'This site has been running for ' + diffYears + ' years and '
+                                + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                yearsAndDaysTip = '本站已运行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                yearsAndDaysTip = '本站已運行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = yearsAndDaysTip;
+                        }
+                    }
+
+                    calcSiteTime();
+                </script>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/gavin-wang-note" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:wangyun_zeng@163.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+     
+        <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+        <script src="/libs/others/TencentCaptcha.js"></script>
+        <button id="TencentCaptcha" data-appid="xxxxxxxxxx" data-cbfn="callback" type="button" hidden></button>
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
