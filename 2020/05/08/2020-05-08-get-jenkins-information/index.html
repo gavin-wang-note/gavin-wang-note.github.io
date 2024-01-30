@@ -5,8 +5,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="API获取Jenkins构建信息, 软硬件测试">
-    <meta name="description" content="概述Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。
-详述本文参考jenki">
+    <meta name="description" content="概述
+Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。
+详述
+本文参考jen">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +66,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +334,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -447,7 +589,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.8k
+                    1.9k
                 </div>
                 
 
@@ -477,8 +619,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。</p>
-<h1 id="详述"><a href="#详述" class="headerlink" title="详述"></a>详述</h1><p>本文参考jenkins-rest库，将API根据获取的资源类型不同分为6个类别。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenkins-rest 和 java-client-api 封装了相关 API，可以在 Java 中操作 Jenkins。</p>
+<h1 id="xiang-shu">详述</h1>
+<p>本文参考jenkins-rest库，将API根据获取的资源类型不同分为6个类别。</p>
 <table>
 <thead>
 <tr>
@@ -486,7 +630,8 @@
 <th><strong>说明</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>JobsAP</td>
 <td>任务管理（任务信息、创建、修改）</td>
 </tr>
@@ -510,15 +655,18 @@
 <td>SystemAPI</td>
 <td>Jenkins系统状态（版本、路径）</td>
 </tr>
-</tbody></table>
-<h2 id="术语定义"><a href="#术语定义" class="headerlink" title="术语定义"></a>术语定义</h2><table>
+</tbody>
+</table>
+<h2 id="zhu-yu-ding-yi">术语定义</h2>
+<table>
 <thead>
 <tr>
 <th><strong>名词</strong></th>
 <th><strong>说明</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>job</td>
 <td>任务</td>
 </tr>
@@ -534,13 +682,20 @@
 <td>{project_name}</td>
 <td>必须参数：任务名称</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>注意:</p>
-<ul>
-<li>在 GET/POST 时需要附加 HTTP 认证才能访问 API</li>
-<li>本文使用的数据结构可以在 jenkins-rest/domain 中查看详细定义</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 GET/POST 时需要附加 HTTP 认证才能访问 API</p>
+</li>
+<li class="lvl-2">
+<p>本文使用的数据结构可以在 jenkins-rest/domain 中查看详细定义</p>
+</li>
 </ul>
-<h2 id="Jobs-相关-API"><a href="#Jobs-相关-API" class="headerlink" title="Jobs 相关 API"></a>Jobs 相关 API</h2><h3 id="job-info-获取任务信息"><a href="#job-info-获取任务信息" class="headerlink" title="job-info 获取任务信息"></a>job-info 获取任务信息</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/api/json </code></p>
+<h2 id="jobs-xiang-guan-api">Jobs 相关 API</h2>
+<h3 id="job-info-huo-qu-ren-wu-xin-xi">job-info 获取任务信息</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/api/json </code></p>
 <p>返回类型：JobInfo</p>
 <table>
 <thead>
@@ -550,7 +705,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>description</td>
 <td>String</td>
 <td>描述</td>
@@ -581,12 +737,14 @@
 <td>上次构建记录</td>
 </tr>
 <tr>
-<td>……</td>
+<td>…</td>
 <td></td>
 <td></td>
 </tr>
-</tbody></table>
-<h3 id="build-info-获取构筑信息"><a href="#build-info-获取构筑信息" class="headerlink" title="build-info 获取构筑信息"></a>build-info 获取构筑信息</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/{number}/api/json </code></p>
+</tbody>
+</table>
+<h3 id="build-info-huo-qu-gou-zhu-xin-xi">build-info 获取构筑信息</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/{number}/api/json </code></p>
 <p>返回类型：BuildInfo</p>
 <table>
 <thead>
@@ -596,7 +754,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>artifacts</td>
 <td>List</td>
 <td>artifacts</td>
@@ -617,21 +776,25 @@
 <td>描述</td>
 </tr>
 <tr>
-<td>……</td>
+<td>…</td>
 <td></td>
 <td></td>
 </tr>
-</tbody></table>
-<h3 id="create-使用-XML-文件创建任务"><a href="#create-使用-XML-文件创建任务" class="headerlink" title="create 使用 XML 文件创建任务"></a>create 使用 XML 文件创建任务</h3><p>从 XML 文件中加载任务配置并创建任务</p>
+</tbody>
+</table>
+<h3 id="create-shi-yong-xml-wen-jian-chuang-jian-ren-wu">create 使用 XML 文件创建任务</h3>
+<p>从 XML 文件中加载任务配置并创建任务</p>
 <p><code>POST http://127.0.0.1:8080/createItem </code></p>
-<h4 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h4><table>
+<h4 id="can-shu">参数</h4>
+<table>
 <thead>
 <tr>
 <th>key</th>
 <th>value</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>name</td>
 <td>任务名称</td>
 </tr>
@@ -639,48 +802,66 @@
 <td>payload</td>
 <td>XML配置文件</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：RequestStatus</p>
-<p>|字段 | 类型 | 说明 |<br>| ——- | ——————– |<br>| value | Boolean |<br>| errors | List |</p>
-<h3 id="get-config-获取任务配置文件"><a href="#get-config-获取任务配置文件" class="headerlink" title="get-config 获取任务配置文件"></a>get-config 获取任务配置文件</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml </code></p>
+<p>|字段 | 类型 | 说明 |<br>
+| ------- | -------------------- |<br>
+| value | Boolean |<br>
+| errors | List |</p>
+<h3 id="get-config-huo-qu-ren-wu-pei-zhi-wen-jian">get-config 获取任务配置文件</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml </code></p>
 <p>返回类型： String</p>
-<h3 id="update-config-更新任务配置文件"><a href="#update-config-更新任务配置文件" class="headerlink" title="update-config 更新任务配置文件"></a>update-config 更新任务配置文件</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml </code></p>
-<h4 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h4><table>
+<h3 id="update-config-geng-xin-ren-wu-pei-zhi-wen-jian">update-config 更新任务配置文件</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/config.xml </code></p>
+<h4 id="can-shu-1">参数</h4>
+<table>
 <thead>
 <tr>
 <th>字段</th>
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>payload</td>
 <td>XML配置文件</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：Boolean</p>
-<h3 id="get-description-获取任务描述"><a href="#get-description-获取任务描述" class="headerlink" title="get-description 获取任务描述"></a>get-description 获取任务描述</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description </code></p>
+<h3 id="get-description-huo-qu-ren-wu-miao-shu">get-description 获取任务描述</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description </code></p>
 <p>返回类型：String</p>
-<h3 id="set-description-设置任务描述"><a href="#set-description-设置任务描述" class="headerlink" title="set-description 设置任务描述"></a>set-description 设置任务描述</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description </code></p>
-<h4 id="参数-2"><a href="#参数-2" class="headerlink" title="参数"></a>参数</h4><table>
+<h3 id="set-description-she-zhi-ren-wu-miao-shu">set-description 设置任务描述</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/description </code></p>
+<h4 id="can-shu-2">参数</h4>
+<table>
 <thead>
 <tr>
 <th>key</th>
 <th>value</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>description</td>
 <td>描述</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：Boolean</p>
-<h3 id="delete-删除任务"><a href="#delete-删除任务" class="headerlink" title="delete 删除任务"></a>delete 删除任务</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/doDelete </code></p>
+<h3 id="delete-shan-chu-ren-wu">delete 删除任务</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/doDelete </code></p>
 <p>返回类型：RequestStatus</p>
-<h3 id="enable允许任务"><a href="#enable允许任务" class="headerlink" title="enable允许任务"></a>enable允许任务</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/enable </code></p>
+<h3 id="enable-yun-xu-ren-wu">enable允许任务</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/enable </code></p>
 <p>返回类型：Boolean</p>
-<h3 id="disable-禁止任务"><a href="#disable-禁止任务" class="headerlink" title="disable 禁止任务"></a>disable 禁止任务</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/disable </code></p>
+<h3 id="disable-jin-zhi-ren-wu">disable 禁止任务</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/disable </code></p>
 <p>返回类型：Boolean</p>
-<h3 id="build-构建"><a href="#build-构建" class="headerlink" title="build 构建"></a>build 构建</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/build </code></p>
+<h3 id="build-gou-jian">build 构建</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/build </code></p>
 <p>返回类型： IntegerResponse</p>
 <table>
 <thead>
@@ -690,7 +871,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>value</td>
 <td>Integer</td>
 <td></td>
@@ -700,26 +882,34 @@
 <td>List</td>
 <td></td>
 </tr>
-</tbody></table>
-<h3 id="build-with-params-使用参数创建任务"><a href="#build-with-params-使用参数创建任务" class="headerlink" title="build-with-params  使用参数创建任务"></a>build-with-params  使用参数创建任务</h3><p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/buildWithParameters </code></p>
-<h4 id="参数-3"><a href="#参数-3" class="headerlink" title="参数"></a>参数</h4><table>
+</tbody>
+</table>
+<h3 id="build-with-params-shi-yong-can-shu-chuang-jian-ren-wu">build-with-params  使用参数创建任务</h3>
+<p><code>POST http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/buildWithParameters </code></p>
+<h4 id="can-shu-3">参数</h4>
+<table>
 <thead>
 <tr>
 <th>key</th>
 <th>value</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>payload</td>
 <td>Map&lt;String, List<string>&gt; properties</string></td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型： IntegerResponse</p>
-<h3 id="last-build-number-获取上次构建序号"><a href="#last-build-number-获取上次构建序号" class="headerlink" title="last-build-number 获取上次构建序号"></a>last-build-number 获取上次构建序号</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildNumber </code></p>
+<h3 id="last-build-number-huo-qu-shang-ci-gou-jian-xu-hao">last-build-number 获取上次构建序号</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildNumber </code></p>
 <p>返回类型：Integer</p>
-<h3 id="last-build-timestamp-获取上次构建时间戳"><a href="#last-build-timestamp-获取上次构建时间戳" class="headerlink" title="last-build-timestamp 获取上次构建时间戳"></a>last-build-timestamp 获取上次构建时间戳</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildTimestamp </code></p>
+<h3 id="last-build-timestamp-huo-qu-shang-ci-gou-jian-shi-jian-chuo">last-build-timestamp 获取上次构建时间戳</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/buildTimestamp </code></p>
 <p>返回类型：String</p>
-<h3 id="progressive-text-获取构建控制台输出"><a href="#progressive-text-获取构建控制台输出" class="headerlink" title="progressive-text 获取构建控制台输出"></a>progressive-text 获取构建控制台输出</h3><p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/logText/progressiveText </code></p>
+<h3 id="progressive-text-huo-qu-gou-jian-kong-zhi-tai-shu-chu">progressive-text 获取构建控制台输出</h3>
+<p><code>GET http://127.0.0.1:8080/{optionalFolderPath}job/{project_name}/lastBuild/logText/progressiveText </code></p>
 <p>返回类型：ProgressiveText</p>
 <table>
 <thead>
@@ -729,7 +919,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>text</td>
 <td>String</td>
 <td>控制台输出</td>
@@ -744,24 +935,34 @@
 <td>Boolean</td>
 <td>是否有更多数据</td>
 </tr>
-</tbody></table>
-<h3 id="CrumbIssuer-系统哈希值信息（用于防御CSRF攻击）"><a href="#CrumbIssuer-系统哈希值信息（用于防御CSRF攻击）" class="headerlink" title="CrumbIssuer 系统哈希值信息（用于防御CSRF攻击）"></a>CrumbIssuer 系统哈希值信息（用于防御CSRF攻击）</h3><ul>
-<li>CrumbIssuerApi</li>
-<li>path: /crumbIssuer/api/xml</li>
+</tbody>
+</table>
+<h3 id="crumb-issuer-xi-tong-ha-xi-zhi-xin-xi-yong-yu-fang-yu-csrf-gong-ji">CrumbIssuer 系统哈希值信息（用于防御CSRF攻击）</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>CrumbIssuerApi</p>
+</li>
+<li class="lvl-2">
+<p>path: /crumbIssuer/api/xml</p>
+</li>
 </ul>
-<h4 id="crumb"><a href="#crumb" class="headerlink" title="crumb"></a>crumb</h4><p><code>GET http://127.0.0.1:8080/crumbIssuer/api/xml?{key}={value} </code></p>
-<h5 id="参数-4"><a href="#参数-4" class="headerlink" title="参数"></a>参数</h5><table>
+<h4 id="crumb">crumb</h4>
+<p><code>GET http://127.0.0.1:8080/crumbIssuer/api/xml?{key}={value} </code></p>
+<h5 id="can-shu-4">参数</h5>
+<table>
 <thead>
 <tr>
 <th>key</th>
 <th>value</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>xpath</td>
-<td>concat(//crumbRequestField,”:”,//crumb)</td>
+<td>concat(//crumbRequestField,“:”,//crumb)</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：Crumb</p>
 <table>
 <thead>
@@ -770,7 +971,8 @@
 <th>类型</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>value</td>
 <td>String</td>
 </tr>
@@ -778,12 +980,19 @@
 <td>errors</td>
 <td>List</td>
 </tr>
-</tbody></table>
-<h3 id="PluginManager-插件管理（插件信息、安装插件）"><a href="#PluginManager-插件管理（插件信息、安装插件）" class="headerlink" title="PluginManager 插件管理（插件信息、安装插件）"></a>PluginManager 插件管理（插件信息、安装插件）</h3><ul>
-<li>PluginManagerApi</li>
-<li>path: /pluginManager</li>
+</tbody>
+</table>
+<h3 id="plugin-manager-cha-jian-guan-li-cha-jian-xin-xi-an-zhuang-cha-jian">PluginManager 插件管理（插件信息、安装插件）</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>PluginManagerApi</p>
+</li>
+<li class="lvl-2">
+<p>path: /pluginManager</p>
+</li>
 </ul>
-<h4 id="plugins-插件列表"><a href="#plugins-插件列表" class="headerlink" title="plugins 插件列表"></a>plugins 插件列表</h4><p><code>GET http://127.0.0.1:8080/pluginManager/api/json </code></p>
+<h4 id="plugins-cha-jian-lie-biao">plugins 插件列表</h4>
+<p><code>GET http://127.0.0.1:8080/pluginManager/api/json </code></p>
 <p>返回类型：List<plugin></plugin></p>
 <table>
 <thead>
@@ -793,7 +1002,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>active</td>
 <td>Boolean</td>
 <td></td>
@@ -829,13 +1039,16 @@
 <td></td>
 </tr>
 <tr>
-<td>……</td>
+<td>…</td>
 <td></td>
 <td></td>
 </tr>
-</tbody></table>
-<h3 id="installNecessaryPlugins-安装插件"><a href="#installNecessaryPlugins-安装插件" class="headerlink" title="installNecessaryPlugins 安装插件"></a>installNecessaryPlugins 安装插件</h3><p><code>POST http://127.0.0.1:8080/pluginManager/installNecessaryPlugins </code></p>
-<h4 id="参数-5"><a href="#参数-5" class="headerlink" title="参数"></a>参数</h4><p><code>payload: &lt;jenkins&gt;&lt;install plugin="{pluginID}"/&gt;&lt;/jenkins&gt; </code></p>
+</tbody>
+</table>
+<h3 id="install-necessary-plugins-an-zhuang-cha-jian">installNecessaryPlugins 安装插件</h3>
+<p><code>POST http://127.0.0.1:8080/pluginManager/installNecessaryPlugins </code></p>
+<h4 id="can-shu-5">参数</h4>
+<p><code>payload: &lt;jenkins&gt;&lt;install plugin="{pluginID}"/&gt;&lt;/jenkins&gt; </code></p>
 <table>
 <thead>
 <tr>
@@ -843,17 +1056,25 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>{pluginID}</td>
 <td>要安装的插件ID</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：RequestStatus</p>
-<h3 id="Queue-任务队列相关（队列状态）"><a href="#Queue-任务队列相关（队列状态）" class="headerlink" title="Queue 任务队列相关（队列状态）"></a>Queue 任务队列相关（队列状态）</h3><ul>
-<li>QueueApi</li>
-<li>path: /queue</li>
+<h3 id="queue-ren-wu-dui-lie-xiang-guan-dui-lie-zhuang-tai">Queue 任务队列相关（队列状态）</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>QueueApi</p>
+</li>
+<li class="lvl-2">
+<p>path: /queue</p>
+</li>
 </ul>
-<h4 id="queue-所有任务队列信息"><a href="#queue-所有任务队列信息" class="headerlink" title="queue 所有任务队列信息"></a>queue 所有任务队列信息</h4><p><code>GET http://127.0.0.1:8080/queue/api/json </code></p>
+<h4 id="queue-suo-you-ren-wu-dui-lie-xin-xi">queue 所有任务队列信息</h4>
+<p><code>GET http://127.0.0.1:8080/queue/api/json </code></p>
 <p>返回类型：List<queueitem></queueitem></p>
 <table>
 <thead>
@@ -863,7 +1084,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>blocked</td>
 <td>Boolean</td>
 <td>是否阻塞</td>
@@ -894,44 +1116,59 @@
 <td>Task中包含任务名称和URL</td>
 </tr>
 <tr>
-<td>……</td>
+<td>…</td>
 <td></td>
 <td></td>
 </tr>
-</tbody></table>
-<h3 id="item-任务队列信息"><a href="#item-任务队列信息" class="headerlink" title="item 任务队列信息"></a>item 任务队列信息</h3><p><code>GET http://127.0.0.1:8080/queue/item/{queueId}/api/json </code></p>
-<h4 id="参数-6"><a href="#参数-6" class="headerlink" title="参数"></a>参数</h4><table>
+</tbody>
+</table>
+<h3 id="item-ren-wu-dui-lie-xin-xi">item 任务队列信息</h3>
+<p><code>GET http://127.0.0.1:8080/queue/item/{queueId}/api/json </code></p>
+<h4 id="can-shu-6">参数</h4>
+<table>
 <thead>
 <tr>
 <th>字段</th>
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>{queueId}</td>
 <td>任务队列ID</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：QueueItem</p>
-<h3 id="cancel-取消任务队列"><a href="#cancel-取消任务队列" class="headerlink" title="cancel 取消任务队列 |"></a>cancel 取消任务队列 |</h3><p><code>POST http://127.0.0.1:8080/cancelItem?id={id} </code></p>
-<h4 id="参数-7"><a href="#参数-7" class="headerlink" title="参数"></a>参数</h4><table>
+<h3 id="cancel-qu-xiao-ren-wu-dui-lie">cancel 取消任务队列 |</h3>
+<p><code>POST http://127.0.0.1:8080/cancelItem?id={id} </code></p>
+<h4 id="can-shu-7">参数</h4>
+<table>
 <thead>
 <tr>
 <th>字段</th>
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>{id}</td>
 <td>任务队列ID</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>返回类型：RequestStatus</p>
-<h3 id="Statistics-统计信息"><a href="#Statistics-统计信息" class="headerlink" title="Statistics 统计信息"></a>Statistics 统计信息</h3><ul>
-<li>StatisticsApi</li>
-<li>path: /</li>
+<h3 id="statistics-tong-ji-xin-xi">Statistics 统计信息</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>StatisticsApi</p>
+</li>
+<li class="lvl-2">
+<p>path: /</p>
+</li>
 </ul>
-<h4 id="overall-load"><a href="#overall-load" class="headerlink" title="overall-load"></a>overall-load</h4><p><code>GET http://127.0.0.1:8080/overallLoad/api/json </code></p>
+<h4 id="overall-load">overall-load</h4>
+<p><code>GET http://127.0.0.1:8080/overallLoad/api/json </code></p>
 <p>返回类型：OverallLoad</p>
 <table>
 <thead>
@@ -941,7 +1178,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>availableExecutors</td>
 <td>Map&lt;String, String&gt;</td>
 <td></td>
@@ -986,9 +1224,13 @@
 <td>Map&lt;String, String&gt;</td>
 <td></td>
 </tr>
-</tbody></table>
-<h4 id="System-系统信息"><a href="#System-系统信息" class="headerlink" title="System 系统信息"></a>System 系统信息</h4><ul>
-<li>path: /</li>
+</tbody>
+</table>
+<h4 id="system-xi-tong-xin-xi">System 系统信息</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>path: /</p>
+</li>
 </ul>
 <p>返回类型：SystemInfo</p>
 <table>
@@ -999,7 +1241,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>hudsonVersion</td>
 <td>String</td>
 <td></td>
@@ -1029,18 +1272,26 @@
 <td>String</td>
 <td></td>
 </tr>
-</tbody></table>
-<h1 id="举几个例子"><a href="#举几个例子" class="headerlink" title="举几个例子"></a>举几个例子</h1><h2 id="获取jenkins-job状态"><a href="#获取jenkins-job状态" class="headerlink" title="获取jenkins job状态"></a>获取jenkins job状态</h2><p><code>oot@node248:~# curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/api/xml --user jenkins:1</code></p>
+</tbody>
+</table>
+<h1 id="ju-ji-ge-li-zi">举几个例子</h1>
+<h2 id="huo-qu-jenkins-job-zhuang-tai">获取jenkins job状态</h2>
+<p><code>oot@node248:~# curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/api/xml --user jenkins:1</code></p>
 <p>结果示例如下:</p>
-<pre><code class="line-numbers language-shell">&lt;freeStyleBuild _class='hudson.model.FreeStyleBuild'&gt;&lt;action _class='hudson.model.CauseAction'&gt;&lt;cause _class='hudson.model.Cause$UserIdCause'&gt;&lt;shortDescription&gt;Started by user jenkins&lt;/shortDescription&gt;&lt;userId&gt;jenkins&lt;/userId&gt;&lt;userName&gt;jenkins&lt;/userName&gt;&lt;/cause&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.util.BuildData'&gt;&lt;buildsByBranchName&gt;&lt;refsremotesoriginmaster _class='hudson.plugins.git.util.Build'&gt;&lt;buildNumber&gt;68&lt;/buildNumber&gt;&lt;marked&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/marked&gt;&lt;revision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/revision&gt;&lt;/refsremotesoriginmaster&gt;&lt;/buildsByBranchName&gt;&lt;lastBuiltRevision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/lastBuiltRevision&gt;&lt;remoteUrl&gt;git@10.1.12.10:yunzeng_wang/pytest_framework.git&lt;/remoteUrl&gt;&lt;scmName&gt;&lt;/scmName&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.GitTagAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.violations.ViolationsBuildAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;artifact&gt;&lt;displayPath&gt;allure-report.zip&lt;/displayPath&gt;&lt;fileName&gt;allure-report.zip&lt;/fileName&gt;&lt;relativePath&gt;allure-report.zip&lt;/relativePath&gt;&lt;/artifact&gt;&lt;building&gt;false&lt;/building&gt;&lt;displayName&gt;#68&lt;/displayName&gt;&lt;duration&gt;87155647&lt;/duration&gt;&lt;estimatedDuration&gt;85209450&lt;/estimatedDuration&gt;&lt;fullDisplayName&gt;pytest_7.0 #68&lt;/fullDisplayName&gt;&lt;id&gt;68&lt;/id&gt;&lt;keepLog&gt;false&lt;/keepLog&gt;&lt;number&gt;68&lt;/number&gt;&lt;queueId&gt;343&lt;/queueId&gt;&lt;result&gt;UNSTABLE&lt;/result&gt;&lt;timestamp&gt;1588762417068&lt;/timestamp&gt;&lt;url&gt;http://172.12.12.234:8080/job/pytest_7.0/68/&lt;/url&gt;&lt;builtOn&gt;&lt;/builtOn&gt;&lt;changeSet _class='hudson.plugins.git.GitChangeSetList'&gt;&lt;kind&gt;git&lt;/kind&gt;&lt;/changeSet&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/shengdan061&lt;/absoluteUrl&gt;&lt;fullName&gt;shengdan061&lt;/fullName&gt;&lt;/culprit&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/yunzeng_wang&lt;/absoluteUrl&gt;&lt;fullName&gt;yunzeng_wang&lt;/fullName&gt;&lt;/culprit&gt;&lt;/freeStyleBuild&gt;root@node248:~#
+<pre><code class="language-shell">&lt;freeStyleBuild _class='hudson.model.FreeStyleBuild'&gt;&lt;action _class='hudson.model.CauseAction'&gt;&lt;cause _class='hudson.model.Cause$UserIdCause'&gt;&lt;shortDescription&gt;Started by user jenkins&lt;/shortDescription&gt;&lt;userId&gt;jenkins&lt;/userId&gt;&lt;userName&gt;jenkins&lt;/userName&gt;&lt;/cause&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.util.BuildData'&gt;&lt;buildsByBranchName&gt;&lt;refsremotesoriginmaster _class='hudson.plugins.git.util.Build'&gt;&lt;buildNumber&gt;68&lt;/buildNumber&gt;&lt;marked&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/marked&gt;&lt;revision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/revision&gt;&lt;/refsremotesoriginmaster&gt;&lt;/buildsByBranchName&gt;&lt;lastBuiltRevision&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;branch&gt;&lt;SHA1&gt;6388b644c4405a31611f179dca6c1e485ad92aa5&lt;/SHA1&gt;&lt;name&gt;refs/remotes/origin/master&lt;/name&gt;&lt;/branch&gt;&lt;/lastBuiltRevision&gt;&lt;remoteUrl&gt;git@10.1.12.10:yunzeng_wang/pytest_framework.git&lt;/remoteUrl&gt;&lt;scmName&gt;&lt;/scmName&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.git.GitTagAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action _class='hudson.plugins.violations.ViolationsBuildAction'&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;action&gt;&lt;/action&gt;&lt;artifact&gt;&lt;displayPath&gt;allure-report.zip&lt;/displayPath&gt;&lt;fileName&gt;allure-report.zip&lt;/fileName&gt;&lt;relativePath&gt;allure-report.zip&lt;/relativePath&gt;&lt;/artifact&gt;&lt;building&gt;false&lt;/building&gt;&lt;displayName&gt;#68&lt;/displayName&gt;&lt;duration&gt;87155647&lt;/duration&gt;&lt;estimatedDuration&gt;85209450&lt;/estimatedDuration&gt;&lt;fullDisplayName&gt;pytest_7.0 #68&lt;/fullDisplayName&gt;&lt;id&gt;68&lt;/id&gt;&lt;keepLog&gt;false&lt;/keepLog&gt;&lt;number&gt;68&lt;/number&gt;&lt;queueId&gt;343&lt;/queueId&gt;&lt;result&gt;UNSTABLE&lt;/result&gt;&lt;timestamp&gt;1588762417068&lt;/timestamp&gt;&lt;url&gt;http://172.12.12.234:8080/job/pytest_7.0/68/&lt;/url&gt;&lt;builtOn&gt;&lt;/builtOn&gt;&lt;changeSet _class='hudson.plugins.git.GitChangeSetList'&gt;&lt;kind&gt;git&lt;/kind&gt;&lt;/changeSet&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/shengdan061&lt;/absoluteUrl&gt;&lt;fullName&gt;shengdan061&lt;/fullName&gt;&lt;/culprit&gt;&lt;culprit&gt;&lt;absoluteUrl&gt;http://172.12.12.234:8080/user/yunzeng_wang&lt;/absoluteUrl&gt;&lt;fullName&gt;yunzeng_wang&lt;/fullName&gt;&lt;/culprit&gt;&lt;/freeStyleBuild&gt;root@node248:~#
 root@node248:~#
 </code></pre>
-<h2 id="获取某一个构建版本号为56的构建结果"><a href="#获取某一个构建版本号为56的构建结果" class="headerlink" title="获取某一个构建版本号为56的构建结果"></a>获取某一个构建版本号为56的构建结果</h2><p><code>curl http://172.12.12.234:8080/job/pytest_7.0/56/api/xml --user jenkins:1 </code></p>
-<h2 id="获取最后一次构建的版本号："><a href="#获取最后一次构建的版本号：" class="headerlink" title="获取最后一次构建的版本号："></a>获取最后一次构建的版本号：</h2><p><code>curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/buildNumber --user jenkins:1 </code></p>
-<h2 id="获取某个项目所有构建版本号的结果"><a href="#获取某个项目所有构建版本号的结果" class="headerlink" title="获取某个项目所有构建版本号的结果"></a>获取某个项目所有构建版本号的结果</h2><p><code>curl http://172.12.12.234:8080/job/pytest_7.0/api/xml --user jenkins:1 </code></p>
+<h2 id="huo-qu-mou-yi-ge-gou-jian-ban-ben-hao-wei-56-de-gou-jian-jie-guo">获取某一个构建版本号为56的构建结果</h2>
+<p><code>curl http://172.12.12.234:8080/job/pytest_7.0/56/api/xml --user jenkins:1 </code></p>
+<h2 id="huo-qu-zui-hou-yi-ci-gou-jian-de-ban-ben-hao">获取最后一次构建的版本号：</h2>
+<p><code>curl http://172.12.12.234:8080/job/pytest_7.0/lastBuild/buildNumber --user jenkins:1 </code></p>
+<h2 id="huo-qu-mou-ge-xiang-mu-suo-you-gou-jian-ban-ben-hao-de-jie-guo">获取某个项目所有构建版本号的结果</h2>
+<p><code>curl http://172.12.12.234:8080/job/pytest_7.0/api/xml --user jenkins:1 </code></p>
 <p>说明：</p>
-<ul>
-<li>以上pytest_7.0为项目名称，jenkins:1是访问jenkins server的账号和密码</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>以上pytest_7.0为项目名称，jenkins:1是访问jenkins server的账号和密码</p>
+</li>
 </ul>
 
                 
@@ -1148,10 +1399,10 @@ root@node248:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1465,7 +1716,7 @@ root@node248:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/43.jpg" class="responsive-img" alt="Jenkins部署pipeline并发执行pytest自动化用例">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/43.jpg" class="responsive-img" alt="Jenkins部署pipeline并发执行pytest自动化用例">
                         
                         <span class="card-title">Jenkins部署pipeline并发执行pytest自动化用例</span>
                     </div>
@@ -1530,7 +1781,7 @@ root@node248:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/158.jpg" class="responsive-img" alt="Megacli详解">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/158.jpg" class="responsive-img" alt="Megacli详解">
                         
                         <span class="card-title">Megacli详解</span>
                     </div>
@@ -1761,7 +2012,7 @@ root@node248:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2111,6 +2362,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

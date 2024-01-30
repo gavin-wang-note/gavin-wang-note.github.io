@@ -5,8 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle Dataguard, 软硬件测试">
-    <meta name="description" content="dataguard概述Oracle Dataguard主要实现数据库的容灾，根据archive log进行数据的同步，当主库异常时，自动切换到备库。
-实践背景XX行业网关，本期配置了4块服务器（4C8G），分别部署在A地和B地两地，组成两两">
+    <meta name="description" content="dataguard概述
+Oracle Dataguard主要实现数据库的容灾，根据archive log进行数据的同步，当主库异常时，自动切换到备库。
+实践
+背景
+XX行业网关，本期配置了4块服务器（4C8G），分别部署在A地和B地两地，组">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +67,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +335,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,13 +612,17 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="dataguard概述"><a href="#dataguard概述" class="headerlink" title="dataguard概述"></a>dataguard概述</h1><p>Oracle Dataguard主要实现数据库的容灾，根据archive log进行数据的同步，当主库异常时，自动切换到备库。</p>
-<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>XX行业网关，本期配置了4块服务器（4C8G），分别部署在A地和B地两地，组成两两双机的对等集群。A地和B地两地相距30KM，采用千兆专线拉通，具体拓扑如下图所示：</p>
-<img class="shadow" src="/img/in-post/oracle-dg.png" width="1200">
-
-<h3 id="数据库容灾方案"><a href="#数据库容灾方案" class="headerlink" title="数据库容灾方案"></a>数据库容灾方案</h3><p>在A地和B地业务、数据库和计费服务器均进行合设。平时A地节点作为数据库生产节点，B地节点作为数据库容灾节点，生产节点和容灾节点通过DATAGUARD进行数据同步。</p>
+                <h1 id="dataguard-gai-shu">dataguard概述</h1>
+<p>Oracle Dataguard主要实现数据库的容灾，根据archive log进行数据的同步，当主库异常时，自动切换到备库。</p>
+<h1 id="shi-jian">实践</h1>
+<h2 id="bei-jing">背景</h2>
+<p>XX行业网关，本期配置了4块服务器（4C8G），分别部署在A地和B地两地，组成两两双机的对等集群。A地和B地两地相距30KM，采用千兆专线拉通，具体拓扑如下图所示：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/oracle-dg.png" width="1200">
+<h3 id="shu-ju-ku-rong-zai-fang-an">数据库容灾方案</h3>
+<p>在A地和B地业务、数据库和计费服务器均进行合设。平时A地节点作为数据库生产节点，B地节点作为数据库容灾节点，生产节点和容灾节点通过DATAGUARD进行数据同步。</p>
 <p>数据库生产节点和容灾节点通过F5实现对业务服务器的统一IP。即在F5上为数据库专门配置一个POOL和VISUAL SERVER。VISUAL SERVER是对外提供的数据库统一IP，将数据库生产节点优先级设置为高优先级，容杂节点设置为低优先级。平时F5会将流量发送高优先级的生产节点处理，当生产节点不可用时会自动发送给低优先级的容灾节点。</p>
-<h2 id="试验环境"><a href="#试验环境" class="headerlink" title="试验环境"></a>试验环境</h2><p>SUSE Linux Enterprise Server 10 SP1 (x86_64) - Kernel 2.6.16.46-0.12-smp (3)</p>
+<h2 id="shi-yan-huan-jing">试验环境</h2>
+<p>SUSE Linux Enterprise Server 10 SP1 (x86_64) - Kernel 2.6.16.46-0.12-smp (3)</p>
 <p>IP规划如下：</p>
 <table>
 <thead>
@@ -485,7 +632,8 @@
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>10.137.49.114</td>
 <td>R2+单板</td>
 <td>primary数据库</td>
@@ -495,9 +643,14 @@
 <td>R2单板</td>
 <td>standby数据库</td>
 </tr>
-</tbody></table>
-<h2 id="软件环境"><a href="#软件环境" class="headerlink" title="软件环境"></a>软件环境</h2><p>Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production</p>
-<h2 id="Data-guard-操作"><a href="#Data-guard-操作" class="headerlink" title="Data guard 操作"></a>Data guard 操作</h2><h3 id="配置操作"><a href="#配置操作" class="headerlink" title="配置操作"></a>配置操作</h3><h4 id="1、-确认primary数据库处于归档模式"><a href="#1、-确认primary数据库处于归档模式" class="headerlink" title="1、 确认primary数据库处于归档模式"></a>1、 确认primary数据库处于归档模式</h4><pre><code class="line-numbers language-shell">SQL&gt; archive log list
+</tbody>
+</table>
+<h2 id="ruan-jian-huan-jing">软件环境</h2>
+<p>Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production</p>
+<h2 id="data-guard-cao-zuo">Data guard 操作</h2>
+<h3 id="pei-zhi-cao-zuo">配置操作</h3>
+<h4 id="1-que-ren-primary-shu-ju-ku-chu-yu-gui-dang-mo-shi">1、 确认primary数据库处于归档模式</h4>
+<pre><code class="language-shell">SQL&gt; archive log list
 数据库日志模式             非存档模式
 自动存档             禁用
 存档终点            /opt/oracle/product/11g/dbs/arch
@@ -506,7 +659,7 @@
 SQL&gt;
 </code></pre>
 <p>如果为非归档模式，请执行下列命令修改</p>
-<pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
 ORACLE 例程已经关闭。
@@ -529,7 +682,8 @@ SQL&gt; ALTER DATABASE OPEN;
 
 SQL&gt;
 </code></pre>
-<h4 id="2、-设置归档日志路径"><a href="#2、-设置归档日志路径" class="headerlink" title="2、 设置归档日志路径"></a>2、 设置归档日志路径</h4><pre><code class="line-numbers language-shell">SQL&gt; show parameter log_archive_dest
+<h4 id="2-she-zhi-gui-dang-ri-zhi-lu-jing">2、 设置归档日志路径</h4>
+<pre><code class="language-shell">SQL&gt; show parameter log_archive_dest
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -567,8 +721,9 @@ SQL&gt; alter system set log_archive_format=' arch_%t_%s_%r.arc' scope=spfile;
 系统已更改。
 SQL&gt; 
 </code></pre>
-<h4 id="3、-将primary数据库置为FORCE-LOGGING模式"><a href="#3、-将primary数据库置为FORCE-LOGGING模式" class="headerlink" title="3、 将primary数据库置为FORCE LOGGING模式"></a>3、 将primary数据库置为FORCE LOGGING模式</h4><p>通过下列语句： </p>
-<pre><code class="line-numbers language-shell">SQL&gt; alter database force logging; 
+<h4 id="3-jiang-primary-shu-ju-ku-zhi-wei-force-logging-mo-shi">3、 将primary数据库置为FORCE LOGGING模式</h4>
+<p>通过下列语句：</p>
+<pre><code class="language-shell">SQL&gt; alter database force logging; 
 
 数据库已更改。
 
@@ -578,7 +733,8 @@ SQL&gt; startup
 SQL&gt; show parameter log_archive_dest
 SQL&gt; 
 </code></pre>
-<h4 id="4、-primary数据库创建standby数据库控制文件"><a href="#4、-primary数据库创建standby数据库控制文件" class="headerlink" title="4、 primary数据库创建standby数据库控制文件"></a>4、 primary数据库创建standby数据库控制文件</h4><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h4 id="4-primary-shu-ju-ku-chuang-jian-standby-shu-ju-ku-kong-zhi-wen-jian">4、 primary数据库创建standby数据库控制文件</h4>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 SQL&gt; startup mount
 SQL&gt; alter database create standby controlfile as '/opt/oracle/oradata/mmsgdb/backupctl.ctl';  
 
@@ -594,24 +750,27 @@ SQL&gt; alter system archive log current;
 
 SQL&gt;
 </code></pre>
-<h4 id="5、-创建primary数据库客户端初始化参数文件"><a href="#5、-创建primary数据库客户端初始化参数文件" class="headerlink" title="5、 创建primary数据库客户端初始化参数文件"></a>5、 创建primary数据库客户端初始化参数文件</h4><p>注：</p>
-<ul>
-<li>主要此处修改项较多，为了方便，我们首先创建并修改pfile，然后再通过pfile重建spfile，你当然也可以通过alter system set命令直接修改spfile内容，不过，麻烦。</li>
+<h4 id="5-chuang-jian-primary-shu-ju-ku-ke-hu-duan-chu-shi-hua-can-shu-wen-jian">5、 创建primary数据库客户端初始化参数文件</h4>
+<p>注：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>主要此处修改项较多，为了方便，我们首先创建并修改pfile，然后再通过pfile重建spfile，你当然也可以通过alter system set命令直接修改spfile内容，不过，麻烦。</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">SQL&gt; create pfile from spfile;
+<pre><code class="language-shell">SQL&gt; create pfile from spfile;
 
 文件已创建。
 </code></pre>
-<p>将该初始化参数文件复制一份，做为standby数据库的客户端初始化参数文件 </p>
-<pre><code class="line-numbers language-shell">SQL&gt; host
+<p>将该初始化参数文件复制一份，做为standby数据库的客户端初始化参数文件</p>
+<pre><code class="language-shell">SQL&gt; host
 oracle@mmsg:~&gt; cp /opt/oracle/product/11g/dbs/initmmsgdb.ora  /opt/oracle/product/11g/dbs/bakinitmmsgdb.ora
 </code></pre>
 <p>备份已有的spfile文件</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg:~&gt; cd $ORACLE_HOME/dbs
+<pre><code class="language-shell">oracle@mmsg:~&gt; cd $ORACLE_HOME/dbs
 oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 </code></pre>
-<p>修改客户端初始化参数文件，增加下列内容 </p>
-<pre><code class="line-numbers language-shell">*.DB_UNIQUE_NAME=uqn_primary              //自定义一个unique_name名字
+<p>修改客户端初始化参数文件，增加下列内容</p>
+<pre><code class="language-shell">*.DB_UNIQUE_NAME=uqn_primary              //自定义一个unique_name名字
 *.LOG_ARCHIVE_CONFIG='DG_CONFIG=(uqn_primary,uqn_standby)'  //此处为主备服务器的unique_name
 *.LOG_ARCHIVE_DEST_2='SERVICE=standby ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=uqn_standby'
 *.LOG_ARCHIVE_DEST_STATE_1=ENABLE
@@ -624,9 +783,9 @@ oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 *.STANDBY_FILE_MANAGEMENT=AUTO
 </code></pre>
 <p>上述新增内容中的注释部分不需要，请添加时去掉。</p>
-<p>初始化参数参考 </p>
+<p>初始化参数参考</p>
 <p>对于primary数据库，需要定义几个primary角色的初始化参数控制redo传输服务，还有几个附加的standby角色的参数需要添加以控制接收redo数据库并应用(switchover/failover后primary/standby角色可能互换，所以建议对于两类角色 相关的 初始化参数都进行配置)。</p>
-<p>下列参数为primary角色相关的初始化参数： </p>
+<p>下列参数为primary角色相关的初始化参数：</p>
 <table>
 <thead>
 <tr>
@@ -634,7 +793,8 @@ oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>DB_NAME</td>
 <td>注意保持同一个Data Guard中所有数据库DB_NAME相同。 例如：DB_NAME=mmsgdb</td>
 </tr>
@@ -644,7 +804,7 @@ oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 </tr>
 <tr>
 <td>LOG_ARCHIVE_CONFIG</td>
-<td>该参数通过DG_CONFIG属性罗列同一个Data Guard中所有DB_UNIQUE_NAME(含primary db及standby db)，以逗号分隔 例如：LOG_ARCHIVE_CONFIG=’DB_CONFIG= uqn_primary, uqn_standby)’</td>
+<td>该参数通过DG_CONFIG属性罗列同一个Data Guard中所有DB_UNIQUE_NAME(含primary db及standby db)，以逗号分隔 例如：LOG_ARCHIVE_CONFIG=‘DB_CONFIG= uqn_primary, uqn_standby)’</td>
 </tr>
 <tr>
 <td>CONTROL_FILES</td>
@@ -670,8 +830,9 @@ oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 <td>LOG_ARCHIVE_MAX_PRODUCESSES</td>
 <td>指定归档进程的数量(1-30)，默认值通常是4 。</td>
 </tr>
-</tbody></table>
-<p>以下参数为standby角色相关的参数，建议在Primary数据库 的初始化参数中也进行设置，这样在role transition后(Primary转为Standby)也能正常运行： </p>
+</tbody>
+</table>
+<p>以下参数为standby角色相关的参数，建议在Primary数据库 的初始化参数中也进行设置，这样在role transition后(Primary转为Standby)也能正常运行：</p>
 <table>
 <thead>
 <tr>
@@ -679,7 +840,8 @@ oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 <th>说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>FAL_SERVER</td>
 <td>指定一个数据库SID，通常该库为primary角色。 例如：FAL_SERVER=primary</td>
 </tr>
@@ -703,13 +865,16 @@ oracle@mmsg:~/product/11g/dbs&gt; cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 <td>STANDBY_FILE_MANAGEMENT</td>
 <td>如果primary数据库数据文件发生修改（如新建，重命名等）则按照本参数的设置在standby中做相应修改。设为AUTO表示自动管理。设为MANUAL表示需要手工管理。例如：STANDBY_FILE_MANAGEMENT=AUTO</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>注意：</p>
-<ul>
-<li>上面列举的这些参数仅只是对于primary/standby两角色可能会相关的参数，还有一些基础性参数比如*_dest,*_size等数据库相关的参数在具体配置时也需要根据实际情况做出适当修改。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>上面列举的这些参数仅只是对于primary/standby两角色可能会相关的参数，还有一些基础性参数比如*_dest,*_size等数据库相关的参数在具体配置时也需要根据实际情况做出适当修改。</p>
+</li>
 </ul>
-<p>通过pfile重建spfile </p>
-<pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<p>通过pfile重建spfile</p>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
 ORACLE 例程已经关闭。
@@ -732,11 +897,14 @@ SQL&gt; create spfile='/opt/oracle/product/11g/dbs/spfilemmsgdb.ora' from pfile=
 SQL&gt;
 SQL&gt; shutdown immediate
 </code></pre>
-<h4 id="6、-复制数据文件到standby服务器-方式多样，不详述"><a href="#6、-复制数据文件到standby服务器-方式多样，不详述" class="headerlink" title="6、 复制数据文件到standby服务器(方式多样，不详述)"></a>6、 复制数据文件到standby服务器(方式多样，不详述)</h4><p>注:</p>
-<ul>
-<li>要先停止primary和standby服务器上的oracle数据库，然后复制所有数据文件，备份的控制文件及客户端初始化参数文件（数据文件、口令文件、pfile文件、控制文件）到standby数据库（同时，建议先备份一下standby数据库侧的数据文件、控制文件、参数文件和口令文件） ，具体文件列表信息如下：</li>
+<h4 id="6-fu-zhi-shu-ju-wen-jian-dao-standby-fu-wu-qi-fang-shi-duo-yang-bu-xiang-shu">6、 复制数据文件到standby服务器(方式多样，不详述)</h4>
+<p>注:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>要先停止primary和standby服务器上的oracle数据库，然后复制所有数据文件，备份的控制文件及客户端初始化参数文件（数据文件、口令文件、pfile文件、控制文件）到standby数据库（同时，建议先备份一下standby数据库侧的数据文件、控制文件、参数文件和口令文件） ，具体文件列表信息如下：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">#控制文件
+<pre><code class="language-shell">#控制文件
 backupctl.ctl
 control01.ctl
 control02.ctl
@@ -757,7 +925,7 @@ orapwmmsgdb
 initmmsgdb.ora
 </code></pre>
 <p>还需要到STANDBY服务器上执行下面的操作。</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg1:~&gt; cd /opt/oracle/oradata/ora11g
+<pre><code class="language-shell">oracle@mmsg1:~&gt; cd /opt/oracle/oradata/ora11g
 oracle@mmsg1:~/oradata/ora11g&gt; rm -rf control0*
 oracle@mmsg1:~/oradata/ora11g&gt; mv backupctl.ctl  control01.ctl
 oracle@mmsg1:~/oradata/ora11g&gt; cp control01.ctl control02.ctl
@@ -817,7 +985,8 @@ ftp&gt; by
 221-Goodbye. You uploaded 0 and downloaded 3 kbytes.
 221 Logout.
 </code></pre>
-<h4 id="7、-修改standby数据库参数文件"><a href="#7、-修改standby数据库参数文件" class="headerlink" title="7、 修改standby数据库参数文件"></a>7、 修改standby数据库参数文件</h4><pre><code class="line-numbers language-shell">*.DB_UNIQUE_NAME=uqn_standby
+<h4 id="7-xiu-gai-standby-shu-ju-ku-can-shu-wen-jian">7、 修改standby数据库参数文件</h4>
+<pre><code class="language-shell">*.DB_UNIQUE_NAME=uqn_standby
 *.LOG_ARCHIVE_CONFIG='DG_CONFIG=(uqn_primary,uqn_standby)'
 *.LOG_ARCHIVE_DEST_2='SERVICE=primary ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=uqn_primary'
 *.LOG_ARCHIVE_DEST_STATE_1=ENABLE
@@ -829,8 +998,9 @@ ftp&gt; by
 *.FAL_CLIENT=standby
 *.STANDBY_FILE_MANAGEMENT=AUTO
 </code></pre>
-<h4 id="8、-修改listener及tns信息"><a href="#8、-修改listener及tns信息" class="headerlink" title="8、 修改listener及tns信息"></a>8、 修改listener及tns信息</h4><p>配置primary数据库和standby数据库的listener及net service names(方式多样，不详述)</p>
-<pre><code class="line-numbers language-shell">SID_LIST_LISTENER =
+<h4 id="8-xiu-gai-listener-ji-tns-xin-xi">8、 修改listener及tns信息</h4>
+<p>配置primary数据库和standby数据库的listener及net service names(方式多样，不详述)</p>
+<pre><code class="language-shell">SID_LIST_LISTENER =
 (SID_LIST =
    (SID_DESC =
       (SID_NAME = PLSExtProc)
@@ -852,9 +1022,9 @@ LISTENER =
     )
   )
 </code></pre>
-<p>上面为primary数据库的listener信息，standby数据库同理。其中”SID_LIST_LISTENER = “内容为新增信息，红色部分为primary数据库ip地址。</p>
+<p>上面为primary数据库的listener信息，standby数据库同理。其中"SID_LIST_LISTENER = "内容为新增信息，红色部分为primary数据库ip地址。</p>
 <p>配置primary数据库和standby数据库的tnsnames.ora文件，修改成如下信息</p>
-<pre><code class="line-numbers language-shell">PRIMARY =
+<pre><code class="language-shell">PRIMARY =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.137.49.114)(PORT = 1521))
     (CONNECT_DATA =
@@ -872,8 +1042,8 @@ STANDBY =
     )
   )
 </code></pre>
-<p>完成之后重启primary数据库和standby数据库的listener，并测试监听: </p>
-<pre><code class="line-numbers language-shell">oracle@mmsg:~/product/11g/network/admin&gt; lsnrctl stop
+<p>完成之后重启primary数据库和standby数据库的listener，并测试监听:</p>
+<pre><code class="language-shell">oracle@mmsg:~/product/11g/network/admin&gt; lsnrctl stop
 oracle@mmsg:~/product/11g/network/admin&gt; lsnrctl start
 oracle@mmsg:~/product/11g/network/admin&gt; tnsping primary 10
 
@@ -921,7 +1091,8 @@ OK (0 毫秒)
 oracle@mmsg:~/product/11g/network/admin&gt; 
 </code></pre>
 <p>执行ping操作，primary和standby互ping一下ip地址，如果能ping通，则继续执行下面的操作，如果ping不通，请检查配置。</p>
-<h4 id="9、-启动standby数据库"><a href="#9、-启动standby数据库" class="headerlink" title="9、 启动standby数据库"></a>9、 启动standby数据库</h4><pre><code class="line-numbers language-shell">oracle@mmsg1:~/product/11g/dbs&gt; sqlplus / as sysdba
+<h4 id="9-qi-dong-standby-shu-ju-ku">9、 启动standby数据库</h4>
+<pre><code class="language-shell">oracle@mmsg1:~/product/11g/dbs&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期二 8月 10 14:47:21 2010
 
@@ -951,7 +1122,10 @@ SQL&gt; alter database recover managed standby database disconnect from session;
 
 SQL&gt;
 </code></pre>
-<h3 id="查看同步情况"><a href="#查看同步情况" class="headerlink" title="查看同步情况"></a>查看同步情况</h3><h4 id="方法一"><a href="#方法一" class="headerlink" title="方法一"></a>方法一</h4><h5 id="首先连接到primary数据库"><a href="#首先连接到primary数据库" class="headerlink" title="首先连接到primary数据库"></a>首先连接到primary数据库</h5><pre><code class="line-numbers language-shell">SQL&gt; show parameter instance_name
+<h3 id="cha-kan-tong-bu-qing-kuang">查看同步情况</h3>
+<h4 id="fang-fa-yi">方法一</h4>
+<h5 id="shou-xian-lian-jie-dao-primary-shu-ju-ku">首先连接到primary数据库</h5>
+<pre><code class="language-shell">SQL&gt; show parameter instance_name
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -968,7 +1142,8 @@ MAX(SEQUENCE#)
 
 SQL&gt; 
 </code></pre>
-<h5 id="连接到standby数据库"><a href="#连接到standby数据库" class="headerlink" title="连接到standby数据库"></a>连接到standby数据库</h5><pre><code class="line-numbers language-shell">SQL&gt; alter database recover managed standby database disconnect from session; 
+<h5 id="lian-jie-dao-standby-shu-ju-ku">连接到standby数据库</h5>
+<pre><code class="language-shell">SQL&gt; alter database recover managed standby database disconnect from session; 
 
 数据库已更改。
 
@@ -986,8 +1161,9 @@ SQL&gt;
 
 MAX(SEQUENCE#)值一致，同步成功。
 </code></pre>
-<h4 id="方法二"><a href="#方法二" class="headerlink" title="方法二"></a>方法二</h4><p>在standby服务器，执行如下操作：</p>
-<pre><code class="line-numbers language-shell">SQL&gt; SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
+<h4 id="fang-fa-er">方法二</h4>
+<p>在standby服务器，执行如下操作：</p>
+<pre><code class="language-shell">SQL&gt; SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
 
  SEQUENCE# FIRST_TIME     NEXT_TIME
 ---------- -------------- --------------
@@ -997,14 +1173,14 @@ MAX(SEQUENCE#)值一致，同步成功。
          5 10-8月 -10     10-8月 -10
 </code></pre>
 <p>在primary服务器，执行归档操作：</p>
-<pre><code class="line-numbers language-shell">SQL&gt; ALTER SYSTEM SWITCH LOGFILE; 
+<pre><code class="language-shell">SQL&gt; ALTER SYSTEM SWITCH LOGFILE; 
 
 系统已更改。
 
 SQL&gt;
 </code></pre>
 <p>返回standby服务器</p>
-<pre><code class="line-numbers language-shell">SQL&gt; SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
+<pre><code class="language-shell">SQL&gt; SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
 
  SEQUENCE# FIRST_TIME     NEXT_TIME
 ---------- -------------- --------------
@@ -1027,23 +1203,28 @@ SQL&gt; SELECT SEQUENCE#,APPLIED FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
 SQL&gt;
 </code></pre>
 <p>发现有一条新的记录,说明同步是正常的。</p>
-<h2 id="容灾关闭"><a href="#容灾关闭" class="headerlink" title="容灾关闭"></a>容灾关闭</h2><p>关闭数据库一定要先关闭primary数据库，然后再去关闭standby数据库。</p>
+<h2 id="rong-zai-guan-bi">容灾关闭</h2>
+<p>关闭数据库一定要先关闭primary数据库，然后再去关闭standby数据库。</p>
 <p>primary数据库</p>
-<pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 </code></pre>
 <p>standby数据库</p>
-<pre><code class="line-numbers language-shell">SQL&gt; alter database recover managed standby database cancel;
+<pre><code class="language-shell">SQL&gt; alter database recover managed standby database cancel;
 
 数据库已更改。
 
 SQL&gt; shutdown immediate
 </code></pre>
-<h3 id="主备切换"><a href="#主备切换" class="headerlink" title="主备切换"></a>主备切换</h3><p>注：</p>
-<ul>
-<li>主备切换必须先主切备，在备切主。</li>
+<h3 id="zhu-bei-qie-huan">主备切换</h3>
+<p>注：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>主备切换必须先主切备，在备切主。</p>
+</li>
 </ul>
-<h4 id="1、-primary切换到standby-数据库"><a href="#1、-primary切换到standby-数据库" class="headerlink" title="1、 primary切换到standby 数据库"></a>1、 primary切换到standby 数据库</h4><p>在primary数据库做如下操作</p>
-<pre><code class="line-numbers language-shell">SQL&gt; startup
+<h4 id="1-primary-qie-huan-dao-standby-shu-ju-ku">1、 primary切换到standby 数据库</h4>
+<p>在primary数据库做如下操作</p>
+<pre><code class="language-shell">SQL&gt; startup
 ORACLE 例程已经启动。
 
 Total System Global Area 1603411968 bytes
@@ -1084,7 +1265,8 @@ SQL&gt; alter database recover managed standby database disconnect from session;
 
 SQL&gt;
 </code></pre>
-<h4 id="2、-standby-切换到-primary"><a href="#2、-standby-切换到-primary" class="headerlink" title="2、 standby 切换到 primary"></a>2、 standby 切换到 primary</h4><pre><code class="line-numbers language-shell">SQL&gt; startup mount
+<h4 id="2-standby-qie-huan-dao-primary">2、 standby 切换到 primary</h4>
+<pre><code class="language-shell">SQL&gt; startup mount
 ORACLE 例程已经启动。
 
 Total System Global Area 1603411968 bytes
@@ -1120,7 +1302,9 @@ SQL&gt;
 </code></pre>
 <p>至此，primary与standby数据库已经切换完成</p>
 <p>如果想再去切换回来，请重复上述操作，注意primary和standby数据库已经发生了变化，以前的primary现在为standby数据库了。</p>
-<h3 id="切换的最大可用模式"><a href="#切换的最大可用模式" class="headerlink" title="切换的最大可用模式"></a>切换的最大可用模式</h3><h4 id="1、-首先应当在standby数据库创建standby-redolog"><a href="#1、-首先应当在standby数据库创建standby-redolog" class="headerlink" title="1、 首先应当在standby数据库创建standby redolog"></a>1、 首先应当在standby数据库创建standby redolog</h4><pre><code class="line-numbers language-shell">SQL&gt; startup mount
+<h3 id="qie-huan-de-zui-da-ke-yong-mo-shi">切换的最大可用模式</h3>
+<h4 id="1-shou-xian-ying-dang-zai-standby-shu-ju-ku-chuang-jian-standby-redolog">1、 首先应当在standby数据库创建standby redolog</h4>
+<pre><code class="language-shell">SQL&gt; startup mount
 SQL&gt; alter  database recover managed standby database cancel;
 alter  database recover managed standby database cancel
 *
@@ -1154,12 +1338,16 @@ SQL&gt; SQL&gt; ALTER DATABASE RECOVER MANAGED STANDBY DATABASE USING CURRENT LO
 SQL&gt; 
 </code></pre>
 <p>注：</p>
-<ul>
-<li>1、standy redelog的组数参考公式：（online redolog组数+1）*数据库线程数：单机线程数为1，RAC一般为2</li>
-<li>2、stabdby redolog的组成员数和大小也尽量和online redolog一样</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、standy redelog的组数参考公式：（online redolog组数+1）*数据库线程数：单机线程数为1，RAC一般为2</p>
+</li>
+<li class="lvl-2">
+<p>2、stabdby redolog的组成员数和大小也尽量和online redolog一样</p>
+</li>
 </ul>
 <p>检查standby redolog是否已经添加成功</p>
-<pre><code class="line-numbers language-shell">SQL&gt; select group#,thread#,sequence#,archived,status from v$standby_log;
+<pre><code class="language-shell">SQL&gt; select group#,thread#,sequence#,archived,status from v$standby_log;
 
     GROUP#    THREAD#  SEQUENCE# ARC STATUS
 ---------- ---------- ---------- --- ----------
@@ -1170,7 +1358,8 @@ SQL&gt;
 
 SQL&gt;
 </code></pre>
-<h4 id="2、-standby数据库重新启动恢复管理模式"><a href="#2、-standby数据库重新启动恢复管理模式" class="headerlink" title="2、 standby数据库重新启动恢复管理模式"></a>2、 standby数据库重新启动恢复管理模式</h4><pre><code class="line-numbers language-shell">SQL&gt; alter database recover managed standby database disconnect from session;
+<h4 id="2-standby-shu-ju-ku-zhong-xin-qi-dong-hui-fu-guan-li-mo-shi">2、 standby数据库重新启动恢复管理模式</h4>
+<pre><code class="language-shell">SQL&gt; alter database recover managed standby database disconnect from session;
 alter database recover managed standby database disconnect from session
 *
 第 1 行出现错误:
@@ -1179,8 +1368,9 @@ ORA-01153: 激活了不兼容的介质恢复
 
 SQL&gt; 
 </code></pre>
-<h4 id="3、-修改primary数据库参数"><a href="#3、-修改primary数据库参数" class="headerlink" title="3、 修改primary数据库参数"></a>3、 修改primary数据库参数</h4><p>设置standby数据库为最大性能模式（primary库优先）</p>
-<pre><code class="line-numbers language-shell">SQL&gt; alter system set log_archive_dest_2='SERVICE=STANDBY SYNC LGWR AFFIRM NET_TIMEOUT=10' SCOPE=SPFILE;
+<h4 id="3-xiu-gai-primary-shu-ju-ku-can-shu">3、 修改primary数据库参数</h4>
+<p>设置standby数据库为最大性能模式（primary库优先）</p>
+<pre><code class="language-shell">SQL&gt; alter system set log_archive_dest_2='SERVICE=STANDBY SYNC LGWR AFFIRM NET_TIMEOUT=10' SCOPE=SPFILE;
 
 系统已更改。
 
@@ -1208,7 +1398,8 @@ SQL&gt; alter database open;
 
 SQL&gt;
 </code></pre>
-<h4 id="4、-primary数据库侧，查看保护模式"><a href="#4、-primary数据库侧，查看保护模式" class="headerlink" title="4、 primary数据库侧，查看保护模式"></a>4、 primary数据库侧，查看保护模式</h4><pre><code class="line-numbers language-shell">SQL&gt; select protection_mode ,protection_level from v$database;
+<h4 id="4-primary-shu-ju-ku-ce-cha-kan-bao-hu-mo-shi">4、 primary数据库侧，查看保护模式</h4>
+<pre><code class="language-shell">SQL&gt; select protection_mode ,protection_level from v$database;
 
 PROTECTION_MODE      PROTECTION_LEVEL
 -------------------- --------------------
@@ -1217,7 +1408,8 @@ MAXIMUM AVAILABILITY RESYNCHRONIZATION
 SQL&gt;
 显示当前为最大可用模式。
 </code></pre>
-<h4 id="5、-主（primary）备（standby）切换"><a href="#5、-主（primary）备（standby）切换" class="headerlink" title="5、 主（primary）备（standby）切换"></a>5、 主（primary）备（standby）切换</h4><p>如果要使得主备库可以切换，则应如步骤1~4同理在主备库做相应修改。</p>
+<h4 id="5-zhu-primary-bei-standby-qie-huan">5、 主（primary）备（standby）切换</h4>
+<p>如果要使得主备库可以切换，则应如步骤1~4同理在主备库做相应修改。</p>
 
                 
             </div>
@@ -1320,10 +1512,10 @@ SQL&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1637,7 +1829,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/115.jpg" class="responsive-img" alt="Oracle SQL篇之监控">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/115.jpg" class="responsive-img" alt="Oracle SQL篇之监控">
                         
                         <span class="card-title">Oracle SQL篇之监控</span>
                     </div>
@@ -1686,7 +1878,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/21.jpg" class="responsive-img" alt="Oracle案例--OEM启动失败">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/21.jpg" class="responsive-img" alt="Oracle案例--OEM启动失败">
                         
                         <span class="card-title">Oracle案例--OEM启动失败</span>
                     </div>
@@ -1917,7 +2109,7 @@ SQL&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2267,6 +2459,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

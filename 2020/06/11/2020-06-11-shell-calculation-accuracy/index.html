@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="shell计算精度, 软硬件测试">
-    <meta name="description" content="概述为何要写这篇文章，因为在上篇文章 stastic ES write speed by shell script有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，">
+    <meta name="description" content="概述
+为何要写这篇文章，因为在上篇文章 stastic ES write speed by shell script有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -476,9 +617,12 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>为何要写这篇文章，因为在上篇文章 <a href="https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/" target="_blank">stastic ES write speed by shell script</a>有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。</p>
-<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><h2 id="bc"><a href="#bc" class="headerlink" title="bc"></a>bc</h2><p>bc是比较常用的Linux中计算器了，简单方便，而且是支持浮点的。一般系统不自带，需要额外安装。</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo 1+2 | bc
+                <h1 id="gai-shu">概述</h1>
+<p>为何要写这篇文章，因为在上篇文章 <a href="https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/" target="_blank">stastic ES write speed by shell script</a>有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。</p>
+<h1 id="shi-jian">实践</h1>
+<h2 id="bc">bc</h2>
+<p>bc是比较常用的Linux中计算器了，简单方便，而且是支持浮点的。一般系统不自带，需要额外安装。</p>
+<pre><code class="language-shell">root@code80:~# echo 1+2 | bc
 3
 root@code80:~# echo 1.1*6 | bc
 6.6
@@ -500,13 +644,14 @@ root@code80:~# echo "scale=4;1/2" | bc
 root@code80:~# 
 </code></pre>
 <p>这里有个问题，如果整数为0，这个整数不会显示，直接显示小数点，解决方法如下:</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo "print 0;scale=2;1/2" | bc
+<pre><code class="language-shell">root@code80:~# echo "print 0;scale=2;1/2" | bc
 0.50
 root@code80:~#
 </code></pre>
-<h2 id="expr"><a href="#expr" class="headerlink" title="expr"></a>expr</h2><p>不支持浮点计算，即不支持小数，所以也常被用来判断变量内容或者结果是不是非0整数（expr 0的echo $?不是0）。</p>
+<h2 id="expr">expr</h2>
+<p>不支持浮点计算，即不支持小数，所以也常被用来判断变量内容或者结果是不是非0整数（expr 0的echo $?不是0）。</p>
 <p>另外，expr 后面的两个参数与运算符之间，一定要含有空格:</p>
-<pre><code class="line-numbers language-shell">root@code80:~# expr 1+2
+<pre><code class="language-shell">root@code80:~# expr 1+2
 1+2
 root@code80:~# expr 1 + 2
 3
@@ -524,8 +669,9 @@ root@code80:~# echo $?
 1
 root@code80:~# 
 </code></pre>
-<h2 id=""><a href="#" class="headerlink" title="$(())"></a>$(())</h2><p>此方法不支持浮点计算。</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo $((1+2.0))
+<h2 id="">$(())</h2>
+<p>此方法不支持浮点计算。</p>
+<pre><code class="language-shell">root@code80:~# echo $((1+2.0))
 bash: 1+2.0: syntax error: invalid arithmetic operator (error token is ".0")
 root@code80:~# echo $((1+2))
 3
@@ -535,8 +681,9 @@ root@code80:~# echo $((10.1/2))
 bash: 10.1/2: syntax error: invalid arithmetic operator (error token is ".1/2")
 root@code80:~#
 </code></pre>
-<h2 id="let"><a href="#let" class="headerlink" title="let"></a>let</h2><p>不仅不支持浮点计算，而且还只能赋值，不能直接输出。</p>
-<pre><code class="line-numbers language-shell">root@code80:~# let a=1+2
+<h2 id="let">let</h2>
+<p>不仅不支持浮点计算，而且还只能赋值，不能直接输出。</p>
+<pre><code class="language-shell">root@code80:~# let a=1+2
 root@code80:~# echo $a
 3
 root@code80:~# let b=10/5
@@ -550,8 +697,9 @@ bash: let: c=1.1*2: syntax error: invalid arithmetic operator (error token is ".
 root@code80:~# 
 </code></pre>
 <p>上面的方法，bc一般系统不带需要自行安装，不是很方便，万一系统不联网，又没有安装包，没法使用；其他的几个方法，都不支持浮点数，是否有其他方法支持浮点数的？答案是肯定的，继续往下看。</p>
-<h1 id="计算浮点数"><a href="#计算浮点数" class="headerlink" title="计算浮点数"></a>计算浮点数</h1><p>这里，使用awk获浮点数。</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo | awk "{print 10.2/2}"
+<h1 id="ji-suan-fu-dian-shu">计算浮点数</h1>
+<p>这里，使用awk获浮点数。</p>
+<pre><code class="language-shell">root@code80:~# echo | awk "{print 10.2/2}"
 5.1
 root@code80:~# echo | awk "{print 10*2.1}"
 21
@@ -576,7 +724,7 @@ root@code80:~# echo | awk '{print 10.2/2.1}'
 root@code80:~#
 </code></pre>
 <p>将数值参数化试试：</p>
-<pre><code class="line-numbers language-shell">root@code80:~# pam1=10.2
+<pre><code class="language-shell">root@code80:~# pam1=10.2
 root@code80:~# pam2=2.1
 root@code80:~# pam3=2
 root@code80:~# echo | awk '{print $pam1/$pam2}'
@@ -596,14 +744,14 @@ root@code80:~#
 <p>说明：</p>
 <p>这里awk后的print，在不使用参数/变量情况下，使用单引号和双引号都可以，推荐使用双引号，养成习惯。</p>
 <p>这里小数点后的位数不受控制，比如本文示例中计算出来的结果4.85714，小数点后有5位，如果只想保留指定位数的小数点，加上printf：</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo | awk '{print 10/3}' 
+<pre><code class="language-shell">root@code80:~# echo | awk '{print 10/3}' 
 3.33333
 root@code80:~# echo | awk '{printf ("%.2f\n",10/3)}' 
 3.33
 root@code80:~# 
 </code></pre>
 <p>看看参数化后的执行效果:</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo | awk "{printf ("%.2f\n",$pam1/$pam2)}"
+<pre><code class="language-shell">root@code80:~# echo | awk "{printf ("%.2f\n",$pam1/$pam2)}"
 awk: cmd. line:1: {printf (%.2fn,10/3)}
 awk: cmd. line:1:          ^ syntax error
 root@code80:~# 
@@ -611,20 +759,20 @@ root@code80:~# echo | awk '{printf ("%.2f\n",$pam1/$pam2)}'
 awk: cmd. line:1: (FILENAME=- FNR=1) fatal: division by zero attempted
 </code></pre>
 <p>报错了，这种情况，建议先在前面的echo中将需要使用的变量输出出来，再进行调用。</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo $pam1 $pam2 | awk '{{printf ("%.2f\n", $1/$2)}}'
+<pre><code class="language-shell">root@code80:~# echo $pam1 $pam2 | awk '{{printf ("%.2f\n", $1/$2)}}'
 3.33
 root@code80:~# 
 </code></pre>
 <p>说明：</p>
 <p>上面的命令示例中，保留2位小数，printf默认是保留6位。</p>
 <p>如果碰到科学计数类型的爆大数字，会出问题：</p>
-<pre><code class="line-numbers language-shell">
+<pre><code class="language-shell">
 t@code80:~# echo "5.9637e+12/100" | bc
 (standard_in) 1: syntax error
 root@code80:~# 
 </code></pre>
 <p>解决方法如下：</p>
-<pre><code class="line-numbers language-shell">root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.0f\n",$1)}'
+<pre><code class="language-shell">root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.0f\n",$1)}'
 5963700000000
 root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.2f\n",$1)}'
 5963700000000.00
@@ -736,10 +884,10 @@ root@code80:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1053,7 +1201,7 @@ root@code80:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/67.jpg" class="responsive-img" alt="API响应慢问题复现">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/67.jpg" class="responsive-img" alt="API响应慢问题复现">
                         
                         <span class="card-title">API响应慢问题复现</span>
                     </div>
@@ -1110,7 +1258,7 @@ root@code80:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/54.jpg" class="responsive-img" alt="脚本统计ES写入速度">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/54.jpg" class="responsive-img" alt="脚本统计ES写入速度">
                         
                         <span class="card-title">脚本统计ES写入速度</span>
                     </div>
@@ -1349,7 +1497,7 @@ root@code80:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1699,6 +1847,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="利用gparted扩展根分区, 软硬件测试">
-    <meta name="description" content="前言lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。
-后台通过VMware vSphere Client扩大了这个">
+    <meta name="description" content="前言
+lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。
+后台通过VMware vSphere Client扩大了这">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,9 +610,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。</p>
+                <h1 id="qian-yan">前言</h1>
+<p>lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，整个系统分区只有20G的容量，后来发现这个容量实在太小，经常因根分区满导致jenkins任务没法正常执行。</p>
 <p>后台通过VMware vSphere Client扩大了这个分区空间（扩大到60G）：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu-16:~# lsblk
+<pre><code class="language-shell">root@ubuntu-16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
 sda      8:0    0   20G  0 disk /iso
@@ -482,10 +624,11 @@ sdb      8:16   0   60G  0 disk
 sr0     11:0    1 1024M  0 rom  
 root@ubuntu-16:~# 
 </code></pre>
-<p>但这多出的40G，如何分配给根/分区呢？ </p>
-<h1 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h1><p>为此，准备了一个测试环境，进行/分区扩容验证。</p>
+<p>但这多出的40G，如何分配给根/分区呢？</p>
+<h1 id="huan-jing-zhun-bei">环境准备</h1>
+<p>为此，准备了一个测试环境，进行/分区扩容验证。</p>
 <p>安装Ubuntu16.04，系统分区是60G的容量：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu16:~# lsblk
+<pre><code class="language-shell">root@ubuntu16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
 sda      8:0    0   60G  0 disk 
@@ -496,7 +639,7 @@ sr0     11:0    1 1024M  0 rom
 root@ubuntu16:~# 
 </code></pre>
 <p>成功安装后，关机，通过VMware vSphere Client扩大vdisk空间，从60G扩大到80G：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu16:~# lsblk
+<pre><code class="language-shell">root@ubuntu16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
 sda      8:0    0   80G  0 disk 
@@ -507,49 +650,51 @@ sr0     11:0    1  873M  0 rom
 root@ubuntu16:~# 
 </code></pre>
 <p>并在根目录下，创建了一个文件，计算md5值：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu16:/# echo 'check' &gt; test.txt 
+<pre><code class="language-shell">root@ubuntu16:/# echo 'check' &gt; test.txt 
 root@ubuntu16:/# md5sum test.txt 
 5e9b13ce8f6c99f3f510756be58d15fe  test.txt
 root@ubuntu16:/# 
 </code></pre>
-<h1 id="借助gparted-live-ISO进行修改"><a href="#借助gparted-live-ISO进行修改" class="headerlink" title="借助gparted live ISO进行修改"></a>借助gparted live ISO进行修改</h1><p>gparted可以调整分区大小，且支持无损，但是对于/根目录的分区无法调整，但是它提供ISO工具，可以启动后进行调整。</p>
+<h1 id="jie-zhu-gparted-live-iso-jin-xing-xiu-gai">借助gparted live ISO进行修改</h1>
+<p>gparted可以调整分区大小，且支持无损，但是对于/根目录的分区无法调整，但是它提供ISO工具，可以启动后进行调整。</p>
 <p>下载了一个gparted-live-0.29.0-1-amd64.iso，下载链接：</p>
 <p>链接：<a target="_blank" rel="noopener" href="https://pan.baidu.com/s/1I_JWP7-HKHfNM44mlt6Vow">https://pan.baidu.com/s/1I_JWP7-HKHfNM44mlt6Vow</a> 提取码：moq4</p>
-<h3 id="修改VM启动顺序"><a href="#修改VM启动顺序" class="headerlink" title="修改VM启动顺序"></a>修改VM启动顺序</h3><p>在将gparted-live-0.29.0-1-amd64.iso作为VM “CD/DVD设备”条件下，重新启动VM，进入BIOS界面，设置操作如下图所示：</p>
-<img class="shadow" src="/img/in-post/vm_set_BIOS.png" width="800">
-
+<h3 id="xiu-gai-vm-qi-dong-shun-xu">修改VM启动顺序</h3>
+<p>在将gparted-live-0.29.0-1-amd64.iso作为VM “CD/DVD设备”条件下，重新启动VM，进入BIOS界面，设置操作如下图所示：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/vm_set_BIOS.png" width="800">
 <p>进入Boot页面，使用“-/+”按钮，将“CD-ROM Driver”设置为第一启动顺序，保存后退出，如下图所示：</p>
-<img class="shadow" src="/img/in-post/change-boot-order.png" width="800">
-
-<h3 id="使用-GParted-Live-安装介质启动你的系统"><a href="#使用-GParted-Live-安装介质启动你的系统" class="headerlink" title="使用 GParted Live 安装介质启动你的系统"></a>使用 GParted Live 安装介质启动你的系统</h3><p>VM重新开机后，会弹出如下界面：</p>
-<img class="shadow" src="/img/in-post/boot-gparted.png" width="800">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/change-boot-order.png" width="800">
+<h3 id="shi-yong-g-parted-live-an-zhuang-jie-zhi-qi-dong-ni-de-xi-tong">使用 GParted Live 安装介质启动你的系统</h3>
+<p>VM重新开机后，会弹出如下界面：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/boot-gparted.png" width="800">
 <p>这里选择 “GParted Live (Default settings)” ，并敲击回车按键。</p>
-<h3 id="键盘选择"><a href="#键盘选择" class="headerlink" title="键盘选择"></a>键盘选择</h3><p>默认情况下，它选择第二个选项，按下回车即可。</p>
-<img class="shadow" src="/img/in-post/package_configuration.png" width="800">
-
-<h3 id="语言选择"><a href="#语言选择" class="headerlink" title="语言选择"></a>语言选择</h3><p>默认情况下，它选择 “33” 美国英语，按下回车即可。</p>
-<img class="shadow" src="/img/in-post/language_set.png" width="800">
-
-
-<h3 id="模式选择（图形用户界面或命令行"><a href="#模式选择（图形用户界面或命令行" class="headerlink" title="模式选择（图形用户界面或命令行)"></a>模式选择（图形用户界面或命令行)</h3><p>默认情况下，它选择 “0” 图形用户界面模式，按下回车即可。</p>
-<img class="shadow" src="/img/in-post/mode_select.png" width="800">
-
-<h3 id="加载-GParted-Live-屏幕"><a href="#加载-GParted-Live-屏幕" class="headerlink" title="加载 GParted Live 屏幕"></a>加载 GParted Live 屏幕</h3><p>现在，GParted Live 屏幕已经加载，它显示我以前创建的分区列表:</p>
-<img class="shadow" src="/img/in-post/gparted_show_all_partitions.png" width="800">
-
-<h3 id="删除系统磁盘非根分区"><a href="#删除系统磁盘非根分区" class="headerlink" title="删除系统磁盘非根分区"></a>删除系统磁盘非根分区</h3><p>这里系统磁盘对应分区是sda，下面有swap分区（sda2， sda5），需要删除sda2和sda5，因为只有连续的分区才能合并（未分配的分区中间间隔着sda2和sda5）。</p>
-<h3 id="合并分区"><a href="#合并分区" class="headerlink" title="合并分区"></a>合并分区</h3><p>选择根分区，点击“Resize/Move”，将20G空闲空间合并到sda1分区。</p>
-<h3 id="重新创建swap分区，并格式化为linux-swap"><a href="#重新创建swap分区，并格式化为linux-swap" class="headerlink" title="重新创建swap分区，并格式化为linux-swap"></a>重新创建swap分区，并格式化为linux-swap</h3><p>这里新建一个分区，文件系统选择linux-swap，并格式化为swap分区</p>
-<h3 id="生效设置"><a href="#生效设置" class="headerlink" title="生效设置"></a>生效设置</h3><p>进行了上面的操作后，点击“Apply”等待生效，gparted处理过程如下图所示：</p>
-<img class="shadow" src="/img/in-post/gparted_apply.png" width="800">
-
+<h3 id="jian-pan-xuan-ze">键盘选择</h3>
+<p>默认情况下，它选择第二个选项，按下回车即可。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/package_configuration.png" width="800">
+<h3 id="yu-yan-xuan-ze">语言选择</h3>
+<p>默认情况下，它选择 “33” 美国英语，按下回车即可。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/language_set.png" width="800">
+<h3 id="mo-shi-xuan-ze-tu-xing-yong-hu-jie-mian-huo-ming-ling-xing">模式选择（图形用户界面或命令行)</h3>
+<p>默认情况下，它选择 “0” 图形用户界面模式，按下回车即可。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/mode_select.png" width="800">
+<h3 id="jia-zai-g-parted-live-ping-mu">加载 GParted Live 屏幕</h3>
+<p>现在，GParted Live 屏幕已经加载，它显示我以前创建的分区列表:</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/gparted_show_all_partitions.png" width="800">
+<h3 id="shan-chu-xi-tong-ci-pan-fei-gen-fen-qu">删除系统磁盘非根分区</h3>
+<p>这里系统磁盘对应分区是sda，下面有swap分区（sda2， sda5），需要删除sda2和sda5，因为只有连续的分区才能合并（未分配的分区中间间隔着sda2和sda5）。</p>
+<h3 id="he-bing-fen-qu">合并分区</h3>
+<p>选择根分区，点击“Resize/Move”，将20G空闲空间合并到sda1分区。</p>
+<h3 id="zhong-xin-chuang-jian-swap-fen-qu-bing-ge-shi-hua-wei-linux-swap">重新创建swap分区，并格式化为linux-swap</h3>
+<p>这里新建一个分区，文件系统选择linux-swap，并格式化为swap分区</p>
+<h3 id="sheng-xiao-she-zhi">生效设置</h3>
+<p>进行了上面的操作后，点击“Apply”等待生效，gparted处理过程如下图所示：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/gparted_apply.png" width="800">
 <p>成功后，会在界面上显示”complete“字样</p>
 <p>然后VM断连GParted Live 安装介质，重启启动VM，VM在启动过程中会出现如下信息(稍微等待一点时间即可，无需人工干预)：</p>
-<img class="shadow" src="/img/in-post/vm_start_status.png" width="800">
-
-<h3 id="效果确认"><a href="#效果确认" class="headerlink" title="效果确认"></a>效果确认</h3><p>最终效果如下：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu16:~# lsblk
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/vm_start_status.png" width="800">
+<h3 id="xiao-guo-que-ren">效果确认</h3>
+<p>最终效果如下：</p>
+<pre><code class="language-shell">root@ubuntu16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
 sda      8:0    0   80G  0 disk 
@@ -564,23 +709,28 @@ root@ubuntu16:/# md5sum test.txt
 root@ubuntu16:/# 
 </code></pre>
 <p>文件md5值，在扩容前后一样.</p>
-<h1 id="是否还有其他方法？"><a href="#是否还有其他方法？" class="headerlink" title="是否还有其他方法？"></a>是否还有其他方法？</h1><p>网上有人说在OS里安装gparted，直接执行gparted来扩展分区，下文将验证其可行性。</p>
-<h2 id="安装gparted"><a href="#安装gparted" class="headerlink" title="安装gparted"></a>安装gparted</h2><p>因为要使用gparted来进行根分区的扩容，需要安装gparted；如果已经安装了，忽略此步骤。</p>
+<h1 id="shi-fou-huan-you-qi-ta-fang-fa">是否还有其他方法？</h1>
+<p>网上有人说在OS里安装gparted，直接执行gparted来扩展分区，下文将验证其可行性。</p>
+<h2 id="an-zhuang-gparted">安装gparted</h2>
+<p>因为要使用gparted来进行根分区的扩容，需要安装gparted；如果已经安装了，忽略此步骤。</p>
 <p><code>apt-get install gparted </code></p>
 <p>如果后面使用XManager还有问题，可以在此ubuntu节点上安装如下一个工具：</p>
 <p><code>apt install x11-xserver-utils </code></p>
-<h2 id="通过XManager访问此节点"><a href="#通过XManager访问此节点" class="headerlink" title="通过XManager访问此节点"></a>通过XManager访问此节点</h2><p>需要找一台Windows安装XManager，非本文重点，忽略。</p>
-<h3 id="XManager上创建一个XStart"><a href="#XManager上创建一个XStart" class="headerlink" title="XManager上创建一个XStart"></a>XManager上创建一个XStart</h3><p>新建一个XStart，输入此节点的IP地址、root账号和密码，以及需要执行的命令（gparted），保存即可。之后点击这个新建的XStart，会出现有一个auth文件没有，关掉后重新打开这个XStart再次登录即可。</p>
+<h2 id="tong-guo-x-manager-fang-wen-ci-jie-dian">通过XManager访问此节点</h2>
+<p>需要找一台Windows安装XManager，非本文重点，忽略。</p>
+<h3 id="x-manager-shang-chuang-jian-yi-ge-x-start">XManager上创建一个XStart</h3>
+<p>新建一个XStart，输入此节点的IP地址、root账号和密码，以及需要执行的命令（gparted），保存即可。之后点击这个新建的XStart，会出现有一个auth文件没有，关掉后重新打开这个XStart再次登录即可。</p>
 <p>如果直接在终端执行gparted命令时，会出现如下错误：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu16:/# gparted
+<pre><code class="language-shell">root@ubuntu16:/# gparted
 
 (gpartedbin:2462): Gtk-WARNING **: cannot open display:
 </code></pre>
-<h3 id="查看进入gparted界面效果"><a href="#查看进入gparted界面效果" class="headerlink" title="查看进入gparted界面效果"></a>查看进入gparted界面效果</h3><p>成功通过XStart进入可视化界面后，会看到已经使用的空间都带有锁标记，如下图所示：</p>
-<img class="shadow" src="/img/in-post/gparted_lock.png" width="1200">
-
+<h3 id="cha-kan-jin-ru-gparted-jie-mian-xiao-guo">查看进入gparted界面效果</h3>
+<p>成功通过XStart进入可视化界面后，会看到已经使用的空间都带有锁标记，如下图所示：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/gparted_lock.png" width="1200">
 <p>这时是不能对分区进行操作的，网上有人说需要先卸载（unmount）或者停止（swapoff），然后才能进行Resize操作。</p>
-<h4 id="尝试swapoff"><a href="#尝试swapoff" class="headerlink" title="尝试swapoff"></a>尝试swapoff</h4><pre><code class="line-numbers language-shell">root@ubuntu16:/# swapoff -a
+<h4 id="chang-shi-swapoff">尝试swapoff</h4>
+<pre><code class="language-shell">root@ubuntu16:/# swapoff -a
 root@ubuntu16:/# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk
@@ -591,12 +741,11 @@ sr0     11:0    1  873M  0 rom
 root@ubuntu16:/#
 </code></pre>
 <p>上面显示已经swapoff了，此时重新进入gparted界面，显示如下：</p>
-<img class="shadow" src="/img/in-post/swapoff_root_lock.png" width="1200">
-
-<p>尝试对根分区进行容量扩展，发现没法扩展；尝试先umount，发现也没法umount掉这个根分区，因为会显示为Busy（其实想想，如果umount掉了，系统都没法使用了吧，更不用谈当前gparted操作了），从这里，基本上<br>把swapoff和umount两条路给堵死了，说明行不通。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/swapoff_root_lock.png" width="1200">
+<p>尝试对根分区进行容量扩展，发现没法扩展；尝试先umount，发现也没法umount掉这个根分区，因为会显示为Busy（其实想想，如果umount掉了，系统都没法使用了吧，更不用谈当前gparted操作了），从这里，基本上把swapoff和umount两条路给堵死了，说明行不通。</p>
 <p>还有人说用制作Ubuntu启动U盘试用模式下进行的，不过我的环境是虚机，就没尝试这个方法。</p>
 <p>先还原环境吧，swapon回来；</p>
-<pre><code class="line-numbers language-shell">root@ubuntu16:/# swapon -a
+<pre><code class="language-shell">root@ubuntu16:/# swapon -a
 root@ubuntu16:/# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk
@@ -606,7 +755,8 @@ sda      8:0    0   80G  0 disk
 sr0     11:0    1  873M  0 rom
 root@ubuntu16:/#
 </code></pre>
-<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>直接通过gparted，只能对非根分区进行扩容/缩容，如果想对根分区进行扩容/缩容，可以通过gparted live ISO进行。</p>
+<h2 id="jie-lun">结论</h2>
+<p>直接通过gparted，只能对非根分区进行扩容/缩容，如果想对根分区进行扩容/缩容，可以通过gparted live ISO进行。</p>
 
                 
             </div>
@@ -709,10 +859,10 @@ root@ubuntu16:/#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1026,7 +1176,7 @@ root@ubuntu16:/#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/140.jpg" class="responsive-img" alt="unittest,pytest,nose,robot framework简介">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/140.jpg" class="responsive-img" alt="unittest,pytest,nose,robot framework简介">
                         
                         <span class="card-title">unittest,pytest,nose,robot framework简介</span>
                     </div>
@@ -1075,7 +1225,7 @@ root@ubuntu16:/#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/102.jpg" class="responsive-img" alt="获取SSD寿命">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/102.jpg" class="responsive-img" alt="获取SSD寿命">
                         
                         <span class="card-title">获取SSD寿命</span>
                     </div>
@@ -1306,7 +1456,7 @@ root@ubuntu16:/#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1656,6 +1806,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

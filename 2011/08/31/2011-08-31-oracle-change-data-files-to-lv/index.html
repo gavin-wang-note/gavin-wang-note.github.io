@@ -5,12 +5,17 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例--oracle本地磁盘数据文件更改到lv上, 软硬件测试">
-    <meta name="description" content="oracle本地磁盘数据文件更改到lv上背景oracle数据库的所有数据文件安装在本地系统盘，现要将所有本地系统盘上的数据文件转移到外挂磁阵lv上。
-实现过程说明：
+    <meta name="description" content="oracle本地磁盘数据文件更改到lv上
+背景
+oracle数据库的所有数据文件安装在本地系统盘，现要将所有本地系统盘上的数据文件转移到外挂磁阵lv上。
+实现过程
+说明：
+
 
 这里仅以一个本地永久数据文件转移到lv上为示例。
 
-步骤一、创建测试表空">
+
+步骤一、创">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -68,20 +73,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -196,7 +341,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -473,16 +618,25 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="oracle本地磁盘数据文件更改到lv上"><a href="#oracle本地磁盘数据文件更改到lv上" class="headerlink" title="oracle本地磁盘数据文件更改到lv上"></a>oracle本地磁盘数据文件更改到lv上</h1><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>oracle数据库的所有数据文件安装在本地系统盘，现要将所有本地系统盘上的数据文件转移到外挂磁阵lv上。</p>
-<h2 id="实现过程"><a href="#实现过程" class="headerlink" title="实现过程"></a>实现过程</h2><p>说明：</p>
-<ul>
-<li>这里仅以一个本地永久数据文件转移到lv上为示例。</li>
+                <h1 id="oracle-ben-di-ci-pan-shu-ju-wen-jian-geng-gai-dao-lv-shang">oracle本地磁盘数据文件更改到lv上</h1>
+<h2 id="bei-jing">背景</h2>
+<p>oracle数据库的所有数据文件安装在本地系统盘，现要将所有本地系统盘上的数据文件转移到外挂磁阵lv上。</p>
+<h2 id="shi-xian-guo-cheng">实现过程</h2>
+<p>说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这里仅以一个本地永久数据文件转移到lv上为示例。</p>
+</li>
 </ul>
-<h3 id="步骤一、创建测试表空间"><a href="#步骤一、创建测试表空间" class="headerlink" title="步骤一、创建测试表空间"></a>步骤一、创建测试表空间</h3><h4 id="本地数据文件"><a href="#本地数据文件" class="headerlink" title="本地数据文件"></a>本地数据文件</h4><pre><code class="line-numbers language-shell">SQL&gt; create tablespace wyztest datafile '/opt/oracle/oradata/mmsgdb/wyztest.dbf' size 50M;   
+<h3 id="bu-zou-yi-chuang-jian-ce-shi-biao-kong-jian">步骤一、创建测试表空间</h3>
+<h4 id="ben-di-shu-ju-wen-jian">本地数据文件</h4>
+<pre><code class="language-shell">SQL&gt; create tablespace wyztest datafile '/opt/oracle/oradata/mmsgdb/wyztest.dbf' size 50M;   
 
 表空间已创建。
 </code></pre>
-<h3 id="步骤二、创建用户表，并插入数据记录"><a href="#步骤二、创建用户表，并插入数据记录" class="headerlink" title="步骤二、创建用户表，并插入数据记录"></a>步骤二、创建用户表，并插入数据记录</h3><h4 id="创建用户并授权"><a href="#创建用户并授权" class="headerlink" title="创建用户并授权"></a>创建用户并授权</h4><pre><code class="line-numbers language-shell">SQL&gt; create user test identified by test  
+<h3 id="bu-zou-er-chuang-jian-yong-hu-biao-bing-cha-ru-shu-ju-ji-lu">步骤二、创建用户表，并插入数据记录</h3>
+<h4 id="chuang-jian-yong-hu-bing-shou-quan">创建用户并授权</h4>
+<pre><code class="language-shell">SQL&gt; create user test identified by test  
   2  default tablespace wyztest 
   3  profile default;
 
@@ -511,7 +665,8 @@ SQL&gt; commit;
 SQL&gt; exit
 </code></pre>
 <p>从 Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production With the Partitioning, OLAP, Data Mining and Real Application Testing options 断开</p>
-<h4 id="创建用户表，并插入两条记录"><a href="#创建用户表，并插入两条记录" class="headerlink" title="创建用户表，并插入两条记录"></a>创建用户表，并插入两条记录</h4><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus test/test@mmsgdb
+<h4 id="chuang-jian-yong-hu-biao-bing-cha-ru-liang-tiao-ji-lu">创建用户表，并插入两条记录</h4>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; sqlplus test/test@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 8月 31 12:11:17 2011
 
@@ -549,11 +704,14 @@ SQL&gt; select * from modules;        #表中数据有两条记录，用于迁�
 
 SQL&gt; exit
 </code></pre>
-<h3 id="步骤三、创建lv，修改lv属主为oracle"><a href="#步骤三、创建lv，修改lv属主为oracle" class="headerlink" title="步骤三、创建lv，修改lv属主为oracle"></a>步骤三、创建lv，修改lv属主为oracle</h3><h4 id="创建lv"><a href="#创建lv" class="headerlink" title="创建lv"></a>创建lv</h4><pre><code class="line-numbers language-shell">mmsc103:/opt/oracle # lvcreate -L 290M -n oratest vg_dlsc_uoa
+<h3 id="bu-zou-san-chuang-jian-lv-xiu-gai-lv-shu-zhu-wei-oracle">步骤三、创建lv，修改lv属主为oracle</h3>
+<h4 id="chuang-jian-lv">创建lv</h4>
+<pre><code class="language-shell">mmsc103:/opt/oracle # lvcreate -L 290M -n oratest vg_dlsc_uoa
   Rounding up size to full physical extent 292.00 MB
   Logical volume "oratest" created
 </code></pre>
-<h4 id="修改lv属主信息"><a href="#修改lv属主信息" class="headerlink" title="修改lv属主信息"></a>修改lv属主信息</h4><pre><code class="line-numbers language-shell">mmsc103:/opt/oracle # cd /dev
+<h4 id="xiu-gai-lv-shu-zhu-xin-xi">修改lv属主信息</h4>
+<pre><code class="language-shell">mmsc103:/opt/oracle # cd /dev
 mmsc103:/dev # chown -R oracle.oinstall vg_dlsc_uoa
 mmsc103:/dev # chown -R oracle.oinstall vg_dlsc_uoa/*
 mmsc103:/dev/vg_dlsc_uoa # ls -l
@@ -570,15 +728,20 @@ mmsc103:/dev/mapper # chown -R oracle.oinstall vg_dlsc_uoa-oratest
 mmsc103:/dev/mapper # 
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>父目录、目录下文件以及mapper文件的属主都要修改，否则rman操作会报权限不足（Permission denied）</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>父目录、目录下文件以及mapper文件的属主都要修改，否则rman操作会报权限不足（Permission denied）</p>
+</li>
 </ul>
-<h3 id="步骤四、mount状态下拷贝本地文件到lv上"><a href="#步骤四、mount状态下拷贝本地文件到lv上" class="headerlink" title="步骤四、mount状态下拷贝本地文件到lv上"></a>步骤四、mount状态下拷贝本地文件到lv上</h3><h4 id="关闭数据库"><a href="#关闭数据库" class="headerlink" title="关闭数据库"></a>关闭数据库</h4><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h3 id="bu-zou-si-mount-zhuang-tai-xia-kao-bei-ben-di-wen-jian-dao-lv-shang">步骤四、mount状态下拷贝本地文件到lv上</h3>
+<h4 id="guan-bi-shu-ju-ku">关闭数据库</h4>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
 ORACLE 例程已经关闭。
 </code></pre>
-<h4 id="启动数据库到mount状态"><a href="#启动数据库到mount状态" class="headerlink" title="启动数据库到mount状态"></a>启动数据库到mount状态</h4><pre><code class="line-numbers language-shell">SQL&gt; startup mount
+<h4 id="qi-dong-shu-ju-ku-dao-mount-zhuang-tai">启动数据库到mount状态</h4>
+<pre><code class="language-shell">SQL&gt; startup mount
 ORACLE 例程已经启动。
 
 Total System Global Area 1603411968 bytes
@@ -590,7 +753,8 @@ Redo Buffers                7430144 bytes
 SQL&gt; exit
 </code></pre>
 <p>从 Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production With the Partitioning, OLAP, Data Mining and Real Application Testing options 断开</p>
-<h4 id="复制本地数据文件到lv上"><a href="#复制本地数据文件到lv上" class="headerlink" title="复制本地数据文件到lv上"></a>复制本地数据文件到lv上</h4><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; rman target/
+<h4 id="fu-zhi-ben-di-shu-ju-wen-jian-dao-lv-shang">复制本地数据文件到lv上</h4>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; rman target/
 
 恢复管理器: Release 11.1.0.6.0 - Production on 星期三 8月 31 11:45:14 2011
 
@@ -612,7 +776,8 @@ RMAN&gt; copy datafile '/opt/oracle/oradata/mmsgdb/wyztest.dbf' to '/dev/vg_dlsc
 
 RMAN&gt; quit
 </code></pre>
-<h3 id="步骤五、修改控制文件并open数据库"><a href="#步骤五、修改控制文件并open数据库" class="headerlink" title="步骤五、修改控制文件并open数据库"></a>步骤五、修改控制文件并open数据库</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
+<h3 id="bu-zou-wu-xiu-gai-kong-zhi-wen-jian-bing-open-shu-ju-ku">步骤五、修改控制文件并open数据库</h3>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 8月 31 11:50:50 2011
 
@@ -631,7 +796,8 @@ SQL&gt; alter database open;
 
 数据库已更改。
 </code></pre>
-<h3 id="步骤六、查看迁移结果"><a href="#步骤六、查看迁移结果" class="headerlink" title="步骤六、查看迁移结果"></a>步骤六、查看迁移结果</h3><pre><code class="line-numbers language-shell">SQL&gt; select FILE_NAME from dba_data_files where TABLESPACE_NAME ='WYZTEST';
+<h3 id="bu-zou-liu-cha-kan-qian-yi-jie-guo">步骤六、查看迁移结果</h3>
+<pre><code class="language-shell">SQL&gt; select FILE_NAME from dba_data_files where TABLESPACE_NAME ='WYZTEST';
 
 FILE_NAME
 --------------------------------------------------------------------------------
@@ -641,7 +807,8 @@ SQL&gt; quit
 从 Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options 断开
 </code></pre>
-<h4 id="查看前后后表中数据记录"><a href="#查看前后后表中数据记录" class="headerlink" title="查看前后后表中数据记录"></a>查看前后后表中数据记录</h4><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus test/test@mmsgdb
+<h4 id="cha-kan-qian-hou-hou-biao-zhong-shu-ju-ji-lu">查看前后后表中数据记录</h4>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; sqlplus test/test@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 8月 31 12:21:50 2011
 
@@ -662,15 +829,20 @@ SQL&gt; select * from modules;
 SQL&gt; 
 </code></pre>
 <p>此时看到，两条记录，数据都在。</p>
-<h3 id="步骤七、环境清理（可选）"><a href="#步骤七、环境清理（可选）" class="headerlink" title="步骤七、环境清理（可选）"></a>步骤七、环境清理（可选）</h3><p>可以删除本地路径下的原迁移前的数据文件，可选操作。</p>
-<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="变更永久数据文件位置步骤"><a href="#变更永久数据文件位置步骤" class="headerlink" title="变更永久数据文件位置步骤"></a>变更永久数据文件位置步骤</h3><p>1、db处于mount状态；</p>
+<h3 id="bu-zou-qi-huan-jing-qing-li-ke-xuan">步骤七、环境清理（可选）</h3>
+<p>可以删除本地路径下的原迁移前的数据文件，可选操作。</p>
+<h2 id="fu-lu">附录</h2>
+<h3 id="bian-geng-yong-jiu-shu-ju-wen-jian-wei-zhi-bu-zou">变更永久数据文件位置步骤</h3>
+<p>1、db处于mount状态；</p>
 <p>2、mv或者cp操作，将文件拷贝到指定位置；</p>
 <p>3、修改控制文件：alter database rename file ‘xxxx’ to ‘xxxxxxx’;</p>
 <p>说明：</p>
-<ul>
-<li>永久数据文件包括：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>永久数据文件包括：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">select file_name from dba_data_files;
+<pre><code class="language-shell">select file_name from dba_data_files;
 system01.dbf 
 sysaux01.dbf 
 undotbs01.dbf
@@ -681,11 +853,13 @@ redo01.log
 redo02.log
 redo03.log
 </code></pre>
-<h3 id="变更临时文件位置"><a href="#变更临时文件位置" class="headerlink" title="变更临时文件位置"></a>变更临时文件位置</h3><p>由于临时文件不存放数据，可以将原先临时文件drop掉，并重新创建在lv上既可。</p>
-<pre><code class="line-numbers language-shell">select file_name from dba_temp_files;
+<h3 id="bian-geng-lin-shi-wen-jian-wei-zhi">变更临时文件位置</h3>
+<p>由于临时文件不存放数据，可以将原先临时文件drop掉，并重新创建在lv上既可。</p>
+<pre><code class="language-shell">select file_name from dba_temp_files;
 temp01.dbf
 </code></pre>
-<h3 id="变更控制文件位置"><a href="#变更控制文件位置" class="headerlink" title="变更控制文件位置"></a>变更控制文件位置</h3><pre><code class="line-numbers language-shell">select * from v$controlfile;
+<h3 id="bian-geng-kong-zhi-wen-jian-wei-zhi">变更控制文件位置</h3>
+<pre><code class="language-shell">select * from v$controlfile;
 control01.ctl
 control02.ctl
 control03.ctl
@@ -695,8 +869,10 @@ control03.ctl
 <p>2、创建pfile文件，修改控制文件路径信息为lv上的控制文件；</p>
 <p>3、使用pfile创建spfile，并启动数据库</p>
 <p>说明：</p>
-<ul>
-<li>oracle自11gR2版本开始，控制文件数默认不再是三个，而是两个。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>oracle自11gR2版本开始，控制文件数默认不再是三个，而是两个。</p>
+</li>
 </ul>
 
                 
@@ -800,10 +976,10 @@ control03.ctl
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1117,7 +1293,7 @@ control03.ctl
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/127.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01113">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/127.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01113">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-01113</span>
                     </div>
@@ -1166,7 +1342,7 @@ control03.ctl
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/80.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-27086">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/80.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-27086">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-27086</span>
                     </div>
@@ -1397,7 +1573,7 @@ control03.ctl
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1747,6 +1923,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

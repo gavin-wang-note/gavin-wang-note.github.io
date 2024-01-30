@@ -5,9 +5,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="记一次根据epoch查找问题触发时间点, 软硬件测试">
-    <meta name="description" content="概述自动化用例执行期间，碰到crushmap中有一个Default pool，还有一个default pool，只是首字母大小写不一样，如下所示：
+    <meta name="description" content="概述
+自动化用例执行期间，碰到crushmap中有一个Default pool，还有一个default pool，只是首字母大小写不一样，如下所示：
 root@pytest-83-12:~/workspace@2/src# ceph -s
- ">
+">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +66,160 @@ root@pytest-83-12:~/workspace@2/src# ceph -s
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +334,7 @@ root@pytest-83-12:~/workspace@2/src# ceph -s
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -470,8 +611,9 @@ root@pytest-83-12:~/workspace@2/src# ceph -s
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>自动化用例执行期间，碰到crushmap中有一个Default pool，还有一个default pool，只是首字母大小写不一样，如下所示：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:~/workspace@2/src# ceph -s
+                <h1 id="gai-shu">概述</h1>
+<p>自动化用例执行期间，碰到crushmap中有一个Default pool，还有一个default pool，只是首字母大小写不一样，如下所示：</p>
+<pre><code class="language-shell">root@pytest-83-12:~/workspace@2/src# ceph -s
   cluster:
     id:     5d8a5c28-48e7-4f2b-bab5-fd3d1f576b12
     health: HEALTH_OK
@@ -518,8 +660,10 @@ ID  CLASS WEIGHT  TYPE NAME                  STATUS REWEIGHT PRI-AFF
 root@pytest-83-12:~/workspace@2/src# 
 </code></pre>
 <p>表面看，ceph集群是健康的，但UI上的一些操作会报错，报错的原因是无法从Default pool中获取到对应的osd.x中的x，即osd的index id无法获取到，进而导致UI上的涉及Pool和OSD的相关动作，都会报错。</p>
-<h1 id="问题追踪"><a href="#问题追踪" class="headerlink" title="问题追踪"></a>问题追踪</h1><h2 id="如何确定问题发生的第一时间点？"><a href="#如何确定问题发生的第一时间点？" class="headerlink" title="如何确定问题发生的第一时间点？"></a>如何确定问题发生的第一时间点？</h2><p>先获取当前epoch，如下文所示：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:~# ceph osd dump
+<h1 id="wen-ti-zhui-zong">问题追踪</h1>
+<h2 id="ru-he-que-ding-wen-ti-fa-sheng-de-di-yi-shi-jian-dian">如何确定问题发生的第一时间点？</h2>
+<p>先获取当前epoch，如下文所示：</p>
+<pre><code class="language-shell">root@pytest-83-12:~# ceph osd dump
 epoch 716
 fsid 5d8a5c28-48e7-4f2b-bab5-fd3d1f576b12
 created 2022-07-09 12:52:54.101136
@@ -550,7 +694,8 @@ osd.1 up in weight 1 recovery_weight 1 up_from 232 up_thru 706 down_at 227 last_
 osd.2 up in weight 1 recovery_weight 1 up_from 403 up_thru 706 down_at 0 last_clean_interval [0,0) 1.1.1.13:6800/755654 1.1.1.13:6801/755654 1.1.1.13:6802/755654 1.1.1.13:6803/755654 exists,up d50d1d3b-ee0c-4e34-9e09-c187fc7bbec4
 </code></pre>
 <p>当前epoch是716</p>
-<h2 id="查询epoch-716的crush-map中是否存在Default"><a href="#查询epoch-716的crush-map中是否存在Default" class="headerlink" title="查询epoch=716的crush map中是否存在Default"></a>查询epoch=716的crush map中是否存在Default</h2><pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=716;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt
+<h2 id="cha-xun-epoch-716-de-crush-map-zhong-shi-fou-cun-zai-default">查询epoch=716的crush map中是否存在Default</h2>
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=716;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt
 got osdmap epoch 716
 osdmaptool: osdmap file 'osdmap.716'
 osdmaptool: exported crush map to crush.716
@@ -559,13 +704,13 @@ host Default_1.1.1.12 {
 host Default_1.1.1.13 {
 host Default_1.1.1.11 {
 pool Default {
-    item Default_1.1.1.12 weight 0.021
-    item Default_1.1.1.13 weight 0.000
-    item Default_1.1.1.11 weight 0.000
+	item Default_1.1.1.12 weight 0.021
+	item Default_1.1.1.13 weight 0.000
+	item Default_1.1.1.11 weight 0.000
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
 <p>发现epoch716里含有；利用二分法，对半分，来查找：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=358;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=358;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 358
 osdmaptool: osdmap file 'osdmap.358'
 osdmaptool: exported crush map to crush.358
@@ -573,13 +718,13 @@ host Default_1.1.1.12 {
 host Default_1.1.1.13 {
 host Default_1.1.1.11 {
 pool Default {
-    item Default_1.1.1.12 weight 0.021
-    item Default_1.1.1.13 weight 0.041
-    item Default_1.1.1.11 weight 0.041
+	item Default_1.1.1.12 weight 0.021
+	item Default_1.1.1.13 weight 0.041
+	item Default_1.1.1.11 weight 0.041
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
 <p>epoch 358里也含有，继续二分法找:</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=179;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=179;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 179
 osdmaptool: osdmap file 'osdmap.179'
 osdmaptool: exported crush map to crush.179
@@ -587,12 +732,12 @@ host Default_1.1.1.12 {
 host Default_1.1.1.13 {
 host Default_1.1.1.11 {
 pool Default {
-    item Default_1.1.1.12 weight 0.021
-    item Default_1.1.1.13 weight 0.041
-    item Default_1.1.1.11 weight 0.041
+	item Default_1.1.1.12 weight 0.021
+	item Default_1.1.1.13 weight 0.041
+	item Default_1.1.1.11 weight 0.041
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=89;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=89;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 89
 osdmaptool: osdmap file 'osdmap.89'
 osdmaptool: exported crush map to crush.89
@@ -600,50 +745,50 @@ root@pytest-83-12:/home/btadmin# systemctl restart ceph.target;systemctl restart
 Failed to restart httpd.service: Unit httpd.service not found.
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
-<p>发现epoch 89里并没有涵盖Default pool，说明在epoch 89<del>179之间的某个epoch，继续缩小范围(查找89</del>179的中间值，134)：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=134;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<p>发现epoch 89里并没有涵盖Default pool，说明在epoch 89<sub>179之间的某个epoch，继续缩小范围(查找89</sub>179的中间值，134)：</p>
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=134;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 134
 osdmaptool: osdmap file 'osdmap.134'
 osdmaptool: exported crush map to crush.134
 host Default_1.1.1.12 {
 host Default_1.1.1.13 {
 pool Default {
-    item Default_1.1.1.12 weight 0.021
-    item Default_1.1.1.13 weight 0.041
+	item Default_1.1.1.12 weight 0.021
+	item Default_1.1.1.13 weight 0.041
 host Default_1.1.1.11 {
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
-<p>epoch 134含有，说明在epoch 89<del>134之间的某个epoch，继续缩小范围（取89</del>134的中间值111）：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=111;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<p>epoch 134含有，说明在epoch 89<sub>134之间的某个epoch，继续缩小范围（取89</sub>134的中间值111）：</p>
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=111;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 111
 osdmaptool: osdmap file 'osdmap.111'
 osdmaptool: exported crush map to crush.111
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
-<p>epoch 111不含有，说明在epoch 111<del>134之间的某个epoch，继续缩小范围（取111</del>134的中间值122）：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=122;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<p>epoch 111不含有，说明在epoch 111<sub>134之间的某个epoch，继续缩小范围（取111</sub>134的中间值122）：</p>
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=122;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 122
 osdmaptool: osdmap file 'osdmap.122'
 osdmaptool: exported crush map to crush.122
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
-<p>epoch 122不含有，说明在epoch 122<del>134之间的某个epoch，继续缩小范围（取122</del>134的中间值128）：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=128;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<p>epoch 122不含有，说明在epoch 122<sub>134之间的某个epoch，继续缩小范围（取122</sub>134的中间值128）：</p>
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=128;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 128
 osdmaptool: osdmap file 'osdmap.128'
 osdmaptool: exported crush map to crush.128
 host Default_1.1.1.12 {
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
-<p>epoch 128含有了，说明在epoch 122<del>128之间的某个epoch，这样范围逐步缩小了，接下来就是挨个从(122,128)之间找123</del>127 epoch</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/home/btadmin# i=127;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
+<p>epoch 128含有了，说明在epoch 122<sub>128之间的某个epoch，这样范围逐步缩小了，接下来就是挨个从(122,128)之间找123</sub>127 epoch</p>
+<pre><code class="language-shell">root@pytest-83-12:/home/btadmin# i=127;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 127
 osdmaptool: osdmap file 'osdmap.127'
 osdmaptool: exported crush map to crush.127
 root@pytest-83-12:/home/btadmin# 
 </code></pre>
 <p>很巧，epoch 127不含，说明epoch 128是第一次出现Default pool，那就追epoch 128:</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/var/log/ceph# zgrep -n "osd crush link" ceph.audit.log.2.gz |grep 'Default'
+<pre><code class="language-shell">root@pytest-83-12:/var/log/ceph# zgrep -n "osd crush link" ceph.audit.log.2.gz |grep 'Default'
 316910:2022-07-09 13:47:44.051329 mon.klavr mon.1 1.1.1.12:6789/0 208638 : audit [INF] from='client.5074 1.1.1.12:0/4225613905' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=Default"], "name": "Default_1.1.1.12"}]: dispatch
 316937:2022-07-09 13:47:44.130734 mon.gfbvr mon.0 1.1.1.11:6789/0 724 : audit [INF] from='client.5074 -' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=Default"], "name": "Default_1.1.1.12"}]: dispatch
 317003:2022-07-09 13:47:45.108711 mon.gfbvr mon.0 1.1.1.11:6789/0 731 : audit [INF] from='client.5074 -' entity='client.admin' cmd='[{"prefix": "osd crush link", "args": ["pool=Default"], "name": "Default_1.1.1.12"}]': finished
@@ -655,7 +800,7 @@ root@pytest-83-12:/home/btadmin#
 317548:2022-07-09 13:47:50.338830 mon.gfbvr mon.0 1.1.1.11:6789/0 793 : audit [INF] from='client.5074 -' entity='client.admin' cmd='[{"prefix": "osd crush link", "args": ["pool=Default"], "name": "Default_1.1.1.11"}]': finished
 root@pytest-83-12:/var/log/ceph# 
 </code></pre>
-<pre><code class="line-numbers language-shell">root@pytest-83-12:/var/log/ceph# zgrep -n "osd crush link" ceph.audit.log.2.gz |grep '13:47:'
+<pre><code class="language-shell">root@pytest-83-12:/var/log/ceph# zgrep -n "osd crush link" ceph.audit.log.2.gz |grep '13:47:'
 313387:2022-07-09 13:47:09.208853 mon.klavr mon.1 1.1.1.12:6789/0 206827 : audit [INF] from='client.5074 1.1.1.12:0/4225613905' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=pytest-sds-pool"], "name": "pytest-sds-pool_1.1.1.12"}]: dispatch
 313402:2022-07-09 13:47:09.286625 mon.gfbvr mon.0 1.1.1.11:6789/0 445 : audit [INF] from='client.5074 -' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=pytest-sds-pool"], "name": "pytest-sds-pool_1.1.1.12"}]: dispatch
 313478:2022-07-09 13:47:10.259098 mon.gfbvr mon.0 1.1.1.11:6789/0 454 : audit [INF] from='client.5074 -' entity='client.admin' cmd='[{"prefix": "osd crush link", "args": ["pool=pytest-sds-pool"], "name": "pytest-sds-pool_1.1.1.12"}]': finished
@@ -678,12 +823,12 @@ root@pytest-83-12:/var/log/ceph#
 </code></pre>
 <p>这里能够看出，13:47时，有创建一个Default pool.</p>
 <p>既然找到时间点了，找一下自动化用例，那个时刻在做什么：</p>
-<pre><code class="line-numbers language-shell">2022-07-09 13:47:42 [pool.py:67  ] [ INFO] [Success]  Get all OSD success which state is UP and IN, osd_up_in is : ([0, 1, 2])
+<pre><code class="language-shell">2022-07-09 13:47:42 [pool.py:67  ] [ INFO] [Success]  Get all OSD success which state is UP and IN, osd_up_in is : ([0, 1, 2])
 2022-07-09 13:47:42 [pool.py:169 ] [ INFO] [Action]   Assign osd : (0 1 2) into pool : (Default)
 2022-07-09 13:47:42 [connectionpool.py:243 ] [DEBUG] Resetting dropped connection: localhost
 </code></pre>
 <p>在assign OSD into Default pool，找到这里，就找到那个时间点被执行到的用例：</p>
-<pre><code class="line-numbers language-shell">2022-07-09 13:47:00 [test_01_SDS_admin_account_settings.py:46  ] [ INFO] ------------------------  Testsuite setup  ------------------------
+<pre><code class="language-shell">2022-07-09 13:47:00 [test_01_SDS_admin_account_settings.py:46  ] [ INFO] ------------------------  Testsuite setup  ------------------------
 2022-07-09 13:47:00 [test_01_SDS_admin_account_settings.py:47  ] [ INFO] [SetUp]     Class setup to create pool : (pytest-sds-pool), VS : (pytest-sds-vs)
 2022-07-09 13:47:00 [virtual_storage.py:306 ] [ INFO] [Action]   Start to get all nodes information
 2022-07-09 13:47:00 [connectionpool.py:243 ] [DEBUG] Resetting dropped connection: localhost
@@ -696,6 +841,7 @@ root@pytest-83-12:/var/log/ceph#
 2022-07-09 13:50:06 [bigtera_cluster.py:1408] [ INFO] [Check]    Check ctdb health status from file of : (/root/workspace@2/src/common/bigtera_cluster.pyc)
 2022-07-09 13:50:06 [command.py:102 ] [DEBUG] command 'ctdb status | grep pnn | sed 's/(THIS NODE)//g' | awk '{print $NF}' | grep OK | wc -l' (timeout=0, force=False)
 2022-07-09 13:50:06 [command.py:177 ] [DEBUG] command 'ctdb status | grep pnn | sed 's/(THIS NODE)//g' | awk '{print $NF}' | grep OK | wc -l' returns '3
+
 </code></pre>
 <p>至此找出是哪个用例的执行，触发了bug。</p>
 
@@ -800,10 +946,10 @@ root@pytest-83-12:/var/log/ceph#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1117,7 +1263,7 @@ root@pytest-83-12:/var/log/ceph#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/10.jpg" class="responsive-img" alt="获取ceph large omap object">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/10.jpg" class="responsive-img" alt="获取ceph large omap object">
                         
                         <span class="card-title">获取ceph large omap object</span>
                     </div>
@@ -1166,7 +1312,7 @@ root@pytest-83-12:/var/log/ceph#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/161.jpg" class="responsive-img" alt="S3 分片上传对象报416错误码">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/161.jpg" class="responsive-img" alt="S3 分片上传对象报416错误码">
                         
                         <span class="card-title">S3 分片上传对象报416错误码</span>
                     </div>
@@ -1401,7 +1547,7 @@ root@pytest-83-12:/var/log/ceph#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1751,6 +1897,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

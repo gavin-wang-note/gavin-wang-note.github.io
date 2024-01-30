@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="快速清除rbd image, 软硬件测试">
-    <meta name="description" content="概述当集群里出现一个较大的rbd image时，如何快速清理掉它并释放空间，已经存在文章 ：https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/ 做了介绍。并">
+    <meta name="description" content="概述
+当集群里出现一个较大的rbd image时，如何快速清理掉它并释放空间，已经存在文章 ：https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/ 做了介绍。">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -438,7 +579,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    956
+                    957
                 </div>
                 
 
@@ -468,7 +609,8 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>当集群里出现一个较大的rbd image时，如何快速清理掉它并释放空间，已经存在文章 ：<a target="_blank" rel="noopener" href="https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/">https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/</a> 做了介绍。<br>并且对不同的方法做了分析，这里先把结论说下:</p>
+                <h1 id="gai-shu">概述</h1>
+<p>当集群里出现一个较大的rbd image时，如何快速清理掉它并释放空间，已经存在文章 ：<a target="_blank" rel="noopener" href="https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/">https://cephnotes.ksperis.com/blog/2014/07/04/remove-big-rbd-image/</a> 做了介绍。并且对不同的方法做了分析，这里先把结论说下:</p>
 <table>
 <thead>
 <tr>
@@ -477,7 +619,8 @@
 <th>rados -p rm方法</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>未填充很多</td>
 <td>慢</td>
 <td>快</td>
@@ -487,62 +630,78 @@
 <td>快</td>
 <td>慢</td>
 </tr>
-</tbody></table>
-<p>在rbd进行删除的时候，即使内部没有对象数据，也一样需要一个个对象去发请求，即使对象不存在，这个可以开日志看到:<br>在/etc/ceph/ceph.conf中添加</p>
-<pre><code class="line-numbers language-shell">[client]
+</tbody>
+</table>
+<p>在rbd进行删除的时候，即使内部没有对象数据，也一样需要一个个对象去发请求，即使对象不存在，这个可以开日志看到:<br>
+在/etc/ceph/ceph.conf中添加</p>
+<pre><code class="language-shell">[client]
 debug_ms=1
 log_file=/var/log/ceph/rados.log
 </code></pre>
-<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><p>dd写，bs=1M,写了40G的数据：</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-19:~# dd if=/dev/zero of=/dev/rbd0 bs=1M count=40960
+<h1 id="shi-jian">实践</h1>
+<p>dd写，bs=1M,写了40G的数据：</p>
+<pre><code class="language-shell">root@pytest-83-19:~# dd if=/dev/zero of=/dev/rbd0 bs=1M count=40960
 40960+0 records in
 40960+0 records out
 42949672960 bytes (43 GB, 40 GiB) copied, 261.264 s, 164 MB/s
 </code></pre>
-<h2 id="rbd-image-信息"><a href="#rbd-image-信息" class="headerlink" title="rbd image 信息"></a>rbd image 信息</h2><pre><code class="line-numbers language-shell">root@pytest-83-19:~# rbd ls
+<h2 id="rbd-image-xin-xi">rbd image 信息</h2>
+<pre><code class="language-shell">root@pytest-83-19:~# rbd ls
 889795de-fafb-4fca-9bf1-9b984e6124d2.img
 root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img
 rbd image '889795de-fafb-4fca-9bf1-9b984e6124d2.img':
-    size 600GiB in 614400 objects
-    order 20 (1MiB objects)
-    used objects: 0
-    block_name_prefix: rbd_data.30dc419495cff
-    format: 2
-    features: layering
-    flags: 
-    create_timestamp: Fri Apr 21 14:26:48 2023
+	size 600GiB in 614400 objects
+	order 20 (1MiB objects)
+	used objects: 0
+	block_name_prefix: rbd_data.30dc419495cff
+	format: 2
+	features: layering
+	flags: 
+	create_timestamp: Fri Apr 21 14:26:48 2023
 root@pytest-83-19:~#
 </code></pre>
-<h2 id="原始的快速删除方法"><a href="#原始的快速删除方法" class="headerlink" title="原始的快速删除方法"></a>原始的快速删除方法</h2><pre><code class="line-numbers language-shell">root@pytest-83-19:~# time rados -p rbd ls | grep '^rbd_data.30dc419495cff' | xargs -n 200  rados -p rbd rm
+<h2 id="yuan-shi-de-kuai-su-shan-chu-fang-fa">原始的快速删除方法</h2>
+<pre><code class="language-shell">root@pytest-83-19:~# time rados -p rbd ls | grep '^rbd_data.30dc419495cff' | xargs -n 200  rados -p rbd rm
 
 real	2m5.564s
 user	0m46.126s
 sys	0m4.718s
 root@pytest-83-19:~# 
 </code></pre>
-<h2 id="开启多进程删除的方法"><a href="#开启多进程删除的方法" class="headerlink" title="开启多进程删除的方法"></a>开启多进程删除的方法</h2><p>这个比上面那种方法好的是：</p>
-<ul>
-<li>可以显示当前删除的进度</li>
-<li>可以指定删除的进程并发数</li>
-<li>可以显示当时正在删除的对象</li>
-<li>可以增加一个中断时间降低负载</li>
+<h2 id="kai-qi-duo-jin-cheng-shan-chu-de-fang-fa">开启多进程删除的方法</h2>
+<p>这个比上面那种方法好的是：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>可以显示当前删除的进度</p>
+</li>
+<li class="lvl-2">
+<p>可以指定删除的进程并发数</p>
+</li>
+<li class="lvl-2">
+<p>可以显示当时正在删除的对象</p>
+</li>
+<li class="lvl-2">
+<p>可以增加一个中断时间降低负载</p>
+</li>
 </ul>
 <p>首先获取一个需要快速删除的rbd的列表:</p>
-<h3 id="获取prifix"><a href="#获取prifix" class="headerlink" title="获取prifix"></a>获取prifix</h3><pre><code class="line-numbers language-shell">root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img | grep prefix
-    block_name_prefix: rbd_data.30dc419495cff
+<h3 id="huo-qu-prifix">获取prifix</h3>
+<pre><code class="language-shell">root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img | grep prefix
+	block_name_prefix: rbd_data.30dc419495cff
 root@pytest-83-19:~# 
 </code></pre>
-<h3 id="获取列表"><a href="#获取列表" class="headerlink" title="获取列表"></a>获取列表</h3><pre><code class="line-numbers language-shell">root@pytest-83-19:~# rados -p rbd ls |grep rbd_data.30dc419495cff &gt; delobject
+<h3 id="huo-qu-lie-biao">获取列表</h3>
+<pre><code class="language-shell">root@pytest-83-19:~# rados -p rbd ls |grep rbd_data.30dc419495cff &gt; delobject
 </code></pre>
 <p>这里可以看下内容有没有问题，检查确认下:</p>
-<pre><code class="line-numbers language-shell">root@pytest-83-19:~# vim delobject 
+<pre><code class="language-shell">root@pytest-83-19:~# vim delobject 
 rbd_data.30dc419495cff.0000000000008e90
 rbd_data.30dc419495cff.00000000000047a4
 rbd_data.30dc419495cff.000000000000063f
 ............... 如下内容省略 ..........
 </code></pre>
 <p>删除的fast_remove.sh脚本如下：</p>
-<pre><code class="line-numbers language-shell">root@node161:~# cat fast_remove.sh 
+<pre><code class="language-shell">root@node161:~# cat fast_remove.sh 
 #!/bin/bash
 
 process=400
@@ -582,8 +741,9 @@ objectnum=`cat $objectlistfile | wc -l`
 concurrent 1 $objectnum $process
 root@node161:~#
 </code></pre>
-<h3 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h3><p>如下为Physical node的测试结果：</p>
-<pre><code class="line-numbers language-shell"># 400 并发:
+<h3 id="ce-shi-jie-guo">测试结果</h3>
+<p>如下为Physical node的测试结果：</p>
+<pre><code class="language-shell"># 400 并发:
 root@node161:~# time rados -p san-pool ls | grep '^rbd_data.3bba6b8b4567' | xargs -n 400  rados -p san-pool rm
 
 real	0m55.853s
@@ -601,7 +761,7 @@ sys	0m1.221s
 root@node161:~# 
 </code></pre>
 <p>脚本删除结果：</p>
-<pre><code class="line-numbers language-shell"># 400 并发:
+<pre><code class="language-shell"># 400 并发:
 2023-04-21 17:55:16
 -- current delete: [:delete 40960/40960  delete rbd_data.3bba6b8b4567.00000000000007b1 done]
 2023-04-21 17:55:16
@@ -621,7 +781,8 @@ sys	19m49.270s
 root@node161:~# 
 </code></pre>
 <p>尝试了VM以及Phsical Machine，多轮次测试验证，脚本删除的效果并不佳.</p>
-<h1 id="改版-2023-04-28"><a href="#改版-2023-04-28" class="headerlink" title="改版(2023-04-28)"></a>改版(2023-04-28)</h1><pre><code class="line-numbers language-shell">#!/bin/bash
+<h1 id="gai-ban-2023-04-28">改版(2023-04-28)</h1>
+<pre><code class="language-shell">#!/bin/bash
 
 LOG="del.log"
 TASK_NO=100
@@ -682,8 +843,7 @@ function clean_objects()
 
     split_no=1000
     file_no=$(($del_no/${split_no}))
-    suffix_length=$
-</code></pre>
+    suffix_length=$</code></pre>
 
                 
             </div>
@@ -786,10 +946,10 @@ function clean_objects()
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1103,7 +1263,7 @@ function clean_objects()
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/113.jpg" class="responsive-img" alt="快速清除S3 Bucket下Objects">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/113.jpg" class="responsive-img" alt="快速清除S3 Bucket下Objects">
                         
                         <span class="card-title">快速清除S3 Bucket下Objects</span>
                     </div>
@@ -1152,7 +1312,7 @@ function clean_objects()
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/147.jpg" class="responsive-img" alt="如何查看端口是否被封">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/147.jpg" class="responsive-img" alt="如何查看端口是否被封">
                         
                         <span class="card-title">如何查看端口是否被封</span>
                     </div>
@@ -1383,7 +1543,7 @@ function clean_objects()
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1733,6 +1893,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

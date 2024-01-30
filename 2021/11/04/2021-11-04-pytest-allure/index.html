@@ -5,9 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="pytest allure详解, 软硬件测试">
-    <meta name="description" content="概述本文基于allure 2.13.2 版本介绍allure在pytest下的基本运用。
+    <meta name="description" content="概述
+本文基于allure 2.13.2 版本介绍allure在pytest下的基本运用。
 关于allure，详见官网：  https://github.com/allure-framework。
-allure功能介绍allure 特性all">
+allure功能介绍
+allure 特性
+">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +68,160 @@ allure功能介绍allure 特性all">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +336,7 @@ allure功能介绍allure 特性all">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -486,10 +629,13 @@ allure功能介绍allure 特性all">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文基于allure 2.13.2 版本介绍allure在pytest下的基本运用。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>本文基于allure 2.13.2 版本介绍allure在pytest下的基本运用。</p>
 <p>关于allure，详见官网： <code> https://github.com/allure-framework</code>。</p>
-<h1 id="allure功能介绍"><a href="#allure功能介绍" class="headerlink" title="allure功能介绍"></a>allure功能介绍</h1><h2 id="allure-特性"><a href="#allure-特性" class="headerlink" title="allure 特性"></a>allure 特性</h2><p>allure有如下特性：</p>
-<pre><code class="line-numbers language-shell">C:\Users\Wang&gt;python
+<h1 id="allure-gong-neng-jie-shao">allure功能介绍</h1>
+<h2 id="allure-te-xing">allure 特性</h2>
+<p>allure有如下特性：</p>
+<pre><code class="language-shell">C:\Users\Wang&gt;python
 Python 3.11.4 (tags/v3.11.4:d2340ef, Jun  7 2021, 05:45:37) [MSC v.1934 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
 &gt;&gt;&gt; import allure
@@ -506,7 +652,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 <th>参数说明</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>allure.attach()</td>
 <td>添加附件</td>
 <td>给测试用例添加附件</td>
@@ -524,7 +671,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 <tr>
 <td>allure.description_html()</td>
 <td>用例描述</td>
-<td>传递一段HTML文本，这将在测试报告的”Description”部分渲染出来</td>
+<td>传递一段HTML文本，这将在测试报告的"Description"部分渲染出来</td>
 </tr>
 <tr>
 <td>allure.dynamic()</td>
@@ -542,7 +689,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 <td>功能点的描述，往下是story</td>
 </tr>
 <tr>
-<td>allure.id()</td>
+<td><a target="_blank" rel="noopener" href="http://allure.id">allure.id</a>()</td>
 <td>人为给用例添加id</td>
 <td>这个标识符将显示在 Allure 报告中，使得识别和引用这个具体的测试更加方便。</td>
 </tr>
@@ -621,27 +768,50 @@ Type "help", "copyright", "credits" or "license" for more information.
 <td>用例的标题</td>
 <td>展示在html报告中的测试用例的标题名称</td>
 </tr>
-</tbody></table>
-<h2 id="allure-实践"><a href="#allure-实践" class="headerlink" title="allure 实践"></a>allure 实践</h2><h3 id="allure为测试用例添加附件（attach）"><a href="#allure为测试用例添加附件（attach）" class="headerlink" title="allure为测试用例添加附件（attach）"></a>allure为测试用例添加附件（attach）</h3><h4 id="allure-attach的用法"><a href="#allure-attach的用法" class="headerlink" title="allure.attach的用法"></a>allure.attach的用法</h4><h5 id="用法一"><a href="#用法一" class="headerlink" title="用法一"></a>用法一</h5><p>语法：</p>
+</tbody>
+</table>
+<h2 id="allure-shi-jian">allure 实践</h2>
+<h3 id="allure-wei-ce-shi-yong-li-tian-jia-fu-jian-attach">allure为测试用例添加附件（attach）</h3>
+<h4 id="allure-attach-de-yong-fa">allure.attach的用法</h4>
+<h5 id="yong-fa-yi">用法一</h5>
+<p>语法：</p>
 <p><code>allure.attach(body, name, attachment_type, extension)</code></p>
 <p>参数解释：</p>
-<ul>
-<li>body：要写入附件的内容</li>
-<li>name：附件名字</li>
-<li>attachment_type：附件类型，是allure.attachment_type其中的一种</li>
-<li>extension：附件的扩展名</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>body：要写入附件的内容</p>
+</li>
+<li class="lvl-2">
+<p>name：附件名字</p>
+</li>
+<li class="lvl-2">
+<p>attachment_type：附件类型，是allure.attachment_type其中的一种</p>
+</li>
+<li class="lvl-2">
+<p>extension：附件的扩展名</p>
+</li>
 </ul>
-<h5 id="用法二"><a href="#用法二" class="headerlink" title="用法二"></a>用法二</h5><p>语法：</p>
-<pre><code class="line-numbers language-shell">allure.attach.file(source, name, attachment_type, extension)
+<h5 id="yong-fa-er">用法二</h5>
+<p>语法：</p>
+<pre><code class="language-shell">allure.attach.file(source, name, attachment_type, extension)
 </code></pre>
 <p>参数解释：</p>
-<ul>
-<li>source：文件路径，相当于传一个文件</li>
-<li>name：附件名字</li>
-<li>attachment_type：附件类型，是allure.attachment_type其中的一种</li>
-<li>extension：附件的扩展名</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>source：文件路径，相当于传一个文件</p>
+</li>
+<li class="lvl-2">
+<p>name：附件名字</p>
+</li>
+<li class="lvl-2">
+<p>attachment_type：附件类型，是allure.attachment_type其中的一种</p>
+</li>
+<li class="lvl-2">
+<p>extension：附件的扩展名</p>
+</li>
 </ul>
-<h4 id="allure-attachment-type的所有值"><a href="#allure-attachment-type的所有值" class="headerlink" title="allure.attachment_type的所有值"></a>allure.attachment_type的所有值</h4><pre><code class="line-numbers language-shell">    TEXT = ("text/plain", "txt")
+<h4 id="allure-attachment-type-de-suo-you-zhi">allure.attachment_type的所有值</h4>
+<pre><code class="language-shell">    TEXT = ("text/plain", "txt")
     CSV = ("text/csv", "csv")
     TSV = ("text/tab-separated-values", "tsv")
     URI_LIST = ("text/uri-list", "uri")
@@ -664,7 +834,9 @@ Type "help", "copyright", "credits" or "license" for more information.
     OGG = ("video/ogg", "ogg")
     WEBM = ("video/webm", "webm")
 </code></pre>
-<h4 id="allure-attach使用举例"><a href="#allure-attach使用举例" class="headerlink" title="allure.attach使用举例"></a>allure.attach使用举例</h4><h5 id="测试用例中添加文本附件"><a href="#测试用例中添加文本附件" class="headerlink" title="测试用例中添加文本附件"></a>测试用例中添加文本附件</h5><pre><code class="line-numbers language-python">#!/usr/bin/env python
+<h4 id="allure-attach-shi-yong-ju-li">allure.attach使用举例</h4>
+<h5 id="ce-shi-yong-li-zhong-tian-jia-wen-ben-fu-jian">测试用例中添加文本附件</h5>
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -682,11 +854,9 @@ def test_attachment_text(attach_for_text):
     assert True
 </code></pre>
 <p>效果如下图所示：</p>
-<img class="shadow" src="/img/in-post/allure/attach_text.png" width="1200">
-
-
-
-<h5 id="测试用例中添加html附件"><a href="#测试用例中添加html附件" class="headerlink" title="测试用例中添加html附件"></a>测试用例中添加html附件</h5><pre><code class="line-numbers language-python">def test_mutiple_attachments():
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/attach_text.png" width="1200">
+<h5 id="ce-shi-yong-li-zhong-tian-jia-html-fu-jian">测试用例中添加html附件</h5>
+<pre><code class="language-python">def test_mutiple_attachments():
     allure.attach.file(r"C:\Users\Wang\Pictures\OIP-C.jpg", attachment_type=allure.attachment_type.JPG)
 
     allure.attach("""&lt;!doctype html&gt;
@@ -704,13 +874,13 @@ def test_attachment_text(attach_for_text):
 attachment_type=allure.attachment_type.HTML)
 </code></pre>
 <p>效果如下图所示：</p>
-<img class="shadow" src="/img/in-post/allure/attach_image.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/attach_image.png" width="1200">
 <p>如上图所示，html部分可以嵌套图片，也可以写静态文本。</p>
-<h3 id="allure添加测试用例步骤-allure-step"><a href="#allure添加测试用例步骤-allure-step" class="headerlink" title="allure添加测试用例步骤(allure.step)"></a>allure添加测试用例步骤(allure.step)</h3><p>在编写自动化测试用例的时候经常会遇到需要编写流程性测试用例的场景，一般流程性的测试用例的测试步骤比较多，在测试用例中添加详细的步骤会<strong>提高测试用例的可阅读性</strong>。</p>
+<h3 id="allure-tian-jia-ce-shi-yong-li-bu-zou-allure-step">allure添加测试用例步骤(allure.step)</h3>
+<p>在编写自动化测试用例的时候经常会遇到需要编写流程性测试用例的场景，一般流程性的测试用例的测试步骤比较多，在测试用例中添加详细的步骤会<strong>提高测试用例的可阅读性</strong>。</p>
 <p>allure提供的装饰器@allure.step()是allure测试报告框架非常有用的功能，它能帮助我们在测试用例中对测试步骤进行详细的描述。</p>
 <p>代码示例：</p>
-<pre><code class="line-numbers language-python">    def test_566_rollback_snapshot(self):
+<pre><code class="language-python">    def test_566_rollback_snapshot(self):
         """  Sc-566:Snapshot can be rollbacked correctly  """
         with allure.step("Clean unavailable link device"):
             self.client_unlink_unavailable_device_link(self.client_ip_root_password, self.ssh_port, self.client_ip)
@@ -813,7 +983,7 @@ attachment_type=allure.attachment_type.HTML)
 <p>如果这个py文件中含有很多的test case，每个test case都需要增加allure.step，且step里描述的内容相同，可以在被调用的各个函数里增加step动作，test case里完全是函数的调用。</p>
 <p>示例如下：</p>
 <p>比如上例中的 delete_snapshot 函数，可以将class中定义function时，增加allure.step步骤，参考如下：</p>
-<pre><code class="line-numbers language-python">    @allure.step("Delete snapshot")
+<pre><code class="language-python">    @allure.step("Delete snapshot")
     def delete_snapshot(self, gateway_group=None, target_id=None, iscsi_id=None, snap_name=None,
                         expected_return_code=None, delete_all_snap=None):
         """
@@ -828,7 +998,7 @@ attachment_type=allure.attachment_type.HTML)
 </code></pre>
 <p>这样的话，在测试用例里调用此函数时，无需再额外增加@allure.step()步骤，有一定的用例编写简化作用。当然也可以在 delete_snapshot 函数里面定义内部的step，形成step的嵌套，这样阅读性会更高一些。</p>
 <p>allure.step也<strong>支持添加描述且通过占位符传递参数</strong>，示例代码如下：</p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -850,12 +1020,9 @@ def test_delete_volume():
     step_title_with_delete_volume_name('iscsi-name03', 'iqn.2021-11.target:PVE', 'NewVS02')
 </code></pre>
 <p>效果图如下：</p>
-<img class="shadow" src="/img/in-post/allure/step_parameter.png" width="1200">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/step_parameter.png" width="1200">
 <p>也可以设置传递一个/多个可选参数，不传则为None，示例如下：</p>
-<pre><code class="line-numbers language-python">@allure.step('这是一个带描述语的step，并且通过占位符传递参数：positional = "{0}",keyword = "{key}"')
+<pre><code class="language-python">@allure.step('这是一个带描述语的step，并且通过占位符传递参数：positional = "{0}",keyword = "{key}"')
 def step_title_with_placeholder(arg1, key=None):
     pass
 
@@ -866,17 +1033,29 @@ def test_step_with_placeholder():
     step_title_with_placeholder(3, key="anything")
 </code></pre>
 <p><strong>小结：</strong></p>
-<ul>
-<li>allure.step支持step嵌套，即step下可以嵌套step</li>
-<li>allure.step支持添加描述且通过占位符传递参数</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>allure.step支持step嵌套，即step下可以嵌套step</p>
+</li>
+<li class="lvl-2">
+<p>allure.step支持添加描述且通过占位符传递参数</p>
+</li>
 </ul>
-<h3 id="allure为测试用例添加描述（description）"><a href="#allure为测试用例添加描述（description）" class="headerlink" title="allure为测试用例添加描述（description）"></a>allure为测试用例添加描述（description）</h3><h4 id="allure添加描述的三种方式："><a href="#allure添加描述的三种方式：" class="headerlink" title="allure添加描述的三种方式："></a>allure添加描述的三种方式：</h4><ul>
-<li>使用装饰器@allure.description，传递一个字符串参数用来描述测试用例</li>
-<li>使用装饰器@allure.description_html，传递一段HTML文本，这将在测试报告的”Description”部分渲染出来</li>
-<li>直接在测试用例方法中通过编写文档注释的方式来添加描述</li>
+<h3 id="allure-wei-ce-shi-yong-li-tian-jia-miao-shu-description">allure为测试用例添加描述（description）</h3>
+<h4 id="allure-tian-jia-miao-shu-de-san-chong-fang-shi">allure添加描述的三种方式：</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用装饰器@allure.description，传递一个字符串参数用来描述测试用例</p>
+</li>
+<li class="lvl-2">
+<p>使用装饰器@allure.description_html，传递一段HTML文本，这将在测试报告的"Description"部分渲染出来</p>
+</li>
+<li class="lvl-2">
+<p>直接在测试用例方法中通过编写文档注释的方式来添加描述</p>
+</li>
 </ul>
 <p>我一般使用第三种，直接将Testlink上用例标题放在这里，即有title的效果，又有description效果。如果使用，具体看个人需要（如下所示）。</p>
-<pre><code class="line-numbers language-python">    @allure.severity('RAT')
+<pre><code class="language-python">    @allure.severity('RAT')
     @allure.link(testlink_url+'?tprojectPrefix='+testlink_prefix+'&amp;item=testcase&amp;id='+testlink_prefix+'-432')
     def test_432_create_nfs_folder_mode_async(self):
         """  Sc-432:Create NFS share folder, mode is async  """
@@ -885,7 +1064,8 @@ def test_step_with_placeholder():
         self.delete_folder(folder_name)
         self.mds_mgr.check_cluster_state()
 </code></pre>
-<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><pre><code class="line-numbers language-python">#!/usr/bin/env python
+<h4 id="shi-li">示例</h4>
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -933,37 +1113,39 @@ def test_description_docstring():
     assert True
 </code></pre>
 <p>allure效果图展示如下：</p>
-<img class="shadow" src="/img/in-post/allure/description_provide_string.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/description_provide_string.png" width="1200">
 <p>上面的测试报告是通过装饰器@allure.description传递字符串参数来添加描述语的方式。</p>
-<img class="shadow" src="/img/in-post/allure/description_docstring.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/description_docstring.png" width="1200">
 <p>上面的测试报告是通过直接在测试用例方法中编写文档注释来添加描述语的方式。</p>
-<img class="shadow" src="/img/in-post/allure/description_privide_html.png" width="1200">
-
-<p>上面的测试报告是通过装饰器@allure.description_html传递一段HTML文本来添加描述语的方式，这段HTML会渲染在报告的”Description”部分。</p>
-<h4 id="allure动态更新描述语-allure-dynamic-description"><a href="#allure动态更新描述语-allure-dynamic-description" class="headerlink" title="allure动态更新描述语(allure.dynamic.description)"></a>allure动态更新描述语(allure.dynamic.description)</h4><pre><code class="line-numbers language-python">@allure.description("这是更新前的描述内容，在使用allure.dynamic.description后将会被更新成新的描述内容")
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/description_privide_html.png" width="1200">
+<p>上面的测试报告是通过装饰器@allure.description_html传递一段HTML文本来添加描述语的方式，这段HTML会渲染在报告的"Description"部分。</p>
+<h4 id="allure-dong-tai-geng-xin-miao-shu-yu-allure-dynamic-description">allure动态更新描述语(allure.dynamic.description)</h4>
+<pre><code class="language-python">@allure.description("这是更新前的描述内容，在使用allure.dynamic.description后将会被更新成新的描述内容")
 def test_dynamic_description():
     assert True
     allure.dynamic.description("这是通过使用allure.dynamic.description更新后的描述内容")
 </code></pre>
 <p>allure html展示效果如下：</p>
-<img class="shadow" src="/img/in-post/allure/dynamic_description.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/dynamic_description.png" width="1200">
 <p>如果assert失败或用例执行失败，是不会动态更新描述信息的：</p>
-<img class="shadow" src="/img/in-post/allure/dynamic_description_failed.png" width="1200">
-
-
-
-
-
-<h3 id="allure为测试用例添加标题"><a href="#allure为测试用例添加标题" class="headerlink" title="allure为测试用例添加标题"></a>allure为测试用例添加标题</h3><p>通过使用装饰器@allure.title可以为测试用例自定义一个更具有阅读性的易读的标题。</p>
-<h4 id="allure-title的三种使用方式"><a href="#allure-title的三种使用方式" class="headerlink" title="allure.title的三种使用方式"></a>allure.title的三种使用方式</h4><ul>
-<li>直接使用@allure.title为测试用例自定义标题</li>
-<li>@allure.title支持通过占位符的方式传递参数，可以实现测试用例标题参数化，动态生成测试用例标题</li>
-<li>@allure.dynamic.title动态更新测试用例标题</li>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/dynamic_description_failed.png" width="1200">
+<h3 id="allure-wei-ce-shi-yong-li-tian-jia-biao-ti">allure为测试用例添加标题</h3>
+<p>通过使用装饰器@allure.title可以为测试用例自定义一个更具有阅读性的易读的标题。</p>
+<h4 id="allure-title-de-san-chong-shi-yong-fang-shi">allure.title的三种使用方式</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>直接使用@allure.title为测试用例自定义标题</p>
+</li>
+<li class="lvl-2">
+<p>@allure.title支持通过占位符的方式传递参数，可以实现测试用例标题参数化，动态生成测试用例标题</p>
+</li>
+<li class="lvl-2">
+<p>@allure.dynamic.title动态更新测试用例标题</p>
+</li>
 </ul>
-<h4 id="allure-title使用方式示例"><a href="#allure-title使用方式示例" class="headerlink" title="allure.title使用方式示例"></a>allure.title使用方式示例</h4><h5 id="直接使用-allure-title为测试用例自定义标题"><a href="#直接使用-allure-title为测试用例自定义标题" class="headerlink" title="直接使用@allure.title为测试用例自定义标题"></a>直接使用@allure.title为测试用例自定义标题</h5><pre><code class="line-numbers language-python">#!/usr/bin/env python
+<h4 id="allure-title-shi-yong-fang-shi-shi-li">allure.title使用方式示例</h4>
+<h5 id="zhi-jie-shi-yong-allure-title-wei-ce-shi-yong-li-zi-ding-yi-biao-ti">直接使用@allure.title为测试用例自定义标题</h5>
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -975,11 +1157,9 @@ def test_case_with_title():
     assert True
 </code></pre>
 <p>这个最常用，也是最简单的方式。效果图如下：</p>
-<img class="shadow" src="/img/in-post/allure/step_title.png" width="1200">
-
-
-
-<h5 id="allure-title占位符传递参数，参数化测试用例标题"><a href="#allure-title占位符传递参数，参数化测试用例标题" class="headerlink" title="allure.title占位符传递参数，参数化测试用例标题"></a>allure.title占位符传递参数，参数化测试用例标题</h5><pre><code class="line-numbers language-python">#!/usr/bin/env python
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/step_title.png" width="1200">
+<h5 id="allure-title-zhan-wei-fu-chuan-di-can-shu-can-shu-hua-ce-shi-yong-li-biao-ti">allure.title占位符传递参数，参数化测试用例标题</h5>
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -992,24 +1172,20 @@ def test_with_parametrize_title(param1, param2, expected):
     assert param1 + param2 == expected
 </code></pre>
 <p>展示效果如下：</p>
-<img class="shadow" src="/img/in-post/allure/step_title_parameter.png" width="1200">
-
-
-<h5 id="allure-dynamic-title动态更新标题"><a href="#allure-dynamic-title动态更新标题" class="headerlink" title="allure.dynamic.title动态更新标题"></a>allure.dynamic.title动态更新标题</h5><pre><code class="line-numbers language-python">@allure.title("这个标题将会被成功执行的测试用例中的标题替所代替")
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/step_title_parameter.png" width="1200">
+<h5 id="allure-dynamic-title-dong-tai-geng-xin-biao-ti">allure.dynamic.title动态更新标题</h5>
+<pre><code class="language-python">@allure.title("这个标题将会被成功执行的测试用例中的标题替所代替")
 def test_with_dynamic_title():
     assert True
     allure.dynamic.title("断言成功后，标题将会被替换成这个标题")
 </code></pre>
 <p>效果图如下：</p>
-<img class="shadow" src="/img/in-post/allure/step_dynamic_title.png" width="1200">
-
-
-
-
-<h4 id="allure集成缺陷管理系统和测试管理系统-allure-link、allure-issue、allure-testcase"><a href="#allure集成缺陷管理系统和测试管理系统-allure-link、allure-issue、allure-testcase" class="headerlink" title="allure集成缺陷管理系统和测试管理系统(allure.link、allure.issue、allure.testcase)"></a>allure集成缺陷管理系统和测试管理系统(allure.link、allure.issue、allure.testcase)</h4><p>allure测试报告框架提供了@allure.link、@allure.issue、@allure.testcase 这三个装饰器，可以用来与缺陷管理系统和测试管理系统集成，做到更好的自动化管理。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/step_dynamic_title.png" width="1200">
+<h4 id="allure-ji-cheng-que-xian-guan-li-xi-tong-he-ce-shi-guan-li-xi-tong-allure-link-allure-issue-allure-testcase">allure集成缺陷管理系统和测试管理系统(allure.link、allure.issue、allure.testcase)</h4>
+<p>allure测试报告框架提供了@allure.link、@allure.issue、@allure.testcase 这三个装饰器，可以用来与缺陷管理系统和测试管理系统集成，做到更好的自动化管理。</p>
 <p>这三个装饰器，使用方法基本一致，但仍然不建议混用，用例相关用@allure.testcase，Bug相关用@allure.issue，其他则使用@allure.link，形成习惯。</p>
 <p>代码示例：</p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -1051,38 +1227,46 @@ def test_with_testcase_link():
     assert True
 </code></pre>
 <p>效果如下：</p>
-<img class="shadow" src="/img/in-post/allure/allure_link.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/allure_link.png" width="1200">
 <p>上图是allure.link的效果。</p>
-<img class="shadow" src="/img/in-post/allure/allure_issue.png" width="1200">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/allure_issue.png" width="1200">
 <p>上图是allure.issue的效果，用于提示是一个Bug。</p>
-<img class="shadow" src="/img/in-post/allure/allure_testcase.png" width="1200">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/allure_testcase.png" width="1200">
 <p>上图显示allure.testcase的链接，会有一个类似存储的icon。</p>
 <p>这几个装饰器的相同点都显示在“Links”下方展示，除了allure.link没有图标外，其他两个都有图标。</p>
-<h4 id="allure的Tag标记-allure-story、allure-feature、severity"><a href="#allure的Tag标记-allure-story、allure-feature、severity" class="headerlink" title="allure的Tag标记(allure.story、allure.feature、severity)"></a>allure的Tag标记(allure.story、allure.feature、severity)</h4><p>执行测试用例时，希望能够更加灵活的指定执行某些测试用例（如指定测试用例的级别，用例路径，用例标签/标记等），pytest支持我们通过使用marker装饰器@pytest.mark来实现这个需求，而allure也同样提供了三种类似的方法来实现这个需求。</p>
-<h5 id="allure的三种方式"><a href="#allure的三种方式" class="headerlink" title="allure的三种方式"></a>allure的三种方式</h5><p>Allure 则提供了 3 种类型的标记装饰器来标记测试，并且可以同步展示到测试报告内：</p>
-<ul>
-<li>BDD（行为驱动开发）风格的标签</li>
-<li>严重程度（Severity）的标签</li>
-<li>自定义的标签（allure.title）</li>
+<h4 id="allure-de-tag-biao-ji-allure-story-allure-feature-severity">allure的Tag标记(allure.story、allure.feature、severity)</h4>
+<p>执行测试用例时，希望能够更加灵活的指定执行某些测试用例（如指定测试用例的级别，用例路径，用例标签/标记等），pytest支持我们通过使用marker装饰器@pytest.mark来实现这个需求，而allure也同样提供了三种类似的方法来实现这个需求。</p>
+<h5 id="allure-de-san-chong-fang-shi">allure的三种方式</h5>
+<p>Allure 则提供了 3 种类型的标记装饰器来标记测试，并且可以同步展示到测试报告内：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>BDD（行为驱动开发）风格的标签</p>
+</li>
+<li class="lvl-2">
+<p>严重程度（Severity）的标签</p>
+</li>
+<li class="lvl-2">
+<p>自定义的标签（allure.title）</p>
+</li>
 </ul>
-<p>​        </p>
-<h5 id="BDD风格的标签"><a href="#BDD风格的标签" class="headerlink" title="BDD风格的标签"></a>BDD风格的标签</h5><ul>
-<li>@allure.epic：敏捷里面的概念，定义史诗，相当于module级的标签</li>
-<li>@allure.feature：功能点的描述，可以理解成模块，相当于class级的标签</li>
-<li>@allure.story：故事，可以理解为场景，相当于method级的标签</li>
+<p>​</p>
+<h5 id="bdd-feng-ge-de-biao-qian">BDD风格的标签</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>@allure.epic：敏捷里面的概念，定义史诗，相当于module级的标签</p>
+</li>
+<li class="lvl-2">
+<p>@allure.feature：功能点的描述，可以理解成模块，相当于class级的标签</p>
+</li>
+<li class="lvl-2">
+<p>@allure.story：故事，可以理解为场景，相当于method级的标签</p>
+</li>
 </ul>
 <p>allure提供的两个装饰器：@allure.feature和@allure.story，可以将用例根据Feature和Story分类，通过将name使用epic_ 开头的前缀就能够指定Feature和Story属于哪一个epic。</p>
 <p>他俩的关系：</p>
 <p>epic是feature父级，feature是story父级，是包含关系，效果跟书籍的目录或者项目结构相似。</p>
 <p>如果使用allure和pytest来组织的自动化框架，<strong>推荐使用allure的标记来标记用例，替换@pytest.mark.xxx</strong>，因为功能一致，且allure 标记功能可以直接<strong>展示到html报告</strong>内</p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -1135,10 +1319,16 @@ def test_with_story_2_and_feature_2():
 </code></pre>
 <p><strong>拓展：命令行方式</strong></p>
 <p>与@pytest.mark.xxx相同，也可以通过命令行来运行指定epic、feature、story标记的用例：</p>
-<ul>
-<li>–allure-epics</li>
-<li>–allure-features</li>
-<li>–allure-stories</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>–allure-epics</p>
+</li>
+<li class="lvl-2">
+<p>–allure-features</p>
+</li>
+<li class="lvl-2">
+<p>–allure-stories</p>
+</li>
 </ul>
 <p><strong>只运行 epic 名为 epic1 的测试用例</strong></p>
 <p><code>pytest --alluredir ./report/allure --allure-epics=epic1</code></p>
@@ -1148,19 +1338,30 @@ def test_with_story_2_and_feature_2():
 <p><code> pytest tests.py --allure-stories story1,story2</code></p>
 <p><strong>指定 feature和story</strong></p>
 <p><code>pytest tests.py --allure-features feature1,feature2 --allure-stories story1</code></p>
-<h5 id="Severity-markers"><a href="#Severity-markers" class="headerlink" title="Severity markers"></a>Severity markers</h5><p>使用@allure.severity来标识测试用例的严重等级，严重等级是allure.severity_level枚举中的一个。</p>
+<h5 id="severity-markers">Severity markers</h5>
+<p>使用@allure.severity来标识测试用例的严重等级，严重等级是allure.severity_level枚举中的一个。</p>
 <p>allure划分用例等级为5个：</p>
-<ul>
-<li>blocker：阻塞缺陷（功能未实现，无法下一步）</li>
-<li>critical：严重缺陷（功能点缺失）</li>
-<li>normal：一般缺陷（边界情况，格式错误）</li>
-<li>minor：次要缺陷（界面错误与ui需求不符）</li>
-<li>trivial：轻微缺陷（必须项无提示，或者提示不规范）</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>blocker：阻塞缺陷（功能未实现，无法下一步）</p>
+</li>
+<li class="lvl-2">
+<p>critical：严重缺陷（功能点缺失）</p>
+</li>
+<li class="lvl-2">
+<p>normal：一般缺陷（边界情况，格式错误）</p>
+</li>
+<li class="lvl-2">
+<p>minor：次要缺陷（界面错误与ui需求不符）</p>
+</li>
+<li class="lvl-2">
+<p>trivial：轻微缺陷（必须项无提示，或者提示不规范）</p>
+</li>
 </ul>
 <p><strong>说明：</strong></p>
 <p>​    一些手工用例编写平台，如testlink，它里面定义的测试用例的级别名称，和allure指定的这五种名称是不一样的，是无法直接使用外部的用例级别的，只能使用上面的测试用例的级别。</p>
 <p>示例：</p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import pytest
@@ -1235,13 +1436,10 @@ class TestClassWithNormalSeverity(object):
 <p>severity装饰器可以用在函数、方法和类上面。</p>
 <p>通过使用–allure-severities 命令行选项指定运行哪些测试用例，如果命令行选项的值有多个就用逗号分隔。</p>
 <p>比如：</p>
-<img class="shadow" src="/img/in-post/allure/allure_level.png" width="1200">
-
-
-
-
-<h2 id="综合示例"><a href="#综合示例" class="headerlink" title="综合示例"></a>综合示例</h2><p>从网上找了个示例(<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/652835522)%EF%BC%8C%E5%81%9A%E5%8F%82%E8%80%83%E4%B8%80%E4%B8%8B%EF%BC%9A">https://zhuanlan.zhihu.com/p/652835522)，做参考一下：</a></p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/allure_level.png" width="1200">
+<h2 id="zong-he-shi-li">综合示例</h2>
+<p>从网上找了个示例(<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/652835522">https://zhuanlan.zhihu.com/p/652835522</a>)，做参考一下：</p>
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
 import allure
@@ -1294,19 +1492,17 @@ class TestAllureDemo:
         assert 1 &gt; 1
 </code></pre>
 <p>allure html report 显示效果如下：</p>
-<img class="shadow" src="/img/in-post/allure/allure_full_example.png" width="1200">
-
-
-
-
-<h1 id="帮助-–help"><a href="#帮助-–help" class="headerlink" title="帮助 –help"></a>帮助 –help</h1><table>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/allure_full_example.png" width="1200">
+<h1 id="bang-zhu-help">帮助 --help</h1>
+<table>
 <thead>
 <tr>
 <th>命令</th>
 <th>描述</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>generate</td>
 <td>根据给定的allure结果目录生成报告</td>
 </tr>
@@ -1338,18 +1534,16 @@ class TestAllureDemo:
 <td>–version</td>
 <td>显示当前allure的版本信息</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>详细帮助参考下图：</p>
-<img class="shadow" src="/img/in-post/allure/allure_help.png" width="1200">
-
-
-
-
-
-<h2 id="报告打开"><a href="#报告打开" class="headerlink" title="报告打开"></a>报告打开</h2><h3 id="系统默认目录下生成测试报告并打开"><a href="#系统默认目录下生成测试报告并打开" class="headerlink" title="系统默认目录下生成测试报告并打开"></a>系统默认目录下生成测试报告并打开</h3><pre><code class="line-numbers language-shell">allure serve path
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/allure_help.png" width="1200">
+<h2 id="bao-gao-da-kai">报告打开</h2>
+<h3 id="xi-tong-mo-ren-mu-lu-xia-sheng-cheng-ce-shi-bao-gao-bing-da-kai">系统默认目录下生成测试报告并打开</h3>
+<pre><code class="language-shell">allure serve path
 </code></pre>
 <p>示例如下：</p>
-<pre><code class="line-numbers language-shell">C:\Users\Wang&gt;allure serve report/json -o report/html
+<pre><code class="language-shell">C:\Users\Wang&gt;allure serve report/json -o report/html
 Generating report to temp directory...
 -o does not exists
 report\html does not exists
@@ -1359,24 +1553,23 @@ Starting web server...
 Server started at &lt;http://192.168.2.178:2970/&gt;. Press &lt;Ctrl+C&gt; to exit
 ^C终止批处理操作吗(Y/N)? y
 </code></pre>
-<h3 id="在指定目录下生成测试报告，使用open打开"><a href="#在指定目录下生成测试报告，使用open打开" class="headerlink" title="在指定目录下生成测试报告，使用open打开"></a>在指定目录下生成测试报告，使用open打开</h3><pre><code class="line-numbers language-shell">allure generate “存储结果的path” -c -o  “在path生成html报告”
+<h3 id="zai-zhi-ding-mu-lu-xia-sheng-cheng-ce-shi-bao-gao-shi-yong-open-da-kai">在指定目录下生成测试报告，使用open打开</h3>
+<pre><code class="language-shell">allure generate “存储结果的path” -c -o  “在path生成html报告”
 allure open “在path生成的html报告”
 </code></pre>
 <p>示例如下：</p>
-<pre><code class="line-numbers language-shell">C:\Users\Wang&gt;allure generate report/json -o report/html
+<pre><code class="language-shell">C:\Users\Wang&gt;allure generate report/json -o report/html
 Report successfully generated to report\html
 C:\Users\Wang&gt;allure open report\html
 Starting web server...
 2021-11-04 11:17:37.560:INFO::main: Logging initialized @160ms to org.eclipse.jetty.util.log.StdErrLog
 Server started at &lt;http://192.168.2.178:2999/&gt;. Press &lt;Ctrl+C&gt; to exit
 </code></pre>
-<h2 id="Environment"><a href="#Environment" class="headerlink" title="Environment"></a>Environment</h2><p>环境变量参数，设置运行环境参数，比如可以显示被测版本信息，什么时间开始测试，什么时间测试结束，耗时多久之类的信息。默认为空，需要创建environment.properties文件，或者environment.xml文件，并把文件存放<code>存储结果的path</code>中。</p>
-<img class="shadow" src="/img/in-post/allure/environment_empty.png" width="1200">
-
-
-
-
-<h3 id="environment-properties"><a href="#environment-properties" class="headerlink" title="environment.properties"></a>environment.properties</h3><pre><code class="line-numbers language-shell">PRODUCT_VERSION=VirtualStor Scaler V8.0-269
+<h2 id="environment">Environment</h2>
+<p>环境变量参数，设置运行环境参数，比如可以显示被测版本信息，什么时间开始测试，什么时间测试结束，耗时多久之类的信息。默认为空，需要创建environment.properties文件，或者environment.xml文件，并把文件存放<code>存储结果的path</code>中。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/environment_empty.png" width="1200">
+<h3 id="environment-properties">environment.properties</h3>
+<pre><code class="language-shell">PRODUCT_VERSION=VirtualStor Scaler V8.0-269
 START_TIME=2021-11-03 21:36:57
 END_TIME=2021-11-04 06:29:46
 TEST_COUNTS=2596
@@ -1387,7 +1580,8 @@ TEST_BROKEN=1
 TEST_UNKNOW=0
 TIME_DURATION=31969
 </code></pre>
-<h3 id="environment-xml"><a href="#environment-xml" class="headerlink" title="environment.xml"></a>environment.xml</h3><pre><code class="line-numbers language-shell">&lt;environment&gt;
+<h3 id="environment-xml">environment.xml</h3>
+<pre><code class="language-shell">&lt;environment&gt;
     &lt;parameter&gt;
         &lt;key&gt;PRODUCT_VERSION&lt;/key&gt;
         &lt;value&gt;VirtualStor Scaler V8.0-269&lt;/value&gt;
@@ -1430,13 +1624,18 @@ TIME_DURATION=31969
     &lt;/parameter&gt;
 &lt;/environment&gt;
 </code></pre>
-<h2 id="Categories"><a href="#Categories" class="headerlink" title="Categories"></a>Categories</h2><p>将测试用例结果进行分类,默认情况下，有两类缺陷：</p>
+<h2 id="categories">Categories</h2>
+<p>将测试用例结果进行分类,默认情况下，有两类缺陷：</p>
 <ol>
-<li>Product defects 产品缺陷（测试结果：failed）</li>
-<li>Test defects 测试缺陷（测试结果：error/broken）</li>
+<li class="lvl-3">
+<p>Product defects 产品缺陷（测试结果：failed）</p>
+</li>
+<li class="lvl-3">
+<p>Test defects 测试缺陷（测试结果：error/broken）</p>
+</li>
 </ol>
 <p>可以创建自定义缺陷分类的，将 categories.json 文件添加到allure-results目录即可（和上面environment.properties放同一个目录），示例参考如下：</p>
-<pre><code class="line-numbers language-shell">[
+<pre><code class="language-shell">[
   {
     "name": "Ignored tests", 
     "matchedStatuses": ["skipped"] 
@@ -1462,24 +1661,37 @@ TIME_DURATION=31969
 ]
 </code></pre>
 <p>参数的含义</p>
-<ul>
-<li><strong>name</strong>：分类名称，可以是中文</li>
-<li><strong>matchedStatuses</strong>：测试用例的运行状态，默认[“failed”, “broken”, “passed”, “skipped”, “unknown”]</li>
-<li><strong>messageRegex</strong>：测试用例运行的错误信息，默认是 .* ，是通过正则去匹配的</li>
-<li><strong>traceRegex</strong>：测试用例运行的错误堆栈信息，默认是 .* ，也是通过正则去匹配的</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>name</strong>：分类名称，可以是中文</p>
+</li>
+<li class="lvl-2">
+<p><strong>matchedStatuses</strong>：测试用例的运行状态，默认[“failed”, “broken”, “passed”, “skipped”, “unknown”]</p>
+</li>
+<li class="lvl-2">
+<p><strong>messageRegex</strong>：测试用例运行的错误信息，默认是 .* ，是通过正则去匹配的</p>
+</li>
+<li class="lvl-2">
+<p><strong>traceRegex</strong>：测试用例运行的错误堆栈信息，默认是 .* ，也是通过正则去匹配的</p>
+</li>
 </ul>
 <p>结合上面文件后，放在report原始文件目录下，生成的可视化报告参考如下：</p>
-<img class="shadow" src="/img/in-post/allure/environment_OK.png" width="1200">
-
-
-
-
-<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><h2 id="设置测试套中显示内容"><a href="#设置测试套中显示内容" class="headerlink" title="设置测试套中显示内容"></a>设置测试套中显示内容</h2><p>@allure.parent_suite,@allure.suite,@allure.sub_suite对应的是allure报告中的测试套的三个级别.爷爷父亲儿子.然后下一级就是测用例的标题。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure/environment_OK.png" width="1200">
+<h1 id="jie-yu">结语</h1>
+<h2 id="she-zhi-ce-shi-tao-zhong-xian-shi-nei-rong">设置测试套中显示内容</h2>
+<p>@allure.parent_suite,@allure.suite,@allure.sub_suite对应的是allure报告中的测试套的三个级别.爷爷父亲儿子.然后下一级就是测用例的标题。</p>
 <p>由于@allure.epic, @allure.feature, @allure.story,@allure.title的存在，上面这三个装饰器很少使用。</p>
-<h2 id="设置报告中功能项显示内容"><a href="#设置报告中功能项显示内容" class="headerlink" title="设置报告中功能项显示内容"></a>设置报告中功能项显示内容</h2><p>@allure.epic, @allure.feature, @allure.story,@allure.title对应功能中的一级菜单,二级菜单,三级菜单,用例标题</p>
-<h2 id="设置具体用例显示内容"><a href="#设置具体用例显示内容" class="headerlink" title="设置具体用例显示内容"></a>设置具体用例显示内容</h2><p>@allure.id 用例id,@allure.link 用例的超链接,@allure.label 用例的标签<br>@allure.issue 记录用例的问题(超链接),@allure.description 用例的描述<br>@allure.severity 用例的优先级,@allure.tag 用例的标记,@allure.testcase 记录用例的地址(超链接)<br>@allure.description_html 用例的描述的网址(超链接),若存在description_html则@allure.description不显示</p>
-<h2 id="设置用例级别"><a href="#设置用例级别" class="headerlink" title="设置用例级别"></a>设置用例级别</h2><p>@allure.severity的参数说明，’blocker’、 ‘critical’、’normal’、’minor’、’trivial’，从左到右言级别依次降低</p>
-<h1 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h1><p><a target="_blank" rel="noopener" href="https://github.com/allure-framework">https://github.com/allure-framework</a></p>
+<h2 id="she-zhi-bao-gao-zhong-gong-neng-xiang-xian-shi-nei-rong">设置报告中功能项显示内容</h2>
+<p>@allure.epic, @allure.feature, @allure.story,@allure.title对应功能中的一级菜单,二级菜单,三级菜单,用例标题</p>
+<h2 id="she-zhi-ju-ti-yong-li-xian-shi-nei-rong">设置具体用例显示内容</h2>
+<p>@allure.id 用例id,@allure.link 用例的超链接,@allure.label 用例的标签<br>
+@allure.issue 记录用例的问题(超链接),@allure.description 用例的描述<br>
+@allure.severity 用例的优先级,@allure.tag 用例的标记,@allure.testcase 记录用例的地址(超链接)<br>
+@allure.description_html 用例的描述的网址(超链接),若存在description_html则@allure.description不显示</p>
+<h2 id="she-zhi-yong-li-ji-bie">设置用例级别</h2>
+<p>@allure.severity的参数说明，‘blocker’、 ‘critical’、‘normal’、‘minor’、‘trivial’，从左到右言级别依次降低</p>
+<h1 id="can-kao-lian-jie">参考链接</h1>
+<p><a target="_blank" rel="noopener" href="https://github.com/allure-framework">https://github.com/allure-framework</a></p>
 <p><a target="_blank" rel="noopener" href="https://qualitysphere.gitee.io/ext/allure/">https://qualitysphere.gitee.io/ext/allure/</a></p>
 <p><a target="_blank" rel="noopener" href="https://github.com/orgs/allure-framework/discussions">https://github.com/orgs/allure-framework/discussions</a></p>
 
@@ -1592,10 +1804,10 @@ TIME_DURATION=31969
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1909,7 +2121,7 @@ TIME_DURATION=31969
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/186.jpg" class="responsive-img" alt="Monitor mds failed">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/186.jpg" class="responsive-img" alt="Monitor mds failed">
                         
                         <span class="card-title">Monitor mds failed</span>
                     </div>
@@ -1970,7 +2182,7 @@ TIME_DURATION=31969
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/71.jpg" class="responsive-img" alt="S3 单一Bucket下写4K数据性能衰减验证">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/71.jpg" class="responsive-img" alt="S3 单一Bucket下写4K数据性能衰减验证">
                         
                         <span class="card-title">S3 单一Bucket下写4K数据性能衰减验证</span>
                     </div>
@@ -2209,7 +2421,7 @@ TIME_DURATION=31969
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2559,6 +2771,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

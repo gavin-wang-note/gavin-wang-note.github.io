@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="gzip vs bzip2 vs xz vs pbzip2 性能对比, 软硬件测试">
-    <meta name="description" content="概述两天前，简单写了篇bzip2 与 pbzip2 压缩哪个更快，当时是处于使用esrally压测Elastic search性能，并没有太多的关注几种压缩工具的性能如何。本文介绍常用的几种压缩命令，分别汇总出各个命令的压缩&amp;amp;解压缩">
+    <meta name="description" content="概述
+两天前，简单写了篇bzip2 与 pbzip2 压缩哪个更快，当时是处于使用esrally压测Elastic search性能，并没有太多的关注几种压缩工具的性能如何。本文介绍常用的几种压缩命令，分别汇总出各个命令的压缩&amp;amp;解压">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -492,14 +633,13 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>两天前，简单写了篇bzip2 与 pbzip2 压缩哪个更快，当时是处于使用esrally压测Elastic search性能，并没有太多的关注几种压缩工具的性能如何。本文介绍常用的几种压缩命令，分别汇总出各个命令的压缩&amp;解压缩全方面性能对比。</p>
-<h1 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h1><p>看了下gzip，bzip2，pbzip2，xz这4个命令的help信息，帮助信息比较相似：</p>
-<img class="shadow" src="/img/in-post/compress_help.png" width="1200">
-
-
-
+                <h1 id="gai-shu">概述</h1>
+<p>两天前，简单写了篇bzip2 与 pbzip2 压缩哪个更快，当时是处于使用esrally压测Elastic search性能，并没有太多的关注几种压缩工具的性能如何。本文介绍常用的几种压缩命令，分别汇总出各个命令的压缩&amp;解压缩全方面性能对比。</p>
+<h1 id="zhun-bei-gong-zuo">准备工作</h1>
+<p>看了下gzip，bzip2，pbzip2，xz这4个命令的help信息，帮助信息比较相似：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/compress_help.png" width="1200">
 <p>准备了一个测试文件方便测试：</p>
-<pre><code class="line-numbers language-shell">root@node244:/mnt/disk/compress_test# ll
+<pre><code class="language-shell">root@node244:/mnt/disk/compress_test# ll
 total 557704
 drwxr-xr-x 2 root root      4096 Jun  3 10:34 ./
 drwxr-xr-x 5 root root      4096 Jun  3 10:32 ../
@@ -507,9 +647,11 @@ drwxr-xr-x 5 root root      4096 Jun  3 10:32 ../
 root@node244:/mnt/disk/compress_test# 
 </code></pre>
 <p>结合各个命令的help信息，可以使用简单的shell命令来完成测试工作，例如：</p>
-<pre><code class="line-numbers language-shell">for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time gzip -k -f -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; gzip -l -v ceph-client.radosgw.0.log.gz; echo "-----  Uncompress -----"; time gzip -d -f ceph-client.radosgw.0.log.gz; done
+<pre><code class="language-shell">for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time gzip -k -f -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; gzip -l -v ceph-client.radosgw.0.log.gz; echo "-----  Uncompress -----"; time gzip -d -f ceph-client.radosgw.0.log.gz; done
 </code></pre>
-<h1 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h1><h2 id="gzip-压缩与解压缩"><a href="#gzip-压缩与解压缩" class="headerlink" title="gzip 压缩与解压缩"></a>gzip 压缩与解压缩</h2><pre><code class="line-numbers language-shell">root@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time gzip -k -f -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; gzip -l -v ceph-client.radosgw.0.log.gz; echo "-----  Uncompress -----"; time gzip -d -f ceph-client.radosgw.0.log.gz; done
+<h1 id="ce-shi-guo-cheng">测试过程</h1>
+<h2 id="gzip-ya-suo-yu-jie-ya-suo">gzip 压缩与解压缩</h2>
+<pre><code class="language-shell">root@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time gzip -k -f -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; gzip -l -v ceph-client.radosgw.0.log.gz; echo "-----  Uncompress -----"; time gzip -d -f ceph-client.radosgw.0.log.gz; done
 ============================  Compress Level 1  ===========================
  ----- Compress -----
 
@@ -638,7 +780,8 @@ user	0m1.820s
 sys	0m0.456s
 root@node244:/mnt/disk/compress_test# 
 </code></pre>
-<h2 id="bzip2的压缩与解压缩"><a href="#bzip2的压缩与解压缩" class="headerlink" title="bzip2的压缩与解压缩"></a>bzip2的压缩与解压缩</h2><pre><code class="line-numbers language-shell">root@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time bzip2 -k -f -v -$i ceph-client.radosgw.0.log ceph-client.radosgw.0.log.bz2; echo "-----  Uncompress -----"; time bzip2 -d -f ceph-client.radosgw.0.log.bz2; done
+<h2 id="bzip-2-de-ya-suo-yu-jie-ya-suo">bzip2的压缩与解压缩</h2>
+<pre><code class="language-shell">root@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time bzip2 -k -f -v -$i ceph-client.radosgw.0.log ceph-client.radosgw.0.log.bz2; echo "-----  Uncompress -----"; time bzip2 -d -f ceph-client.radosgw.0.log.bz2; done
 ============================  Compress Level 1  ===========================
  ----- Compress -----
   ceph-client.radosgw.0.log:     28.266:1,  0.283 bits/byte, 96.46% saved, 571073631 in, 20203523 out.
@@ -758,8 +901,9 @@ user	0m8.667s
 sys	0m0.512s
 root@node244:/mnt/disk/compress_test# 
 </code></pre>
-<h2 id="pbzip2的压缩与解压缩"><a href="#pbzip2的压缩与解压缩" class="headerlink" title="pbzip2的压缩与解压缩"></a>pbzip2的压缩与解压缩</h2><p>由于担心不同CPU并发影响测试效果，这里指定了CPU个数为24个，在不带-p参数情况下，默认32个，当前环境虽然有32cores，但并不是每次都能全部参与，有时候是32，有时候是29，有时候是26，所以这里指定一个更低值，确保每次执行都使用相同cores的CPU数。</p>
-<pre><code class="line-numbers language-shell">@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time pbzip2 -k -f -v -p24 -$i ceph-client.radosgw.0.log; echo "----- Uncompress -----"; time pbzip2 -p24 -d -f ceph-client.radosgw.0.log.bz2; done
+<h2 id="pbzip-2-de-ya-suo-yu-jie-ya-suo">pbzip2的压缩与解压缩</h2>
+<p>由于担心不同CPU并发影响测试效果，这里指定了CPU个数为24个，在不带-p参数情况下，默认32个，当前环境虽然有32cores，但并不是每次都能全部参与，有时候是32，有时候是29，有时候是26，所以这里指定一个更低值，确保每次执行都使用相同cores的CPU数。</p>
+<pre><code class="language-shell">@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time pbzip2 -k -f -v -p24 -$i ceph-client.radosgw.0.log; echo "----- Uncompress -----"; time pbzip2 -p24 -d -f ceph-client.radosgw.0.log.bz2; done
 ============================  Compress Level 1  ===========================
  ----- Compress -----
 Parallel BZIP2 v1.1.9     - by: Jeff Gilchrist [http://compression.ca]
@@ -1032,7 +1176,8 @@ user	0m15.991s
 sys	0m0.911s
 root@node244:/mnt/disk/compress_test#
 </code></pre>
-<h2 id="xz的压缩与解压缩"><a href="#xz的压缩与解压缩" class="headerlink" title="xz的压缩与解压缩"></a>xz的压缩与解压缩</h2><pre><code class="line-numbers language-shell">root@node244:/mnt/disk/compress_test# for i in {0..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; rm -rf *.xz; time xz -k -f -v -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; xz -l -v ceph-client.radosgw.0.log.xz; echo "----- Uncompress -----"; time xz -d -f ceph-client.radosgw.0.log.xz; done
+<h2 id="xz-de-ya-suo-yu-jie-ya-suo">xz的压缩与解压缩</h2>
+<pre><code class="language-shell">root@node244:/mnt/disk/compress_test# for i in {0..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; rm -rf *.xz; time xz -k -f -v -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; xz -l -v ceph-client.radosgw.0.log.xz; echo "----- Uncompress -----"; time xz -d -f ceph-client.radosgw.0.log.xz; done
 ============================  Compress Level 0  ===========================
  ----- Compress -----
 ceph-client.radosgw.0.log (1/1)
@@ -1315,7 +1460,9 @@ user	0m1.763s
 sys	0m0.500s
 root@node244:/mnt/disk/compress_test# 
 </code></pre>
-<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><h2 id="Compression-Size"><a href="#Compression-Size" class="headerlink" title="Compression Size"></a>Compression Size</h2><p>Unit:bytes</p>
+<h1 id="ce-shi-jie-guo">测试结果</h1>
+<h2 id="compression-size">Compression Size</h2>
+<p>Unit:bytes</p>
 <table>
 <thead>
 <tr>
@@ -1326,7 +1473,8 @@ root@node244:/mnt/disk/compress_test#
 <th><strong>xz</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1396,8 +1544,10 @@ root@node244:/mnt/disk/compress_test#
 <td>13295516</td>
 <td>16,510,384</td>
 </tr>
-</tbody></table>
-<h2 id="Compression-Time"><a href="#Compression-Time" class="headerlink" title="Compression Time"></a>Compression Time</h2><p>先从压缩时间开始，下列图表显示了从1到9的每个压缩级别完成压缩所花费的时间。</p>
+</tbody>
+</table>
+<h2 id="compression-time">Compression Time</h2>
+<p>先从压缩时间开始，下列图表显示了从1到9的每个压缩级别完成压缩所花费的时间。</p>
 <p>Unit: seconds</p>
 <table>
 <thead>
@@ -1409,7 +1559,8 @@ root@node244:/mnt/disk/compress_test#
 <th><strong>xz</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1479,12 +1630,12 @@ root@node244:/mnt/disk/compress_test#
 <td>0m10.438s</td>
 <td>1m32.645s</td>
 </tr>
-</tbody></table>
-<img class="shadow" src="/img/in-post/compression_time.png" width="1200">
-
-
+</tbody>
+</table>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/compression_time.png" width="1200">
 <p>从折线图可以看出，随着压缩级别的提高，bzip2需要花费更长的时间才能完成，pbzip2和gzip的变化不大，而压缩级别为3后，xz的增长非常明显。</p>
-<h2 id="Compression-Ratio"><a href="#Compression-Ratio" class="headerlink" title="Compression Ratio"></a>Compression Ratio</h2><p>Unit: %</p>
+<h2 id="compression-ratio">Compression Ratio</h2>
+<p>Unit: %</p>
 <table>
 <thead>
 <tr>
@@ -1495,7 +1646,8 @@ root@node244:/mnt/disk/compress_test#
 <th><strong>xz</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1565,14 +1717,13 @@ root@node244:/mnt/disk/compress_test#
 <td>2.33</td>
 <td>2.9</td>
 </tr>
-</tbody></table>
-<img class="shadow" src="/img/in-post/compression_ratio.png" width="1200">
-
-
-
+</tbody>
+</table>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/compression_ratio.png" width="1200">
 <p>compression ratio，越小越好，比如说源文件大小是100MiB，ratio为5%，则压缩后文件大小为5MiB。</p>
 <p>从折线图看到趋势是：压缩级别越高，压缩率越低，说明文件被压缩的更小了。在这种情况下，xz始终提供比较平稳的压缩率（但从压缩时间图所示，xz在压缩级别3之后花费更长的时间才能获得这个效果），紧跟其后的是pbzip2和bzip2，gzip在压缩级别为3后，压缩率有所下降。</p>
-<h2 id="Compression-Speed"><a href="#Compression-Speed" class="headerlink" title="Compression Speed"></a>Compression Speed</h2><p>Unit:MiB/s</p>
+<h2 id="compression-speed">Compression Speed</h2>
+<p>Unit:MiB/s</p>
 <table>
 <thead>
 <tr>
@@ -1583,7 +1734,8 @@ root@node244:/mnt/disk/compress_test#
 <th><strong>xz</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1653,14 +1805,11 @@ root@node244:/mnt/disk/compress_test#
 <td>52.176</td>
 <td>5.879</td>
 </tr>
-</tbody></table>
-<img class="shadow" src="/img/in-post/compression_speed.png" width="1200">
-
-
-
-
-
-<h2 id="Decompression-Time"><a href="#Decompression-Time" class="headerlink" title="Decompression Time"></a>Decompression Time</h2><p>Unit: seconds</p>
+</tbody>
+</table>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/compression_speed.png" width="1200">
+<h2 id="decompression-time">Decompression Time</h2>
+<p>Unit: seconds</p>
 <table>
 <thead>
 <tr>
@@ -1671,7 +1820,8 @@ root@node244:/mnt/disk/compress_test#
 <th><strong>xz</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1741,13 +1891,13 @@ root@node244:/mnt/disk/compress_test#
 <td>0m0.796s</td>
 <td>0m2.394s</td>
 </tr>
-</tbody></table>
-<img class="shadow" src="/img/in-post/decompression_time.png" width="1200">
-
-
+</tbody>
+</table>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/decompression_time.png" width="1200">
 <p>由于数值比较小，从折线图上直接看不出什么效果，从表格中可以看出，当文件的压缩级别越高，解压相应的压缩文件耗时越低。xz的解压缩时间几乎是一条直线，非常平稳，gbip2次之，当gbzip2解压比xz更快。</p>
 <p>从Compression time, Compression Ratio，结合当前的Decompress Time看，总体上推荐gbzip2进行文件的压缩与解压缩操作。</p>
-<h2 id="Decompression-Speed"><a href="#Decompression-Speed" class="headerlink" title="Decompression Speed"></a>Decompression Speed</h2><p>Unit: MiB/s</p>
+<h2 id="decompression-speed">Decompression Speed</h2>
+<p>Unit: MiB/s</p>
 <table>
 <thead>
 <tr>
@@ -1758,7 +1908,8 @@ root@node244:/mnt/disk/compress_test#
 <th><strong>xz</strong></th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>0</td>
 <td>-</td>
 <td>-</td>
@@ -1828,22 +1979,28 @@ root@node244:/mnt/disk/compress_test#
 <td>15.929</td>
 <td>6.558</td>
 </tr>
-</tbody></table>
-<img class="shadow" src="/img/in-post/decompression_speed.png" width="1200">
-
-
-
-<h1 id="性能差异和比较"><a href="#性能差异和比较" class="headerlink" title="性能差异和比较"></a>性能差异和比较</h1><p>默认情况下，当未指定压缩级别时，gzip 使用 -6，bzip2 和 pbzip2 使用 -9，xz 使用 -6。</p>
+</tbody>
+</table>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/decompression_speed.png" width="1200">
+<h1 id="xing-neng-chai-yi-he-bi-jiao">性能差异和比较</h1>
+<p>默认情况下，当未指定压缩级别时，gzip 使用 -6，bzip2 和 pbzip2 使用 -9，xz 使用 -6。</p>
 <p>根据测试结果，原因非常明确：对于 gzip 和 xz -6 作为默认压缩方法提供良好的压缩级别，但完成时间不会太长，损失一个平衡点，因为较高的压缩级别需要更长的时间来处理压缩。另一方面，pbzip2 最好使用默认压缩级别为 9，如手册页中建议的那样，此处的结果证实了这一点，压缩比增加，但所采用的时间几乎相同，在级别 1 到 9 之间相差不到一秒；但反观bzip2，使用不同的压缩级别，压缩耗时还是有蛮大幅度变化的。</p>
 <p>一般来说，xz 达到最佳压缩级别，非常的平稳，然后是 bzip2和pbzip2，然后是 gzip。为了达到更好的压缩，但是xz通常需要最长的完成，其次是pbzip2，然后是gzip，最差的是bzip2，耗时太久。</p>
 <p>xz 的默认压缩级别为 6，而 pbzip2 在压缩级别 9 时仅花费比 gzip 稍长一点的时间，并且压缩量更好，而 pbzip2 和 xz 之间的差异小于 pbzip2 和 gzip 之间的差异，因此 pbzip2 成为压缩的优先选择。</p>
 <p>根据这些测试结果，pbzip2是压缩的良好中间地带，gzip只是压缩的更快一点，而xz可能并不真正值得使用，尤其使用更高的文件压缩级别（&gt;=6），因为它需要更长的时间来完成压缩操作。</p>
 <p>然而，使用 bzip2 解压缩比 xz 或 gzip 或 pbzip2 需要更长的时间，xz 处于解压缩文件的良好中间地带，而 gbzip2 则是解压缩最快的。</p>
-<h1 id="选择哪种压缩方式？"><a href="#选择哪种压缩方式？" class="headerlink" title="选择哪种压缩方式？"></a>选择哪种压缩方式？</h1><p>那么我该选择哪种压缩/解压缩方式？这完全取决于应用目的了，需要因地制宜选择所需的压缩/解压缩方法。</p>
-<ul>
-<li>如果是交互式的压缩文件，可以使用pxz，这个指令可以看到压缩进度；</li>
-<li>如果只是想尽可能快的压缩和解压缩文件，很少考虑压缩比情况下，gzip是一个很好的选择；</li>
-<li>如果只想要一个更好的压缩比，以节约磁盘空间，并愿意话费更多的时间去加压缩它，那么xz只比较好的选择，其次是pbzip2</li>
+<h1 id="xuan-ze-na-chong-ya-suo-fang-shi">选择哪种压缩方式？</h1>
+<p>那么我该选择哪种压缩/解压缩方式？这完全取决于应用目的了，需要因地制宜选择所需的压缩/解压缩方法。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果是交互式的压缩文件，可以使用pxz，这个指令可以看到压缩进度；</p>
+</li>
+<li class="lvl-2">
+<p>如果只是想尽可能快的压缩和解压缩文件，很少考虑压缩比情况下，gzip是一个很好的选择；</p>
+</li>
+<li class="lvl-2">
+<p>如果只想要一个更好的压缩比，以节约磁盘空间，并愿意话费更多的时间去加压缩它，那么xz只比较好的选择，其次是pbzip2</p>
+</li>
 </ul>
 
                 
@@ -1959,10 +2116,10 @@ root@node244:/mnt/disk/compress_test#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -2276,7 +2433,7 @@ root@node244:/mnt/disk/compress_test#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/118.jpg" class="responsive-img" alt="统计cosbench写速度">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/118.jpg" class="responsive-img" alt="统计cosbench写速度">
                         
                         <span class="card-title">统计cosbench写速度</span>
                     </div>
@@ -2341,7 +2498,7 @@ root@node244:/mnt/disk/compress_test#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/119.jpg" class="responsive-img" alt="esrally实战">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/119.jpg" class="responsive-img" alt="esrally实战">
                         
                         <span class="card-title">esrally实战</span>
                     </div>
@@ -2572,7 +2729,7 @@ root@node244:/mnt/disk/compress_test#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2922,6 +3079,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

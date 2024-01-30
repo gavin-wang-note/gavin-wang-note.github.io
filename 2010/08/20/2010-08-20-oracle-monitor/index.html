@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle SQL篇之监控, 软硬件测试">
-    <meta name="description" content="监控事例的等待select event,sum(decode(wait_Time,0,0,1)) &#34;Prev&#34;, sum(decode(wait_Time,0,1,0)) &#34;Curr&#34;,count(*) &#34;Tot&#34; from v$sessi">
+    <meta name="description" content="监控事例的等待
+select event,sum(decode(wait_Time,0,0,1)) &#34;Prev&#34;, sum(decode(wait_Time,0,1,0)) &#34;Curr&#34;,count(*) &#34;Tot&#34; from v$sess">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -468,11 +609,14 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="监控事例的等待"><a href="#监控事例的等待" class="headerlink" title="监控事例的等待"></a>监控事例的等待</h1><pre><code class="line-numbers language-shell">select event,sum(decode(wait_Time,0,0,1)) "Prev", sum(decode(wait_Time,0,1,0)) "Curr",count(*) "Tot" from v$session_Wait    group by event order by 4;
+                <h1 id="jian-kong-shi-li-de-deng-dai">监控事例的等待</h1>
+<pre><code class="language-shell">select event,sum(decode(wait_Time,0,0,1)) "Prev", sum(decode(wait_Time,0,1,0)) "Curr",count(*) "Tot" from v$session_Wait    group by event order by 4;
 </code></pre>
-<h1 id="回滚段的争用情况"><a href="#回滚段的争用情况" class="headerlink" title="回滚段的争用情况"></a>回滚段的争用情况</h1><pre><code class="line-numbers language-shell">select name, waits, gets, waits/gets "Ratio"	from v$rollstat C, v$rollname D   where C.usn = D.usn;
+<h1 id="hui-gun-duan-de-zheng-yong-qing-kuang">回滚段的争用情况</h1>
+<pre><code class="language-shell">select name, waits, gets, waits/gets "Ratio"	from v$rollstat C, v$rollname D   where C.usn = D.usn;
 </code></pre>
-<h1 id="监控表空间的-I-O-比例"><a href="#监控表空间的-I-O-比例" class="headerlink" title="监控表空间的 I/O 比例"></a>监控表空间的 I/O 比例</h1><pre><code class="line-numbers language-shell">select B.tablespace_name nam, 
+<h1 id="jian-kong-biao-kong-jian-de-i-o-bi-li">监控表空间的 I/O 比例</h1>
+<pre><code class="language-shell">select B.tablespace_name nam, 
         A.phyblkrd pbr,
         A.phywrts pyw, 
         B.file_name "file", 
@@ -481,38 +625,45 @@
 from v$filestat A, dba_data_files B   
 where A.file# = B.file_id   order by B.tablespace_name;     
 </code></pre>
-<h1 id="监控文件系统的-I-O-比例"><a href="#监控文件系统的-I-O-比例" class="headerlink" title="监控文件系统的 I/O 比例"></a>监控文件系统的 I/O 比例</h1><pre><code class="line-numbers language-shell">select substr(C.file#,1,2) "#",substr(C.name,1,30) "Name", C.bytes, D.phyrds, D.PHYWRTS, C.status from v$datafile C, v$filestat D           
+<h1 id="jian-kong-wen-jian-xi-tong-de-i-o-bi-li">监控文件系统的 I/O 比例</h1>
+<pre><code class="language-shell">select substr(C.file#,1,2) "#",substr(C.name,1,30) "Name", C.bytes, D.phyrds, D.PHYWRTS, C.status from v$datafile C, v$filestat D           
 where C.file# = D.file#;
 </code></pre>
-<h1 id="监控-SGA-的命中率"><a href="#监控-SGA-的命中率" class="headerlink" title="监控 SGA 的命中率"></a>监控 SGA 的命中率</h1><pre><code class="line-numbers language-shell">select a.value +	b.value "logical_reads", c.	value "phys_reads", round(100 * ((a.value+b.value)-c.value) / (a.value+b.value)) "BUFFER HIT RATIO" 
+<h1 id="jian-kong-sga-de-ming-zhong-lu">监控 SGA 的命中率</h1>
+<pre><code class="language-shell">select a.value +	b.value "logical_reads", c.	value "phys_reads", round(100 * ((a.value+b.value)-c.value) / (a.value+b.value)) "BUFFER HIT RATIO" 
 from v$sysstat a, v$sysstat 	b, v$sysstat c 
 where a.statistic# = 38 and 	b.statistic# = 39 and c.statistic# = 40;
 </code></pre>
-<h1 id="监控-SGA-中字典缓冲区的命中率"><a href="#监控-SGA-中字典缓冲区的命中率" class="headerlink" title="监控 SGA 中字典缓冲区的命中率"></a>监控 SGA 中字典缓冲区的命中率</h1><pre><code class="line-numbers language-shell">select parameter, gets,Getmisses , getmisses/(gets+getmisses)*100 "miss ratio",
+<h1 id="jian-kong-sga-zhong-zi-dian-huan-chong-qu-de-ming-zhong-lu">监控 SGA 中字典缓冲区的命中率</h1>
+<pre><code class="language-shell">select parameter, gets,Getmisses , getmisses/(gets+getmisses)*100 "miss ratio",
 (1-(sum(getmisses)/ (sum(getmisses)+sum(getmisses))))*100 "Hit ratio" 
 from v$rowcache 
 where gets+getmisses &lt;&gt;0 
 group by parameter, gets, getmisses;
 </code></pre>
-<h1 id="监控-SGA-中共享缓存区的命中率，应该小于1"><a href="#监控-SGA-中共享缓存区的命中率，应该小于1" class="headerlink" title="监控 SGA 中共享缓存区的命中率，应该小于1%"></a>监控 SGA 中共享缓存区的命中率，应该小于1%</h1><pre><code class="line-numbers language-shell">select sum(pins)	"Total Pins", sum(reloads)  "Total Reloads", 
+<h1 id="jian-kong-sga-zhong-gong-xiang-huan-cun-qu-de-ming-zhong-lu-ying-gai-xiao-yu-1">监控 SGA 中共享缓存区的命中率，应该小于1%</h1>
+<pre><code class="language-shell">select sum(pins)	"Total Pins", sum(reloads)  "Total Reloads", 
 sum(reloads)/sum(pins) *100 libcache 
 from v$librarycache;                     
 
 select sum(pinhits-reloads)/sum(pins) "hit radio",sum(reloads)/sum(pins) "reload percent" from v$librarycache;
 </code></pre>
-<h1 id="监控-SGA-中重做日志缓存区的命中率，应该小于1"><a href="#监控-SGA-中重做日志缓存区的命中率，应该小于1" class="headerlink" title="监控 SGA 中重做日志缓存区的命中率，应该小于1%"></a>监控 SGA 中重做日志缓存区的命中率，应该小于1%</h1><pre><code class="line-numbers language-shell">SELECT name, gets, misses, immediate_gets, immediate_misses, Decode(gets,0,0,	misses/gets*100) ratio1, 
+<h1 id="jian-kong-sga-zhong-zhong-zuo-ri-zhi-huan-cun-qu-de-ming-zhong-lu-ying-gai-xiao-yu-1">监控 SGA 中重做日志缓存区的命中率，应该小于1%</h1>
+<pre><code class="language-shell">SELECT name, gets, misses, immediate_gets, immediate_misses, Decode(gets,0,0,	misses/gets*100) ratio1, 
 Decode(immediate_gets+immediate_misses,0,0, immediate_misses/(immediate_gets+immediate_misses)*100) ratio2 
 FROM v$latch WHERE name IN ('redo allocation	', 'redo copy');
 </code></pre>
-<h1 id="数据库表空间使用情况监控-字典管理表空间"><a href="#数据库表空间使用情况监控-字典管理表空间" class="headerlink" title="数据库表空间使用情况监控(字典管理表空间)"></a>数据库表空间使用情况监控(字典管理表空间)</h1><p>数据库运行了一段时间后，由于不断的在表空间上创建和删除对象，会在表空间上产生大量的碎片，DBA应该及时了解表空间的碎片和可用空间情况，以决定是否要对碎片进行整理或为表空间增加数据文件。以下为引用的内容：</p>
-<pre><code class="line-numbers language-shell">select tablespace_name, 
+<h1 id="shu-ju-ku-biao-kong-jian-shi-yong-qing-kuang-jian-kong-zi-dian-guan-li-biao-kong-jian">数据库表空间使用情况监控(字典管理表空间)</h1>
+<p>数据库运行了一段时间后，由于不断的在表空间上创建和删除对象，会在表空间上产生大量的碎片，DBA应该及时了解表空间的碎片和可用空间情况，以决定是否要对碎片进行整理或为表空间增加数据文件。以下为引用的内容：</p>
+<pre><code class="language-shell">select tablespace_name, 
 count(*) chunks , 
 max(bytes/1024/1024) max_chunk 
 from dba_free_space 
 group by tablespace_name; 
 </code></pre>
-<p>上面的SQL列出了数据库中每个表空间的空闲块情况,如下所示:<br>以下为引用的内容：</p>
-<pre><code class="line-numbers language-shell">TABLESPACE_NAME         CHUNKS      MAX_CHUNK 
+<p>上面的SQL列出了数据库中每个表空间的空闲块情况,如下所示:<br>
+以下为引用的内容：</p>
+<pre><code class="language-shell">TABLESPACE_NAME         CHUNKS      MAX_CHUNK 
 --------------------  ----------   ---------- 
 INDX                 1           57.9921875 
 RBS                  3           490.992188 
@@ -522,16 +673,18 @@ TEMP                 20          70.8046875
 TOOLS                1           11.8359375 
 USERS                67          71.3671875
 </code></pre>
-<p>其中，CHUNKS列表示表空间中有多少可用的空闲块(每个空闲块是由一些连续的Oracle数据块组成)，如果这样的空闲块过多，比如平均到每个数据文件上超过了100个，那么该表空间的碎片状况就比较严重了，可以尝试用以下的SQL命令进行表空间相邻碎片的接合: </p>
-<pre><code class="line-numbers language-shell">alter tablespace 表空间名 coalesce;
+<p>其中，CHUNKS列表示表空间中有多少可用的空闲块(每个空闲块是由一些连续的Oracle数据块组成)，如果这样的空闲块过多，比如平均到每个数据文件上超过了100个，那么该表空间的碎片状况就比较严重了，可以尝试用以下的SQL命令进行表空间相邻碎片的接合:</p>
+<pre><code class="language-shell">alter tablespace 表空间名 coalesce;
 </code></pre>
-<p>然后再执行查看表空间碎片的SQL语句，看表空间的碎片有没有减少。如果没有效果，并且表空间的碎片已经严重影响到了数据库的运行，则考虑对该表空间进行重建。<br>MAX_CHUNK列的结果是表空间上最大的可用块大小，如果该表空间上的对象所需分配的空间(NEXT值)大于可用块的大小的话，就会提示ORA-1652、ORA-1653、ORA-1654的错误信息，DBA应该及时对表空间的空间进行扩充，以避免这些错误发生。</p>
-<h1 id="查看数据库的连接情况"><a href="#查看数据库的连接情况" class="headerlink" title="查看数据库的连接情况"></a>查看数据库的连接情况</h1><p>DBA要定时对数据库的连接情况进行检查，看与数据库建立的会话数目是不是正常，如果建立了过多的连接，会消耗数据库的资源。同时，对一些“挂死”的连接，可能会需要DBA手工进行清理。<br>以下的SQL语句列出当前数据库建立的会话情况: 以下为引用的内容：</p>
-<pre><code class="line-numbers language-shell">select sid,serial#,username,program,machine,status 
+<p>然后再执行查看表空间碎片的SQL语句，看表空间的碎片有没有减少。如果没有效果，并且表空间的碎片已经严重影响到了数据库的运行，则考虑对该表空间进行重建。<br>
+MAX_CHUNK列的结果是表空间上最大的可用块大小，如果该表空间上的对象所需分配的空间(NEXT值)大于可用块的大小的话，就会提示ORA-1652、ORA-1653、ORA-1654的错误信息，DBA应该及时对表空间的空间进行扩充，以避免这些错误发生。</p>
+<h1 id="cha-kan-shu-ju-ku-de-lian-jie-qing-kuang">查看数据库的连接情况</h1>
+<p>DBA要定时对数据库的连接情况进行检查，看与数据库建立的会话数目是不是正常，如果建立了过多的连接，会消耗数据库的资源。同时，对一些“挂死”的连接，可能会需要DBA手工进行清理。以下的SQL语句列出当前数据库建立的会话情况: 以下为引用的内容：</p>
+<pre><code class="language-shell">select sid,serial#,username,program,machine,status 
 from v$session; 
 </code></pre>
 <p>输出结果为: 以下为引用的内容：</p>
-<pre><code class="line-numbers language-shell">SID   SERIAL#    USERNAME    PROGRAM    MACHINE    STATUS 
+<pre><code class="language-shell">SID   SERIAL#    USERNAME    PROGRAM    MACHINE    STATUS 
 ----  -------  ---------- ----------- ---------------  -------- 
 1       1                    ORACLE.EXE   WORK3      ACTIVE 
 2       1                    ORACLE.EXE   WORK3      ACTIVE 
@@ -544,18 +697,31 @@ from v$session;
 11      5        DBSNMP    dbsnmp.exe   WORKGROUP\WORK3   INACTIVE
 </code></pre>
 <p>注：</p>
-<ul>
-<li>SID 会话(session)的ID号；</li>
-<li>SERIAL# 会话的序列号，和SID一起用来唯一标识一个会话；</li>
-<li>USERNAME 建立该会话的用户名；</li>
-<li>PROGRAM 这个会话是用什么工具连接到数据库的；</li>
-<li>STATUS 当前这个会话的状态，ACTIVE表示会话正在执行某些任务，INACTIVE表示当前会话没有执行任何操作。</li>
-<li>如果DBA要手工断开某个会话，则执行:</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>SID 会话(session)的ID号；</p>
+</li>
+<li class="lvl-2">
+<p>SERIAL# 会话的序列号，和SID一起用来唯一标识一个会话；</p>
+</li>
+<li class="lvl-2">
+<p>USERNAME 建立该会话的用户名；</p>
+</li>
+<li class="lvl-2">
+<p>PROGRAM 这个会话是用什么工具连接到数据库的；</p>
+</li>
+<li class="lvl-2">
+<p>STATUS 当前这个会话的状态，ACTIVE表示会话正在执行某些任务，INACTIVE表示当前会话没有执行任何操作。</p>
+</li>
+<li class="lvl-2">
+<p>如果DBA要手工断开某个会话，则执行:</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">alter system kill session 'SID,SERIAL#'; 
+<pre><code class="language-shell">alter system kill session 'SID,SERIAL#'; 
 </code></pre>
 <p>注意，上例中SID为1到7(USERNAME列为空)的会话，是Oracle的后台进程，不要对这些会话进行任何操作。</p>
-<h1 id="查看undo回滚率"><a href="#查看undo回滚率" class="headerlink" title="查看undo回滚率"></a>查看undo回滚率</h1><pre><code class="line-numbers language-shell">SELECT NAME, VALUE FROM v$sysstat WHERE NAME IN ('user commits', 'transaction rollbacks');
+<h1 id="cha-kan-undo-hui-gun-lu">查看undo回滚率</h1>
+<pre><code class="language-shell">SELECT NAME, VALUE FROM v$sysstat WHERE NAME IN ('user commits', 'transaction rollbacks');
 </code></pre>
 
                 
@@ -659,10 +825,10 @@ from v$session;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -976,7 +1142,7 @@ from v$session;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/75.jpg" class="responsive-img" alt="Oracle SQL篇之常用视图与表汇总">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/75.jpg" class="responsive-img" alt="Oracle SQL篇之常用视图与表汇总">
                         
                         <span class="card-title">Oracle SQL篇之常用视图与表汇总</span>
                     </div>
@@ -1025,7 +1191,7 @@ from v$session;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/1.jpg" class="responsive-img" alt="Oracle Dataguard">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/1.jpg" class="responsive-img" alt="Oracle Dataguard">
                         
                         <span class="card-title">Oracle Dataguard</span>
                     </div>
@@ -1256,7 +1422,7 @@ from v$session;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1606,6 +1772,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

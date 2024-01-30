@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Ubuntu kdump dump core files, 软硬件测试">
-    <meta name="description" content="概述kdump 是一种先进的基于 kexec 的内核崩溃转储机制。当系统崩溃时，kdump 使用 kexec 启动到第二个内核。
-第二个内核通常叫做捕获内核，以很小内存启动以捕获转储镜像。第一个内核保留了内存的一部分给第二内核启动 用。由于">
+    <meta name="description" content="概述
+kdump 是一种先进的基于 kexec 的内核崩溃转储机制。当系统崩溃时，kdump 使用 kexec 启动到第二个内核。
+第二个内核通常叫做捕获内核，以很小内存启动以捕获转储镜像。第一个内核保留了内存的一部分给第二内核启动 用。由">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,20 +610,21 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>kdump 是一种先进的基于 kexec 的内核崩溃转储机制。当系统崩溃时，kdump 使用 kexec 启动到第二个内核。</p>
-<p>第二个内核通常叫做捕获内核，以很小内存启动以捕获转储镜像。第一个内核保留了内存的一部分给第二内核启动 用。由于 kdump 利用 kexec 启动捕获内核，绕过了 BIOS，所以第一个内核的内存得以保留。这是内核崩溃转储<br>的本质。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>kdump 是一种先进的基于 kexec 的内核崩溃转储机制。当系统崩溃时，kdump 使用 kexec 启动到第二个内核。</p>
+<p>第二个内核通常叫做捕获内核，以很小内存启动以捕获转储镜像。第一个内核保留了内存的一部分给第二内核启动 用。由于 kdump 利用 kexec 启动捕获内核，绕过了 BIOS，所以第一个内核的内存得以保留。这是内核崩溃转储的本质。</p>
 <p>现在整理下在Ubuntu 14.04上的部署方法。</p>
-<h1 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h1><p>第一步是通过如下指令安装：</p>
+<h1 id="bu-shu">部署</h1>
+<p>第一步是通过如下指令安装：</p>
 <p><code>root@46:~# sudo apt-get install linux-crashdump</code></p>
 <p>安装过程中，会弹出选择框：</p>
-<img class="shadow" src="/img/in-post/ubuntu_kdump-1.png" width="1200">
-
-
-<p>注意:<br>选择YES。选择完成后，安装过程完毕，该安装会自动修改grub.cfg:</p>
-<pre><code class="line-numbers language-shell">linux   /boot/vmlinuz-4.1.49-server root=UUID=cfb17230-a084-4117-a9b8-38bcd48f7c07 ro video=VGA-1:800x600 quiet 915.modeset=0 nomodeset net.ifnames=1 biosdevname=0 nomdmonddf nomdmonisw crashkernel=384M-:128M
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/ubuntu_kdump-1.png" width="1200">
+<p>注意:<br>
+选择YES。选择完成后，安装过程完毕，该安装会自动修改grub.cfg:</p>
+<pre><code class="language-shell">linux   /boot/vmlinuz-4.1.49-server root=UUID=cfb17230-a084-4117-a9b8-38bcd48f7c07 ro video=VGA-1:800x600 quiet 915.modeset=0 nomodeset net.ifnames=1 biosdevname=0 nomdmonddf nomdmonisw crashkernel=384M-:128M
 </code></pre>
 <p>后面新增 crashkernel=384M -:128M 了部分。 安装好了之后，执行kdump-conﬁg show会发现，该功能尚未启用。</p>
-<pre><code class="line-numbers language-shell">root@46:~# kdump-config show
+<pre><code class="language-shell">root@46:~# kdump-config show
 Usage: /usr/sbin/kdump-config {help|test|show|status|load|unload|savecore} root@46:~# kdump-config show
  * /etc/default/kdump-tools: USE_KDUMP is not set or zero
  * no crashkernel= parameter in the kernel cmdline
@@ -496,7 +638,7 @@ kexec command:
   no kexec command recorded
 </code></pre>
 <p>第二步是要启用kdump，方法是修改/etc/default/kdump-tools 中的USE_KDUMP</p>
-<pre><code class="line-numbers language-shell"># kdump-tools configuration
+<pre><code class="language-shell"># kdump-tools configuration
 # ---------------------------------------------------------------------------# USE_KDUMP - controls kdump will be configured
 #     0 - kdump kernel will not be loaded
 #     1 - kdump kernel will be loaded and kdump is configured
@@ -511,9 +653,9 @@ kexec command:
 USE_KDUMP=0 
 #KDUMP_SYSCTL="kernel.panic_on_oops=1"
 </code></pre>
-<p>将USE_KDUMP=0改成 USE_KDUMP=1。 修改之后，需要重启机器，方能生效。 </p>
+<p>将USE_KDUMP=0改成 USE_KDUMP=1。 修改之后，需要重启机器，方能生效。</p>
 <p>第三步重启机器，然后检查 kdump-conﬁg show： (换了一台机器展示)</p>
-<pre><code class="line-numbers language-shell">root@44:~# kdump-config show
+<pre><code class="language-shell">root@44:~# kdump-config show
 DUMP_MODE:        kdump
 USE_KDUMP:        1
 KDUMP_SYSCTL:     kernel.panic_on_oops=1 
@@ -524,10 +666,11 @@ current state:    ready to kdump
 kexec command:
   /sbin/kexec -p --command-line="BOOT_IMAGE=/boot/vmlinuz-4.1.49-server root=UUID=3cc9983b-3d4d-413a-a9a5-6edc9e785c3e ro video=VGA-1:800x600 quiet 915.modeset=0 nomodeset net.ifnames=1 biosdevname=0 nomdmonddf nomdmonisw irqpoll maxcpus=1 nousb" --initrd=/boot/initrd.img-4.1.49-server /boot/vmlinuz-4.1.49-server
 </code></pre>
-<h1 id="测试配置是否有效"><a href="#测试配置是否有效" class="headerlink" title="测试配置是否有效"></a>测试配置是否有效</h1><p>如何触发crash，验证能否产生crash文件： 手动触发的话，比较简单：</p>
+<h1 id="ce-shi-pei-zhi-shi-fou-you-xiao">测试配置是否有效</h1>
+<p>如何触发crash，验证能否产生crash文件： 手动触发的话，比较简单：</p>
 <p><code>echo c&gt; /proc/sysrq-trigger </code></p>
 <p>就会触发crash，搜集资料，机器启动之后会看到如下内容:</p>
-<pre><code class="line-numbers language-shell">root@44:/var/crash/201808021451# crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021451
+<pre><code class="language-shell">root@44:/var/crash/201808021451# crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021451
 
 crash 7.0.3
 Copyright (C) 2002-2013  Red Hat, Inc.
@@ -606,10 +749,9 @@ PID: 5191   TASK: ffff8810249be500  CPU: 1   COMMAND: "bash"
 crash&gt;
 </code></pre>
 <p>凑巧的时，我们产品恰好发生了crash：</p>
-<img class="shadow" src="/img/in-post/ubuntu_kdump-2.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/ubuntu_kdump-2.png" width="1200">
 <p>当搜集信息完成之后，会自动重启，重启之后，可以在/var/crash下看到对应的信息：</p>
-<pre><code class="line-numbers language-shell">root@44:~# ll /var/crash
+<pre><code class="language-shell">root@44:~# ll /var/crash
 total 56
 drwxrwxrwt  4 root root  4096 Aug  2 15:53 ./
 drwxr-xr-x 16 root root  4096 Aug  2 14:43 ../
@@ -625,16 +767,17 @@ drwxrwxrwt 4 root root       4096 Aug  2 15:53 ../
 -rw------- 1 root root     240194 Aug  2 15:56 dmesg.201808021553 
 -rw------- 1 root root 1468733533 Aug  2 15:56 dump.201808021553
 </code></pre>
-<h1 id="分析crash"><a href="#分析crash" class="headerlink" title="分析crash"></a>分析crash</h1><p>要分析crash文件，需要安装内核符号表：</p>
-<pre><code class="line-numbers language-shell">root@44:~# dpkg -l |grep linux-image
+<h1 id="fen-xi-crash">分析crash</h1>
+<p>要分析crash文件，需要安装内核符号表：</p>
+<pre><code class="language-shell">root@44:~# dpkg -l |grep linux-image
 ii  linux-image-4.1.49-server            201808011426~cf7c219                 amd64        Linux kernel binary image for version 4.1.49-server
 ii  linux-image-4.1.49-server-dbg        201808011426~cf7c219                 amd64        Linux kernel debug image for version 4.1.49-server
 </code></pre>
 <p>安装后，使用如下指令开始分析crash</p>
-<pre><code class="line-numbers language-shell">crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021553
+<pre><code class="language-shell">crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021553
 </code></pre>
 <p>对于本次的crash，可以查出是由于scst引起的，如下所示：</p>
-<pre><code class="line-numbers language-shell">root@44:/var/crash/201808021553# crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021553
+<pre><code class="language-shell">root@44:/var/crash/201808021553# crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021553
 
 crash 7.0.3
 Copyright (C) 2002-2013  Red Hat, Inc.
@@ -707,7 +850,7 @@ crash&gt;
 <p>通过反编译 scst.ko文件：</p>
 <p><code>objdump -S scst.ko |tee /tmp/scst.ko.obj</code></p>
 <p>我们打开该反编译的文件:</p>
-<pre><code class="line-numbers language-shell">0000000000034410 &lt;scst_update_lat_stats&gt;:
+<pre><code class="language-shell">0000000000034410 &lt;scst_update_lat_stats&gt;:
 
 void scst_update_lat_stats(struct scst_cmd *cmd)
 {
@@ -729,14 +872,14 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
 <p>我们可以计算crash的代码位置：</p>
 <p><code>0x0000000000034410 + 224(十进制) = 344F0 </code></p>
 <p>去反编译的文件中寻找对应的未知:</p>
-<pre><code class="line-numbers language-shell">#ifdef CONFIG_SCST_MEASURE_LATENCY
+<pre><code class="language-shell">#ifdef CONFIG_SCST_MEASURE_LATENCY
         if (cmd-&gt;dev-&gt;vdev_update_lat_stats) {
    344f0:       4c 8b 97 40 02 00 00    mov    0x240(%rdi),%r10 
         else
                 dev_latency_stat = NULL;
 </code></pre>
 <p>原因是：cmd-&gt;dev在更新统计新的时候已经变成了NULL，这和之前的分析对应。</p>
-<pre><code class="line-numbers language-shell">10925 #ifdef CONFIG_SCST_MEASURE_LATENCY
+<pre><code class="language-shell">10925 #ifdef CONFIG_SCST_MEASURE_LATENCY
 10926         if (cmd-&gt;dev-&gt;vdev_update_lat_stats) {
 10927                 cmd-&gt;dev-&gt;vdev_update_lat_stats(cmd-&gt;dev, cmd-&gt;data_direction, 10928                                                 total_time);
 10929         }
@@ -844,10 +987,10 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1161,7 +1304,7 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/192.jpg" class="responsive-img" alt="给nose写一个类似Robot Framework的Wait Until Keyword Succeeds">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/192.jpg" class="responsive-img" alt="给nose写一个类似Robot Framework的Wait Until Keyword Succeeds">
                         
                         <span class="card-title">给nose写一个类似Robot Framework的Wait Until Keyword Succeeds</span>
                     </div>
@@ -1218,7 +1361,7 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/147.jpg" class="responsive-img" alt="Jenkins Email发送HTML测试报告模板">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/147.jpg" class="responsive-img" alt="Jenkins Email发送HTML测试报告模板">
                         
                         <span class="card-title">Jenkins Email发送HTML测试报告模板</span>
                     </div>
@@ -1457,7 +1600,7 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1807,6 +1950,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

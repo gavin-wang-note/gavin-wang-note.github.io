@@ -5,8 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例--修改数据库实例名和数据库名, 软硬件测试">
-    <meta name="description" content="概述在oracle9i之前，修改数据库实例比较麻烦，需要重建oracle的控制文件以及需要reset redolog。从oracle 9i R2版本开始，oracle 提供了nid系统命令，使得修改oracle的数据库名和实例名更加简单。
-">
+    <meta name="description" content="概述
+在oracle9i之前，修改数据库实例比较麻烦，需要重建oracle的控制文件以及需要reset redolog。从oracle 9i R2版本开始，oracle 提供了nid系统命令，使得修改oracle的数据库名和实例名更加简单。">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -446,7 +586,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    11 分
+                    12 分
                 </div>
                 
 
@@ -469,10 +609,14 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>在oracle9i之前，修改数据库实例比较麻烦，需要重建oracle的控制文件以及需要reset redolog。从oracle 9i R2版本开始，oracle 提供了nid系统命令，使得修改oracle的数据库名和实例名更加简单。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>在oracle9i之前，修改数据库实例比较麻烦，需要重建oracle的控制文件以及需要reset redolog。从oracle 9i R2版本开始，oracle 提供了nid系统命令，使得修改oracle的数据库名和实例名更加简单。</p>
 <p>本文描述将数据库名和实例名为mmsgdb的修改为inomc</p>
-<h1 id="具体操作描述"><a href="#具体操作描述" class="headerlink" title="具体操作描述"></a>具体操作描述</h1><h2 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h2><p>一个正常可以使用的oracle数据库系统，instance正常，database正常。</p>
-<h2 id="操作步骤"><a href="#操作步骤" class="headerlink" title="操作步骤"></a>操作步骤</h2><p>1、shutdown 数据库</p>
+<h1 id="ju-ti-cao-zuo-miao-shu">具体操作描述</h1>
+<h2 id="zhun-bei-gong-zuo">准备工作</h2>
+<p>一个正常可以使用的oracle数据库系统，instance正常，database正常。</p>
+<h2 id="cao-zuo-bu-zou">操作步骤</h2>
+<p>1、shutdown 数据库</p>
 <p>2、数据库启动到mount状态</p>
 <p>3、创建pfile文件</p>
 <p>4、执行nid命令，修改数据库名和实例名</p>
@@ -482,7 +626,8 @@
 <p>8、检测更改后的信息</p>
 <p>9、备份数据库</p>
 <p>关键部分的详细步骤如下：</p>
-<h3 id="步骤一、查看nid帮助信息以及nid使用方法"><a href="#步骤一、查看nid帮助信息以及nid使用方法" class="headerlink" title="步骤一、查看nid帮助信息以及nid使用方法"></a>步骤一、查看nid帮助信息以及nid使用方法</h3><pre><code class="line-numbers language-shell">SQL&gt; host nid –help
+<h3 id="bu-zou-yi-cha-kan-nid-bang-zhu-xin-xi-yi-ji-nid-shi-yong-fang-fa">步骤一、查看nid帮助信息以及nid使用方法</h3>
+<pre><code class="language-shell">SQL&gt; host nid –help
 
 DBNEWID: Release 11.1.0.7.0 - Production on 星期一 9月 27 11:09:09 2010
 
@@ -505,7 +650,8 @@ SQL&gt; shutdown immediate
 ORACLE 例程已经关闭。
 SQL&gt;
 </code></pre>
-<h3 id="步骤二、启动数据库到mount状态"><a href="#步骤二、启动数据库到mount状态" class="headerlink" title="步骤二、启动数据库到mount状态"></a>步骤二、启动数据库到mount状态</h3><pre><code class="line-numbers language-shell">SQL&gt; startup mount
+<h3 id="bu-zou-er-qi-dong-shu-ju-ku-dao-mount-zhuang-tai">步骤二、启动数据库到mount状态</h3>
+<pre><code class="language-shell">SQL&gt; startup mount
 ORACLE 例程已经启动。
 
 Total System Global Area 1603411968 bytes
@@ -516,13 +662,15 @@ Redo Buffers                7413760 bytes
 数据库装载完毕。
 SQL&gt;
 </code></pre>
-<h3 id="步骤三、创建pfile文件"><a href="#步骤三、创建pfile文件" class="headerlink" title="步骤三、创建pfile文件"></a>步骤三、创建pfile文件</h3><pre><code class="line-numbers language-shell">SQL&gt; create pfile='/opt/oracle/product/11g/dbs/pfile2010wyz ' from spfile;
+<h3 id="bu-zou-san-chuang-jian-pfile-wen-jian">步骤三、创建pfile文件</h3>
+<pre><code class="language-shell">SQL&gt; create pfile='/opt/oracle/product/11g/dbs/pfile2010wyz ' from spfile;
 
 文件已创建。
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤四、修改数据库名"><a href="#步骤四、修改数据库名" class="headerlink" title="步骤四、修改数据库名"></a>步骤四、修改数据库名</h3><pre><code class="line-numbers language-shell">SQL&gt; host nid target=sys/sys dbname=inomc
+<h3 id="bu-zou-si-xiu-gai-shu-ju-ku-ming">步骤四、修改数据库名</h3>
+<pre><code class="language-shell">SQL&gt; host nid target=sys/sys dbname=inomc
 
 DBNEWID: Release 11.1.0.7.0 - Production on 星期一 9月 27 11:10:23 2010
 
@@ -574,12 +722,14 @@ NID-00600: 内部错误 - [28] [1013] [0] [0]
 DBNEWID - 已完成, 但出现验证错误。
 </code></pre>
 <p>注意：</p>
-<ul>
-<li>这里出问题了，原因如下：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这里出问题了，原因如下：</p>
+</li>
 </ul>
 <p>因为这个nid命令僵死，当使用nid更改数据库名和实例名的时候，nid僵死的几率很高，出现这个问题的时候，当发现控制文件已经更改了，数据文件、重做日志文件已经更改了之后，就可以强制终止nid操作了，于是就出现了上面的“NID-00600: 内部错误 - [28] [1013] [0] [0]”错误信息。</p>
 <p>按理这里应该是出现:</p>
-<pre><code class="line-numbers language-shell">数据库名已经改变为INOMC
+<pre><code class="language-shell">数据库名已经改变为INOMC
 在重启数据库之前修改系统参数文件和创建新口令文件
 所以的回滚以及归档的重做日志对当前数据库已经无用
 关闭数据库后重启时需要使用resetlogs操作
@@ -587,7 +737,7 @@ DBNEWID - 已完成, 但出现验证错误。
 DBNEWID –成功完成
 </code></pre>
 <p>对应英文如下：</p>
-<pre><code class="line-numbers language-shell">Database name changed to TESTDB.
+<pre><code class="language-shell">Database name changed to TESTDB.
 Modify parameter file and generate a new password file before restarting.
 Database ID for database TESTDB changed to 2321050327.
 All previous backups and archived redo logs for this database are unusable.
@@ -595,7 +745,9 @@ Shut down database and open with RESETLOGS option.
 Succesfully changed database name and ID.
 DBNEWID - Completed succesfully.
 </code></pre>
-<h3 id="步骤五、修改pfile文件和环境变量"><a href="#步骤五、修改pfile文件和环境变量" class="headerlink" title="步骤五、修改pfile文件和环境变量"></a>步骤五、修改pfile文件和环境变量</h3><h4 id="修改pfile"><a href="#修改pfile" class="headerlink" title="修改pfile"></a>修改pfile</h4><pre><code class="line-numbers language-shell">inomc.__db_cache_size=1207959552   #"inomc"这个名称，原先是mmsgdb，这里凡是带“mmsgdb”字样的，全部被修改成inomc
+<h3 id="bu-zou-wu-xiu-gai-pfile-wen-jian-he-huan-jing-bian-liang">步骤五、修改pfile文件和环境变量</h3>
+<h4 id="xiu-gai-pfile">修改pfile</h4>
+<pre><code class="language-shell">inomc.__db_cache_size=1207959552   #"inomc"这个名称，原先是mmsgdb，这里凡是带“mmsgdb”字样的，全部被修改成inomc
 inomc.__java_pool_size=16777216
 inomc.__large_pool_size=16777216
 inomc.__oracle_base='/opt/oracle'#ORACLE_BASE set from environment
@@ -625,8 +777,10 @@ ntrol03.ctl'
 *.instance_name='inomc'   #新增的信息，因为oracle11g隐式读取这个参数，这里增加，可直接读取
 *.service_names='inomc'   #新增的信息，因为oracle11g隐式读取这个参数，这里增加，可直接读取
 </code></pre>
-<h4 id="修改环境变量信息-profile文件"><a href="#修改环境变量信息-profile文件" class="headerlink" title="修改环境变量信息.profile文件"></a>修改环境变量信息.profile文件</h4><p>将这个文件中的<code>ORACLE_SID=mmsgdb </code>, 修改成 <code>ORACLE_SID=inomc </code>, 重新source一下这个环境变量文件。</p>
-<h3 id="步骤六、以pfile文件启动数据库"><a href="#步骤六、以pfile文件启动数据库" class="headerlink" title="步骤六、以pfile文件启动数据库"></a>步骤六、以pfile文件启动数据库</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate     #停止数据库
+<h4 id="xiu-gai-huan-jing-bian-liang-xin-xi-profile-wen-jian">修改环境变量信息.profile文件</h4>
+<p>将这个文件中的<code>ORACLE_SID=mmsgdb </code>, 修改成 <code>ORACLE_SID=inomc </code>, 重新source一下这个环境变量文件。</p>
+<h3 id="bu-zou-liu-yi-pfile-wen-jian-qi-dong-shu-ju-ku">步骤六、以pfile文件启动数据库</h3>
+<pre><code class="language-shell">SQL&gt; shutdown immediate     #停止数据库
 ORA-01507: ??????
 
 
@@ -702,7 +856,9 @@ log_file_name_convert                string
 service_names                        string      inomc
 SQL&gt;
 </code></pre>
-<h3 id="步骤七、创建口令文件"><a href="#步骤七、创建口令文件" class="headerlink" title="步骤七、创建口令文件"></a>步骤七、创建口令文件</h3><h4 id="查看orapwd帮助信息"><a href="#查看orapwd帮助信息" class="headerlink" title="查看orapwd帮助信息"></a>查看orapwd帮助信息</h4><pre><code class="line-numbers language-shell">oracle@mmsg:~/product/11g/network/admin&gt; orapwd
+<h3 id="bu-zou-qi-chuang-jian-kou-ling-wen-jian">步骤七、创建口令文件</h3>
+<h4 id="cha-kan-orapwd-bang-zhu-xin-xi">查看orapwd帮助信息</h4>
+<pre><code class="language-shell">oracle@mmsg:~/product/11g/network/admin&gt; orapwd
 Usage: orapwd file=&lt;fname&gt; password=&lt;password&gt; entries=&lt;users&gt; force=&lt;y/n&gt; ignorecase=&lt;y/n&gt; nosysdba=&lt;y/n&gt;
 
   where
@@ -715,9 +871,12 @@ Usage: orapwd file=&lt;fname&gt; password=&lt;password&gt; entries=&lt;users&gt;
     
   There must be no spaces around the equal-to (=) character.
 </code></pre>
-<h4 id="创建口令文件"><a href="#创建口令文件" class="headerlink" title="创建口令文件"></a>创建口令文件</h4><pre><code class="line-numbers language-shell">oracle@mmsg:~/product/11g/dbs&gt; orapwd  file=/opt/oracle/product/11g/dbs/orapwinomc password=sys entries=20
+<h4 id="chuang-jian-kou-ling-wen-jian">创建口令文件</h4>
+<pre><code class="language-shell">oracle@mmsg:~/product/11g/dbs&gt; orapwd  file=/opt/oracle/product/11g/dbs/orapwinomc password=sys entries=20
 </code></pre>
-<h3 id="步骤八、事后检查"><a href="#步骤八、事后检查" class="headerlink" title="步骤八、事后检查"></a>步骤八、事后检查</h3><h4 id="查看实例信息"><a href="#查看实例信息" class="headerlink" title="查看实例信息"></a>查看实例信息</h4><pre><code class="line-numbers language-shell">SQL&gt; select instance_name from v$instance;
+<h3 id="bu-zou-ba-shi-hou-jian-cha">步骤八、事后检查</h3>
+<h4 id="cha-kan-shi-li-xin-xi">查看实例信息</h4>
+<pre><code class="language-shell">SQL&gt; select instance_name from v$instance;
 
 INSTANCE_NAME
 ----------------
@@ -725,7 +884,8 @@ inomc
 
 SQL&gt;
 </code></pre>
-<h4 id="修改tnsnames-ora文件信息"><a href="#修改tnsnames-ora文件信息" class="headerlink" title="修改tnsnames.ora文件信息"></a>修改tnsnames.ora文件信息</h4><pre><code class="line-numbers language-shell">INOMC =
+<h4 id="xiu-gai-tnsnames-ora-wen-jian-xin-xi">修改tnsnames.ora文件信息</h4>
+<pre><code class="language-shell">INOMC =
   (DESCRIPTION =
       (ADDRESS = (PROTOCOL = TCP)(HOST = mmsg)(PORT = 1521))
       (CONNECT_DATA =
@@ -733,12 +893,16 @@ SQL&gt;
         (SERVICE_NAME = inomc)
       )
   )
+
 </code></pre>
 <p>注：</p>
-<ul>
-<li>凡是mmsgdb的，修改成inomc</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>凡是mmsgdb的，修改成inomc</p>
+</li>
 </ul>
-<h4 id="reload监听信息"><a href="#reload监听信息" class="headerlink" title="reload监听信息"></a>reload监听信息</h4><pre><code class="line-numbers language-shell">racle@mmsg:~/product/11g/network/admin&gt; lsnrctl reload
+<h4 id="reload-jian-ting-xin-xi">reload监听信息</h4>
+<pre><code class="language-shell">racle@mmsg:~/product/11g/network/admin&gt; lsnrctl reload
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 27-9月 -2010 15:20:02
 
@@ -747,11 +911,15 @@ Copyright (c) 1991, 2008, Oracle.  All rights reserved.
 正在连接到 (ADDRESS=(PROTOCOL=tcp)(HOST=)(PORT=1521))
 命令执行成功
 </code></pre>
-<h3 id="步骤九、备份数据库"><a href="#步骤九、备份数据库" class="headerlink" title="步骤九、备份数据库"></a>步骤九、备份数据库</h3><p>原因是数据库实例名和数据库名发生变更后，之前的所有备份对当前数据库已经没有任何作用了，所以建议备份一下当前修改后的数据库。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>修改实例名和数据库名与删除实例重建，前者最大的优势是原有数据不会丢失。</p>
+<h3 id="bu-zou-jiu-bei-fen-shu-ju-ku">步骤九、备份数据库</h3>
+<p>原因是数据库实例名和数据库名发生变更后，之前的所有备份对当前数据库已经没有任何作用了，所以建议备份一下当前修改后的数据库。</p>
+<h1 id="zong-jie">总结</h1>
+<p>修改实例名和数据库名与删除实例重建，前者最大的优势是原有数据不会丢失。</p>
 <p>至此，数据库名和实例名修改完成。</p>
-<h1 id="遇见的问题与解决方法"><a href="#遇见的问题与解决方法" class="headerlink" title="遇见的问题与解决方法"></a>遇见的问题与解决方法</h1><h2 id="表象"><a href="#表象" class="headerlink" title="表象"></a>表象</h2><p>数据库连接与启动失败，与数据库建立连接时报ORA-00838错误。</p>
-<pre><code class="line-numbers language-shell">racle@mmsg:~&gt; sqlplus / as sysdba
+<h1 id="yu-jian-de-wen-ti-yu-jie-jue-fang-fa">遇见的问题与解决方法</h1>
+<h2 id="biao-xiang">表象</h2>
+<p>数据库连接与启动失败，与数据库建立连接时报ORA-00838错误。</p>
+<pre><code class="language-shell">racle@mmsg:~&gt; sqlplus / as sysdba
 Copyright (c) 1982, 2008, Oracle.  All rights reserved.
 ORA-00838: Specified value of MEMORY_TARGET is too small, needs to be at least 7968M
 oracle@mmsg:~&gt; cd product/11g/dbs
@@ -768,11 +936,15 @@ SQL&gt; startup
 ORA-00838: Specified value of MEMORY_TARGET is too small, needs to be at least 7968M
 SQL&gt;
 </code></pre>
-<h2 id="原因"><a href="#原因" class="headerlink" title="原因"></a>原因</h2><p>内存自动管理机制中MEMORY_TARGET参数值设置过小。</p>
-<h2 id="解决方法"><a href="#解决方法" class="headerlink" title="解决方法"></a>解决方法</h2><p>当前数据库已经无法启动，也就无法查看当前memory_target值与memory_max_target的值</p>
+<h2 id="yuan-yin">原因</h2>
+<p>内存自动管理机制中MEMORY_TARGET参数值设置过小。</p>
+<h2 id="jie-jue-fang-fa">解决方法</h2>
+<p>当前数据库已经无法启动，也就无法查看当前memory_target值与memory_max_target的值</p>
 <p>解决这个问题，只能从pfile文件中着手（因为spfiel文件是二进制文件，不能直接修改）。</p>
-<h3 id="修改pfile文件，新增一行记录"><a href="#修改pfile文件，新增一行记录" class="headerlink" title="修改pfile文件，新增一行记录"></a>修改pfile文件，新增一行记录</h3><p><code>*.memory_target=8365053568 </code>,这里修改值比7968<em>1024</em>1024的值稍大点.</p>
-<h3 id="以指定pfile文件方式启动数据库"><a href="#以指定pfile文件方式启动数据库" class="headerlink" title="以指定pfile文件方式启动数据库"></a>以指定pfile文件方式启动数据库</h3><pre><code class="line-numbers language-shell">SQL&gt; startup pfile='/opt/oracle/product/11g/dbs/pfile2010wyz.ora'
+<h3 id="xiu-gai-pfile-wen-jian-xin-zeng-yi-xing-ji-lu">修改pfile文件，新增一行记录</h3>
+<p><code>*.memory_target=8365053568 </code>,这里修改值比7968<em>1024</em>1024的值稍大点.</p>
+<h3 id="yi-zhi-ding-pfile-wen-jian-fang-shi-qi-dong-shu-ju-ku">以指定pfile文件方式启动数据库</h3>
+<pre><code class="language-shell">SQL&gt; startup pfile='/opt/oracle/product/11g/dbs/pfile2010wyz.ora'
 ORACLE 例程已经启动。
 
 Total System Global Area 8334446592 bytes
@@ -783,12 +955,14 @@ Redo Buffers               10768384 bytes
 数据库装载完毕。
 数据库已经打开。
 </code></pre>
-<h3 id="以pfile文件创建spfile文件"><a href="#以pfile文件创建spfile文件" class="headerlink" title="以pfile文件创建spfile文件"></a>以pfile文件创建spfile文件</h3><pre><code class="line-numbers language-shell">SQL&gt; create spfile='/opt/oracle/product/11g/dbs/spfileinomc.ora' from pfile ='/opt/oracle/product/11g/dbs/pfile2010wyz.ora'
+<h3 id="yi-pfile-wen-jian-chuang-jian-spfile-wen-jian">以pfile文件创建spfile文件</h3>
+<pre><code class="language-shell">SQL&gt; create spfile='/opt/oracle/product/11g/dbs/spfileinomc.ora' from pfile ='/opt/oracle/product/11g/dbs/pfile2010wyz.ora'
   2  ;
 
 文件已创建。
 </code></pre>
-<h3 id="重启数据库"><a href="#重启数据库" class="headerlink" title="重启数据库"></a>重启数据库</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h3 id="zhong-qi-shu-ju-ku">重启数据库</h3>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
 ORACLE 例程已经关闭。
@@ -906,10 +1080,10 @@ SQL&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1223,7 +1397,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/112.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01578,ORA-01110">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/112.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01578,ORA-01110">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-01578,ORA-01110</span>
                     </div>
@@ -1272,7 +1446,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/73.jpg" class="responsive-img" alt="Oracle 11g R2安装过程中碰到的问题汇总">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/73.jpg" class="responsive-img" alt="Oracle 11g R2安装过程中碰到的问题汇总">
                         
                         <span class="card-title">Oracle 11g R2安装过程中碰到的问题汇总</span>
                     </div>
@@ -1503,7 +1677,7 @@ SQL&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1853,6 +2027,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

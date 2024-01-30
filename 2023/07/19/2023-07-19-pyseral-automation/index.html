@@ -5,9 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Windows下pyserial嵌入式自动化测试框架, 软硬件测试">
-    <meta name="description" content="概述本文介绍如何基于 python + pytest + pyserial + allure，完成嵌入式产品自动化框架的设计与用例编写。
+    <meta name="description" content="概述
+本文介绍如何基于 python + pytest + pyserial + allure，完成嵌入式产品自动化框架的设计与用例编写。
 预期目标
-有可视化报告输出，展示被测版本信息、串口ID，以及运行过程中日志，包括但不限制于串口的输入与">
+
+
+有可视化报告输出，展示被测版本信息、串口ID，以及运行过程中日志，包括但不限制于串口的">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +68,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +336,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -486,19 +629,36 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文介绍如何基于 python + pytest + pyserial + allure，完成嵌入式产品自动化框架的设计与用例编写。</p>
-<h1 id="预期目标"><a href="#预期目标" class="headerlink" title="预期目标"></a>预期目标</h1><ul>
-<li>有可视化报告输出，展示被测版本信息、串口ID，以及运行过程中日志，包括但不限制于串口的输入与输出信息</li>
-<li>根据产测工具输入的命令行，解析串口输出数据，校验输出结果是否符合预期要求，如果满足要求，则判断此测试项测试通过；否则测试项测试失败</li>
-<li>细化每一个测试程序的每一个测试项与测试子项，封装成独立函数，便于后期用例组合参数完成用例功能设计工作</li>
-<li>支持指定用例或用例集合下测试用例的执行</li>
-<li>支持指定用例执行次数，默认1次</li>
-<li>先兼容一个产品，再逐步兼容其他产品，优先打磨框架</li>
+                <h1 id="gai-shu">概述</h1>
+<p>本文介绍如何基于 python + pytest + pyserial + allure，完成嵌入式产品自动化框架的设计与用例编写。</p>
+<h1 id="yu-qi-mu-biao">预期目标</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>有可视化报告输出，展示被测版本信息、串口ID，以及运行过程中日志，包括但不限制于串口的输入与输出信息</p>
+</li>
+<li class="lvl-2">
+<p>根据产测工具输入的命令行，解析串口输出数据，校验输出结果是否符合预期要求，如果满足要求，则判断此测试项测试通过；否则测试项测试失败</p>
+</li>
+<li class="lvl-2">
+<p>细化每一个测试程序的每一个测试项与测试子项，封装成独立函数，便于后期用例组合参数完成用例功能设计工作</p>
+</li>
+<li class="lvl-2">
+<p>支持指定用例或用例集合下测试用例的执行</p>
+</li>
+<li class="lvl-2">
+<p>支持指定用例执行次数，默认1次</p>
+</li>
+<li class="lvl-2">
+<p>先兼容一个产品，再逐步兼容其他产品，优先打磨框架</p>
+</li>
 </ul>
-<h1 id="设计思路"><a href="#设计思路" class="headerlink" title="设计思路"></a>设计思路</h1><p>理应画个设计思路与流程图的，比较懒，略了吧……</p>
-<h1 id="基础环境安装-部署"><a href="#基础环境安装-部署" class="headerlink" title="基础环境安装/部署"></a>基础环境安装/部署</h1><p>windows下安装python2.x系列，由于python lib有相互依赖关系，本文介绍python-2.7.13下部署pytest。</p>
+<h1 id="she-ji-si-lu">设计思路</h1>
+<p>理应画个设计思路与流程图的，比较懒，略了吧…</p>
+<h1 id="ji-chu-huan-jing-an-zhuang-bu-shu">基础环境安装/部署</h1>
+<p>windows下安装python2.x系列，由于python lib有相互依赖关系，本文介绍python-2.7.13下部署pytest。</p>
 <p>所需安装包信息，参考下文信息(不全，仅展示部分重要lib)。</p>
-<h2 id="pytest相关基础包"><a href="#pytest相关基础包" class="headerlink" title="pytest相关基础包"></a>pytest相关基础包</h2><pre><code class="line-numbers language-shell">allure-pytest-2.8.11
+<h2 id="pytest-xiang-guan-ji-chu-bao">pytest相关基础包</h2>
+<pre><code class="language-shell">allure-pytest-2.8.11
 allure-python-commons-2.8.11
 allure-commandline-2.13.2
 configobj-4.7.2
@@ -511,7 +671,7 @@ pytest-repeat-0.8.0
 pytest-ordering-develop
 </code></pre>
 <p>安装成功后，显示如下信息，表明安装成功：</p>
-<pre><code class="line-numbers language-shell">E:\automation\src&gt;pytest --version
+<pre><code class="language-shell">E:\automation\src&gt;pytest --version
 This is pytest version 4.6.11, imported from C:\Python27\lib\site-packages\pytest.pyc
 setuptools registered plugins:
   pytest-cov-2.12.1 at C:\Python27\lib\site-packages\pytest_cov\plugin.py
@@ -523,14 +683,14 @@ setuptools registered plugins:
 
 E:\automation\src&gt;
 </code></pre>
-<h2 id="java相关安装包"><a href="#java相关安装包" class="headerlink" title="java相关安装包"></a>java相关安装包</h2><pre><code class="line-numbers language-shell">jdk-8u171-windows-x64
+<h2 id="java-xiang-guan-an-zhuang-bao">java相关安装包</h2>
+<pre><code class="language-shell">jdk-8u171-windows-x64
 </code></pre>
 <p>安装好 JRE 后，配置 windows下 allure 环境变量信息，让 windows 的 dos 命令或 PowerShell 能够识别到allure命令。出现如下信息，说明 allure 始终正常：</p>
-<img class="shadow" src="/img/in-post/serial/allure_help.png" width="1200">
-
-
-
-<h1 id="框架目录结构"><a href="#框架目录结构" class="headerlink" title="框架目录结构"></a>框架目录结构</h1><h2 id="整体目录结构介绍"><a href="#整体目录结构介绍" class="headerlink" title="整体目录结构介绍"></a>整体目录结构介绍</h2><pre><code class="line-numbers language-shell"> E:\automation 的目录
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/allure_help.png" width="1200">
+<h1 id="kuang-jia-mu-lu-jie-gou">框架目录结构</h1>
+<h2 id="zheng-ti-mu-lu-jie-gou-jie-shao">整体目录结构介绍</h2>
+<pre><code class="language-shell"> E:\automation 的目录
 
 2023/07/19  10:31    &lt;DIR&gt;          .
 2023/07/19  10:31    &lt;DIR&gt;          ..
@@ -543,12 +703,19 @@ E:\automation\src&gt;
 E:\automation&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>doc 目录下存放一些介绍文档，包括但不限制于当前框架使用说明、用例编写规范说明、pytest 框架介绍等</li>
-<li>report 目录下存放生成的 allure 报告，主体内容以 json 格式存放，借助allure 生成可视化html报告</li>
-<li>src 目录存放源码，为框架核心内容</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>doc 目录下存放一些介绍文档，包括但不限制于当前框架使用说明、用例编写规范说明、pytest 框架介绍等</p>
+</li>
+<li class="lvl-2">
+<p>report 目录下存放生成的 allure 报告，主体内容以 json 格式存放，借助allure 生成可视化html报告</p>
+</li>
+<li class="lvl-2">
+<p>src 目录存放源码，为框架核心内容</p>
+</li>
 </ul>
-<h2 id="report目录介绍"><a href="#report目录介绍" class="headerlink" title="report目录介绍"></a>report目录介绍</h2><pre><code class="line-numbers language-shell">E:\automation\report&gt;dir
+<h2 id="report-mu-lu-jie-shao">report目录介绍</h2>
+<pre><code class="language-shell">E:\automation\report&gt;dir
  驱动器 E 中的卷没有标签。
  卷的序列号是 EE05-33CD
 
@@ -568,15 +735,28 @@ E:\automation&gt;
 E:\automation\report&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>coverage.xml 为 当前测试用例代码覆盖率统计信息，供 CI/CD 解析使用</li>
-<li>html 目录为 allure 可视化报告</li>
-<li>json 目录为生成的 allure 原始报告数据</li>
-<li>pylint.out 文件为当前测试框架 python 代码相关规范、语法统计信息，供 CI/CD 解析使用</li>
-<li>pytest_autotest.log 文件为用例执行过程中记录的日志信息</li>
-<li>version.txt 文件记录被测版本信息，用于 allure 生成 html 测试报告展示版本信息使用</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>coverage.xml 为 当前测试用例代码覆盖率统计信息，供 CI/CD 解析使用</p>
+</li>
+<li class="lvl-2">
+<p>html 目录为 allure 可视化报告</p>
+</li>
+<li class="lvl-2">
+<p>json 目录为生成的 allure 原始报告数据</p>
+</li>
+<li class="lvl-2">
+<p>pylint.out 文件为当前测试框架 python 代码相关规范、语法统计信息，供 CI/CD 解析使用</p>
+</li>
+<li class="lvl-2">
+<p>pytest_autotest.log 文件为用例执行过程中记录的日志信息</p>
+</li>
+<li class="lvl-2">
+<p>version.txt 文件记录被测版本信息，用于 allure 生成 html 测试报告展示版本信息使用</p>
+</li>
 </ul>
-<h2 id="src目录介绍"><a href="#src目录介绍" class="headerlink" title="src目录介绍"></a>src目录介绍</h2><pre><code class="line-numbers language-shell">E:\automation\src&gt;dir
+<h2 id="src-mu-lu-jie-shao">src目录介绍</h2>
+<pre><code class="language-shell">E:\automation\src&gt;dir
  驱动器 E 中的卷没有标签。
  卷的序列号是 EE05-33CD
 
@@ -661,16 +841,27 @@ E:\automation\src&gt;dir testcasebase
 E:\automation\src&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li><code>common</code> 目录，存放公用基类</li>
-<li><code>config</code> 目录，存放配置信息，诸如设置的串口信息，波特率等</li>
-<li><code>run.py</code> 是程序主入口，支持根据传参执行全部用例与部分用例</li>
-<li><code>testcase</code> 目录存放具体的测试用例</li>
-<li><code>testcasebase</code> 目录存放各个功能的基类</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>common</code> 目录，存放公用基类</p>
+</li>
+<li class="lvl-2">
+<p><code>config</code> 目录，存放配置信息，诸如设置的串口信息，波特率等</p>
+</li>
+<li class="lvl-2">
+<p><code>run.py</code> 是程序主入口，支持根据传参执行全部用例与部分用例</p>
+</li>
+<li class="lvl-2">
+<p><code>testcase</code> 目录存放具体的测试用例</p>
+</li>
+<li class="lvl-2">
+<p><code>testcasebase</code> 目录存放各个功能的基类</p>
+</li>
 </ul>
-<h1 id="框架核心内容"><a href="#框架核心内容" class="headerlink" title="框架核心内容"></a>框架核心内容</h1><p>重点在pyserial串口操作上，以及各个功能点的基类中发送串口命令、解析串口命令、判断串口输出结果正确与否。</p>
+<h1 id="kuang-jia-he-xin-nei-rong">框架核心内容</h1>
+<p>重点在pyserial串口操作上，以及各个功能点的基类中发送串口命令、解析串口命令、判断串口输出结果正确与否。</p>
 <p>适配产品的 python serial 部分代码如下(最新的代码未放出，这里只抛砖引玉)：</p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding: GBK -*-
 
 """  pyserial operation  """
@@ -859,62 +1050,107 @@ class PySerial():
     def serial_close(self):
         """  Close serial connection  """
         self.serial.close()
+
 </code></pre>
-<h1 id="用例编写基本规则要求"><a href="#用例编写基本规则要求" class="headerlink" title="用例编写基本规则要求"></a>用例编写基本规则要求</h1><h2 id="1-能编写但需要延迟编写的用例，增加-raise-SkipTest"><a href="#1-能编写但需要延迟编写的用例，增加-raise-SkipTest" class="headerlink" title="1. 能编写但需要延迟编写的用例，增加 raise SkipTest"></a>1. 能编写但需要延迟编写的用例，增加 raise SkipTest</h2><p>如果两个功能之间有依赖，某个功能尚未编码结束，先写了其中一个功能，另外一个功能需要先标记成skip状态，这样做的目的： </p>
-<ul>
-<li>意在提醒 skip 状态的用例要在将来被完成 </li>
-<li>某些用例需要手工执行上下电动作，只能手工测试，需要增加skip</li>
+<h1 id="yong-li-bian-xie-ji-ben-gui-ze-yao-qiu">用例编写基本规则要求</h1>
+<h2 id="1-neng-bian-xie-dan-xu-yao-yan-chi-bian-xie-de-yong-li-zeng-jia-raise-skip-test">1. 能编写但需要延迟编写的用例，增加 raise SkipTest</h2>
+<p>如果两个功能之间有依赖，某个功能尚未编码结束，先写了其中一个功能，另外一个功能需要先标记成skip状态，这样做的目的：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>意在提醒 skip 状态的用例要在将来被完成</p>
+</li>
+<li class="lvl-2">
+<p>某些用例需要手工执行上下电动作，只能手工测试，需要增加skip</p>
+</li>
 </ul>
-<h2 id="2-Base-Class-里，禁止函数名称含有-test"><a href="#2-Base-Class-里，禁止函数名称含有-test" class="headerlink" title="2. Base Class 里，禁止函数名称含有 test"></a>2. Base Class 里，禁止函数名称含有 test</h2><p>pytest 运行用例的时候，根据正则匹配测试用例，会匹配到含有 test 开头的函数，会认为这个函 数是一个测试用例，故而要避免此种情况的发生，如果一定要在基类里写test，可以使用单词 examination 代替。</p>
-<h2 id="3-test-xx-py-无逻辑内容"><a href="#3-test-xx-py-无逻辑内容" class="headerlink" title="3. test_xx.py 无逻辑内容"></a>3. test_xx.py 无逻辑内容</h2><p>test_xxxx.py是用例集，此用例集里纯粹是函数的调用，无任何业务逻辑，业务逻辑全部在testcasebase里。</p>
-<h2 id="4-测试用例名称携带编号"><a href="#4-测试用例名称携带编号" class="headerlink" title="4. 测试用例名称携带编号"></a>4. 测试用例名称携带编号</h2><p>用例需携带上 __doc__，此信息为用例Title， 且以服务器上（如TestLink）记录的名称为准。</p>
-<p>例如： </p>
+<h2 id="2-base-class-li-jin-zhi-han-shu-ming-cheng-han-you-test">2. Base Class 里，禁止函数名称含有 test</h2>
+<p>pytest 运行用例的时候，根据正则匹配测试用例，会匹配到含有 test 开头的函数，会认为这个函 数是一个测试用例，故而要避免此种情况的发生，如果一定要在基类里写test，可以使用单词 examination 代替。</p>
+<h2 id="3-test-xx-py-wu-luo-ji-nei-rong">3. test_xx.py 无逻辑内容</h2>
+<p>test_xxxx.py是用例集，此用例集里纯粹是函数的调用，无任何业务逻辑，业务逻辑全部在testcasebase里。</p>
+<h2 id="4-ce-shi-yong-li-ming-cheng-xi-dai-bian-hao">4. 测试用例名称携带编号</h2>
+<p>用例需携带上 _<em>doc</em>_，此信息为用例Title， 且以服务器上（如TestLink）记录的名称为准。</p>
+<p>例如：</p>
 <p><code>test_143_same_daemon_different_signal</code></p>
 <p>对应 TestLink 的用例为：</p>
 <p><code>FC-143:Same daemon, different signal core file</code></p>
-<h2 id="5-测试用例的-doc-，不得含有中文字符"><a href="#5-测试用例的-doc-，不得含有中文字符" class="headerlink" title="5. 测试用例的__doc__，不得含有中文字符"></a>5. 测试用例的__doc__，不得含有中文字符</h2><p>例如： <code>FC-143:Same daemon，different signal core file</code> 这里的逗号，是中文符号，会导致用例报错。</p>
-<h2 id="6、避免测试用例之间存在依赖关系"><a href="#6、避免测试用例之间存在依赖关系" class="headerlink" title="6、避免测试用例之间存在依赖关系"></a>6、避免测试用例之间存在依赖关系</h2><ul>
-<li>每个测试 suite 中的测试用例互相不依赖</li>
-<li>测试 suite 中的用例，尽可能避免依赖关系，如 TestLink 中上一个用例是创建，下一个用例是删除，则合并这两个用例为一个自动化测试用例。</li>
+<h2 id="5-ce-shi-yong-li-de-em-doc-em-bu-de-han-you-zhong-wen-zi-fu">5. 测试用例的_<em>doc</em>_，不得含有中文字符</h2>
+<p>例如： <code>FC-143:Same daemon，different signal core file</code> 这里的逗号，是中文符号，会导致用例报错。</p>
+<h2 id="6-bi-mian-ce-shi-yong-li-zhi-jian-cun-zai-yi-lai-guan-xi">6、避免测试用例之间存在依赖关系</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>每个测试 suite 中的测试用例互相不依赖</p>
+</li>
+<li class="lvl-2">
+<p>测试 suite 中的用例，尽可能避免依赖关系，如 TestLink 中上一个用例是创建，下一个用例是删除，则合并这两个用例为一个自动化测试用例。</p>
+</li>
 </ul>
-<h2 id="7、日志记录对齐要求"><a href="#7、日志记录对齐要求" class="headerlink" title="7、日志记录对齐要求"></a>7、日志记录对齐要求</h2><p>为了让记录的log内容看起来更对其，对于code中的日志记录，规则要求如下：</p>
-<ul>
-<li>执行动作的记录，开头增加[Action]</li>
-<li>检查动作的记录，开头增加[Check]</li>
-<li>断言记录的 log，开头增加[ERROR]</li>
-<li>操作成功的 log，开头增加[SUCCESS]</li>
-<li>不需要检查点 的，开头增加[Skip]</li>
+<h2 id="7-ri-zhi-ji-lu-dui-qi-yao-qiu">7、日志记录对齐要求</h2>
+<p>为了让记录的log内容看起来更对其，对于code中的日志记录，规则要求如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>执行动作的记录，开头增加[Action]</p>
+</li>
+<li class="lvl-2">
+<p>检查动作的记录，开头增加[Check]</p>
+</li>
+<li class="lvl-2">
+<p>断言记录的 log，开头增加[ERROR]</p>
+</li>
+<li class="lvl-2">
+<p>操作成功的 log，开头增加[SUCCESS]</p>
+</li>
+<li class="lvl-2">
+<p>不需要检查点 的，开头增加[Skip]</p>
+</li>
 </ul>
-<p>具体要求如下： </p>
-<ul>
-<li>[Prepare] 后面跟 2 个空格</li>
-<li>[Action] 后面跟 3 个空格</li>
-<li>[Start] 后面跟 4 个空格</li>
-<li>[Check] 后面跟 4 个空格</li>
-<li>[Success] 后面跟 2 个空格</li>
-<li>[Skip] 后面跟 5 个空格</li>
-<li>debug 级别的 log，内容前面跟 2 个-，之后 再加 2 个空格</li>
-<li>assert 中，[ERROR] 后面跟 2 个空格</li>
+<p>具体要求如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>[Prepare] 后面跟 2 个空格</p>
+</li>
+<li class="lvl-2">
+<p>[Action] 后面跟 3 个空格</p>
+</li>
+<li class="lvl-2">
+<p>[Start] 后面跟 4 个空格</p>
+</li>
+<li class="lvl-2">
+<p>[Check] 后面跟 4 个空格</p>
+</li>
+<li class="lvl-2">
+<p>[Success] 后面跟 2 个空格</p>
+</li>
+<li class="lvl-2">
+<p>[Skip] 后面跟 5 个空格</p>
+</li>
+<li class="lvl-2">
+<p>debug 级别的 log，内容前面跟 2 个-，之后 再加 2 个空格</p>
+</li>
+<li class="lvl-2">
+<p>assert 中，[ERROR] 后面跟 2 个空格</p>
+</li>
 </ul>
-<h2 id="8、用例的执行顺序"><a href="#8、用例的执行顺序" class="headerlink" title="8、用例的执行顺序"></a>8、用例的执行顺序</h2><p>pytest用例执行顺序，根据 ASSII 进行排序，单个用例文件中则是以用例编写先后顺序执行。</p>
+<h2 id="8-yong-li-de-zhi-xing-shun-xu">8、用例的执行顺序</h2>
+<p>pytest用例执行顺序，根据 ASSII 进行排序，单个用例文件中则是以用例编写先后顺序执行。</p>
 <p>在用例有关联情 况下，需要对用例名称增加数字编号，人为的干预用例执行顺序，比如 test_1_xxx, test_2_yyy；或者借助pytest-order plugin来约束住用例见关系。</p>
-<h2 id="9、代码规范要求"><a href="#9、代码规范要求" class="headerlink" title="9、代码规范要求"></a>9、代码规范要求</h2><p>执行 pylint，确保检查结果分值等于10, e.g :</p>
+<h2 id="9-dai-ma-gui-fan-yao-qiu">9、代码规范要求</h2>
+<p>执行 pylint，确保检查结果分值等于10, e.g :</p>
 <p><code>pylint -r y common/pyserial.py --rcfile=.pylintrc</code></p>
-<img class="shadow" src="/img/in-post/serial/run-pylint.png" width="1200">
-
-
-<p>MESSAGE_TYPE 有如下几种： </p>
-<p>(C) 惯例，违反了编码风格标准 </p>
-<p>(R) 重构，写得非常糟糕的代码</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/run-pylint.png" width="1200">
+<p>MESSAGE_TYPE 有如下几种：</p>
+<p>© 惯例，违反了编码风格标准</p>
+<p>® 重构，写得非常糟糕的代码</p>
 <p>(W) 警告，某些 Python 特定的问题</p>
 <p>(E) 错误，很可能是代码中的错误</p>
 <p>(F) 致命错误，阻止 Pylint 进一步运行的错误</p>
-<h2 id="10-用例文件名称、用例中定义变量名称全局唯一"><a href="#10-用例文件名称、用例中定义变量名称全局唯一" class="headerlink" title="10. 用例文件名称、用例中定义变量名称全局唯一"></a>10. 用例文件名称、用例中定义变量名称全局唯一</h2><p>对于测试用例中定义的变量，要保持全局唯一，当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰，尤其对于用例规模上千后，此笨方法会比较有效。</p>
+<h2 id="10-yong-li-wen-jian-ming-cheng-yong-li-zhong-ding-yi-bian-liang-ming-cheng-quan-ju-wei-yi">10. 用例文件名称、用例中定义变量名称全局唯一</h2>
+<p>对于测试用例中定义的变量，要保持全局唯一，当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰，尤其对于用例规模上千后，此笨方法会比较有效。</p>
 <p>当有用例出错时，可以根据这个名称，定位到是哪个用例产生了问题，因为具有唯一性，可以排除其他用例带来的干扰。</p>
-<h1 id="用例编写"><a href="#用例编写" class="headerlink" title="用例编写"></a>用例编写</h1><p>测试用例仅仅是逻辑的调用，组合各个函数，构造成一个完整的测试场景。</p>
+<h1 id="yong-li-bian-xie">用例编写</h1>
+<p>测试用例仅仅是逻辑的调用，组合各个函数，构造成一个完整的测试场景。</p>
 <p>这里以电子盘测试为示例，参考如下：</p>
 <p><code>test_03_electronic_disk.py </code> 内容参考如下：</p>
-<pre><code class="line-numbers language-python">#!/usr/bin/env python
+<pre><code class="language-python">#!/usr/bin/env python
 # -*- coding: GBK -*-
 
 """  Check output of electronic disk test information  """
@@ -960,8 +1196,10 @@ class TestElectronicDiskTest(ElectronicDiskTest):
             self.folder_file_created_performance()
 </code></pre>
 <p>非常明显的看出来，这里没有逻辑，完全是具体函数的调用。对应测试项功能的发起、返回结果的校验，完全在被调用函数里，所以，框架的另外一个重心，就是各个功能点的基类函数。</p>
-<h1 id="用例执行"><a href="#用例执行" class="headerlink" title="用例执行"></a>用例执行</h1><h2 id="执行全部用例"><a href="#执行全部用例" class="headerlink" title="执行全部用例"></a>执行全部用例</h2><p>src 目录下，执行 <code>python run.py</code>, 如下所示：</p>
-<pre><code class="line-numbers language-shell">E:\automation\src&gt;python run.py
+<h1 id="yong-li-zhi-xing">用例执行</h1>
+<h2 id="zhi-xing-quan-bu-yong-li">执行全部用例</h2>
+<p>src 目录下，执行 <code>python run.py</code>, 如下所示：</p>
+<pre><code class="language-shell">E:\automation\src&gt;python run.py
 --------------------------------------------------------------------------------
 [Step 1]  [Check]    Check if the report directory is deleted
 
@@ -1006,46 +1244,35 @@ testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensiv
 ---------- coverage: platform win32, python 2.7.13-final-0 -----------
 Coverage XML written to file ../report/coverage.xml
 </code></pre>
-<h2 id="执行部分用例"><a href="#执行部分用例" class="headerlink" title="执行部分用例"></a>执行部分用例</h2><p>执行 <code>python run.py -t xxx yyy zzz</code>， 其中xxx yyy zzz表示不同的用例文件</p>
-<pre><code class="line-numbers language-shell">E:\automation\src&gt;python run.py -t testcase/test_01_comprehensive_test.py testcase/test_02_watch_dog.py
+<h2 id="zhi-xing-bu-fen-yong-li">执行部分用例</h2>
+<p>执行 <code>python run.py -t xxx yyy zzz</code>， 其中xxx yyy zzz表示不同的用例文件</p>
+<pre><code class="language-shell">E:\automation\src&gt;python run.py -t testcase/test_01_comprehensive_test.py testcase/test_02_watch_dog.py
 </code></pre>
-<h2 id="执行某个测试用例"><a href="#执行某个测试用例" class="headerlink" title="执行某个测试用例"></a>执行某个测试用例</h2><p>方法1： run.py为入口</p>
+<h2 id="zhi-xing-mou-ge-ce-shi-yong-li">执行某个测试用例</h2>
+<p>方法1： run.py为入口</p>
 <p>e.g:</p>
 <pre><code>python run.py -t testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
 </code></pre>
-<img class="shadow" src="/img/in-post/serial/run_single_case_1.png" width="1200">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/run_single_case_1.png" width="1200">
 <p>方法2： pytest命令行执行</p>
 <p>e.g:</p>
-<pre><code class="line-numbers language-shell">pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
+<pre><code class="language-shell">pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
 </code></pre>
-<img class="shadow" src="/img/in-post/serial/run_single_case_2.png" width="1200">
-
-
-
-
-
-<h2 id="循环执行用例"><a href="#循环执行用例" class="headerlink" title="循环执行用例"></a>循环执行用例</h2><p>用例执行有多种方式，一是指定整个py文件，而是指定到具体测试用例，无论哪种方式，携带上–count，示例如下：</p>
-<h3 id="某个用例循环多次执行"><a href="#某个用例循环多次执行" class="headerlink" title="某个用例循环多次执行"></a>某个用例循环多次执行</h3><pre><code class="line-numbers language-shell">E:\automation\src&gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive --count=10
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/run_single_case_2.png" width="1200">
+<h2 id="xun-huan-zhi-xing-yong-li">循环执行用例</h2>
+<p>用例执行有多种方式，一是指定整个py文件，而是指定到具体测试用例，无论哪种方式，携带上–count，示例如下：</p>
+<h3 id="mou-ge-yong-li-xun-huan-duo-ci-zhi-xing">某个用例循环多次执行</h3>
+<pre><code class="language-shell">E:\automation\src&gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive --count=10
 </code></pre>
-<img class="shadow" src="/img/in-post/serial/case_counts.png" width="1200">
-
-
-
-
-
-<h3 id="某个测试集合下用例循环多次执行"><a href="#某个测试集合下用例循环多次执行" class="headerlink" title="某个测试集合下用例循环多次执行"></a>某个测试集合下用例循环多次执行</h3><pre><code class="line-numbers language-shell">E:\automation\src&gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01.py --count=10
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/case_counts.png" width="1200">
+<h3 id="mou-ge-ce-shi-ji-he-xia-yong-li-xun-huan-duo-ci-zhi-xing">某个测试集合下用例循环多次执行</h3>
+<pre><code class="language-shell">E:\automation\src&gt;pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01.py --count=10
 </code></pre>
-<img class="shadow" src="/img/in-post/serial/case_counts-2.png" width="1200">
-
-
-
-
-
-<h1 id="测试报告"><a href="#测试报告" class="headerlink" title="测试报告"></a>测试报告</h1><h2 id="HTML可视化报告的展示"><a href="#HTML可视化报告的展示" class="headerlink" title="HTML可视化报告的展示"></a>HTML可视化报告的展示</h2><p>run.py运行结束后，会在report目录下生成json目录与文件，执行allure相关命令，生成可视化 html 报告：</p>
-<pre><code class="line-numbers language-shell">E:\automation&gt;cd report
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/case_counts-2.png" width="1200">
+<h1 id="ce-shi-bao-gao">测试报告</h1>
+<h2 id="html-ke-shi-hua-bao-gao-de-zhan-shi">HTML可视化报告的展示</h2>
+<p>run.py运行结束后，会在report目录下生成json目录与文件，执行allure相关命令，生成可视化 html 报告：</p>
+<pre><code class="language-shell">E:\automation&gt;cd report
 E:\automation\report&gt;allure generate json -o html --clean
 Report successfully generated to html
 E:\automation\report&gt;allure open html -p 11111
@@ -1054,16 +1281,15 @@ Starting web server...
 Server started at &lt;http://192.168.56.1:11111/&gt;. Press &lt;Ctrl+C&gt; to exit
 </code></pre>
 <p>浏览器打开 <code>http://192.168.56.1:11111</code>地址，预览如下：</p>
-<img class="shadow" src="/img/in-post/serial/allure_report.png" width="1200">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/serial/allure_report.png" width="1200">
 <p>如果 allure 命令生成 report 时，未指定 -p 参数，会随机生成一个未被占用的5位数字的端口号：</p>
-<pre><code class="line-numbers language-shell">E:\automation\report&gt;allure open html
+<pre><code class="language-shell">E:\automation\report&gt;allure open html
 Starting web server...
 2023-07-19 15:00:17.760:INFO::main: Logging initialized @180ms to org.eclipse.jetty.util.log.StdErrLog
 Server started at &lt;http://192.168.56.1:52014/&gt;. Press &lt;Ctrl+C&gt; to exit
 </code></pre>
-<h2 id="失败用例的检查"><a href="#失败用例的检查" class="headerlink" title="失败用例的检查"></a>失败用例的检查</h2><p>html可视化报告中给出哪些用例失败，可根据记录到的log信息进行用例失败检查，判断是产品存在Bug还是用例编写问题。</p>
+<h2 id="shi-bai-yong-li-de-jian-cha">失败用例的检查</h2>
+<p>html可视化报告中给出哪些用例失败，可根据记录到的log信息进行用例失败检查，判断是产品存在Bug还是用例编写问题。</p>
 
                 
             </div>
@@ -1178,10 +1404,10 @@ Server started at &lt;http://192.168.56.1:52014/&gt;. Press &lt;Ctrl+C&gt; to ex
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1495,7 +1721,7 @@ Server started at &lt;http://192.168.56.1:52014/&gt;. Press &lt;Ctrl+C&gt; to ex
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/128.jpg" class="responsive-img" alt="pyserial 使用指导">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/128.jpg" class="responsive-img" alt="pyserial 使用指导">
                         
                         <span class="card-title">pyserial 使用指导</span>
                     </div>
@@ -1556,7 +1782,7 @@ Server started at &lt;http://192.168.56.1:52014/&gt;. Press &lt;Ctrl+C&gt; to ex
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/144.jpg" class="responsive-img" alt="修改默认shell">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/144.jpg" class="responsive-img" alt="修改默认shell">
                         
                         <span class="card-title">修改默认shell</span>
                     </div>
@@ -1787,7 +2013,7 @@ Server started at &lt;http://192.168.56.1:52014/&gt;. Press &lt;Ctrl+C&gt; to ex
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2137,6 +2363,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

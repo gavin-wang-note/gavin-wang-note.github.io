@@ -5,8 +5,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="API响应慢问题复现, 软硬件测试">
-    <meta name="description" content="概述现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。
-具体要求具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID car">
+    <meta name="description" content="概述
+现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。
+具体要求
+具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID c">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +66,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +334,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -477,10 +619,14 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。</p>
-<h1 id="具体要求"><a href="#具体要求" class="headerlink" title="具体要求"></a>具体要求</h1><p>具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID card等诸多信息，如果响应时间超过预定时间，比如30s，则认为API出状况了。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>现在测试有个需求，需要验证某个API响应时间，之所以关注这个API时间，是因为有时响应太久，超过30s，估计这个时间客户也无法容忍。</p>
+<h1 id="ju-ti-yao-qiu">具体要求</h1>
+<p>具体的API是RAID界面，去list出RAID卡上所有的VD，PD，SSD，RAID card等诸多信息，如果响应时间超过预定时间，比如30s，则认为API出状况了。</p>
 <p>上述过程，使用测试脚本完成，一旦响应时间超过预定时间，程序退出。</p>
-<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><h2 id="shell"><a href="#shell" class="headerlink" title="shell"></a>shell</h2><pre><code class="line-numbers language-shell">root@node76:~# cat raid_api_elapsed.sh
+<h1 id="shi-jian">实践</h1>
+<h2 id="shell">shell</h2>
+<pre><code class="language-shell">root@node76:~# cat raid_api_elapsed.sh
 #!/bin/bash
 
 PUBLIC_IP=7.73.7.76
@@ -533,7 +679,7 @@ do
 done
 </code></pre>
 <p>核心是-s -I -m 10 -w %{http_code}，解释一下携带的参数信息：</p>
-<pre><code class="line-numbers language-shell">-I 仅测试HTTP头
+<pre><code class="language-shell">-I 仅测试HTTP头
 
 -m 10 最多查询10s
 
@@ -544,14 +690,14 @@ done
 -w %{http_code} 控制额外输出
 </code></pre>
 <p>这里还有另外一个方法:</p>
-<pre><code class="line-numbers language-shell">root@node76:~# curl --insecure --cookie cookie --header 'Accept: application/json, text/javascript, */*; q=0.01' --header 'Content-Type: application/json' -o /dev/null -s -w "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n" https://7.73.7.76:8080/system/host/1.1.1.76/disk/raid
+<pre><code class="language-shell">root@node76:~# curl --insecure --cookie cookie --header 'Accept: application/json, text/javascript, */*; q=0.01' --header 'Content-Type: application/json' -o /dev/null -s -w "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n" https://7.73.7.76:8080/system/host/1.1.1.76/disk/raid
 time_connect: 0.000
 time_starttransfer: 8.435
 time_total: 8.436
 root@node76:~# 
 </code></pre>
 <p>可以根据time_total时间来判断，此时间超过一定值，就退出。</p>
-<pre><code class="line-numbers language-shell">root@node76:~# cat raid_api_elapsed2.sh 
+<pre><code class="language-shell">root@node76:~# cat raid_api_elapsed2.sh 
 #!/bin/bash
 
 PUBLIC_IP=7.73.7.76
@@ -598,7 +744,8 @@ do
     fi
 done
 </code></pre>
-<h2 id="python"><a href="#python" class="headerlink" title="python"></a>python</h2><pre><code class="line-numbers language-python">root@node76:~# cat raid_api_elapsed.py 
+<h2 id="python">python</h2>
+<pre><code class="language-python">root@node76:~# cat raid_api_elapsed.py 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -707,7 +854,9 @@ if __name__ == '__main__':
 
     call_raid_api(user_id, password, http_method, url, public_ip, storage_ip)
 </code></pre>
-<h1 id="测试效果如下："><a href="#测试效果如下：" class="headerlink" title="测试效果如下："></a>测试效果如下：</h1><h2 id="shell-1"><a href="#shell-1" class="headerlink" title="shell"></a>shell</h2><pre><code class="line-numbers language-shell">root@node76:~# tailf raid_api_elapsed.log 
+<h1 id="ce-shi-xiao-guo-ru-xia">测试效果如下：</h1>
+<h2 id="shell-1">shell</h2>
+<pre><code class="language-shell">root@node76:~# tailf raid_api_elapsed.log 
 2020-06-12 12:41:05  --&gt; OK, elapsed time is : (8433 milliseconds), now sleep 2s
 2020-06-12 12:41:27  --&gt; OK, elapsed time is : (8514 milliseconds), now sleep 2s
 2020-06-12 12:41:37  --&gt; OK, elapsed time is : (8698 milliseconds), now sleep 2s
@@ -730,7 +879,8 @@ if __name__ == '__main__':
 2020-06-12 12:57:11  --&gt; OK, elapsed time is : (8435 milliseconds), now sleep 2s
 2020-06-12 12:57:26  [ERROR]  Cost more than 30s, exit!
 </code></pre>
-<h2 id="python-1"><a href="#python-1" class="headerlink" title="python"></a>python</h2><pre><code class="line-numbers language-shell">root@node76:~# python raid_api_elapsed.py 
+<h2 id="python-1">python</h2>
+<pre><code class="language-shell">root@node76:~# python raid_api_elapsed.py 
 [2020-06-12 14:33:13.012]    URL response elapsed time : (8)
 [2020-06-12 14:33:22.012]    URL response elapsed time : (8)
 [2020-06-12 14:33:30.012]    URL response elapsed time : (8)
@@ -755,8 +905,9 @@ if __name__ == '__main__':
 [2020-06-12 14:45:31.012]    URL response elapsed time : (8)
 [2020-06-12 14:45:40.012]  [ERROR]  URL response elapsed time : (39), return_text : ({"assigned": [{"vd": "0", "current_cache_policy": "WriteThrough, ReadAheadNone, Direct, No Write Cache if Bad BBU", "drive_num": "7", "pds": [{"slot": "1", "copyback_progress": null, "other_error": 0, "healthy": "none", "rebuild_progress": null, "adapter": null, "size": "7.277 TB", "media_error": 0, "pd_type": "SATA", "lifetime_remaining": -1, "firmware_state": "Online, Spun Up", "pd": "0", "media_type": "HDD", "device_id": "38", "smart_info": "smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-server] (local build)\nCopyright (C) ....后面省略，这里展示具体的response详细信息...
 </code></pre>
-<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>看了同事写的一个python版本，非常简洁，不过没有考虑session过期问题，脚本内容参考如下:</p>
-<pre><code class="line-numbers language-python">root@246:/home# cat c.py 
+<h1 id="qi-ta">其他</h1>
+<p>看了同事写的一个python版本，非常简洁，不过没有考虑session过期问题，脚本内容参考如下:</p>
+<pre><code class="language-python">root@246:/home# cat c.py 
 # -*- coding: utf-8 -*-
 
 import time
@@ -898,10 +1049,10 @@ while True:
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1215,7 +1366,7 @@ while True:
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/193.jpg" class="responsive-img" alt="ceph S3 多租户">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/193.jpg" class="responsive-img" alt="ceph S3 多租户">
                         
                         <span class="card-title">ceph S3 多租户</span>
                     </div>
@@ -1264,7 +1415,7 @@ while True:
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/27.jpg" class="responsive-img" alt="shell计算精度">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/27.jpg" class="responsive-img" alt="shell计算精度">
                         
                         <span class="card-title">shell计算精度</span>
                     </div>
@@ -1503,7 +1654,7 @@ while True:
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1853,6 +2004,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

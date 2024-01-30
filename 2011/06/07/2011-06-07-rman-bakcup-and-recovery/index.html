@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="oracle RMAN备份与恢复概述与实践篇2, 软硬件测试">
-    <meta name="description" content="RMAN简介RMAN 可以用来备份和恢复数据库文件、归档日志和控制文件，也可以用来执行完全或不完全的数据库恢复。RMAN有三种不同的用户接口：COMMAND LINE方式、GUI 方式（集成在OEM 中的备份管理器）、API 方式（用于集成">
+    <meta name="description" content="RMAN简介
+RMAN 可以用来备份和恢复数据库文件、归档日志和控制文件，也可以用来执行完全或不完全的数据库恢复。RMAN有三种不同的用户接口：COMMAND LINE方式、GUI 方式（集成在OEM 中的备份管理器）、API 方式（用于集">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -468,27 +609,37 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h2 id="RMAN简介"><a href="#RMAN简介" class="headerlink" title="RMAN简介"></a>RMAN简介</h2><p>RMAN 可以用来备份和恢复数据库文件、归档日志和控制文件，也可以用来执行完全或不完全的数据库恢复。RMAN有三种不同的用户接口：COMMAND LINE方式、GUI 方式（集成在OEM 中的备份管理器）、API 方式（用于集成到第三方的备份软件中）。具有如下特点： </p>
-<p>1）功能类似物理备份，但比物理备份强大N倍，从下面的特点可以看到； </p>
-<p>2）可以压缩空块； </p>
-<p>3）可以在块水平上实现增量； </p>
-<p>4）可以把备份的输出打包成备份集，也可以按固定大小分割备份集； </p>
-<p>5）备份与恢复的过程可以自动管理； </p>
-<p>6）可以使用脚本（存在Recovery catalog 中） </p>
+                <h2 id="rman-jian-jie">RMAN简介</h2>
+<p>RMAN 可以用来备份和恢复数据库文件、归档日志和控制文件，也可以用来执行完全或不完全的数据库恢复。RMAN有三种不同的用户接口：COMMAND LINE方式、GUI 方式（集成在OEM 中的备份管理器）、API 方式（用于集成到第三方的备份软件中）。具有如下特点：</p>
+<p>1）功能类似物理备份，但比物理备份强大N倍，从下面的特点可以看到；</p>
+<p>2）可以压缩空块；</p>
+<p>3）可以在块水平上实现增量；</p>
+<p>4）可以把备份的输出打包成备份集，也可以按固定大小分割备份集；</p>
+<p>5）备份与恢复的过程可以自动管理；</p>
+<p>6）可以使用脚本（存在Recovery catalog 中）</p>
 <p>7）可以做坏块监测</p>
-<h2 id="RMAN备份形式"><a href="#RMAN备份形式" class="headerlink" title="RMAN备份形式"></a>RMAN备份形式</h2><p>RMAN备份有两种形式：</p>
+<h2 id="rman-bei-fen-xing-shi">RMAN备份形式</h2>
+<p>RMAN备份有两种形式：</p>
 <p>1、镜像备份（image copies）；</p>
 <p>2、备份集备份（backup sets）。</p>
-<h3 id="镜像备份"><a href="#镜像备份" class="headerlink" title="镜像备份"></a>镜像备份</h3><p>镜像备份实际就是RMAN利用目标数据库服务进程来完成文件的copy操作，是数据文件、控制文件或者归档日志文件的副本。</p>
+<h3 id="jing-xiang-bei-fen">镜像备份</h3>
+<p>镜像备份实际就是RMAN利用目标数据库服务进程来完成文件的copy操作，是数据文件、控制文件或者归档日志文件的副本。</p>
 <p>RMAN镜像备份的副本无法通过list backup显示，可以通过list copy显示。</p>
 <p>本文主要描述备份集备份。</p>
-<h3 id="备份集备份"><a href="#备份集备份" class="headerlink" title="备份集备份"></a>备份集备份</h3><p>备份集是通过RMAN创建的逻辑备份对象，一个备份集中可以包括多个控制文件、数据文件、归档文件。</p>
+<h3 id="bei-fen-ji-bei-fen">备份集备份</h3>
+<p>备份集是通过RMAN创建的逻辑备份对象，一个备份集中可以包括多个控制文件、数据文件、归档文件。</p>
 <p>备份集在物理上由多个备份片段组成，每个备份片段就是一个操作系统文件。</p>
-<h2 id="RMAN备份类型"><a href="#RMAN备份类型" class="headerlink" title="RMAN备份类型"></a>RMAN备份类型</h2><p>利用RMAN进行备份时，可以通过三种方式来对RMAN的备份做分类</p>
-<h3 id="完全备份-Full-Backup-与增量备份-Incremental-Backup"><a href="#完全备份-Full-Backup-与增量备份-Incremental-Backup" class="headerlink" title="完全备份(Full Backup)与增量备份(Incremental Backup)"></a>完全备份(Full Backup)与增量备份(Incremental Backup)</h3><p>全备与增备是针对数据文件而言，控制文件和归档日志文件不能进行增量备份。当然，后两者可以做备份优化。</p>
-<h3 id="打开备份-Open-Backup-或关闭备份-Closed-Backup"><a href="#打开备份-Open-Backup-或关闭备份-Closed-Backup" class="headerlink" title="打开备份(Open Backup)或关闭备份(Closed Backup)"></a>打开备份(Open Backup)或关闭备份(Closed Backup)</h3><p>数据库打开状态下进行备份即是打开备份，数据库关闭状态下(加载状态)进行的备份即关闭备份。</p>
-<h3 id="一致备份-Consistent-Backup-与不一致备份-Inconsistent-Backup"><a href="#一致备份-Consistent-Backup-与不一致备份-Inconsistent-Backup" class="headerlink" title="一致备份(Consistent Backup)与不一致备份(Inconsistent Backup)"></a>一致备份(Consistent Backup)与不一致备份(Inconsistent Backup)</h3><p>数据库打开状态或不干净关闭状态(shutdown abort)进行的备份是不一致备份，利用不一致的备份修复数据库后还需要做数据库的恢复。在数据库干净关闭状态进行的备份是一致备份，利用一致备份修复数据库后不需要做数据库的恢复。</p>
-<h2 id="RMAN-report-list-delete命令详解"><a href="#RMAN-report-list-delete命令详解" class="headerlink" title="RMAN report list delete命令详解"></a>RMAN report list delete命令详解</h2><h3 id="report"><a href="#report" class="headerlink" title="report"></a>report</h3><pre><code class="line-numbers language-shell">1. 报告目标数据库的物理结构              RMAN&gt; report schema;
+<h2 id="rman-bei-fen-lei-xing">RMAN备份类型</h2>
+<p>利用RMAN进行备份时，可以通过三种方式来对RMAN的备份做分类</p>
+<h3 id="wan-quan-bei-fen-full-backup-yu-zeng-liang-bei-fen-incremental-backup">完全备份(Full Backup)与增量备份(Incremental Backup)</h3>
+<p>全备与增备是针对数据文件而言，控制文件和归档日志文件不能进行增量备份。当然，后两者可以做备份优化。</p>
+<h3 id="da-kai-bei-fen-open-backup-huo-guan-bi-bei-fen-closed-backup">打开备份(Open Backup)或关闭备份(Closed Backup)</h3>
+<p>数据库打开状态下进行备份即是打开备份，数据库关闭状态下(加载状态)进行的备份即关闭备份。</p>
+<h3 id="yi-zhi-bei-fen-consistent-backup-yu-bu-yi-zhi-bei-fen-inconsistent-backup">一致备份(Consistent Backup)与不一致备份(Inconsistent Backup)</h3>
+<p>数据库打开状态或不干净关闭状态(shutdown abort)进行的备份是不一致备份，利用不一致的备份修复数据库后还需要做数据库的恢复。在数据库干净关闭状态进行的备份是一致备份，利用一致备份修复数据库后不需要做数据库的恢复。</p>
+<h2 id="rman-report-list-delete-ming-ling-xiang-jie">RMAN report list delete命令详解</h2>
+<h3 id="report">report</h3>
+<pre><code class="language-shell">1. 报告目标数据库的物理结构              RMAN&gt; report schema;
 
 2. 报告最近N天尚未备份的数据文件           RMAN&gt; report need backup days=3;
 
@@ -506,7 +657,8 @@
 
 9. 报告多余的备份                  RMAN&gt; report obsolete;
 </code></pre>
-<h3 id="list"><a href="#list" class="headerlink" title="list"></a>list</h3><pre><code class="line-numbers language-shell">list backup;             列出详细备份
+<h3 id="list">list</h3>
+<pre><code class="language-shell">list backup;             列出详细备份
 
 list expired backup;         列出过期备份
 
@@ -536,7 +688,8 @@ list backup by file;         按备份类型列出备份
 
 ​                   按照数据文件备份，归档日志备份，控制文件备份，服务器参数文件备份　列出
 </code></pre>
-<h3 id="check"><a href="#check" class="headerlink" title="check"></a>check</h3><pre><code class="line-numbers language-shell">RMAN&gt; crosscheck backup;               核对所有备份集 
+<h3 id="check">check</h3>
+<pre><code class="language-shell">RMAN&gt; crosscheck backup;               核对所有备份集 
 
 RMAN&gt; crosscheck backup of database;         核对所有数据文件的备份集 
 
@@ -578,7 +731,8 @@ RMAN&gt; crosscheck archivelog from sequence 12;
 
 RMAN&gt; crosscheck archivelog until sequence 522;
 </code></pre>
-<h3 id="delete"><a href="#delete" class="headerlink" title="delete"></a>delete</h3><pre><code class="line-numbers language-shell">RMAN&gt; delete obsolete;         删除陈旧备份；
+<h3 id="delete">delete</h3>
+<pre><code class="language-shell">RMAN&gt; delete obsolete;         删除陈旧备份；
 
 RMAN&gt; delete expired backup;      删除EXPIRED备份 
 
@@ -602,7 +756,9 @@ RMAN&gt; delete backupset 22 format = '/opt/oracle/oradata/backup/%u.bak' delete
 
 RMAN&gt; delete backupset id;       删除备份集
 </code></pre>
-<h2 id="RMAN备份"><a href="#RMAN备份" class="headerlink" title="RMAN备份"></a>RMAN备份</h2><h3 id="备份整个数据库"><a href="#备份整个数据库" class="headerlink" title="备份整个数据库"></a>备份整个数据库</h3><pre><code class="line-numbers language-shell">run {
+<h2 id="rman-bei-fen">RMAN备份</h2>
+<h3 id="bei-fen-zheng-ge-shu-ju-ku">备份整个数据库</h3>
+<pre><code class="language-shell">run {
 
 allocate channel c1 type disk;
 
@@ -620,38 +776,46 @@ release channel c1;
 
 }
 </code></pre>
-<h3 id="备份指定的数据文件"><a href="#备份指定的数据文件" class="headerlink" title="备份指定的数据文件"></a>备份指定的数据文件</h3><pre><code class="line-numbers language-shell">backup datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
+<h3 id="bei-fen-zhi-ding-de-shu-ju-wen-jian">备份指定的数据文件</h3>
+<pre><code class="language-shell">backup datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
 </code></pre>
-<h3 id="备份表空间"><a href="#备份表空间" class="headerlink" title="备份表空间"></a>备份表空间</h3><pre><code class="line-numbers language-shell">backup tablespace MMSG;
+<h3 id="bei-fen-biao-kong-jian">备份表空间</h3>
+<pre><code class="language-shell">backup tablespace MMSG;
 </code></pre>
-<h3 id="备份控制文件"><a href="#备份控制文件" class="headerlink" title="备份控制文件"></a>备份控制文件</h3><p>方法1：</p>
-<pre><code class="line-numbers language-shell">configure controlfile autobackup on;
+<h3 id="bei-fen-kong-zhi-wen-jian">备份控制文件</h3>
+<p>方法1：</p>
+<pre><code class="language-shell">configure controlfile autobackup on;
 </code></pre>
 <p>方法2：</p>
-<pre><code class="line-numbers language-shell">backup current controlfile;
+<pre><code class="language-shell">backup current controlfile;
 </code></pre>
 <p>方法3:</p>
-<pre><code class="line-numbers language-shell">backup database include current controlfile;
+<pre><code class="language-shell">backup database include current controlfile;
 </code></pre>
-<h3 id="备份归档日志"><a href="#备份归档日志" class="headerlink" title="备份归档日志"></a>备份归档日志</h3><pre><code class="line-numbers language-shell">backup archivelog all;
+<h3 id="bei-fen-gui-dang-ri-zhi">备份归档日志</h3>
+<pre><code class="language-shell">backup archivelog all;
 </code></pre>
-<h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>建立一个增量级别为0的全库备份：</p>
-<pre><code class="line-numbers language-shell"> backup INCREMENTAL LEVEL=0 database;
+<h3 id="zeng-liang-bei-fen">增量备份</h3>
+<p>建立一个增量级别为0的全库备份：</p>
+<pre><code class="language-shell"> backup INCREMENTAL LEVEL=0 database;
 </code></pre>
 <p>建立一个增量级别为1的数据库表空间的备份：</p>
-<pre><code class="line-numbers language-shell"> backup incremental level=1 tablespace MMSG;
+<pre><code class="language-shell"> backup incremental level=1 tablespace MMSG;
 </code></pre>
 <p>注：</p>
-<ul>
-<li>Rman默认创建的增量备份是Differential方式，如果要建立Cumulative方式的增量备份，在执行BACKUP命令时显式指定即可，例如：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>Rman默认创建的增量备份是Differential方式，如果要建立Cumulative方式的增量备份，在执行BACKUP命令时显式指定即可，例如：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">RMAN&gt; BACKUP INCREMENTAL LEVEL=2 CUMULATIVE DATABASE;
+<pre><code class="language-shell">RMAN&gt; BACKUP INCREMENTAL LEVEL=2 CUMULATIVE DATABASE;
 </code></pre>
-<h3 id="冗余备份"><a href="#冗余备份" class="headerlink" title="冗余备份"></a>冗余备份</h3><p>步骤一：显示指定copies数量</p>
-<pre><code class="line-numbers language-shell">RMAN&gt; backup copies 2 tablespace MMSG;
+<h3 id="rong-yu-bei-fen">冗余备份</h3>
+<p>步骤一：显示指定copies数量</p>
+<pre><code class="language-shell">RMAN&gt; backup copies 2 tablespace MMSG;
 </code></pre>
 <p>步骤二：在批处理中增加set backup copies参数：</p>
-<pre><code class="line-numbers language-shell">RMAN&gt; run
+<pre><code class="language-shell">RMAN&gt; run
 
 {
 
@@ -664,7 +828,9 @@ backup tablespace MMSG;
 }
 </code></pre>
 <p>步骤三：通过configure设定预备份Duplexed方式</p>
-<h2 id="RMAN恢复"><a href="#RMAN恢复" class="headerlink" title="RMAN恢复"></a>RMAN恢复</h2><h3 id="恢复spfile文件"><a href="#恢复spfile文件" class="headerlink" title="恢复spfile文件"></a>恢复spfile文件</h3><pre><code class="line-numbers language-shell">RMAN&gt; startup nomount
+<h2 id="rman-hui-fu">RMAN恢复</h2>
+<h3 id="hui-fu-spfile-wen-jian">恢复spfile文件</h3>
+<pre><code class="language-shell">RMAN&gt; startup nomount
 
 RMAN&gt; set dbid=1037536304
 
@@ -672,7 +838,8 @@ RMAN&gt; restore spfile from autobackup; #这里confile autobackup必须设置�
 
 RMAN&gt; startup force
 </code></pre>
-<h3 id="表空间的恢复"><a href="#表空间的恢复" class="headerlink" title="表空间的恢复"></a>表空间的恢复</h3><pre><code class="line-numbers language-shell">RMAN&gt; shutdown immediate
+<h3 id="biao-kong-jian-de-hui-fu">表空间的恢复</h3>
+<pre><code class="language-shell">RMAN&gt; shutdown immediate
 
 RMAN&gt;startup mount
 
@@ -682,8 +849,9 @@ RMAN&gt;recover tablespace "TEST";
 
 RMAN&gt;alter database open;
 </code></pre>
-<h3 id="数据文件的恢复"><a href="#数据文件的恢复" class="headerlink" title="数据文件的恢复"></a>数据文件的恢复</h3><p>这个操作类似于表空间的恢复</p>
-<pre><code class="line-numbers language-shell">RMAN&gt;shutdown immediate
+<h3 id="shu-ju-wen-jian-de-hui-fu">数据文件的恢复</h3>
+<p>这个操作类似于表空间的恢复</p>
+<pre><code class="language-shell">RMAN&gt;shutdown immediate
 
 RMAN&gt;startup mount
 
@@ -693,7 +861,8 @@ RMAN&gt;recover datafile datafilepath;  #或者是recover datafile datafile_num;
 
 RMAN&gt;alter database open
 </code></pre>
-<h3 id="全库的恢复"><a href="#全库的恢复" class="headerlink" title="全库的恢复"></a>全库的恢复</h3><pre><code class="line-numbers language-shell">RMAN&gt;shutdown immediate
+<h3 id="quan-ku-de-hui-fu">全库的恢复</h3>
+<pre><code class="language-shell">RMAN&gt;shutdown immediate
 
 RMAN&gt;startup mount
 
@@ -707,10 +876,11 @@ RMAN&gt; run
 
 5&gt; }
 </code></pre>
-<h3 id="控制文件的恢复"><a href="#控制文件的恢复" class="headerlink" title="控制文件的恢复"></a>控制文件的恢复</h3><p><strong>1****、损坏部分控制文件</strong> </p>
+<h3 id="kong-zhi-wen-jian-de-hui-fu">控制文件的恢复</h3>
+<p><strong>1</strong>**、损坏部分控制文件**</p>
 <p>步骤一：使用dbv命令检测控制文件是否被损坏，如：dbv file=control02.ctl blocksize=16384</p>
 <p>步骤二：cp好的控制文件，并重命名</p>
-<p><strong>2****、所有控制文件均被损坏</strong></p>
+<p><strong>2</strong>**、所有控制文件均被损坏**</p>
 <p>损坏所有的控制文件或者人为的删除所有的控制文件，通过备份复制已经不能解决问题，只能重新建立新的控制文件。</p>
 <p>保留dba用户执行 alter database backup controlfile to trace 产生的重建控制文件的命令</p>
 <p>步骤一:</p>
@@ -720,7 +890,7 @@ RMAN&gt; run
 <p>如果数据库运行在归档模式下，且有控制文件的备份(CONFIGURE CONTROLFILE AUTOBACKUP ON)，可以使用有可用的控制文件的备份，则可以使用restore controlfile from ‘备份的控制文件路径+文件名’来完成控制文件的恢复操作</p>
 <p>1、数据库启动到非安装状态(nomount)</p>
 <p>2、RMAN恢复</p>
-<pre><code class="line-numbers language-shell"> RMAN&gt; run {
+<pre><code class="language-shell"> RMAN&gt; run {
 
    allocate channel c1 device type disk;
 
@@ -730,7 +900,8 @@ RMAN&gt; run
 
    }
 </code></pre>
-<h3 id="重做日志文件的恢复"><a href="#重做日志文件的恢复" class="headerlink" title="重做日志文件的恢复"></a>重做日志文件的恢复</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h3 id="zhong-zuo-ri-zhi-wen-jian-de-hui-fu">重做日志文件的恢复</h3>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 
 数据库已经关闭。
 
@@ -744,7 +915,8 @@ SQL&gt; recover database using backup controlfile until cancel;
 
 SQL&gt; alter database open resetlogs;
 </code></pre>
-<h3 id="归档日志文件的恢复"><a href="#归档日志文件的恢复" class="headerlink" title="归档日志文件的恢复"></a>归档日志文件的恢复</h3><pre><code class="line-numbers language-shell">RMAN&gt;shutdown immediate
+<h3 id="gui-dang-ri-zhi-wen-jian-de-hui-fu">归档日志文件的恢复</h3>
+<pre><code class="language-shell">RMAN&gt;shutdown immediate
 
 RMAN&gt;startup mount
 
@@ -758,69 +930,74 @@ RMAN&gt; run
 
 5&gt; }
 </code></pre>
-<h3 id="损坏非当前联机日志"><a href="#损坏非当前联机日志" class="headerlink" title="损坏非当前联机日志"></a>损坏非当前联机日志</h3><p>步骤一 启动数据库，报错：ORA-00313和ORA-00312</p>
+<h3 id="sun-pi-fei-dang-qian-lian-ji-ri-zhi">损坏非当前联机日志</h3>
+<p>步骤一 启动数据库，报错：ORA-00313和ORA-00312</p>
 <p>步骤二 查看v$log视图</p>
-<p>步骤三  用CLEAR命令重建该日志文件 </p>
-<pre><code class="line-numbers language-shell">SQL&gt; alter database clear logfile group 3;
+<p>步骤三  用CLEAR命令重建该日志文件</p>
+<pre><code class="language-shell">SQL&gt; alter database clear logfile group 3;
 </code></pre>
 <p>​      如果是该日志组还没有归档，则需要用</p>
-<pre><code class="line-numbers language-shell">  SQL&gt;alter database clear unarchived logfile group 3;
+<pre><code class="language-shell">  SQL&gt;alter database clear unarchived logfile group 3;
 </code></pre>
-<p>步骤四  打开数据库，并备份数据库 </p>
-<pre><code class="line-numbers language-shell"> SQL&gt; alter database open;
+<p>步骤四  打开数据库，并备份数据库</p>
+<pre><code class="language-shell"> SQL&gt; alter database open;
 </code></pre>
-<h3 id="损坏当前联机日志"><a href="#损坏当前联机日志" class="headerlink" title="损坏当前联机日志"></a>损坏当前联机日志</h3><p>一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建</p>
-<pre><code class="line-numbers language-shell">  SQL&gt; alter database clear unarchived logfile group 2;
+<h3 id="sun-pi-dang-qian-lian-ji-ri-zhi">损坏当前联机日志</h3>
+<p>一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建</p>
+<pre><code class="language-shell">  SQL&gt; alter database clear unarchived logfile group 2;
 
   SQL&gt; alter database open;
 </code></pre>
 <p>二、日志组中有活动事务，需要介质恢复，日志组需要用来数据同步，有两种解决方法：</p>
 <p>1、通过不完全恢复，保持数据库数据一致性，这种方法要求数据库运行在归档方式下，且有可用的数据文件的备份</p>
-<p>  步骤一 启动数据库，报错：ORA-00313 ，ORA-00312， ORA-27037</p>
-<p>  步骤二 模拟当前日志组中日志文件损坏 SQL&gt; select * from v$log;</p>
-<p>  步骤三 拷贝有效的备份，进行不完全恢复（包括所有的控制文件、数据文件、redo文件）</p>
-<p>  步骤四 数据库启动到mount状态，进行不完全恢复：</p>
-<pre><code class="line-numbers language-shell">      SQL&gt; startup mount
+<p>步骤一 启动数据库，报错：ORA-00313 ，ORA-00312， ORA-27037</p>
+<p>步骤二 模拟当前日志组中日志文件损坏 SQL&gt; select * from v$log;</p>
+<p>步骤三 拷贝有效的备份，进行不完全恢复（包括所有的控制文件、数据文件、redo文件）</p>
+<p>步骤四 数据库启动到mount状态，进行不完全恢复：</p>
+<pre><code class="language-shell">      SQL&gt; startup mount
 
       SQL&gt; recover database until cancel;
 
       SQL&gt; alter database open resetlogs;
 </code></pre>
-<p> 注：这个时候是不能用rman进行恢复的！</p>
+<p>注：这个时候是不能用rman进行恢复的！</p>
 <p>2、通过强制性恢复，这种方法会导致数据的不一致性，推荐使用方法一</p>
-<p>  步骤一 模拟当前日志组中日志成员被损坏 SQL&gt; select * from v$log;</p>
-<p>  步骤二 修改pfile文件，增加隐性参数</p>
-<pre><code class="line-numbers language-shell"> vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
+<p>步骤一 模拟当前日志组中日志成员被损坏 SQL&gt; select * from v$log;</p>
+<p>步骤二 修改pfile文件，增加隐性参数</p>
+<pre><code class="language-shell"> vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
 
   \#add for test by wangyunzeng
 
   _allow_resetlogs_corruption=TRUE
 </code></pre>
 <p>步骤三 通过pfile文件启动数据库</p>
-<p>步骤四 进行介质恢复 </p>
-<pre><code class="line-numbers language-shell">SQL&gt; recover database until cancel;
+<p>步骤四 进行介质恢复</p>
+<pre><code class="language-shell">SQL&gt; recover database until cancel;
 </code></pre>
 <p>​      出现如下信息时，选择cancel命令  指定日志:</p>
-<pre><code class="line-numbers language-shell"> {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
+<pre><code class="language-shell"> {&lt;RET&gt;=suggested | filename | AUTO | CANCEL}
  cancel
 </code></pre>
-<p>  步骤五 resetlogs方式启动数据库</p>
-<pre><code class="line-numbers language-shell">SQL&gt; alter database open resetlogs;
+<p>步骤五 resetlogs方式启动数据库</p>
+<pre><code class="language-shell">SQL&gt; alter database open resetlogs;
 </code></pre>
 <p>步骤六 关闭数据库，去掉pfile文件中隐性参数，重启数据库（直接执行startup命令即可）</p>
 <p>步骤七 备份整个数据库  物理冷备或者物理热备或者RMAN备份都行。</p>
 <p>步骤八 导入数据   如果有相关的exp导出的数据，可以执行imp导入操作，毕竟数据发生丢失。</p>
-<p>步骤九 表数据分析  建议执行一下表分析 </p>
-<pre><code class="line-numbers language-shell">SQL&gt; ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
+<p>步骤九 表数据分析  建议执行一下表分析</p>
+<pre><code class="language-shell">SQL&gt; ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
 </code></pre>
-<h3 id="临时数据文件的恢复"><a href="#临时数据文件的恢复" class="headerlink" title="临时数据文件的恢复"></a>临时数据文件的恢复</h3><p>临时数据文件不包含有效数据，发生丢失后删除原先临时数据文件并进行重建就可以了。</p>
-<h2 id="RMAN实战"><a href="#RMAN实战" class="headerlink" title="RMAN实战"></a>RMAN实战</h2><h3 id="实战1"><a href="#实战1" class="headerlink" title="实战1"></a>实战1</h3><p>要求</p>
+<h3 id="lin-shi-shu-ju-wen-jian-de-hui-fu">临时数据文件的恢复</h3>
+<p>临时数据文件不包含有效数据，发生丢失后删除原先临时数据文件并进行重建就可以了。</p>
+<h2 id="rman-shi-zhan">RMAN实战</h2>
+<h3 id="shi-zhan-1">实战1</h3>
+<p>要求</p>
 <p>1 、每天夜间1点执行；</p>
 <p>2 、数据库全备，同时备份控制文件及归档日志文件，备份文件保存至：/opt/oracle/rman目录下，并在完成归档日志文件备份后，自动删除已备份的归档日志；</p>
 <p>3 、备份保留7天，过期则自动删除；</p>
 <p>4 、保留操作日志备查；</p>
 <p>RMAN脚本</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg:~/rman&gt; more back_full.rman
+<pre><code class="language-shell">oracle@mmsg:~/rman&gt; more back_full.rman
 
 run
 
@@ -847,9 +1024,9 @@ crosscheck backupset;
 delete noprompt obsolete;
 </code></pre>
 <p>命令执行</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg:~/rman&gt; rman target / msglog /opt/oracle/rman/bak.log cmdfile=/opt/oracle/rman/back_full.rman
+<pre><code class="language-shell">oracle@mmsg:~/rman&gt; rman target / msglog /opt/oracle/rman/bak.log cmdfile=/opt/oracle/rman/back_full.rman
 </code></pre>
-<pre><code class="line-numbers language-shell">oracle@mmsc103:~/rmanbak&gt; more backup.pl
+<pre><code class="language-shell">oracle@mmsc103:~/rmanbak&gt; more backup.pl
 
 #!/usr/bin/perl
 
@@ -879,12 +1056,13 @@ daytime.log");
 </code></pre>
 <p>设置crontab</p>
 <p>每天凌晨1点执行数据库的备份</p>
-<pre><code class="line-numbers language-shell">0 1 * * * su - oracle -c /opt/oracle/rmanbak/backup.pl
+<pre><code class="language-shell">0 1 * * * su - oracle -c /opt/oracle/rmanbak/backup.pl
 </code></pre>
-<h3 id="实战2"><a href="#实战2" class="headerlink" title="实战2"></a>实战2</h3><p>1、备份整个数据库，包括控制文件以及归档日志；</p>
+<h3 id="shi-zhan-2">实战2</h3>
+<p>1、备份整个数据库，包括控制文件以及归档日志；</p>
 <p>2、清除3天前备份的归档日志。</p>
 <p>RMAN脚本</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc103:~/rmanbak&gt; more everydaybak.rman
+<pre><code class="language-shell">oracle@mmsc103:~/rmanbak&gt; more everydaybak.rman
 
 #script.:fullbakup.rman
 
@@ -924,21 +1102,25 @@ release channel t1;
 
 #end
 </code></pre>
-<h2 id="RMAN常见问题解决方法"><a href="#RMAN常见问题解决方法" class="headerlink" title="RMAN常见问题解决方法"></a>RMAN常见问题解决方法</h2><h3 id="RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此"><a href="#RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此" class="headerlink" title="RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此"></a>RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此</h3><p>原因：操作系统也有一个rman命令，这里执行的是os的rman而非Oracle的</p>
+<h2 id="rman-chang-jian-wen-ti-jie-jue-fang-fa">RMAN常见问题解决方法</h2>
+<h3 id="rman-ming-ling-shu-ru-hou-zhong-duan-wu-fan-ying-yi-zhi-chu-yu-deng-dai-zhuang-tai-qie-chang-shi-jian-ru-ci">RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此</h3>
+<p>原因：操作系统也有一个rman命令，这里执行的是os的rman而非Oracle的</p>
 <p>解决：oracle用户设置环境变量 export PATH=$ORACLE_HOME:$PATH</p>
-<h3 id="RMAN无法进行备份操作-查看备份信息-配置信息"><a href="#RMAN无法进行备份操作-查看备份信息-配置信息" class="headerlink" title="RMAN无法进行备份操作/查看备份信息/配置信息"></a>RMAN无法进行备份操作/查看备份信息/配置信息</h3><p>RMAN-03002: list 命令 (在 03/05/2011 09:28:03 上) 失败</p>
+<h3 id="rman-wu-fa-jin-xing-bei-fen-cao-zuo-cha-kan-bei-fen-xin-xi-pei-zhi-xin-xi">RMAN无法进行备份操作/查看备份信息/配置信息</h3>
+<p>RMAN-03002: list 命令 (在 03/05/2011 09:28:03 上) 失败</p>
 <p>RMAN-06004: 恢复目录数据库发生 ORACLE 错误: RMAN-20001: target database not found in recovery catalog</p>
 <p>RMAN-03002: backup 命令 (在 03/05/2011 09:28:32 上) 失败</p>
 <p>RMAN-03014: 恢复目录的隐式重新同步失败</p>
 <p>RMAN-06004: 恢复目录数据库发生 ORACLE 错误: RMAN-20001: 在恢复目录中未找到目标数据库</p>
 <p>原因：RMAN未注册。</p>
 <p>解决方法：注册RMAN。</p>
-<pre><code class="line-numbers language-shell">RMAN&gt; register database;           
+<pre><code class="language-shell">RMAN&gt; register database;           
 </code></pre>
-<p>​           </p>
-<h3 id="RMAN备份文件异常删除"><a href="#RMAN备份文件异常删除" class="headerlink" title="RMAN备份文件异常删除"></a>RMAN备份文件异常删除</h3><p>原因：RMAN备份的文件存放在某个目录下，该文件没有通过rman命令delete删除，而是在操作系统侧执行rm操作，导致再去删除这个备份文件时无法删除掉。</p>
+<p>​</p>
+<h3 id="rman-bei-fen-wen-jian-yi-chang-shan-chu">RMAN备份文件异常删除</h3>
+<p>原因：RMAN备份的文件存放在某个目录下，该文件没有通过rman命令delete删除，而是在操作系统侧执行rm操作，导致再去删除这个备份文件时无法删除掉。</p>
 <p>解决：</p>
-<pre><code class="line-numbers language-shell">RMAN&gt; list backupset by backup summary;
+<pre><code class="language-shell">RMAN&gt; list backupset by backup summary;
 
 RMAN&gt; crosscheck backupset;
 
@@ -1046,10 +1228,10 @@ RMAN&gt; delete backupset;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1363,7 +1545,7 @@ RMAN&gt; delete backupset;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/51.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01034  ORA-27101，ORA-12514">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/51.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01034  ORA-27101，ORA-12514">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-01034  ORA-27101，ORA-12514</span>
                     </div>
@@ -1412,7 +1594,7 @@ RMAN&gt; delete backupset;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/149.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01940">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/149.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01940">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-01940</span>
                     </div>
@@ -1643,7 +1825,7 @@ RMAN&gt; delete backupset;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1993,6 +2175,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

@@ -5,9 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="替换文件中空行, 软硬件测试">
-    <meta name="description" content="概述本文主要描述，如果在Linux下，使用命令行方式，对文本文件中的空行进行替换操作
-vi模式真正删除空行，可以使用vim
-通过命令模式删除空行。vim在命令模式下(在vim里输入英文字符:进入命令模式)输入： %s/^n//g 。意思是全">
+    <meta name="description" content="概述
+本文主要描述，如果在Linux下，使用命令行方式，对文本文件中的空行进行替换操作
+vi模式
+真正删除空行，可以使用vim
+通过命令模式删除空行。vim在命令模式下(在vim里输入英文字符:进入命令模式)输入： %s/^n//g 。意思">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +67,160 @@ vi模式真正删除空行，可以使用vim
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +335,7 @@ vi模式真正删除空行，可以使用vim
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -452,7 +594,7 @@ vi模式真正删除空行，可以使用vim
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    209
+                    212
                 </div>
                 
 
@@ -482,25 +624,32 @@ vi模式真正删除空行，可以使用vim
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文主要描述，如果在Linux下，使用命令行方式，对文本文件中的空行进行替换操作</p>
-<h1 id="vi模式"><a href="#vi模式" class="headerlink" title="vi模式"></a>vi模式</h1><p>真正删除空行，可以使用vim</p>
-<p>通过命令模式删除空行。vim在命令模式下(在vim里输入英文字符:进入命令模式)输入： %s/^n//g 。意思是全局替换所有以回车开头的字符，替换为空。<br>如果有多个连续的空行，想保留一行。则只需在命令行模式输入下行即可：%s/^n$//g</p>
-<h1 id="Linux-pipline方式"><a href="#Linux-pipline方式" class="headerlink" title="Linux pipline方式"></a>Linux pipline方式</h1><p>主要是删除方法，使用grep，awk，sed，tr，xargs等命令进行处理</p>
-<h2 id="grep"><a href="#grep" class="headerlink" title="grep"></a>grep</h2><p><code>grep -v '^$' filename </code></p>
+                <h1 id="gai-shu">概述</h1>
+<p>本文主要描述，如果在Linux下，使用命令行方式，对文本文件中的空行进行替换操作</p>
+<h1 id="vi-mo-shi">vi模式</h1>
+<p>真正删除空行，可以使用vim</p>
+<p>通过命令模式删除空行。vim在命令模式下(在vim里输入英文字符:进入命令模式)输入： %s/^n//g 。意思是全局替换所有以回车开头的字符，替换为空。如果有多个连续的空行，想保留一行。则只需在命令行模式输入下行即可：%s/^n$//g</p>
+<h1 id="linux-pipline-fang-shi">Linux pipline方式</h1>
+<p>主要是删除方法，使用grep，awk，sed，tr，xargs等命令进行处理</p>
+<h2 id="grep">grep</h2>
+<p><code>grep -v '^$' filename </code></p>
 <p>或</p>
 <p><code>grep -vE "^[[:blank:]]*$" filename </code></p>
-<h2 id="sed"><a href="#sed" class="headerlink" title="sed"></a>sed</h2><p><code>sed '/^$/d'  filename </code></p>
+<h2 id="sed">sed</h2>
+<p><code>sed '/^$/d'  filename </code></p>
 <p>或</p>
 <p><code>sed -n '/./p' filename </code></p>
 <p>或</p>
 <p><code>sed '/^[[:blank:]]*$/d' filename </code></p>
-<h2 id="awk"><a href="#awk" class="headerlink" title="awk"></a>awk</h2><p>$0表示一行</p>
+<h2 id="awk">awk</h2>
+<p>$0表示一行</p>
 <p><code>awk '/./ {print}' filename </code></p>
 <p>或</p>
 <p><code>awk '!/^[[:blank:]]*$/{print $0}' filename </code></p>
 <p>或</p>
 <p><code>awk '{if($0!="") print}' </code></p>
-<h2 id="tr"><a href="#tr" class="headerlink" title="tr"></a>tr</h2><p><code>tr -s "\n" </code></p>
+<h2 id="tr">tr</h2>
+<p><code>tr -s "\n" </code></p>
 
                 
             </div>
@@ -615,10 +764,10 @@ vi模式真正删除空行，可以使用vim
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -932,7 +1081,7 @@ vi模式真正删除空行，可以使用vim
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/64.jpg" class="responsive-img" alt="Perl常用代码汇总">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/64.jpg" class="responsive-img" alt="Perl常用代码汇总">
                         
                         <span class="card-title">Perl常用代码汇总</span>
                     </div>
@@ -981,7 +1130,7 @@ vi模式真正删除空行，可以使用vim
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/100.jpg" class="responsive-img" alt="替换文件中空格">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/100.jpg" class="responsive-img" alt="替换文件中空格">
                         
                         <span class="card-title">替换文件中空格</span>
                     </div>
@@ -1220,7 +1369,7 @@ vi模式真正删除空行，可以使用vim
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1570,6 +1719,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

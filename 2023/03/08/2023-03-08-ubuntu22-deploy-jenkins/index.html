@@ -5,10 +5,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Ubuntu 22.04上部署、配置Jenkins, 软硬件测试">
-    <meta name="description" content="概述本文基于Ubuntu 22 安装 Jenkins 2.375.3，记录下部署与调试过程   。
-准备工作安装Ubuntu 22.04OS信息如下：
+    <meta name="description" content="概述
+本文基于Ubuntu 22 安装 Jenkins 2.375.3，记录下部署与调试过程   。
+准备工作
+安装Ubuntu 22.04
+OS信息如下：
  Static hostname: jenkins
-       Icon name: ">
+       Icon nam">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -66,20 +69,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -194,7 +337,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -487,9 +630,12 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文基于Ubuntu 22 安装 Jenkins 2.375.3，记录下部署与调试过程   。</p>
-<h1 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h1><h2 id="安装Ubuntu-22-04"><a href="#安装Ubuntu-22-04" class="headerlink" title="安装Ubuntu 22.04"></a>安装Ubuntu 22.04</h2><p>OS信息如下：</p>
-<pre><code class="line-numbers language-shell"> Static hostname: jenkins
+                <h1 id="gai-shu">概述</h1>
+<p>本文基于Ubuntu 22 安装 Jenkins 2.375.3，记录下部署与调试过程   。</p>
+<h1 id="zhun-bei-gong-zuo">准备工作</h1>
+<h2 id="an-zhuang-ubuntu-22-04">安装Ubuntu 22.04</h2>
+<p>OS信息如下：</p>
+<pre><code class="language-shell"> Static hostname: jenkins
        Icon name: computer-vm
          Chassis: vm
       Machine ID: 5876152df2764a3a80c0788e54f81f62
@@ -501,8 +647,9 @@ Operating System: Ubuntu 22.04.1 LTS
  Hardware Vendor: VMware, Inc.
   Hardware Model: VMware Virtual Platform
 </code></pre>
-<h2 id="安装必要的软件包"><a href="#安装必要的软件包" class="headerlink" title="安装必要的软件包"></a>安装必要的软件包</h2><p>如下，列出了必要的软件安装（没有完整的记录下来，可能不全）：</p>
-<pre><code class="line-numbers language-shell">apt-get update
+<h2 id="an-zhuang-bi-yao-de-ruan-jian-bao">安装必要的软件包</h2>
+<p>如下，列出了必要的软件安装（没有完整的记录下来，可能不全）：</p>
+<pre><code class="language-shell">apt-get update
 apt-get install git -y
 apt-get install libpcsclite1 -y
 apt-get install ca-certificates-java -y
@@ -524,7 +671,7 @@ apt-get install python3-pip -y
 apt install jenkins -y
 </code></pre>
 <p>为了支持Email对pylint 绘图功能，需要安装matlpotib, 相关安装包信息参考如下：</p>
-<pre><code class="line-numbers language-shell">ca-certificates-java_20190909ubuntu1.1_all.deb
+<pre><code class="language-shell">ca-certificates-java_20190909ubuntu1.1_all.deb
 contourpy-1.0.7-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 cycler-0.11.0-py3-none-any.whl
 default-jre-headless_1.11-72build2_amd64.deb
@@ -540,9 +687,11 @@ numpy-1.24.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 openjdk-11-jre-headless_11.0.17+8-1ubuntu2~22.04_amd64.deb
 python3.10-minimal_3.10.6-1~22.04.2_amd64.deb
 </code></pre>
-<h1 id="配置Jenkins"><a href="#配置Jenkins" class="headerlink" title="配置Jenkins"></a>配置Jenkins</h1><p>Jenkins 安装好后，访问8080端口，按提示一步一步往下走，此处不做额外赘述。</p>
-<h2 id="Jenkins-Plugin-的安装"><a href="#Jenkins-Plugin-的安装" class="headerlink" title="Jenkins Plugin 的安装"></a>Jenkins Plugin 的安装</h2><p><strong>需要安装如下插件与工具：</strong></p>
-<pre><code class="line-numbers language-shell">allure
+<h1 id="pei-zhi-jenkins">配置Jenkins</h1>
+<p>Jenkins 安装好后，访问8080端口，按提示一步一步往下走，此处不做额外赘述。</p>
+<h2 id="jenkins-plugin-de-an-zhuang">Jenkins Plugin 的安装</h2>
+<p><strong>需要安装如下插件与工具：</strong></p>
+<pre><code class="language-shell">allure
 Cobertura Coverage
 Violations Plugin # Pylint
 AnsiColor         # 颜色
@@ -552,23 +701,21 @@ Next Build Number Plugin
 <p><strong>install allure commandline：</strong></p>
 <p>安装包手动<a target="_blank" rel="noopener" href="https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.21.0/allure-commandline-2.21.0.tgz">下载</a>下来，在Jenkins上使用root 用户，安装到/usr/lib/下，参考如下：</p>
 <p><code>/usr/lib/allure-2.21.0/lib/allure-commandline-2.21.0.jar </code></p>
-<h2 id="修改-expect-spawn-ssh时prompt无法通过问题"><a href="#修改-expect-spawn-ssh时prompt无法通过问题" class="headerlink" title="修改 expect spawn ssh时prompt无法通过问题"></a>修改 expect spawn ssh时prompt无法通过问题</h2><p>修改vim /etc/ssh/ssh_config</p>
+<h2 id="xiu-gai-expect-spawn-ssh-shi-prompt-wu-fa-tong-guo-wen-ti">修改 expect spawn ssh时prompt无法通过问题</h2>
+<p>修改vim /etc/ssh/ssh_config</p>
 <p><code>StrictHostKeyChecking ask   --&gt;改为 StrictHostKeyChecking no</code></p>
 <p>并重启ssh服务，以此来避免expect 中执行spawn交互失败。</p>
-<h2 id="Jenkins-邮箱配置"><a href="#Jenkins-邮箱配置" class="headerlink" title="Jenkins 邮箱配置"></a>Jenkins 邮箱配置</h2><p>Jenkins 当前登录UI用户的邮箱，需要和全局配置里设置的邮箱用户名保持一致，否则会报错，参考如下：</p>
-<p><img class="shadow" src="/img/in-post/jenkins_email_config.png" width="1200"></p>
-
-
-
+<h2 id="jenkins-you-xiang-pei-zhi">Jenkins 邮箱配置</h2>
+<p>Jenkins 当前登录UI用户的邮箱，需要和全局配置里设置的邮箱用户名保持一致，否则会报错，参考如下：</p>
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/jenkins_email_config.png" width="1200"></p>
 <p>参考如下：</p>
 <p><code>https://naiveskill.com/jenkins-pipeline-email-notification/</code></p>
-<h2 id="Jenkins-匿名用户权限配置"><a href="#Jenkins-匿名用户权限配置" class="headerlink" title="Jenkins 匿名用户权限配置"></a>Jenkins 匿名用户权限配置</h2><p>为了让Email端能够正常展示出allure trend，pylint error，以及CODE COVERAGE信息，需要对匿名用户开放一定的权限：</p>
-<p><img class="shadow" src="/img/in-post/Jenkins_permission.png" width="1200"></p>
-
-
-
-<h2 id="Email-模板"><a href="#Email-模板" class="headerlink" title="Email 模板"></a>Email 模板</h2><p>为了让CI结果更好的展示，基于<a target="_blank" rel="noopener" href="https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template">官方模板</a>，<br>增加了allure, pylint 和 CODE COVERAGE信息，自定义了一个EMail模板，存放在Jenkins install path下：</p>
-<pre><code class="line-numbers language-shell">jenkins@jenkins:/var/lib/jenkins$ cd email-templates/
+<h2 id="jenkins-ni-ming-yong-hu-quan-xian-pei-zhi">Jenkins 匿名用户权限配置</h2>
+<p>为了让Email端能够正常展示出allure trend，pylint error，以及CODE COVERAGE信息，需要对匿名用户开放一定的权限：</p>
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Jenkins_permission.png" width="1200"></p>
+<h2 id="email-mo-ban">Email 模板</h2>
+<p>为了让CI结果更好的展示，基于<a target="_blank" rel="noopener" href="https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template">官方模板</a>，增加了allure, pylint 和 CODE COVERAGE信息，自定义了一个EMail模板，存放在Jenkins install path下：</p>
+<pre><code class="language-shell">jenkins@jenkins:/var/lib/jenkins$ cd email-templates/
 jenkins@jenkins:/var/lib/jenkins/email-templates$ ls -l
 total 120
 -rw-rw-r-- 1 jenkins jenkins  6292 Feb 17 15:49 allure-report.groovy
@@ -578,7 +725,7 @@ jenkins@jenkins:/var/lib/jenkins/email-templates$
 jenkins@jenkins:/var/lib/jenkins/email-templates$ 
 </code></pre>
 <p>其中，<strong>v1.1_allure-pipeline-report.groovy</strong> 为当前使用模板，里面有定义一个需要被替换的内容：</p>
-<pre><code class="line-numbers language-shell">  &lt;table&gt;
+<pre><code class="language-shell">  &lt;table&gt;
     &lt;tr&gt;
         &lt;img src="EMAIL_BASE64_IMG_REPLACE" width="500px" height="200px"/&gt;
     &lt;/tr&gt;
@@ -586,27 +733,43 @@ jenkins@jenkins:/var/lib/jenkins/email-templates$
 </code></pre>
 <p>此处内容，需要借助 <strong>edit_email_template.py</strong>  这个代码来生成base64 image并替换，最终被pipline 处的EMail 使用。</p>
 <p>需要借助 <strong>edit_email_template.py</strong>  的原因在于，新版本的Jenkins，对于pylint结果产生的图形，是基于canvas，并不是一个静态图片，无法通过HTML中的img src来直接指定。</p>
-<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><p>如下，以Lab 实际配置截图：</p>
-<p><img class="shadow" src="/img/in-post/jenkins_job_config.png" width="1200"></p>
-
-
-
+<h1 id="shi-jian">实践</h1>
+<p>如下，以Lab 实际配置截图：</p>
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/jenkins_job_config.png" width="1200"></p>
 <p>总共设置了String类型的如下参数：</p>
-<ul>
-<li>GIT_WEB  –&gt; <code>http://1.22.21.9/pytest_framework</code></li>
-<li>GIT_URL  –&gt; <code>git@1.22.21.9:pytest_framework.git</code></li>
-<li>GIT_BRANCH –&gt; 8.3</li>
-<li>REPORT_DIR –&gt; /root/${JOB_NAME}/report                                        # Jenkins install path</li>
-<li>WORK_SPACE –&gt; ${JENKINS_INSTALL_PATH}/workspace/pytest_8.3_pipeline           # Jenkins work space</li>
-<li>JOB_SPACE –&gt; ${JENKINS_INSTALL_PATH}/jobs/pytest_8.3_pipeline                 # pytest job space</li>
-<li>BAT_INSTALL –&gt;  /root/batch_install/batch_install.py /root/batch_install/config/pytest/pytest_8.3_pipeline_195_cone # Bat install OS by Cobbler</li>
-<li>IPS –&gt; 12.71.57.11,12.71.57.12,12.71.57.13,12.71.57.14,12.71.57.15,12.71.57.16,12.71.57.17,12.71.57.18              # Cluster hosts IP,split by,</li>
-<li>CODE_DIR –&gt; /root/${JOB_NAME}/src                                             # pytest code dir which will be runned</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>GIT_WEB  --&gt; <code>http://1.22.21.9/pytest_framework</code></p>
+</li>
+<li class="lvl-2">
+<p>GIT_URL  --&gt; <code>git@1.22.21.9:pytest_framework.git</code></p>
+</li>
+<li class="lvl-2">
+<p>GIT_BRANCH --&gt; 8.3</p>
+</li>
+<li class="lvl-2">
+<p>REPORT_DIR --&gt; /root/${JOB_NAME}/report                                        # Jenkins install path</p>
+</li>
+<li class="lvl-2">
+<p>WORK_SPACE --&gt; ${JENKINS_INSTALL_PATH}/workspace/pytest_8.3_pipeline           # Jenkins work space</p>
+</li>
+<li class="lvl-2">
+<p>JOB_SPACE --&gt; ${JENKINS_INSTALL_PATH}/jobs/pytest_8.3_pipeline                 # pytest job space</p>
+</li>
+<li class="lvl-2">
+<p>BAT_INSTALL --&gt;  /root/batch_install/batch_install.py /root/batch_install/config/pytest/pytest_8.3_pipeline_195_cone # Bat install OS by Cobbler</p>
+</li>
+<li class="lvl-2">
+<p>IPS --&gt; 12.71.57.11,12.71.57.12,12.71.57.13,12.71.57.14,12.71.57.15,12.71.57.16,12.71.57.17,12.71.57.18              # Cluster hosts IP,split by,</p>
+</li>
+<li class="lvl-2">
+<p>CODE_DIR --&gt; /root/${JOB_NAME}/src                                             # pytest code dir which will be runned</p>
+</li>
 </ul>
 <p><strong>Email Template</strong></p>
 <p>在<a target="_blank" rel="noopener" href="https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template">官方模板</a>的基础上，增加了三张图。</p>
 <p><strong>pipline Script</strong></p>
-<pre><code class="line-numbers language-shell">#!groovy
+<pre><code class="language-shell">#!groovy
 
 ip_list = IPS.split(',')
 ips_size = ip_list.size()
@@ -843,17 +1006,17 @@ pipeline {
             steps {
                 script{
                     echo "Run pylint code style check"
-                    // Ignore pylint comments via "-d C"
+        		    // Ignore pylint comments via "-d C"
                     /*
-                    sh '''
-                    	. .venv/bin/activate
-                        pylint -d C -f parseable ${SOURCE_ROOT} --exit-zero | tee ${PYLINT_REPORT}
-                    '''
+        		    sh '''
+        		    	. .venv/bin/activate
+        			    pylint -d C -f parseable ${SOURCE_ROOT} --exit-zero | tee ${PYLINT_REPORT}
+        		    '''
                     */
                 }
-            }
+        	}
 
-            post { 
+        	post { 
                 always {
                    sh 'cat report/pylint.out'
                    recordIssues healthy: 1, tools: [pyLint(name: 'PyLint', pattern: 'report/pylint.out')], unhealthy: 2
@@ -913,7 +1076,7 @@ pipeline {
 }
 </code></pre>
 <p>如果想生成3个维度的数据，示例代码如下：</p>
-<pre><code class="line-numbers language-python">import base64
+<pre><code class="language-python">import base64
 import io
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
@@ -947,14 +1110,12 @@ if __name__ == "__main__":
     res = generate_chart(x, excellent, satisfactory, failing)
     print(res)
 </code></pre>
-<h1 id="效果展示"><a href="#效果展示" class="headerlink" title="效果展示"></a>效果展示</h1><p>最终EMail 邮寄出来的内容如下：</p>
+<h1 id="xiao-guo-zhan-shi">效果展示</h1>
+<p>最终EMail 邮寄出来的内容如下：</p>
 <p>全部成功状态下：</p>
-<p><img class="shadow" src="/img/in-post/jenkins_build_success.png" width="1200"></p>
-
-
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/jenkins_build_success.png" width="1200"></p>
 <p>部分用例失败状态下：</p>
-<p><img class="shadow" src="/img/in-post/jenkins_build_unstable.png" width="1200"></p>
-
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/jenkins_build_unstable.png" width="1200"></p>
 
                 
             </div>
@@ -1065,10 +1226,10 @@ if __name__ == "__main__":
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1382,7 +1543,7 @@ if __name__ == "__main__":
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/103.jpg" class="responsive-img" alt="磁盘性能评估与实测">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/103.jpg" class="responsive-img" alt="磁盘性能评估与实测">
                         
                         <span class="card-title">磁盘性能评估与实测</span>
                     </div>
@@ -1431,7 +1592,7 @@ if __name__ == "__main__":
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/43.jpg" class="responsive-img" alt="提升 PG scrub速度">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/43.jpg" class="responsive-img" alt="提升 PG scrub速度">
                         
                         <span class="card-title">提升 PG scrub速度</span>
                     </div>
@@ -1662,7 +1823,7 @@ if __name__ == "__main__":
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2012,6 +2173,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

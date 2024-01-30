@@ -5,7 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle管理篇之启动与关闭, 软硬件测试">
-    <meta name="description" content="oracle启动的几种方式1、startup nomount非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件。  
+    <meta name="description" content="oracle启动的几种方式
+1、startup nomount
+非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件。
 2、startup mount ">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -64,20 +66,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +334,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,47 +611,60 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="oracle启动的几种方式"><a href="#oracle启动的几种方式" class="headerlink" title="oracle启动的几种方式"></a>oracle启动的几种方式</h1><h2 id="1、startup-nomount"><a href="#1、startup-nomount" class="headerlink" title="1、startup nomount"></a>1、startup nomount</h2><p>非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。<br>启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件。  </p>
-<h2 id="2、startup-mount-dbname"><a href="#2、startup-mount-dbname" class="headerlink" title="2、startup mount dbname"></a>2、startup mount dbname</h2><p>安装启动，这种方式启动下可执行：数据库日志归档、数据库恢复、重新命名一些数据库文件，如：系统表空间或日志文件。</p>
+                <h1 id="oracle-qi-dong-de-ji-chong-fang-shi">oracle启动的几种方式</h1>
+<h2 id="1-startup-nomount">1、startup nomount</h2>
+<p>非安装启动，这种方式启动下可执行：重建控制文件、重建数据库。启动instance，即启动SGA和后台进程，这种启动只需要init.ora文件。</p>
+<h2 id="2-startup-mount-dbname">2、startup mount dbname</h2>
+<p>安装启动，这种方式启动下可执行：数据库日志归档、数据库恢复、重新命名一些数据库文件，如：系统表空间或日志文件。</p>
 <p>执行“nomount”，然后打开控制文件。</p>
-<h2 id="3、startup-open-dbname"><a href="#3、startup-open-dbname" class="headerlink" title="3、startup open dbname"></a>3、startup open dbname</h2><p>先执行“nomount”，然后执行“mount”，再打开包括Redo log文件在内的所有数据库文件，这种方式下可访问数据库中的数据。</p>
-<h2 id="4、startup"><a href="#4、startup" class="headerlink" title="4、startup"></a>4、startup</h2><p>startup等于以下三个命令 </p>
-<pre><code class="line-numbers language-shell">   startup nomount  
+<h2 id="3-startup-open-dbname">3、startup open dbname</h2>
+<p>先执行“nomount”，然后执行“mount”，再打开包括Redo log文件在内的所有数据库文件，这种方式下可访问数据库中的数据。</p>
+<h2 id="4-startup">4、startup</h2>
+<p>startup等于以下三个命令</p>
+<pre><code class="language-shell">   startup nomount  
    alter database mount  
    alter database open
 </code></pre>
-<h2 id="5、startup-restrict"><a href="#5、startup-restrict" class="headerlink" title="5、startup restrict"></a>5、startup restrict</h2><p>约束启动的选项是restrict，它启动数据库时装入并打开它，但是此时的数据库只能为有特殊权限的数据库管理员使用，一般用户不能联入到该数据库。</p>
-<pre><code class="line-numbers language-shell">SQL&gt;startup restrict
+<h2 id="5-startup-restrict">5、startup restrict</h2>
+<p>约束启动的选项是restrict，它启动数据库时装入并打开它，但是此时的数据库只能为有特殊权限的数据库管理员使用，一般用户不能联入到该数据库。</p>
+<pre><code class="language-shell">SQL&gt;startup restrict
 </code></pre>
 <p>非特权用户访问时，会出现以下提示：</p>
-<pre><code class="line-numbers language-shell">   ERROR：  
+<pre><code class="language-shell">   ERROR：  
    ORA-01035: ORACLE 只允许具有 RESTRICTED SESSION 权限的用户使用
 </code></pre>
 <p>一般说来，当用户有create session权限时，可以连入数据库，但对于restrict方式启动的数据库，则只有用户具有restricted session系统权限才允许联入。若要在数据库运行过程中改变这一方式，可用alter system命令。</p>
-<pre><code class="line-numbers language-shell">SQL&gt;alter system disable restricted session;
+<pre><code class="language-shell">SQL&gt;alter system disable restricted session;
 </code></pre>
 <p>也可以先将数据库关闭再重新以非restrict方式启动数据库。</p>
-<h2 id="6、startup-force"><a href="#6、startup-force" class="headerlink" title="6、startup force"></a>6、startup force</h2><p>强制启动方式，当不能关闭数据库时，可以用startup force来完成数据库的关闭。</p>
+<h2 id="6-startup-force">6、startup force</h2>
+<p>强制启动方式，当不能关闭数据库时，可以用startup force来完成数据库的关闭。</p>
 <p>该命令等价于：先关闭数据库，再执行正常启动数据库命令。</p>
-<h2 id="7、startup-pfile-参数文件名"><a href="#7、startup-pfile-参数文件名" class="headerlink" title="7、startup pfile=参数文件名"></a>7、startup pfile=参数文件名</h2><p>带初始化参数文件的启动方式，先读取参数文件，再按参数文件中的设置启动数据库。例：</p>
-<pre><code class="line-numbers language-shell">startup pfile=’/opt/oracle/product/11g/dbs/mypfile,ora’  
+<h2 id="7-startup-pfile-can-shu-wen-jian-ming">7、startup pfile=参数文件名</h2>
+<p>带初始化参数文件的启动方式，先读取参数文件，再按参数文件中的设置启动数据库。例：</p>
+<pre><code class="language-shell">startup pfile=’/opt/oracle/product/11g/dbs/mypfile,ora’  
 </code></pre>
-<h2 id="8、独占和共享启动"><a href="#8、独占和共享启动" class="headerlink" title="8、独占和共享启动"></a>8、独占和共享启动</h2><p>独占启动的选项是exclusive，表示只允许一个例程使用该数据库；</p>
-<pre><code class="line-numbers language-shell">startup EXCLUSIVE
+<h2 id="8-du-zhan-he-gong-xiang-qi-dong">8、独占和共享启动</h2>
+<p>独占启动的选项是exclusive，表示只允许一个例程使用该数据库；</p>
+<pre><code class="language-shell">startup EXCLUSIVE
 </code></pre>
 <p>共享启动的参数是shared，表示允许多个例程并行使用该数据库，即将数据库装入多个现场。</p>
-<pre><code class="line-numbers language-shell">startup shared
+<pre><code class="language-shell">startup shared
 </code></pre>
-<h1 id="几种关闭方式"><a href="#几种关闭方式" class="headerlink" title="几种关闭方式"></a>几种关闭方式</h1><h2 id="1、shutdown-normal"><a href="#1、shutdown-normal" class="headerlink" title="1、shutdown normal"></a>1、shutdown normal</h2><p>正常方式关闭数据库。  </p>
+<h1 id="ji-chong-guan-bi-fang-shi">几种关闭方式</h1>
+<h2 id="1-shutdown-normal">1、shutdown normal</h2>
+<p>正常方式关闭数据库。</p>
 <p>正常关闭数据库所用的选项是normal，数据库在关闭前将检查所有的连接，并且发出命令后不允许再有新的用户连接，在等待所有连接都断开后再关闭数据库，再次启动数据库不需要任何恢复过程。</p>
-<h2 id="2、shutdown-immediate"><a href="#2、shutdown-immediate" class="headerlink" title="2、shutdown immediate"></a>2、shutdown immediate</h2><p>该方式用在某些紧急的情况下，比如通知马上停电，此时需要紧急关闭数据库以应付这些情况。这种方式用的选项是immediate，在这种方式下并不等待所有的用户断开连接再关闭，而是由系统断开连接，然后关闭数据库。</p>
-<pre><code class="line-numbers language-shell">SQL&gt;shutdown immediate;
+<h2 id="2-shutdown-immediate">2、shutdown immediate</h2>
+<p>该方式用在某些紧急的情况下，比如通知马上停电，此时需要紧急关闭数据库以应付这些情况。这种方式用的选项是immediate，在这种方式下并不等待所有的用户断开连接再关闭，而是由系统断开连接，然后关闭数据库。</p>
+<pre><code class="language-shell">SQL&gt;shutdown immediate;
 </code></pre>
 <p>一旦执行了这条命令，则将当前正在处理的sql语句马上停止，然后将所有未提交的事务回退，并且不等待当前联入数据库的用户断开连接，而是由系统强行将各个联接断开。在下次启动数据库时要执行恢复动作，不过是由系统自动执行的，用户不必去了解它。</p>
-<p>在SVRMGRL中执行shutdown immediate，数据库并不立即关闭,而是在Oracle执行某些清除工作后才关闭（终止会话、释放会话资源），  </p>
-<p>当使用shutdown不能关闭数据库时，shutdown immediate可以完成数据库关闭的操作。  </p>
-<h2 id="3、shutdown-abort"><a href="#3、shutdown-abort" class="headerlink" title="3、shutdown abort"></a>3、shutdown abort</h2><p>异常关闭选项是abort，此种方式下系统并不做任何检查和断开用户操作以及回退操作，而是直接将数据库现场撤销，这样现场中的数据库数据当然就无效了，数据库自然也就被关掉了。</p>
-<pre><code class="line-numbers language-shell">SQL&gt;shutdown abort;
+<p>在SVRMGRL中执行shutdown immediate，数据库并不立即关闭,而是在Oracle执行某些清除工作后才关闭（终止会话、释放会话资源），</p>
+<p>当使用shutdown不能关闭数据库时，shutdown immediate可以完成数据库关闭的操作。</p>
+<h2 id="3-shutdown-abort">3、shutdown abort</h2>
+<p>异常关闭选项是abort，此种方式下系统并不做任何检查和断开用户操作以及回退操作，而是直接将数据库现场撤销，这样现场中的数据库数据当然就无效了，数据库自然也就被关掉了。</p>
+<pre><code class="language-shell">SQL&gt;shutdown abort;
 </code></pre>
 <p>以abort方式关闭数据库时只有一行关闭信息表示关闭了数据库现场。以abort方式关闭的数据库再次启动时必须要进行恢复动作，这些恢复操作同样是系统自动来完成的，需要的时间较长。</p>
 
@@ -614,10 +769,10 @@
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -931,7 +1086,7 @@
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/86.jpg" class="responsive-img" alt="Oracle案例--表空间--UNDO表空间膨胀">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/86.jpg" class="responsive-img" alt="Oracle案例--表空间--UNDO表空间膨胀">
                         
                         <span class="card-title">Oracle案例--表空间--UNDO表空间膨胀</span>
                     </div>
@@ -980,7 +1135,7 @@
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/116.jpg" class="responsive-img" alt="Oracle案例--控制文件损坏如何恢复">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/116.jpg" class="responsive-img" alt="Oracle案例--控制文件损坏如何恢复">
                         
                         <span class="card-title">Oracle案例--控制文件损坏如何恢复</span>
                     </div>
@@ -1211,7 +1366,7 @@
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1561,6 +1716,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

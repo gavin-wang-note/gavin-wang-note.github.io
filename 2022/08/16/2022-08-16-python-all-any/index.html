@@ -5,9 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="python any() 与 all() 函数介绍, 软硬件测试">
-    <meta name="description" content="概述最近碰到python的一个知识点盲区（any 与 all 函数相关），基础知识没有扎实，这里记录一下python的any 与 all 函数，填补一下部分盲区。
-简单理解all() 函数： 全部为真，一假为假
-any() 函数：一真为真，">
+    <meta name="description" content="概述
+最近碰到python的一个知识点盲区（any 与 all 函数相关），基础知识没有扎实，这里记录一下python的any 与 all 函数，填补一下部分盲区。
+简单理解
+all() 函数： 全部为真，一假为假
+any() 函数：一真为">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +67,160 @@ any() 函数：一真为真，">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +335,7 @@ any() 函数：一真为真，">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -470,24 +612,32 @@ any() 函数：一真为真，">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>最近碰到python的一个知识点盲区（any 与 all 函数相关），基础知识没有扎实，这里记录一下python的any 与 all 函数，填补一下部分盲区。</p>
-<h1 id="简单理解"><a href="#简单理解" class="headerlink" title="简单理解"></a>简单理解</h1><p>all() 函数： 全部为真，一假为假</p>
+                <h1 id="gai-shu">概述</h1>
+<p>最近碰到python的一个知识点盲区（any 与 all 函数相关），基础知识没有扎实，这里记录一下python的any 与 all 函数，填补一下部分盲区。</p>
+<h1 id="jian-dan-li-jie">简单理解</h1>
+<p>all() 函数： 全部为真，一假为假</p>
 <p>any() 函数：一真为真，全假为假</p>
-<h1 id="for循环的any-函数"><a href="#for循环的any-函数" class="headerlink" title="for循环的any()函数"></a>for循环的any()函数</h1><p>使用生成器表达式动态地创建一个迭代，并将其传递到 any() 函数中。这可以称为 “带有for循环的any()函数”。</p>
-<pre><code class="line-numbers language-python">&gt;&gt;&gt; print(any(x**2 == 16 for x in range(10)))
+<h1 id="for-xun-huan-de-any-han-shu">for循环的any()函数</h1>
+<p>使用生成器表达式动态地创建一个迭代，并将其传递到 any() 函数中。这可以称为 “带有for循环的any()函数”。</p>
+<pre><code class="language-python">&gt;&gt;&gt; print(any(x**2 == 16 for x in range(10)))
 True
 &gt;&gt;&gt;
 </code></pre>
 <p>上面举例代码使用的条件是x**2==16，它只对x=4有效。</p>
 <p>当通过使用range()函数将这个表达式应用于从0到9（包括）的所有x值时，它大多返回False。由于短路，any()函数在评估第五个元素x=4后返回True。</p>
-<h1 id="all-函数"><a href="#all-函数" class="headerlink" title="all() 函数"></a>all() 函数</h1><h2 id="描述"><a href="#描述" class="headerlink" title="描述"></a>描述</h2><p>all() 函数用于判断给定的可迭代参数iterable中的所有元素是否都为True，如果是则返回True，否则返回False。</p>
+<h1 id="all-han-shu">all() 函数</h1>
+<h2 id="miao-shu">描述</h2>
+<p>all() 函数用于判断给定的可迭代参数iterable中的所有元素是否都为True，如果是则返回True，否则返回False。</p>
 <p>元素除了0，空，None，False外，都算True。</p>
-<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><pre><code class="line-numbers language-python">all(iterable)
+<h2 id="yu-fa">语法</h2>
+<pre><code class="language-python">all(iterable)
 </code></pre>
-<h2 id="返回值"><a href="#返回值" class="headerlink" title="返回值"></a>返回值</h2><p>如果iterable的所有元素不为 0,, ‘’, False或者iterable为空，all(iterable) 返回True，否则返回False。</p>
+<h2 id="fan-hui-zhi">返回值</h2>
+<p>如果iterable的所有元素不为 0, ‘’, False或者iterable为空，all(iterable) 返回True，否则返回False。</p>
 <p><strong>注意：</strong></p>
 <p>​    空元组，空列表返回True，这里需要特别注意。</p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><pre><code class="line-numbers language-python">&gt;&gt;&gt; all(['a', 'b', 'c'])   # 列表list，元素都不为空或0
+<h2 id="shi-li">示例</h2>
+<pre><code class="language-python">&gt;&gt;&gt; all(['a', 'b', 'c'])   # 列表list，元素都不为空或0
 True
 &gt;&gt;&gt; all(['a', 'b', ''])    # 列表list，存在一个为空的元素
 False
@@ -505,11 +655,16 @@ True
 True
 &gt;&gt;&gt;
 </code></pre>
-<h1 id="any-函数"><a href="#any-函数" class="headerlink" title="any() 函数"></a>any() 函数</h1><h2 id="描述-1"><a href="#描述-1" class="headerlink" title="描述"></a>描述</h2><p>any() 函数用于判断给定的可迭代参数iterable是否全部为false，则返回False；如果有一个为True，则返回True。</p>
-<h2 id="语法-1"><a href="#语法-1" class="headerlink" title="语法"></a>语法</h2><pre><code class="line-numbers language-python">any(iterable)
+<h1 id="any-han-shu">any() 函数</h1>
+<h2 id="miao-shu-1">描述</h2>
+<p>any() 函数用于判断给定的可迭代参数iterable是否全部为false，则返回False；如果有一个为True，则返回True。</p>
+<h2 id="yu-fa-1">语法</h2>
+<pre><code class="language-python">any(iterable)
 </code></pre>
-<h2 id="返回值-1"><a href="#返回值-1" class="headerlink" title="返回值"></a>返回值</h2><p>如果都为空，0， false，则返回False；如果不都为空，0，False，则返回True。</p>
-<h2 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h2><pre><code class="line-numbers language-python">&gt;&gt;&gt; any((['a', 'b', 'c']))     # 列表list，元素都不为空或0
+<h2 id="fan-hui-zhi-1">返回值</h2>
+<p>如果都为空，0， false，则返回False；如果不都为空，0，False，则返回True。</p>
+<h2 id="shi-li-1">示例</h2>
+<pre><code class="language-python">&gt;&gt;&gt; any((['a', 'b', 'c']))     # 列表list，元素都不为空或0
 True
 &gt;&gt;&gt; any((['a', 'b', '']))      # 列表list，存在一个为空的元素
 True
@@ -629,10 +784,10 @@ False
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -946,7 +1101,7 @@ False
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/11.jpg" class="responsive-img" alt="python max 函数介绍">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/11.jpg" class="responsive-img" alt="python max 函数介绍">
                         
                         <span class="card-title">python max 函数介绍</span>
                     </div>
@@ -995,7 +1150,7 @@ False
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/10.jpg" class="responsive-img" alt="获取ceph large omap object">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/10.jpg" class="responsive-img" alt="获取ceph large omap object">
                         
                         <span class="card-title">获取ceph large omap object</span>
                     </div>
@@ -1226,7 +1381,7 @@ False
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1576,6 +1731,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

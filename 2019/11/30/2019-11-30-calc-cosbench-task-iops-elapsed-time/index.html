@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="统计cosbench每个任务的IOPS和耗时, 软硬件测试">
-    <meta name="description" content="前言近期针对前方客户提出的具体S3测试要求，测试了一下S3性能，使用的是cosbench工具。在测试过程中，排除客户的要求外，我们自身也想知道，当前硬件条件下，每间隔1,000,00,00个object，IOPS和耗时是多久，比如：1到1千">
+    <meta name="description" content="前言
+近期针对前方客户提出的具体S3测试要求，测试了一下S3性能，使用的是cosbench工具。在测试过程中，排除客户的要求外，我们自身也想知道，当前硬件条件下，每间隔1,000,00,00个object，IOPS和耗时是多久，比如：1到1">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -480,8 +621,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>近期针对前方客户提出的具体S3测试要求，测试了一下S3性能，使用的是cosbench工具。在测试过程中，排除客户的要求外，我们自身也想知道，当前硬件条件下，每间隔1,000,00,00个object，IOPS和耗时是多久，比如：1到1千万，1千万到2千万，。。。1亿到1.1亿个object, and so on。<br>由于测试场景比较多，而且测试时长也会很久，所有写了这个脚本，统计一下不同level object数据下的IOPS和耗时（当然，cosbench的任务是每间隔1千万提交一次，即一个xml里写1千万个object，直到数据量过亿,所以cosbench提交的是多个任务来完成数据过亿的测试）。</p>
-<h1 id="脚本内容"><a href="#脚本内容" class="headerlink" title="脚本内容"></a>脚本内容</h1><pre><code class="line-numbers language-python">root@fireware:~# cat calc_cosbench_task_time.py 
+                <h1 id="qian-yan">前言</h1>
+<p>近期针对前方客户提出的具体S3测试要求，测试了一下S3性能，使用的是cosbench工具。在测试过程中，排除客户的要求外，我们自身也想知道，当前硬件条件下，每间隔1,000,00,00个object，IOPS和耗时是多久，比如：1到1千万，1千万到2千万，。。。1亿到1.1亿个object, and so on。由于测试场景比较多，而且测试时长也会很久，所有写了这个脚本，统计一下不同level object数据下的IOPS和耗时（当然，cosbench的任务是每间隔1千万提交一次，即一个xml里写1千万个object，直到数据量过亿,所以cosbench提交的是多个任务来完成数据过亿的测试）。</p>
+<h1 id="jiao-ben-nei-rong">脚本内容</h1>
+<pre><code class="language-python">root@fireware:~# cat calc_cosbench_task_time.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -591,19 +734,23 @@ if __name__ == '__main__':
     # print("OPS is : ({})\n".format(ops))
     print("OPS and elapsed time is : ({})\n".format(time_and_ops))
 </code></pre>
-<h1 id="输出信息"><a href="#输出信息" class="headerlink" title="输出信息"></a>输出信息</h1><pre><code class="line-numbers language-shell">root@fireware:~# python calc_cosbench_task_time.py 
+<h1 id="shu-chu-xin-xi">输出信息</h1>
+<pre><code class="language-shell">root@fireware:~# python calc_cosbench_task_time.py 
 OPS and elapsed time is : ({'w11': '2504.92/4070', 'w10': '2514.82/4060', 'w7': '2519.07/4050', 'w6': '2579.88/3960', 'w5': '2593.13/3940', 'w4': '2606.27/3910', 'w3': '2636.37/3870', 'w2': '2623.56/3890', 'w1': '5387.47/1890', 'w9': '2540.3/4010', 'w8': '2524.32/4050'})
 
 root@fireware:~#
 </code></pre>
-<p>说明：<br>*吐出的信息中，以“’w11’: ‘2504.92/4070’”为示例：</p>
-<ul>
-<li><ul>
-<li>w11，表示的是cosbench的w11这个任务</li>
+<p>说明：<br>
+*吐出的信息中，以“‘w11’: ‘2504.92/4070’”为示例：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<ul class="lvl-2">
+<li class="lvl-4">w11，表示的是cosbench的w11这个任务</li>
 </ul>
 </li>
-<li><ul>
-<li>2504.92/4070, 表示这个任务的IOPS是2504.92，耗时了4070秒</li>
+<li class="lvl-2">
+<ul class="lvl-2">
+<li class="lvl-4">2504.92/4070, 表示这个任务的IOPS是2504.92，耗时了4070秒</li>
 </ul>
 </li>
 </ul>
@@ -713,10 +860,10 @@ root@fireware:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1030,7 +1177,7 @@ root@fireware:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/74.jpg" class="responsive-img" alt="iSCSI多路径配置">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/74.jpg" class="responsive-img" alt="iSCSI多路径配置">
                         
                         <span class="card-title">iSCSI多路径配置</span>
                     </div>
@@ -1083,7 +1230,7 @@ root@fireware:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/30.jpg" class="responsive-img" alt="魔法键重启Linux机器">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/30.jpg" class="responsive-img" alt="魔法键重启Linux机器">
                         
                         <span class="card-title">魔法键重启Linux机器</span>
                     </div>
@@ -1314,7 +1461,7 @@ root@fireware:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1664,6 +1811,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

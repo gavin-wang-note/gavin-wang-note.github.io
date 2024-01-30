@@ -5,7 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例--表空间--表空间使用率为负数, 软硬件测试">
-    <meta name="description" content="oracle表空间使用率为负引言oracle的表空间的使用率主要是通过表dba_data_files 和 dba_free_space查询得出的。正常情况下，dba_data_files中bytes字段值应该大于dba_free_space">
+    <meta name="description" content="oracle表空间使用率为负
+引言
+oracle的表空间的使用率主要是通过表dba_data_files 和 dba_free_space查询得出的。正常情况下，dba_data_files中bytes字段值应该大于dba_free_spa">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -468,9 +610,13 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="oracle表空间使用率为负"><a href="#oracle表空间使用率为负" class="headerlink" title="oracle表空间使用率为负"></a>oracle表空间使用率为负</h1><h2 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h2><p>oracle的表空间的使用率主要是通过表dba_data_files 和 dba_free_space查询得出的。正常情况下，dba_data_files中bytes字段值应该大于dba_free_space中bytes字段值，否则会出现表空间使用率为负的情况。</p>
+                <h1 id="oracle-biao-kong-jian-shi-yong-lu-wei-fu">oracle表空间使用率为负</h1>
+<h2 id="yin-yan">引言</h2>
+<p>oracle的表空间的使用率主要是通过表dba_data_files 和 dba_free_space查询得出的。正常情况下，dba_data_files中bytes字段值应该大于dba_free_space中bytes字段值，否则会出现表空间使用率为负的情况。</p>
 <p>本文主要介绍当前彩信网关应用环境中一应用表空间的使用率为是负的一则案例。详细信息如下：</p>
-<h2 id="表像"><a href="#表像" class="headerlink" title="表像"></a>表像</h2><h3 id="查询该表空间使用情况（dba-tablespace-usage-metrics）"><a href="#查询该表空间使用情况（dba-tablespace-usage-metrics）" class="headerlink" title="查询该表空间使用情况（dba_tablespace_usage_metrics）"></a>查询该表空间使用情况（dba_tablespace_usage_metrics）</h3><pre><code class="line-numbers language-shell">SQL&gt; run
+<h2 id="biao-xiang">表像</h2>
+<h3 id="cha-xun-gai-biao-kong-jian-shi-yong-qing-kuang-dba-tablespace-usage-metrics">查询该表空间使用情况（dba_tablespace_usage_metrics）</h3>
+<pre><code class="language-shell">SQL&gt; run
   1* select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH'
 
 TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
@@ -481,15 +627,18 @@ SQL&gt;
 </code></pre>
 <p>上述结果展示发现表空间的使用率为负值。</p>
 <p>注：</p>
-<ul>
-<li>这个现象几个月前就发现了，迟迟没有解决方法。</li>
+<ul class="lvl-0">
+<li class="lvl-3">
+<p>这个现象几个月前就发现了，迟迟没有解决方法。</p>
+</li>
 </ul>
-<h2 id="其他方式查询"><a href="#其他方式查询" class="headerlink" title="其他方式查询"></a>其他方式查询</h2><h3 id="使用OEM"><a href="#使用OEM" class="headerlink" title="使用OEM"></a>使用OEM</h3><p>Web OEM查询结果如下：</p>
-<img class="shadow" src="/img/in-post/oracle-oem.png" width="1200">
-
+<h2 id="qi-ta-fang-shi-cha-xun">其他方式查询</h2>
+<h3 id="shi-yong-oem">使用OEM</h3>
+<p>Web OEM查询结果如下：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/oracle-oem.png" width="1200">
 <p>上图结果显示表空间YJH的使用率为10.5%</p>
 <p>OEM的SQL trace为：</p>
-<pre><code class="line-numbers language-shell">SELECT 
+<pre><code class="language-shell">SELECT 
 /*+first_rows */ 
  d.tablespace_name,
   NVL(a.bytes / 1024 / 1024, 0),
@@ -591,7 +740,7 @@ FROM sys.dba_tablespaces d,
 and d.tablespace_name like 'YJH%' ORDER BY 1
 </code></pre>
 <p>上述command查询结果如下：</p>
-<pre><code class="line-numbers language-shell">TABLESPACE_NAME  NVL(A.BYTES/1024/1024,0) DECODE(D.CONTENTS,'UNDO',NVL(U.BYTES,0)/1024/1024,NVL(A.BYTES-NVL(F.BYTES,0),0)/1024/1024) STATUS     COUNT CONTENTS  EXTENT_MAN SEGMEN
+<pre><code class="language-shell">TABLESPACE_NAME  NVL(A.BYTES/1024/1024,0) DECODE(D.CONTENTS,'UNDO',NVL(U.BYTES,0)/1024/1024,NVL(A.BYTES-NVL(F.BYTES,0),0)/1024/1024) STATUS     COUNT CONTENTS  EXTENT_MAN SEGMEN
 ------------------------------ ------------------------ ------------------------------------------------------------------------------------------ --------- ---------- --------- ---------- ------
 YJH                                                 600                                                                            63 ONLINE              1 PERMANENT LOCAL      AUTO
 YJH_TMP                                              21                                                                             0 ONLINE              1 TEMPORARY LOCAL      MANUAL
@@ -599,7 +748,8 @@ YJH_TMP                                              21                         
 SQL&gt;
 </code></pre>
 <p>该表空间大小为600M，已使用63M，自己计算一下该表空间的使用率为63/600*100%=10.5%</p>
-<h3 id="查询dba-free-space和dba-data-files"><a href="#查询dba-free-space和dba-data-files" class="headerlink" title="查询dba_free_space和dba_data_files"></a>查询dba_free_space和dba_data_files</h3><pre><code class="line-numbers language-shell">SQL&gt; select sum(bytes) from dba_data_files where tablespace_name = 'YJH';
+<h3 id="cha-xun-dba-free-space-he-dba-data-files">查询dba_free_space和dba_data_files</h3>
+<pre><code class="language-shell">SQL&gt; select sum(bytes) from dba_data_files where tablespace_name = 'YJH';
 
 SUM(BYTES)
 ----------
@@ -611,11 +761,15 @@ SUM(BYTES)
  563085312
 </code></pre>
 <p>Free的值比总的值要小，也就是该表空间使用了66060288（629145600-563085312）字节，大约使用率在10.5%，而发布的command查询结果却是一个负值，-61.604167%。前后计算值不一。</p>
-<h3 id="结果对比"><a href="#结果对比" class="headerlink" title="结果对比"></a>结果对比</h3><p>发现 通过OEM查询结果与手工查表（dba_data_file 和dba_free_space）计算的结果是一致的，都是正数，使用率为10.5%。</p>
+<h3 id="jie-guo-dui-bi">结果对比</h3>
+<p>发现 通过OEM查询结果与手工查表（dba_data_file 和dba_free_space）计算的结果是一致的，都是正数，使用率为10.5%。</p>
 <p>这里只能说明一个问题，那就是oracle对于表空间使用率的计算存在缺陷。</p>
-<h3 id="问题回想"><a href="#问题回想" class="headerlink" title="问题回想"></a>问题回想</h3><p>之前表空间名为YJH的使用率达到100%，存在大量XXX_YYYYMMDD表，消耗掉大量的表空间，所以（多次）执行了大量的drop操作（没增加purge参数），以解决有限的表空间资源问题。</p>
-<h3 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h3><p>oracle从10g开始提供回收站功能，从11g提供闪回功能，回收站默认空间为2G。相关信息如下：</p>
-<h4 id="步骤一、回收站相关参数"><a href="#步骤一、回收站相关参数" class="headerlink" title="步骤一、回收站相关参数"></a>步骤一、回收站相关参数</h4><pre><code class="line-numbers language-shell">SQL&gt; show parameter recyclebin
+<h3 id="wen-ti-hui-xiang">问题回想</h3>
+<p>之前表空间名为YJH的使用率达到100%，存在大量XXX_YYYYMMDD表，消耗掉大量的表空间，所以（多次）执行了大量的drop操作（没增加purge参数），以解决有限的表空间资源问题。</p>
+<h3 id="yan-zheng">验证</h3>
+<p>oracle从10g开始提供回收站功能，从11g提供闪回功能，回收站默认空间为2G。相关信息如下：</p>
+<h4 id="bu-zou-yi-hui-shou-zhan-xiang-guan-can-shu">步骤一、回收站相关参数</h4>
+<pre><code class="language-shell">SQL&gt; show parameter recyclebin
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -637,11 +791,13 @@ SQL&gt;
 </code></pre>
 <p>上述查询结果显示，recyclebin被关闭（OFF），所以db_recovery_file_dest_size值为0。</p>
 <p>如果没有开通回收站功能，默认空间依然为2G，只是删除表、索引等drop记录会被记录在自己的表空间中，用于必要的恢复操作（具体存放的位置或者表中记录，没查询到）。</p>
-<h4 id="步骤二、dba用户清空当前回收站中所有记录"><a href="#步骤二、dba用户清空当前回收站中所有记录" class="headerlink" title="步骤二、dba用户清空当前回收站中所有记录"></a>步骤二、dba用户清空当前回收站中所有记录</h4><pre><code class="line-numbers language-shell">SQL&gt; purge dba_recyclebin;
+<h4 id="bu-zou-er-dba-yong-hu-qing-kong-dang-qian-hui-shou-zhan-zhong-suo-you-ji-lu">步骤二、dba用户清空当前回收站中所有记录</h4>
+<pre><code class="language-shell">SQL&gt; purge dba_recyclebin;
 
 DBA Recyclebin purged.
 </code></pre>
-<h4 id="步骤三、再次查询表空间使用率"><a href="#步骤三、再次查询表空间使用率" class="headerlink" title="步骤三、再次查询表空间使用率"></a>步骤三、再次查询表空间使用率</h4><pre><code class="line-numbers language-shell">SQL&gt; select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH';
+<h4 id="bu-zou-san-zai-ci-cha-xun-biao-kong-jian-shi-yong-lu">步骤三、再次查询表空间使用率</h4>
+<pre><code class="language-shell">SQL&gt; select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH';
 
 TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
 ------------------------------ ---------- --------------- ------------
@@ -651,9 +807,10 @@ SQL&gt;
 </code></pre>
 <p>由此可以推测出：</p>
 <p>表空间使用率的计算（dba_tablespace_usage_metrics）的缺陷应该是由于回收站机制导致的（只是一种可能，或许还有其他的原因导致表空间使用率为负，本例中是由于回收站机制导致）。</p>
-<h3 id="问题引申"><a href="#问题引申" class="headerlink" title="问题引申"></a>问题引申</h3><p>如果表空间的使用率为负，那么，数据库在后续的工作中如何计算表空间的使用情况以及如果处理数据？</p>
+<h3 id="wen-ti-yin-shen">问题引申</h3>
+<p>如果表空间的使用率为负，那么，数据库在后续的工作中如何计算表空间的使用情况以及如果处理数据？</p>
 <p>按照当前的现象，查询了当前表空间中表的可读写情况：</p>
-<pre><code class="line-numbers language-shell">select 
+<pre><code class="language-shell">select 
 b.segment_name ,
 b.BYTES,b.BLOCKS 
 ,a.BYTES,
@@ -665,12 +822,17 @@ where a.file_id=b.file_id
 and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
 </code></pre>
 <p>发布上述command命令，是有查询结果的，也就是当前虽然表空间使用率为负，但对数据库的操作应该处于一种正常状态，并不影响当前数据库系统的正常运行与使用。</p>
-<h3 id="彩信网关相关话题"><a href="#彩信网关相关话题" class="headerlink" title="彩信网关相关话题"></a>彩信网关相关话题</h3><p>在关闭回收站情况下，建议定期去清理recycle bin中的内容。</p>
+<h3 id="cai-xin-wang-guan-xiang-guan-hua-ti">彩信网关相关话题</h3>
+<p>在关闭回收站情况下，建议定期去清理recycle bin中的内容。</p>
 <p>目前彩信网关对数据库的备份是定期备份，且关闭回收站以及不启用闪回功能，同时，还有脚本用于定期调用存储过程清除日期表，里面的操作是drop，没增加purge参数。虽然磁阵挂载点给足足够的空间用于MMSG表空间的应用，个人觉得未雨绸缪也不是一件坏事。</p>
-<h4 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h4><p>解决彩信可能存在的数据库表空间使用率为负，可参考如下两个方法：</p>
-<h5 id="方法一、通过脚本定期清理recyclebin"><a href="#方法一、通过脚本定期清理recyclebin" class="headerlink" title="方法一、通过脚本定期清理recyclebin"></a>方法一、通过脚本定期清理recyclebin</h5><h5 id="方法二、存储过程、刷库脚本中增加purge参数"><a href="#方法二、存储过程、刷库脚本中增加purge参数" class="headerlink" title="方法二、存储过程、刷库脚本中增加purge参数"></a>方法二、存储过程、刷库脚本中增加purge参数</h5><p>这个最直接，也最简单。</p>
+<h4 id="zong-shu">综述</h4>
+<p>解决彩信可能存在的数据库表空间使用率为负，可参考如下两个方法：</p>
+<h5 id="fang-fa-yi-tong-guo-jiao-ben-ding-qi-qing-li-recyclebin">方法一、通过脚本定期清理recyclebin</h5>
+<h5 id="fang-fa-er-cun-chu-guo-cheng-shua-ku-jiao-ben-zhong-zeng-jia-purge-can-shu">方法二、存储过程、刷库脚本中增加purge参数</h5>
+<p>这个最直接，也最简单。</p>
 <p>方法二也是对当前彩信网关 存储过程 的一个优化，以及setdb.sh脚本调用createdb.sql这个脚本中的 drop表操作 的一个优化，都可以通过增加purge参数解决。类似于windows的shift+delete，不经过回收站了。</p>
-<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><p>表空间使用率为负，从oracle 10g引入（具体版本暂时不知），以前为负的情况时候，OEM的统计表空间的使用率也是负值，该问题应该是修改不完善，导致OEM查询是正确的，而通过表查询是错误的。</p>
+<h1 id="qi-ta">其他</h1>
+<p>表空间使用率为负，从oracle 10g引入（具体版本暂时不知），以前为负的情况时候，OEM的统计表空间的使用率也是负值，该问题应该是修改不完善，导致OEM查询是正确的，而通过表查询是错误的。</p>
 
                 
             </div>
@@ -773,10 +935,10 @@ and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1090,7 +1252,7 @@ and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/195.jpg" class="responsive-img" alt="Oracle闪回">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/195.jpg" class="responsive-img" alt="Oracle闪回">
                         
                         <span class="card-title">Oracle闪回</span>
                     </div>
@@ -1139,7 +1301,7 @@ and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/157.jpg" class="responsive-img" alt="Oracle案例--表空间--收缩临时表空间">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/157.jpg" class="responsive-img" alt="Oracle案例--表空间--收缩临时表空间">
                         
                         <span class="card-title">Oracle案例--表空间--收缩临时表空间</span>
                     </div>
@@ -1370,7 +1532,7 @@ and a.file_name like '/home/yjh/program_files/oradata/y_mmsgdata01';
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1720,6 +1882,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

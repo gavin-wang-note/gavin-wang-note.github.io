@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Linux下统计行数性能对比, 软硬件测试">
-    <meta name="description" content="概述这次使用esrally进行elastic search性能测试，构造了产品自己生成的索引所需要的数据，由于数据比较大，行数有700million+，统计行数碰到了问题，主要是时间问题，统计太耗时，所以，想知道哪个统计效率更高。
-本文介绍">
+    <meta name="description" content="概述
+这次使用esrally进行elastic search性能测试，构造了产品自己生成的索引所需要的数据，由于数据比较大，行数有700million+，统计行数碰到了问题，主要是时间问题，统计太耗时，所以，想知道哪个统计效率更高。
+本文介">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -439,7 +580,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    617
+                    621
                 </div>
                 
 
@@ -469,10 +610,12 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>这次使用esrally进行elastic search性能测试，构造了产品自己生成的索引所需要的数据，由于数据比较大，行数有700million+，统计行数碰到了问题，主要是时间问题，统计太耗时，所以，想知道哪个统计效率更高。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>这次使用esrally进行elastic search性能测试，构造了产品自己生成的索引所需要的数据，由于数据比较大，行数有700million+，统计行数碰到了问题，主要是时间问题，统计太耗时，所以，想知道哪个统计效率更高。</p>
 <p>本文介绍几种方法，以100million行数的文件，在Linux下统计文件行数，对比下统计性能如何。</p>
-<h1 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h1><p>准备一个100million行数的文件：</p>
-<pre><code class="line-numbers language-shell">root@host75:~/tmp# ll
+<h1 id="zhun-bei-gong-zuo">准备工作</h1>
+<p>准备一个100million行数的文件：</p>
+<pre><code class="language-shell">root@host75:~/tmp# ll
 total 3018132
 drwxr-xr-x 2 root root       4096 May 28 17:39 ./
 drwx------ 4 root root       4096 May 28 17:38 ../
@@ -484,7 +627,9 @@ root@host75:~/tmp# cat documents-2.json | head -n 2
 {"name": "39_1283951288.80", "bucket": "bucket01", "instance": "null", "meta": {"custom-string": {"name": "5902405182780371", "value": "6086948407181992"}, "mtime": "2020-05-28T12:22:37.787Z", "etag": "e7b351f4a7411de9c7a070e5d2381ab1", "content_type": "application/octet-stream", "tail_tag": "a3a5cefd-376d-421b-7442-08b70241e7c1.4520.567559", "size": "152"}, "owner": {"display_name": "user01", "id": "user01"}, "versioned_epoch": "0"}
 root@host75:~/tmp# 
 </code></pre>
-<h1 id="统计行数性能比较"><a href="#统计行数性能比较" class="headerlink" title="统计行数性能比较"></a>统计行数性能比较</h1><h2 id="使用wc统计"><a href="#使用wc统计" class="headerlink" title="使用wc统计"></a>使用wc统计</h2><pre><code class="line-numbers language-shell">root@host75:~/tmp# time wc -l documents-2.json 
+<h1 id="tong-ji-xing-shu-xing-neng-bi-jiao">统计行数性能比较</h1>
+<h2 id="shi-yong-wc-tong-ji">使用wc统计</h2>
+<pre><code class="language-shell">root@host75:~/tmp# time wc -l documents-2.json 
 100000000 documents-2.json
 
 real	0m9.857s
@@ -492,7 +637,8 @@ user	0m2.767s
 sys	0m7.041s
 root@host75:~/tmp#
 </code></pre>
-<h2 id="awk"><a href="#awk" class="headerlink" title="awk"></a>awk</h2><pre><code class="line-numbers language-shell">root@host75:~/tmp# time awk '{print NR}' documents-2.json | tail -n1
+<h2 id="awk">awk</h2>
+<pre><code class="language-shell">root@host75:~/tmp# time awk '{print NR}' documents-2.json | tail -n1
 100000000
 
 real	1m16.523s
@@ -500,7 +646,7 @@ user	1m5.944s
 sys	0m14.584s
 root@host75:~/tmp# 
 </code></pre>
-<pre><code class="line-numbers language-shell">root@host75:~/tmp# time awk 'END{print NR}' documents-2.json 
+<pre><code class="language-shell">root@host75:~/tmp# time awk 'END{print NR}' documents-2.json 
 100000000
 
 real	0m43.118s
@@ -508,14 +654,16 @@ user	0m32.708s
 sys	0m10.395s
 root@host75:~/tmp#
 </code></pre>
-<h2 id="grep-awk-结合"><a href="#grep-awk-结合" class="headerlink" title="grep &amp; awk 结合"></a>grep &amp; awk 结合</h2><pre><code class="line-numbers language-shell">root@host75:~/tmp# time grep -n "" documents-2.json | awk '{{print }}' | tail -n1
+<h2 id="grep-amp-awk-jie-he">grep &amp; awk 结合</h2>
+<pre><code class="language-shell">root@host75:~/tmp# time grep -n "" documents-2.json | awk '{{print }}' | tail -n1
 100000000:{"name": "23_1479119854.64", "bucket": "bucket01", "instance": "null", "meta": {"custom-string": {"name": "6389993698492958", "value": "9869611550099604"}, "mtime": "2020-05-29T13:24:30.042Z", "etag": "e7b195f4a3730de9c7a070e5d5762ab1", "content_type": "application/octet-stream", "tail_tag": "a3a5cefd-376d-421b-7964-08b62339e7c1.4520.381771", "size": "819"}, "owner": {"display_name": "user01", "id": "user01"}, "versioned_epoch": "0"}
 
 real	1m31.090s
 user	1m21.797s
 sys	2m8.774s
 </code></pre>
-<h2 id="sed"><a href="#sed" class="headerlink" title="sed"></a>sed</h2><pre><code class="line-numbers language-shell">root@host75:~/tmp# time sed -n '$=' documents-2.json 
+<h2 id="sed">sed</h2>
+<pre><code class="language-shell">root@host75:~/tmp# time sed -n '$=' documents-2.json 
 100000000
 
 real	0m23.395s
@@ -523,7 +671,8 @@ user	0m13.503s
 sys	0m9.891s
 root@host75:~/tmp# 
 </code></pre>
-<h2 id="cat"><a href="#cat" class="headerlink" title="cat"></a>cat</h2><pre><code class="line-numbers language-shell">root@host75:~/tmp# time cat documents-2.json | wc -l
+<h2 id="cat">cat</h2>
+<pre><code class="language-shell">root@host75:~/tmp# time cat documents-2.json | wc -l
 100000000
 
 real	0m22.773s
@@ -533,7 +682,8 @@ root@host75:~/tmp#
 </code></pre>
 <p>说明：</p>
 <p>这个方法不建议使用，比较考验CPU能力。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>由于被统计的文件的数据结构不一样，上述命令统计出来的性能也会有一些差异。本文示例的文档，统计效果比较好的方法是：</p>
+<h1 id="zong-jie">总结</h1>
+<p>由于被统计的文件的数据结构不一样，上述命令统计出来的性能也会有一些差异。本文示例的文档，统计效果比较好的方法是：</p>
 <p>wc -l 优于 cat 优于 sed 优于 awk 优于 grep</p>
 <p>具体哪个统计方法适合当前被统计文档，可以适当的使用一部分数据作为统计效果看看哪个更优，然后再做抉择使用哪个方法。</p>
 
@@ -638,10 +788,10 @@ root@host75:~/tmp#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -955,7 +1105,7 @@ root@host75:~/tmp#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/41.jpg" class="responsive-img" alt="Cosbench wirte speed scenario test script">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/41.jpg" class="responsive-img" alt="Cosbench wirte speed scenario test script">
                         
                         <span class="card-title">Cosbench wirte speed scenario test script</span>
                     </div>
@@ -1012,7 +1162,7 @@ root@host75:~/tmp#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/155.jpg" class="responsive-img" alt="Linux开机启动，进入welcome to emergency mode">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/155.jpg" class="responsive-img" alt="Linux开机启动，进入welcome to emergency mode">
                         
                         <span class="card-title">Linux开机启动，进入welcome to emergency mode</span>
                     </div>
@@ -1243,7 +1393,7 @@ root@host75:~/tmp#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1593,6 +1743,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

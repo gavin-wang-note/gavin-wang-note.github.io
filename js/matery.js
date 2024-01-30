@@ -70,7 +70,9 @@ $(function () {
 
     /*文章内容详情的一些初始化特性*/
     let articleInit = function () {
-        $('#articleContent a').attr('target', '_blank');
+        /* $('#articleContent a').attr('target', '_blank'); */
+        $('#articleContent .footnote-ref a').attr('target', '_self');
+        $('#articleContent a.footnote-backref').attr('target', '_self');
 
         $('#articleContent img').each(function () {
             let imgPath = $(this).attr('src');
@@ -104,6 +106,11 @@ $(function () {
             selector: '.img-item',
             // 启用字幕
             subHtmlSelectorRelative: true
+        });
+
+        // 懒加载防止插件冲突
+        $(document).find('img[data-original]').each(function(){
+        $(this).parent().attr("href", $(this).attr("data-original"));
         });
 
         // progress bar init

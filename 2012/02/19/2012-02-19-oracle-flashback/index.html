@@ -5,12 +5,18 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle闪回, 软硬件测试">
-    <meta name="description" content="特性概述闪回技术通常用于快速、简单恢复数据库中出现的人为误操作等逻辑错误，即：闪回只对逻辑错误有意义，对数据块损坏和联机日志损坏必须采用介质恢复。
-闪回类型从闪回的方式可以将闪回分为：
+    <meta name="description" content="特性概述
+闪回技术通常用于快速、简单恢复数据库中出现的人为误操作等逻辑错误，即：闪回只对逻辑错误有意义，对数据块损坏和联机日志损坏必须采用介质恢复。
+闪回类型
+从闪回的方式可以将闪回分为：
+
 
 1、基于数据库级别闪回
+
+
 2、表级别闪回
-3、事务级别">
+
+">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -68,20 +74,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -196,7 +342,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -473,20 +619,35 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="特性概述"><a href="#特性概述" class="headerlink" title="特性概述"></a>特性概述</h1><p>闪回技术通常用于快速、简单恢复数据库中出现的人为误操作等逻辑错误，即：闪回只对逻辑错误有意义，对数据块损坏和联机日志损坏必须采用介质恢复。</p>
-<h1 id="闪回类型"><a href="#闪回类型" class="headerlink" title="闪回类型"></a>闪回类型</h1><p>从闪回的方式可以将闪回分为：</p>
-<ul>
-<li>1、基于数据库级别闪回</li>
-<li>2、表级别闪回</li>
-<li>3、事务级别闪回</li>
+                <h1 id="te-xing-gai-shu">特性概述</h1>
+<p>闪回技术通常用于快速、简单恢复数据库中出现的人为误操作等逻辑错误，即：闪回只对逻辑错误有意义，对数据块损坏和联机日志损坏必须采用介质恢复。</p>
+<h1 id="shan-hui-lei-xing">闪回类型</h1>
+<p>从闪回的方式可以将闪回分为：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、基于数据库级别闪回</p>
+</li>
+<li class="lvl-2">
+<p>2、表级别闪回</p>
+</li>
+<li class="lvl-2">
+<p>3、事务级别闪回</p>
+</li>
 </ul>
 <p>根据闪回对数据的影响程度又可以分为:</p>
-<ul>
-<li>1、闪回恢复</li>
-<li>2、闪回查询</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、闪回恢复</p>
+</li>
+<li class="lvl-2">
+<p>2、闪回查询</p>
+</li>
 </ul>
 <p>闪回恢复将修改数据，闪回点之后的数据将全部丢失。而闪回查询则可以查询数据被DML的不同版本，也可以在此基础之上确定是否进行恢复等。</p>
-<h1 id="如何启用闪回"><a href="#如何启用闪回" class="headerlink" title="如何启用闪回"></a>如何启用闪回</h1><h2 id="启用闪回前检查"><a href="#启用闪回前检查" class="headerlink" title="启用闪回前检查"></a>启用闪回前检查</h2><h3 id="确认是否启用闪回功能"><a href="#确认是否启用闪回功能" class="headerlink" title="确认是否启用闪回功能"></a>确认是否启用闪回功能</h3><pre><code class="line-numbers language-shell">SQL&gt; select flashback_on from v$database;
+<h1 id="ru-he-qi-yong-shan-hui">如何启用闪回</h1>
+<h2 id="qi-yong-shan-hui-qian-jian-cha">启用闪回前检查</h2>
+<h3 id="que-ren-shi-fou-qi-yong-shan-hui-gong-neng">确认是否启用闪回功能</h3>
+<pre><code class="language-shell">SQL&gt; select flashback_on from v$database;
 
 FLASHBACK_ON
 ------------------
@@ -495,11 +656,16 @@ NO
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>1、flashback_on取值为NO，说明尚未启用闪回功能，取值为YES则表示启用了闪回功能。</li>
-<li>2、该参数仅能在数据库mount状态下修改。</li>
+<ul class="lvl-0">
+<li class="lvl-3">
+<p>1、flashback_on取值为NO，说明尚未启用闪回功能，取值为YES则表示启用了闪回功能。</p>
+</li>
+<li class="lvl-3">
+<p>2、该参数仅能在数据库mount状态下修改。</p>
+</li>
 </ul>
-<h3 id="确认当前日志归档模式"><a href="#确认当前日志归档模式" class="headerlink" title="确认当前日志归档模式"></a>确认当前日志归档模式</h3><pre><code class="line-numbers language-shell">SQL&gt; archive log list
+<h3 id="que-ren-dang-qian-ri-zhi-gui-dang-mo-shi">确认当前日志归档模式</h3>
+<pre><code class="language-shell">SQL&gt; archive log list
 Database log mode              Archive Mode
 Automatic archival             Enabled
 Archive destination            /opt/oracle/product/11g/dbs/arch
@@ -509,10 +675,12 @@ Current log sequence           220
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>如果非归档模式下，启用闪回失败：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果非归档模式下，启用闪回失败：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">SQL&gt; alter database flashback on;
+<pre><code class="language-shell">SQL&gt; alter database flashback on;
 alter database flashback on
 *
 ERROR at line 1:
@@ -531,7 +699,8 @@ oracle@mmsc101:~&gt; oerr ora 38707
 // *Action: Turn on media recovery with an ALTER DATABASE ARCHIVELOG
 //          command and then retry the command.
 </code></pre>
-<h3 id="检查-修改恢复区设置"><a href="#检查-修改恢复区设置" class="headerlink" title="检查/修改恢复区设置"></a>检查/修改恢复区设置</h3><pre><code class="line-numbers language-shell">SQL&gt; show parameter db_recovery_file_dest
+<h3 id="jian-cha-xiu-gai-hui-fu-qu-she-zhi">检查/修改恢复区设置</h3>
+<pre><code class="language-shell">SQL&gt; show parameter db_recovery_file_dest
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -540,10 +709,13 @@ db_recovery_file_dest_size           big integer 0
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>上述查询结果展示db_recovery_file_dest取值为空，则表示没有配置闪回区域，启用闪回后需要设置该值，string类型的串。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>上述查询结果展示db_recovery_file_dest取值为空，则表示没有配置闪回区域，启用闪回后需要设置该值，string类型的串。</p>
+</li>
 </ul>
-<h3 id="检查-修改闪回时间设置"><a href="#检查-修改闪回时间设置" class="headerlink" title="检查/修改闪回时间设置"></a>检查/修改闪回时间设置</h3><pre><code class="line-numbers language-shell">SQL&gt; show parameter db_flashback_retention_target
+<h3 id="jian-cha-xiu-gai-shan-hui-shi-jian-she-zhi">检查/修改闪回时间设置</h3>
+<pre><code class="language-shell">SQL&gt; show parameter db_flashback_retention_target
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -551,31 +723,42 @@ db_flashback_retention_target        integer     1440
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>1、db_flashback_retention_target单位为分钟，表示能恢复数据的时间长短，默认值为1440（24*60）；</li>
-<li>2、如果想调整这个参数的取值，可以使用如下语句进行调整：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、db_flashback_retention_target单位为分钟，表示能恢复数据的时间长短，默认值为1440（24*60）；</p>
+</li>
+<li class="lvl-2">
+<p>2、如果想调整这个参数的取值，可以使用如下语句进行调整：</p>
+</li>
 </ul>
 <pre><code>alter system set db_flashback_retention_target=1440;
 </code></pre>
-<h3 id="检查闪回区域大小"><a href="#检查闪回区域大小" class="headerlink" title="检查闪回区域大小"></a>检查闪回区域大小</h3><pre><code class="line-numbers language-shell">SQL&gt; show parameter DB_RECOVERY_FILE_DEST_SIZE
+<h3 id="jian-cha-shan-hui-qu-yu-da-xiao">检查闪回区域大小</h3>
+<pre><code class="language-shell">SQL&gt; show parameter DB_RECOVERY_FILE_DEST_SIZE
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
 db_recovery_file_dest_size           big integer 0
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>db_recovery_file_dest_size参数单位为G；</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>db_recovery_file_dest_size参数单位为G；</p>
+</li>
 </ul>
-<h2 id="启用闪回"><a href="#启用闪回" class="headerlink" title="启用闪回"></a>启用闪回</h2><p>说明：<br>下列步骤为在归档模式下，在没有启用闪回功能前提下启用闪回功能的操作步骤，详细信息如下</p>
-<h3 id="步骤1-手工创建闪回数据存放路径"><a href="#步骤1-手工创建闪回数据存放路径" class="headerlink" title="步骤1 手工创建闪回数据存放路径"></a>步骤1 手工创建闪回数据存放路径</h3><p>在/opt/oracle/目录下创建flash_recovery目录。</p>
-<h3 id="步骤2-修改闪回数据存放路径"><a href="#步骤2-修改闪回数据存放路径" class="headerlink" title="步骤2 修改闪回数据存放路径"></a>步骤2 修改闪回数据存放路径</h3><pre><code class="line-numbers language-shell">SQL&gt; alter system set db_recovery_file_dest_size  = 2048M scope=both;
+<h2 id="qi-yong-shan-hui">启用闪回</h2>
+<p>说明：下列步骤为在归档模式下，在没有启用闪回功能前提下启用闪回功能的操作步骤，详细信息如下</p>
+<h3 id="bu-zou-1-shou-gong-chuang-jian-shan-hui-shu-ju-cun-fang-lu-jing">步骤1 手工创建闪回数据存放路径</h3>
+<p>在/opt/oracle/目录下创建flash_recovery目录。</p>
+<h3 id="bu-zou-2-xiu-gai-shan-hui-shu-ju-cun-fang-lu-jing">步骤2 修改闪回数据存放路径</h3>
+<pre><code class="language-shell">SQL&gt; alter system set db_recovery_file_dest_size  = 2048M scope=both;
 
 System altered.
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤3-重新启动数据库到Mount状态"><a href="#步骤3-重新启动数据库到Mount状态" class="headerlink" title="步骤3 重新启动数据库到Mount状态"></a>步骤3 重新启动数据库到Mount状态</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h3 id="bu-zou-3-zhong-xin-qi-dong-shu-ju-ku-dao-mount-zhuang-tai">步骤3 重新启动数据库到Mount状态</h3>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 Database closed.
 Database dismounted.
 ORACLE instance shut down.
@@ -591,7 +774,8 @@ Redo Buffers               27803648 bytes
 Database mounted.
 SQL&gt;
 </code></pre>
-<h3 id="步骤4-启动flashback-database选项"><a href="#步骤4-启动flashback-database选项" class="headerlink" title="步骤4 启动flashback database选项"></a>步骤4 启动flashback database选项</h3><pre><code class="line-numbers language-shell">SQL&gt; alter system set db_recovery_file_dest='/opt/oracle/flash_recovery' scope=both;
+<h3 id="bu-zou-4-qi-dong-flashback-database-xuan-xiang">步骤4 启动flashback database选项</h3>
+<pre><code class="language-shell">SQL&gt; alter system set db_recovery_file_dest='/opt/oracle/flash_recovery' scope=both;
 
 System altered.
 SQL&gt; alter database flashback on;
@@ -604,22 +788,30 @@ Database altered.
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤5-检查闪回进程是否启动"><a href="#步骤5-检查闪回进程是否启动" class="headerlink" title="步骤5 检查闪回进程是否启动"></a>步骤5 检查闪回进程是否启动</h3><pre><code class="line-numbers language-shell">SQL&gt; ho ps -ef | grep rvwr 
+<h3 id="bu-zou-5-jian-cha-shan-hui-jin-cheng-shi-fou-qi-dong">步骤5 检查闪回进程是否启动</h3>
+<pre><code class="language-shell">SQL&gt; ho ps -ef | grep rvwr 
 oracle   23486     1  0 17:09 ?        00:00:00 ora_rvwr_sdp
 oracle    1634 14984  0 17:26 pts/6    00:00:00 /bin/bash -c ps -ef | grep rvwr
 oracle    1636  1634  0 17:26 pts/6    00:00:00 grep rvwr
 
 SQL&gt;
 </code></pre>
-<h1 id="闪回数据库（flashback-database）概述"><a href="#闪回数据库（flashback-database）概述" class="headerlink" title="闪回数据库（flashback database）概述"></a>闪回数据库（flashback database）概述</h1><h2 id="flashback-database的特性"><a href="#flashback-database的特性" class="headerlink" title="flashback database的特性"></a>flashback database的特性</h2><p>flashback data1base闪回到过去的某一时刻，闪回点之后的工作全部丢失。使用resetlogs创建新的场景并打开数据库(一旦resetlogs之后，将不能再flashback至resetlogs之前的时间点)。</p>
+<h1 id="shan-hui-shu-ju-ku-flashback-database-gai-shu">闪回数据库（flashback database）概述</h1>
+<h2 id="flashback-database-de-te-xing">flashback database的特性</h2>
+<p>flashback data1base闪回到过去的某一时刻，闪回点之后的工作全部丢失。使用resetlogs创建新的场景并打开数据库(一旦resetlogs之后，将不能再flashback至resetlogs之前的时间点)。</p>
 <p>常用的场景：truncate table、多表发生意外错误等。</p>
-<h2 id="flashback-database的组成"><a href="#flashback-database的组成" class="headerlink" title="flashback database的组成"></a>flashback database的组成</h2><p>闪回缓冲区：当启用flashback database，则sga中会开辟一块新区域作为闪回缓冲区,大小由系统分配；</p>
+<h2 id="flashback-database-de-zu-cheng">flashback database的组成</h2>
+<p>闪回缓冲区：当启用flashback database，则sga中会开辟一块新区域作为闪回缓冲区,大小由系统分配；</p>
 <p>启用新的rvwr进程:rvwr进程将闪回缓冲区的内容写入到闪回日志中。</p>
-<h2 id="闪回日志与联机重做日志的区别"><a href="#闪回日志与联机重做日志的区别" class="headerlink" title="闪回日志与联机重做日志的区别"></a>闪回日志与联机重做日志的区别</h2><p>闪回日志不同于联机重做日志，闪回日志在联机重做日志基础之上生成，是完整数据块映像的日志。联机日志则是变化的日志。闪回日志不能复用，也不能归档。</p>
+<h2 id="shan-hui-ri-zhi-yu-lian-ji-zhong-zuo-ri-zhi-de-qu-bie">闪回日志与联机重做日志的区别</h2>
+<p>闪回日志不同于联机重做日志，闪回日志在联机重做日志基础之上生成，是完整数据块映像的日志。联机日志则是变化的日志。闪回日志不能复用，也不能归档。</p>
 <p>闪回日志使用循环写方式,简单的讲，就是：联机日志会记录改变前后的值，而闪回日志只记录改变前的值。</p>
-<h2 id="闪回数据库的实现机理"><a href="#闪回数据库的实现机理" class="headerlink" title="闪回数据库的实现机理"></a>闪回数据库的实现机理</h2><p>buffer cache&lt;–&gt;flashback cache&lt;–&gt;rvwr&lt;–&gt;闪回日志【日志只记录修改前的旧值】</p>
-<h1 id="闪回database的配置"><a href="#闪回database的配置" class="headerlink" title="闪回database的配置"></a>闪回database的配置</h1><h2 id="查看闪回数据量、时间等相关信息"><a href="#查看闪回数据量、时间等相关信息" class="headerlink" title="查看闪回数据量、时间等相关信息"></a>查看闪回数据量、时间等相关信息</h2><p>下面查看闪回区分配的大小为大约32M，闪回1440分钟以内的数据则需要46M左右的空间</p>
-<pre><code class="line-numbers language-shell">SQL&gt; select oldest_flashback_scn old_flhbck_scn,oldest_flashback_time old_flhbck_tim,
+<h2 id="shan-hui-shu-ju-ku-de-shi-xian-ji-li">闪回数据库的实现机理</h2>
+<p>buffer cache&lt;–&gt;flashback cache&lt;–&gt;rvwr&lt;–&gt;闪回日志【日志只记录修改前的旧值】</p>
+<h1 id="shan-hui-database-de-pei-zhi">闪回database的配置</h1>
+<h2 id="cha-kan-shan-hui-shu-ju-liang-shi-jian-deng-xiang-guan-xin-xi">查看闪回数据量、时间等相关信息</h2>
+<p>下面查看闪回区分配的大小为大约32M，闪回1440分钟以内的数据则需要46M左右的空间</p>
+<pre><code class="language-shell">SQL&gt; select oldest_flashback_scn old_flhbck_scn,oldest_flashback_time old_flhbck_tim,
   2  retention_target rete_trgt,flashback_size/1024/1024 flhbck_siz,
   3  estimated_flashback_size/1024/1024 est_flhbck_size
   4  from v$flashback_database_log;
@@ -631,10 +823,13 @@ OLD_FLHBCK_SCN OLD_FLHBCK_TIM       RETE_TRGT FLHBCK_SIZ EST_FLHBCK_SIZE
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>列oldest_flashback_time说明了允许返回的最早的时间点。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>列oldest_flashback_time说明了允许返回的最早的时间点。</p>
+</li>
 </ul>
-<h2 id="查看闪回"><a href="#查看闪回" class="headerlink" title="查看闪回"></a>查看闪回</h2><pre><code class="line-numbers language-shell">SQL&gt; set wrap off
+<h2 id="cha-kan-shan-hui">查看闪回</h2>
+<pre><code class="language-shell">SQL&gt; set wrap off
 SQL&gt; select * from v$flashback_database_stat;
 truncating (as requested) before column ESTIMATED_FLASHBACK_SIZE
 
@@ -645,7 +840,8 @@ BEGIN_TIME          END_TIME            FLASHBACK_DATA    DB_DATA  REDO_DATA
 
 SQL&gt;
 </code></pre>
-<h2 id="查看闪回中sga分配的空间大小"><a href="#查看闪回中sga分配的空间大小" class="headerlink" title="查看闪回中sga分配的空间大小"></a>查看闪回中sga分配的空间大小</h2><pre><code class="line-numbers language-shell">SQL&gt; select * from v$sgastat where name like 'flashback%';
+<h2 id="cha-kan-shan-hui-zhong-sga-fen-pei-de-kong-jian-da-xiao">查看闪回中sga分配的空间大小</h2>
+<pre><code class="language-shell">SQL&gt; select * from v$sgastat where name like 'flashback%';
 
 POOL         NAME                            BYTES
 ------------ -------------------------- ----------
@@ -654,31 +850,40 @@ shared pool  flashback_marker_cache_si        9200
 
 SQL&gt;
 </code></pre>
-<h2 id="查看生成的闪回日志"><a href="#查看生成的闪回日志" class="headerlink" title="查看生成的闪回日志"></a>查看生成的闪回日志</h2><pre><code class="line-numbers language-shell">SQL&gt; ho ls -hlt $ORACLE_BASE/flash_recovery/SDP/flashback
+<h2 id="cha-kan-sheng-cheng-de-shan-hui-ri-zhi">查看生成的闪回日志</h2>
+<pre><code class="language-shell">SQL&gt; ho ls -hlt $ORACLE_BASE/flash_recovery/SDP/flashback
 total 33M
 -rw-r----- 1 oracle oinstall 33M 2012-02-09 17:59 o1_mf_7m739k3t_.flb
 
 SQL&gt;
 </code></pre>
-<h1 id="使用flashback闪回数据库实践"><a href="#使用flashback闪回数据库实践" class="headerlink" title="使用flashback闪回数据库实践"></a>使用flashback闪回数据库实践</h1><p>前提条件：归档日志可用。</p>
+<h1 id="shi-yong-flashback-shan-hui-shu-ju-ku-shi-jian">使用flashback闪回数据库实践</h1>
+<p>前提条件：归档日志可用。</p>
 <p>步骤1 关闭数据库</p>
 <p>步骤2 启动数据库到mount状态</p>
 <p>步骤3 闪回至某个时间点、scn或log sequence number</p>
 <p>步骤4 使用resetlogs打开数据库</p>
-<h2 id="使用sqlplus闪回数据库"><a href="#使用sqlplus闪回数据库" class="headerlink" title="使用sqlplus闪回数据库"></a>使用sqlplus闪回数据库</h2><h3 id="sqlplus几种常用的闪回数据库方法"><a href="#sqlplus几种常用的闪回数据库方法" class="headerlink" title="sqlplus几种常用的闪回数据库方法"></a>sqlplus几种常用的闪回数据库方法</h3><h4 id="基于SCN闪回"><a href="#基于SCN闪回" class="headerlink" title="基于SCN闪回"></a>基于SCN闪回</h4><pre><code class="line-numbers language-shell">FLASHBACK [STANDBY] DATABASE [&lt;database_name&gt;]  TO [BEFORE] SCN &lt;system_change_number&gt;
+<h2 id="shi-yong-sqlplus-shan-hui-shu-ju-ku">使用sqlplus闪回数据库</h2>
+<h3 id="sqlplus-ji-chong-chang-yong-de-shan-hui-shu-ju-ku-fang-fa">sqlplus几种常用的闪回数据库方法</h3>
+<h4 id="ji-yu-scn-shan-hui">基于SCN闪回</h4>
+<pre><code class="language-shell">FLASHBACK [STANDBY] DATABASE [&lt;database_name&gt;]  TO [BEFORE] SCN &lt;system_change_number&gt;
 </code></pre>
-<h4 id="基于时间戳闪回"><a href="#基于时间戳闪回" class="headerlink" title="基于时间戳闪回"></a>基于时间戳闪回</h4><pre><code class="line-numbers language-shell">FLASHBACK [STANDBY] DATABASE [&lt;database_name&gt;]  TO [BEFORE] TIMESTMP &lt;system_timestamp_value&gt;
+<h4 id="ji-yu-shi-jian-chuo-shan-hui">基于时间戳闪回</h4>
+<pre><code class="language-shell">FLASHBACK [STANDBY] DATABASE [&lt;database_name&gt;]  TO [BEFORE] TIMESTMP &lt;system_timestamp_value&gt;
 </code></pre>
-<h4 id="基于时点闪回"><a href="#基于时点闪回" class="headerlink" title="基于时点闪回"></a>基于时点闪回</h4><pre><code class="line-numbers language-shell">FLASHBACK [STANDBY] DATABASE [&lt;database_name&gt;]  TO [BEFORE] RESTORE POINT &lt;restore_point_name&gt;
+<h4 id="ji-yu-shi-dian-shan-hui">基于时点闪回</h4>
+<pre><code class="language-shell">FLASHBACK [STANDBY] DATABASE [&lt;database_name&gt;]  TO [BEFORE] RESTORE POINT &lt;restore_point_name&gt;
 </code></pre>
 <p>如下面的示例：</p>
-<pre><code class="line-numbers language-shell">SQL&gt; flashback database to timestamp('2010-10-24 13:04:30','yyyy-mm-dd hh24:mi:ss'); 
+<pre><code class="language-shell">SQL&gt; flashback database to timestamp('2010-10-24 13:04:30','yyyy-mm-dd hh24:mi:ss'); 
 
 SQL&gt; flashback database to scn 5813199;
 
 SQL&gt; flashback database ro restore point wyz_test;
 </code></pre>
-<h4 id="a-基于时间戳闪回"><a href="#a-基于时间戳闪回" class="headerlink" title="a.基于时间戳闪回"></a>a.基于时间戳闪回</h4><h5 id="步骤1、-创建测试表，并插入数据"><a href="#步骤1、-创建测试表，并插入数据" class="headerlink" title="步骤1、 创建测试表，并插入数据"></a>步骤1、 创建测试表，并插入数据</h5><pre><code class="line-numbers language-shell">oracle@mmsc101:~&gt; sqlplus mmsg/mmsg@sdp
+<h4 id="a-ji-yu-shi-jian-chuo-shan-hui">a.基于时间戳闪回</h4>
+<h5 id="bu-zou-1-chuang-jian-ce-shi-biao-bing-cha-ru-shu-ju">步骤1、 创建测试表，并插入数据</h5>
+<pre><code class="language-shell">oracle@mmsc101:~&gt; sqlplus mmsg/mmsg@sdp
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 18:14:31 2012
 
@@ -713,10 +918,13 @@ SQL&gt; select count(0) from scn_test;
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>上述测试表中有两个记录。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>上述测试表中有两个记录。</p>
+</li>
 </ul>
-<h5 id="步骤2、获取系统当前时间"><a href="#步骤2、获取系统当前时间" class="headerlink" title="步骤2、获取系统当前时间"></a>步骤2、获取系统当前时间</h5><pre><code class="line-numbers language-shell">SQL&gt; select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss')  time from dual; 
+<h5 id="bu-zou-2-huo-qu-xi-tong-dang-qian-shi-jian">步骤2、获取系统当前时间</h5>
+<pre><code class="language-shell">SQL&gt; select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss')  time from dual; 
 
 TIME
 ---------------------------------------------------------
@@ -724,7 +932,8 @@ TIME
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤3、删除表scn-test"><a href="#步骤3、删除表scn-test" class="headerlink" title="步骤3、删除表scn_test"></a>步骤3、删除表scn_test</h5><pre><code class="line-numbers language-shell">SQL&gt; drop table scn_test;
+<h5 id="bu-zou-3-shan-chu-biao-scn-test">步骤3、删除表scn_test</h5>
+<pre><code class="language-shell">SQL&gt; drop table scn_test;
 
 Table dropped.
 
@@ -734,7 +943,8 @@ Commit complete.
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤4、新创建表tmp"><a href="#步骤4、新创建表tmp" class="headerlink" title="步骤4、新创建表tmp"></a>步骤4、新创建表tmp</h5><pre><code class="line-numbers language-shell">SQL&gt; create table tmp as select * from modules;
+<h5 id="bu-zou-4-xin-chuang-jian-biao-tmp">步骤4、新创建表tmp</h5>
+<pre><code class="language-shell">SQL&gt; create table tmp as select * from modules;
 
 Table created.
 
@@ -745,10 +955,13 @@ Commit complete.
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>目的是为了验证闪回后这张表不存在。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>目的是为了验证闪回后这张表不存在。</p>
+</li>
 </ul>
-<h5 id="步骤5、启动数据库到mount状态"><a href="#步骤5、启动数据库到mount状态" class="headerlink" title="步骤5、启动数据库到mount状态"></a>步骤5、启动数据库到mount状态</h5><pre><code class="line-numbers language-shell">oracle@mmsc101:~&gt; sqlplus / as sysdba
+<h5 id="bu-zou-5-qi-dong-shu-ju-ku-dao-mount-zhuang-tai">步骤5、启动数据库到mount状态</h5>
+<pre><code class="language-shell">oracle@mmsc101:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 18:24:49 2012
 
@@ -762,7 +975,8 @@ With the Partitioning, OLAP, Data Mining and Real Application Testing options
 SQL&gt; shutdown immediate
 SQL&gt; startup mount
 </code></pre>
-<h5 id="步骤6、dba用户实施闪回"><a href="#步骤6、dba用户实施闪回" class="headerlink" title="步骤6、dba用户实施闪回"></a>步骤6、dba用户实施闪回</h5><pre><code class="line-numbers language-shell">SQL&gt; flashback database to timestamp to_timestamp('2012-02-09 18:39:30','yyyy-mm-dd hh24:mi:ss');  
+<h5 id="bu-zou-6-dba-yong-hu-shi-shi-shan-hui">步骤6、dba用户实施闪回</h5>
+<pre><code class="language-shell">SQL&gt; flashback database to timestamp to_timestamp('2012-02-09 18:39:30','yyyy-mm-dd hh24:mi:ss');  
 
 Flashback complete.
 
@@ -772,7 +986,8 @@ Database altered.
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤7、闪回结果查看"><a href="#步骤7、闪回结果查看" class="headerlink" title="步骤7、闪回结果查看"></a>步骤7、闪回结果查看</h5><pre><code class="line-numbers language-shell">SQL&gt; connect mmsg/mmsg@sdp
+<h5 id="bu-zou-7-shan-hui-jie-guo-cha-kan">步骤7、闪回结果查看</h5>
+<pre><code class="language-shell">SQL&gt; connect mmsg/mmsg@sdp
 Connected.
 SQL&gt; select count(0) from scn_test;
 
@@ -790,13 +1005,16 @@ ORA-00942: table or view does not exist
 SQL&gt;
 </code></pre>
 <p>上述查询结果说明表已经闪回恢复，闪回点之后的数据全部丢失。</p>
-<h4 id="b-基于SCN号闪回"><a href="#b-基于SCN号闪回" class="headerlink" title="b.基于SCN号闪回"></a>b.基于SCN号闪回</h4><h5 id="步骤1-获取当前SCN"><a href="#步骤1-获取当前SCN" class="headerlink" title="步骤1 获取当前SCN"></a>步骤1 获取当前SCN</h5><pre><code class="line-numbers language-shell">SQL&gt; select current_scn from v$database;
+<h4 id="b-ji-yu-scn-hao-shan-hui">b.基于SCN号闪回</h4>
+<h5 id="bu-zou-1-huo-qu-dang-qian-scn">步骤1 获取当前SCN</h5>
+<pre><code class="language-shell">SQL&gt; select current_scn from v$database;
 
 CURRENT_SCN
 -----------
 5815970
 </code></pre>
-<h5 id="步骤2-删除mmsg用户下的scn-test表"><a href="#步骤2-删除mmsg用户下的scn-test表" class="headerlink" title="步骤2 删除mmsg用户下的scn_test表"></a>步骤2 删除mmsg用户下的scn_test表</h5><pre><code class="line-numbers language-shell">SQL&gt; connect mmsg/mmsg@sdp
+<h5 id="bu-zou-2-shan-chu-mmsg-yong-hu-xia-de-scn-test-biao">步骤2 删除mmsg用户下的scn_test表</h5>
+<pre><code class="language-shell">SQL&gt; connect mmsg/mmsg@sdp
 Connected.
 SQL&gt; drop table scn_test;
 
@@ -806,13 +1024,15 @@ SQL&gt; commit;
 
 Commit complete.
 </code></pre>
-<h5 id="步骤3-手动执行检查点"><a href="#步骤3-手动执行检查点" class="headerlink" title="步骤3 手动执行检查点"></a>步骤3 手动执行检查点</h5><pre><code class="line-numbers language-shell">SQL&gt; alter system checkpoint;
+<h5 id="bu-zou-3-shou-dong-zhi-xing-jian-cha-dian">步骤3 手动执行检查点</h5>
+<pre><code class="language-shell">SQL&gt; alter system checkpoint;
 
 System altered.
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤4-实施闪回"><a href="#步骤4-实施闪回" class="headerlink" title="步骤4 实施闪回"></a>步骤4 实施闪回</h5><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h5 id="bu-zou-4-shi-shi-shan-hui">步骤4 实施闪回</h5>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 Database closed.
 Database dismounted.
 ORACLE instance shut down.
@@ -835,7 +1055,8 @@ Database altered.
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤5-查询闪回结果"><a href="#步骤5-查询闪回结果" class="headerlink" title="步骤5 查询闪回结果"></a>步骤5 查询闪回结果</h5><pre><code class="line-numbers language-shell">SQL&gt; connect mmsg/mmsg@sdp
+<h5 id="bu-zou-5-cha-xun-shan-hui-jie-guo">步骤5 查询闪回结果</h5>
+<pre><code class="language-shell">SQL&gt; connect mmsg/mmsg@sdp
 Connected.
 SQL&gt; select count(0) from scn_test;
 
@@ -845,7 +1066,9 @@ SQL&gt; select count(0) from scn_test;
 
 SQL&gt;
 </code></pre>
-<h4 id="c-基于时点闪回"><a href="#c-基于时点闪回" class="headerlink" title="c.基于时点闪回"></a>c.基于时点闪回</h4><h5 id="步骤1-创建测试表"><a href="#步骤1-创建测试表" class="headerlink" title="步骤1 创建测试表"></a>步骤1 创建测试表</h5><pre><code class="line-numbers language-shell">SQL&gt; create table test(id int,describe varchar2(20));
+<h4 id="c-ji-yu-shi-dian-shan-hui">c.基于时点闪回</h4>
+<h5 id="bu-zou-1-chuang-jian-ce-shi-biao">步骤1 创建测试表</h5>
+<pre><code class="language-shell">SQL&gt; create table test(id int,describe varchar2(20));
 
 Table created.
 
@@ -869,7 +1092,8 @@ SQL&gt; select * from test;
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤2-创建闪回点"><a href="#步骤2-创建闪回点" class="headerlink" title="步骤2 创建闪回点"></a>步骤2 创建闪回点</h5><pre><code class="line-numbers language-shell">oracle@mmsc101:~&gt; sqlplus / as sysdba
+<h5 id="bu-zou-2-chuang-jian-shan-hui-dian">步骤2 创建闪回点</h5>
+<pre><code class="language-shell">oracle@mmsc101:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 18:54:11 2012
 
@@ -886,7 +1110,8 @@ Restore point created.
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤3-再次插入记录"><a href="#步骤3-再次插入记录" class="headerlink" title="步骤3 再次插入记录"></a>步骤3 再次插入记录</h5><pre><code class="line-numbers language-shell">SQL&gt; insert into test values(3,'GHI');
+<h5 id="bu-zou-3-zai-ci-cha-ru-ji-lu">步骤3 再次插入记录</h5>
+<pre><code class="language-shell">SQL&gt; insert into test values(3,'GHI');
 
 1 row created.
 
@@ -904,7 +1129,8 @@ SQL&gt; select * from test;
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤4闪回实施"><a href="#步骤4闪回实施" class="headerlink" title="步骤4闪回实施"></a>步骤4闪回实施</h5><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h5 id="bu-zou-4-shan-hui-shi-shi">步骤4闪回实施</h5>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 Database closed.
 Database dismounted.
 ORACLE instance shut down.
@@ -927,7 +1153,8 @@ Database altered.
 
 SQL&gt;
 </code></pre>
-<h5 id="步骤5-查看闪回结果"><a href="#步骤5-查看闪回结果" class="headerlink" title="步骤5 查看闪回结果"></a>步骤5 查看闪回结果</h5><pre><code class="line-numbers language-shell">SQL&gt; connect mmsg/mmsg@sdp
+<h5 id="bu-zou-5-cha-kan-shan-hui-jie-guo">步骤5 查看闪回结果</h5>
+<pre><code class="language-shell">SQL&gt; connect mmsg/mmsg@sdp
 Connected.
 SQL&gt; select * from test;
 
@@ -939,15 +1166,20 @@ SQL&gt; select * from test;
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>闪回点是全局的，不区分用户，即在某个point后，不同用户做了不同的操作，只有闪回到该point后，该point后的不同用户的操作都将丢失。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>闪回点是全局的，不区分用户，即在某个point后，不同用户做了不同的操作，只有闪回到该point后，该point后的不同用户的操作都将丢失。</p>
+</li>
 </ul>
-<h2 id="使用RMAN进行flashback-database"><a href="#使用RMAN进行flashback-database" class="headerlink" title="使用RMAN进行flashback database"></a>使用RMAN进行flashback database</h2><p>使用RMAN进行闪回数据库的几种常用办法</p>
-<pre><code class="line-numbers language-shell">RMAN&gt; flashback database to scn=918987;
+<h2 id="shi-yong-rman-jin-xing-flashback-database">使用RMAN进行flashback database</h2>
+<p>使用RMAN进行闪回数据库的几种常用办法</p>
+<pre><code class="language-shell">RMAN&gt; flashback database to scn=918987;
 
 RMAN&gt; flashback database to sequence=85  thread=1;
 </code></pre>
-<h3 id="a-基于时间戳闪回-1"><a href="#a-基于时间戳闪回-1" class="headerlink" title="a.基于时间戳闪回"></a>a.基于时间戳闪回</h3><h4 id="步骤1-创建测试表-1"><a href="#步骤1-创建测试表-1" class="headerlink" title="步骤1 创建测试表"></a>步骤1 创建测试表</h4><pre><code class="line-numbers language-shell">oracle@mmsc101:~&gt; sqlplus / as sysdba
+<h3 id="a-ji-yu-shi-jian-chuo-shan-hui-1">a.基于时间戳闪回</h3>
+<h4 id="bu-zou-1-chuang-jian-ce-shi-biao-1">步骤1 创建测试表</h4>
+<pre><code class="language-shell">oracle@mmsc101:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 19:02:24 2012
 
@@ -968,13 +1200,15 @@ SQL&gt; select count(0) from mmsg.tmp;
 ----------
         18
 </code></pre>
-<h4 id="步骤2-获取数据库当前时间"><a href="#步骤2-获取数据库当前时间" class="headerlink" title="步骤2 获取数据库当前时间"></a>步骤2 获取数据库当前时间</h4><pre><code class="line-numbers language-shell">SQL&gt; select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss') tm from dual;
+<h4 id="bu-zou-2-huo-qu-shu-ju-ku-dang-qian-shi-jian">步骤2 获取数据库当前时间</h4>
+<pre><code class="language-shell">SQL&gt; select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss') tm from dual;
 
 TM
 -------------------
 2012-02-09 19:03:14
 </code></pre>
-<h4 id="步骤3-删除测试表"><a href="#步骤3-删除测试表" class="headerlink" title="步骤3 删除测试表"></a>步骤3 删除测试表</h4><pre><code class="line-numbers language-shell">SQL&gt; drop table mmsg.tmp;
+<h4 id="bu-zou-3-shan-chu-ce-shi-biao">步骤3 删除测试表</h4>
+<pre><code class="language-shell">SQL&gt; drop table mmsg.tmp;
 
 Table dropped.
 
@@ -982,7 +1216,8 @@ SQL&gt; commit;
 
 Commit complete.
 </code></pre>
-<h4 id="步骤4-闪回实践"><a href="#步骤4-闪回实践" class="headerlink" title="步骤4 闪回实践"></a>步骤4 闪回实践</h4><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h4 id="bu-zou-4-shan-hui-shi-jian">步骤4 闪回实践</h4>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 Database closed.
 Database dismounted.
 ORACLE instance shut down.
@@ -1036,7 +1271,8 @@ SQL&gt; alter database open resetlogs;
 
 Database altered.
 </code></pre>
-<h4 id="步骤5-查看闪回结果-1"><a href="#步骤5-查看闪回结果-1" class="headerlink" title="步骤5 查看闪回结果"></a>步骤5 查看闪回结果</h4><pre><code class="line-numbers language-shell">SQL&gt; select count(0) from mmsg.tmp;
+<h4 id="bu-zou-5-cha-kan-shan-hui-jie-guo-1">步骤5 查看闪回结果</h4>
+<pre><code class="language-shell">SQL&gt; select count(0) from mmsg.tmp;
 
   COUNT(0)
 ----------
@@ -1044,14 +1280,19 @@ Database altered.
 
 SQL&gt;
 </code></pre>
-<h3 id="b-基于SCN闪回"><a href="#b-基于SCN闪回" class="headerlink" title="b.基于SCN闪回"></a>b.基于SCN闪回</h3><h3 id="c-基于sequence闪回"><a href="#c-基于sequence闪回" class="headerlink" title="c.基于sequence闪回"></a>c.基于sequence闪回</h3><p>说明：</p>
-<ul>
-<li>RMAN闪回操作和sqlplus闪回类似，命令可参考sqlplus的操作。</li>
+<h3 id="b-ji-yu-scn-shan-hui">b.基于SCN闪回</h3>
+<h3 id="c-ji-yu-sequence-shan-hui">c.基于sequence闪回</h3>
+<p>说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>RMAN闪回操作和sqlplus闪回类似，命令可参考sqlplus的操作。</p>
+</li>
 </ul>
-<h1 id="闪回表"><a href="#闪回表" class="headerlink" title="闪回表"></a>闪回表</h1><p>就是将表里的数据推回到过去的某个时间点，是利用undo表空间里记录的数据被改变前的值，如果闪回表所需要的undo数据，由于保留的时间超过了初始化参数undo_retention所指定的值，从而导致该undo数据块被其他事务覆盖，就不能恢复到指定的时间点了。</p>
+<h1 id="shan-hui-biao">闪回表</h1>
+<p>就是将表里的数据推回到过去的某个时间点，是利用undo表空间里记录的数据被改变前的值，如果闪回表所需要的undo数据，由于保留的时间超过了初始化参数undo_retention所指定的值，从而导致该undo数据块被其他事务覆盖，就不能恢复到指定的时间点了。</p>
 <p>闪回表的局限：当前的时间点到要闪回到的时间点之间不允许有ddl操作，否则闪回无法成功。</p>
 <p>示例：</p>
-<pre><code class="line-numbers language-shell">SQL&gt; select count(0) from mmsg.tmp;
+<pre><code class="language-shell">SQL&gt; select count(0) from mmsg.tmp;
 
   COUNT(0)
 ----------
@@ -1074,38 +1315,47 @@ SQL&gt; select count(0) from mmsg.tmp;
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>闪回表，需要在数据库启用回收站条件下才能进行表的闪回，否则报错：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>闪回表，需要在数据库启用回收站条件下才能进行表的闪回，否则报错：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">SQL&gt; FLASHBACK TABLE mmsg.TEST TO BEFORE DROP;
+<pre><code class="language-shell">SQL&gt; FLASHBACK TABLE mmsg.TEST TO BEFORE DROP;
 FLASHBACK TABLE mmsg.TEST TO BEFORE DROP
 *
 ERROR at line 1:
 ORA-38305: object not in RECYCLE BIN
 </code></pre>
-<h1 id="闪回版本查询"><a href="#闪回版本查询" class="headerlink" title="闪回版本查询"></a>闪回版本查询</h1><p>所谓版本指的是每次事务所引起的数据行的变化的情况，每一次变化就是一个版本。闪回版本查询使用的undo表空间里记录的undo数据。</p>
+<h1 id="shan-hui-ban-ben-cha-xun">闪回版本查询</h1>
+<p>所谓版本指的是每次事务所引起的数据行的变化的情况，每一次变化就是一个版本。闪回版本查询使用的undo表空间里记录的undo数据。</p>
 <p>示例：</p>
 <p>1、创建测试表，并插入数据</p>
 <p>2、查询表中数据总量</p>
 <p>3、drop 表中某个记录，查询表中总量</p>
 <p>4、查看对应的该表中的闪回版本信息</p>
-<pre><code class="line-numbers language-shell">select versions_starttime, versions_endtime, versions_xid,
+<pre><code class="language-shell">select versions_starttime, versions_endtime, versions_xid,
     versions_operation, moduleid
     from modules versions between timestamp minvalue and maxvalue
     order by VERSIONS_STARTTIME
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>其中modules为测试表的表名称。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>其中modules为测试表的表名称。</p>
+</li>
 </ul>
-<h1 id="闪回事务查询"><a href="#闪回事务查询" class="headerlink" title="闪回事务查询"></a>闪回事务查询</h1><p>闪回事务查询提供的是一个视图，flashback_transaction_query，利用这个视图，可以显示哪些事务引起了数据的变化，并为此提供了撤销事务的SQL语句。</p>
+<h1 id="shan-hui-shi-wu-cha-xun">闪回事务查询</h1>
+<p>闪回事务查询提供的是一个视图，flashback_transaction_query，利用这个视图，可以显示哪些事务引起了数据的变化，并为此提供了撤销事务的SQL语句。</p>
 <p>闪回事务查询利用的是undo表空间的undo数据</p>
 <p>示例：</p>
 <p>1、dba用户登录数据库，查询视图信息；</p>
 <p><code>select * from flashback_transaction_query where table_owner='MMSG'；</code></p>
 <p>2、查找对应的闪回事务，确定闪回操作时间点，执行UNDO_SQL字段提供的回滚语句进行闪回操作。</p>
-<h1 id="闪回查询"><a href="#闪回查询" class="headerlink" title="闪回查询"></a>闪回查询</h1><p>查询过去某个时刻表的数据的情况，一旦确认某个时刻的数据满足我们的需求以后，可以根据这个时间执行闪回表。</p>
-<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><h2 id="查看闪回区使用情况"><a href="#查看闪回区使用情况" class="headerlink" title="查看闪回区使用情况"></a>查看闪回区使用情况</h2><pre><code class="line-numbers language-shell">SQL&gt; select name,space_limit/1024/1024 sp_limt,space_used/1024/1024 sp_usd,
+<h1 id="shan-hui-cha-xun">闪回查询</h1>
+<p>查询过去某个时刻表的数据的情况，一旦确认某个时刻的数据满足我们的需求以后，可以根据这个时间执行闪回表。</p>
+<h1 id="fu-lu">附录</h1>
+<h2 id="cha-kan-shan-hui-qu-shi-yong-qing-kuang">查看闪回区使用情况</h2>
+<pre><code class="language-shell">SQL&gt; select name,space_limit/1024/1024 sp_limt,space_used/1024/1024 sp_usd,
   2  space_reclaimable/1024/1024 sp_recl,
   3  number_of_files num_fils from v$recovery_file_dest;
 
@@ -1119,7 +1369,8 @@ NAME
 
 SQL&gt;
 </code></pre>
-<h2 id="将某些表空间排除在闪回之外"><a href="#将某些表空间排除在闪回之外" class="headerlink" title="将某些表空间排除在闪回之外"></a>将某些表空间排除在闪回之外</h2><pre><code class="line-numbers language-shell">SQL&gt; alter tablespace MMSG flashback off;
+<h2 id="jiang-mou-xie-biao-kong-jian-pai-chu-zai-shan-hui-zhi-wai">将某些表空间排除在闪回之外</h2>
+<pre><code class="language-shell">SQL&gt; alter tablespace MMSG flashback off;
 
 SQL&gt; select name,flashback_on from v$tablespace where ts#=4;
 
@@ -1130,8 +1381,10 @@ SQL&gt; select name,flashback_on from v$tablespace where ts#=4;
         MMSG           NO
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>如果需要对上述表空间启用闪回功能，则需要在mount模式下对该表空间进行开启该功能。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果需要对上述表空间启用闪回功能，则需要在mount模式下对该表空间进行开启该功能。</p>
+</li>
 </ul>
 
                 
@@ -1235,10 +1488,10 @@ SQL&gt; select name,flashback_on from v$tablespace where ts#=4;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1552,7 +1805,7 @@ SQL&gt; select name,flashback_on from v$tablespace where ts#=4;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/42.jpg" class="responsive-img" alt="Oracle 管理篇之表空间">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/42.jpg" class="responsive-img" alt="Oracle 管理篇之表空间">
                         
                         <span class="card-title">Oracle 管理篇之表空间</span>
                     </div>
@@ -1601,7 +1854,7 @@ SQL&gt; select name,flashback_on from v$tablespace where ts#=4;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/103.jpg" class="responsive-img" alt="Oracle案例--表空间--表空间使用率为负数">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/103.jpg" class="responsive-img" alt="Oracle案例--表空间--表空间使用率为负数">
                         
                         <span class="card-title">Oracle案例--表空间--表空间使用率为负数</span>
                     </div>
@@ -1832,7 +2085,7 @@ SQL&gt; select name,flashback_on from v$tablespace where ts#=4;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2182,6 +2435,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

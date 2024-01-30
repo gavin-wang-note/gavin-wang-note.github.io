@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Linux录屏与回放, 软硬件测试">
-    <meta name="description" content="录制与回放终端会话当你需要为别人在终端上演示某些操作，或者是需要准备一个命令行教程时，通常要一边手动输入命令一边进行演示，或者录制一段演示视频进行播放。如果我们将输入命令后发生的一切，安装一定的先后顺序记录下来，再进行回访，从而使得观众好像">
+    <meta name="description" content="录制与回放终端会话
+当你需要为别人在终端上演示某些操作，或者是需要准备一个命令行教程时，通常要一边手动输入命令一边进行演示，或者录制一段演示视频进行播放。如果我们将输入命令后发生的一切，安装一定的先后顺序记录下来，再进行回访，从而使得观众好">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -468,9 +609,13 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="录制与回放终端会话"><a href="#录制与回放终端会话" class="headerlink" title="录制与回放终端会话"></a>录制与回放终端会话</h1><p>当你需要为别人在终端上演示某些操作，或者是需要准备一个命令行教程时，通常要一边手动输入命令一边进行演示，或者录制一段演示视频进行播放。如果我们将输入命令后发生的一切，安装一定的先后顺序记录下来，再进行回访，从而使得观众好像身临其境一样，这个想法听起来如何？<br>命令的输出会显示在终端上，一直到回访内容播放完毕，所有的这些，都可以使用script和scriptreplay命令来实现。</p>
-<h1 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h1><p>script 和 scriptreplay命令在绝大多数GNU/Linux发行版本上都可以找到。把终端会话记录到一个文件，可以通过录制终端会话来制作命令行技巧视频，也可以与他人分享会话记录文件，共同研究如何使用这些命令行完成某项任务。</p>
-<h1 id="实战演练"><a href="#实战演练" class="headerlink" title="实战演练"></a>实战演练</h1><h2 id="script常用选项"><a href="#script常用选项" class="headerlink" title="script常用选项"></a>script常用选项</h2><p>更详细的说明可以man script来查看</p>
+                <h1 id="lu-zhi-yu-hui-fang-zhong-duan-hui-hua">录制与回放终端会话</h1>
+<p>当你需要为别人在终端上演示某些操作，或者是需要准备一个命令行教程时，通常要一边手动输入命令一边进行演示，或者录制一段演示视频进行播放。如果我们将输入命令后发生的一切，安装一定的先后顺序记录下来，再进行回访，从而使得观众好像身临其境一样，这个想法听起来如何？命令的输出会显示在终端上，一直到回访内容播放完毕，所有的这些，都可以使用script和scriptreplay命令来实现。</p>
+<h1 id="yu-bei-zhi-shi">预备知识</h1>
+<p>script 和 scriptreplay命令在绝大多数GNU/Linux发行版本上都可以找到。把终端会话记录到一个文件，可以通过录制终端会话来制作命令行技巧视频，也可以与他人分享会话记录文件，共同研究如何使用这些命令行完成某项任务。</p>
+<h1 id="shi-zhan-yan-lian">实战演练</h1>
+<h2 id="script-chang-yong-xuan-xiang">script常用选项</h2>
+<p>更详细的说明可以man script来查看</p>
 <table>
 <thead>
 <tr>
@@ -478,7 +623,8 @@
 <th>描述</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>-a, - -append</td>
 <td>输出录制的文件，在现有内容上追加新的内容</td>
 </tr>
@@ -510,15 +656,18 @@
 <td>-h, - -help</td>
 <td>显示使用说明并退出</td>
 </tr>
-</tbody></table>
-<h2 id="scriptreplay"><a href="#scriptreplay" class="headerlink" title="scriptreplay"></a>scriptreplay</h2><table>
+</tbody>
+</table>
+<h2 id="scriptreplay">scriptreplay</h2>
+<table>
 <thead>
 <tr>
 <th>选项</th>
 <th>描述</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>-t, - -timing file</td>
 <td>包含记录时序的文件</td>
 </tr>
@@ -538,9 +687,10 @@
 <td>-h, - -help</td>
 <td>显示使用说明并退出</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>开始录制终端会话：</p>
-<pre><code class="line-numbers language-shell">root@host245:~/tmp# script -t 2&gt; timeing.log -a output.session
+<pre><code class="language-shell">root@host245:~/tmp# script -t 2&gt; timeing.log -a output.session
 Script started, file is output.session
 root@host245:~/tmp# ls -l
 total 4
@@ -556,19 +706,21 @@ Script done, file is output.session
 <p>两个文件（timeing.log 和 output.session）被当做script命令的参数，其中timeing.log用于存储时序信息，描述每一个指令在何时运行；另外一个文件output.session用于存储命令输出。</p>
 <p>-t选项用于将时序数据导入stderr； 2&gt;则用于将stedrr重定向到timing.log文件。</p>
 <p>借助这两个文件：timeing.log（存储时序信息） 和 output.session（存储命令输入信息），我们可以按照下面的方法回放命令的执行过程：</p>
-<pre><code class="line-numbers language-shell">root@host245:~/tmp# scriptreplay timeing.log output.session 
+<pre><code class="language-shell">root@host245:~/tmp# scriptreplay timeing.log output.session 
 </code></pre>
-<h1 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h1><p>通常我们会录制桌面环境视频来作为教程使用，不过要注意的是，视频需要更大的存储空间，而终端脚本文件仅仅是文本文件，大小不过KB级别。</p>
+<h1 id="gong-zuo-yuan-li">工作原理</h1>
+<p>通常我们会录制桌面环境视频来作为教程使用，不过要注意的是，视频需要更大的存储空间，而终端脚本文件仅仅是文本文件，大小不过KB级别。</p>
 <p>script命令同样可以用于建立可在多个用户之间进行广播的视频会话，这是件很有意思的事情，来看看它是如何实现的吧。</p>
 <p>打开两个终端，Terminal1 和 Terminal2</p>
 <p>在Terminal1中输入如下命令：</p>
-<pre><code class="line-numbers language-shell">root@host244:~# mkfifo scriptfifo
+<pre><code class="language-shell">root@host244:~# mkfifo scriptfifo
+
 </code></pre>
 <p>在Terminal2中输入如下命令：</p>
-<pre><code class="line-numbers language-shell">root@host244:~# cat scriptfifo
+<pre><code class="language-shell">root@host244:~# cat scriptfifo
 </code></pre>
 <p>返回Terminal1，输入以下命令：</p>
-<pre><code class="line-numbers language-shell">root@host244:~# script -f scriptfifo
+<pre><code class="language-shell">root@host244:~# script -f scriptfifo
 root@host244:~# some other linux command, such as ls, cd, mkdir and so on
 </code></pre>
 <p>如果需要结束会话，输入exit并按回车，会得到如下信息：</p>
@@ -576,7 +728,8 @@ root@host244:~# some other linux command, such as ls, cd, mkdir and so on
 <p>现在，Terminal1就成了广播员，Terminal2则成为了听众。不管你在Terminal1中输入什么内容，都会在Terminal2或者使用了下列命令的任何终端中实时播放：</p>
 <p><code>cat scriptfifo</code></p>
 <p>当你需要为计算机实验室或者Internet上的用户群演示教程时，不妨考虑这个方法，它在节省带宽的同时，也提供了实体试验。</p>
-<h1 id="另外一个共享屏幕的方法"><a href="#另外一个共享屏幕的方法" class="headerlink" title="另外一个共享屏幕的方法"></a>另外一个共享屏幕的方法</h1><p>可以使用tmux，将tmux的session id告知大家，所有人都在Terminal中切换到这个tmux session，一个人的任何输入输出操作， 其他在这个会话中的人都可以看到。缺点是：在这个tmux session的人，都有执行命令的权限。</p>
+<h1 id="ling-wai-yi-ge-gong-xiang-ping-mu-de-fang-fa">另外一个共享屏幕的方法</h1>
+<p>可以使用tmux，将tmux的session id告知大家，所有人都在Terminal中切换到这个tmux session，一个人的任何输入输出操作， 其他在这个会话中的人都可以看到。缺点是：在这个tmux session的人，都有执行命令的权限。</p>
 
                 
             </div>
@@ -679,10 +832,10 @@ root@host244:~# some other linux command, such as ls, cd, mkdir and so on
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -996,7 +1149,7 @@ root@host244:~# some other linux command, such as ls, cd, mkdir and so on
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/151.jpg" class="responsive-img" alt="彩信网关数据库自动升级与比对（QCC）">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/151.jpg" class="responsive-img" alt="彩信网关数据库自动升级与比对（QCC）">
                         
                         <span class="card-title">彩信网关数据库自动升级与比对（QCC）</span>
                     </div>
@@ -1045,7 +1198,7 @@ root@host244:~# some other linux command, such as ls, cd, mkdir and so on
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/141.jpg" class="responsive-img" alt="绑定与还原网卡配置文件">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/141.jpg" class="responsive-img" alt="绑定与还原网卡配置文件">
                         
                         <span class="card-title">绑定与还原网卡配置文件</span>
                     </div>
@@ -1276,7 +1429,7 @@ root@host244:~# some other linux command, such as ls, cd, mkdir and so on
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1626,6 +1779,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

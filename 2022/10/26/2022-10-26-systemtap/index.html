@@ -5,9 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="systemtap部署与实战, 软硬件测试">
-    <meta name="description" content="概述本文介绍如何借助systemtap给磁盘注入时延，验证产品慢盘检测功能。
-安装与部署安装Linux debug symbols挂载安装Virtual Scaler ISO到机器上，然后从后台运行以下命令：
-mkdir /mnt/cdro">
+    <meta name="description" content="概述
+本文介绍如何借助systemtap给磁盘注入时延，验证产品慢盘检测功能。
+安装与部署
+安装Linux debug symbols
+挂载安装Virtual Scaler ISO到机器上，然后从后台运行以下命令：
+mkdir /mnt/c">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +68,160 @@ mkdir /mnt/cdro">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +336,7 @@ mkdir /mnt/cdro">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -444,7 +587,7 @@ mkdir /mnt/cdro">
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    754
+                    757
                 </div>
                 
 
@@ -474,22 +617,28 @@ mkdir /mnt/cdro">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文介绍如何借助systemtap给磁盘注入时延，验证产品慢盘检测功能。</p>
-<h1 id="安装与部署"><a href="#安装与部署" class="headerlink" title="安装与部署"></a>安装与部署</h1><h2 id="安装Linux-debug-symbols"><a href="#安装Linux-debug-symbols" class="headerlink" title="安装Linux debug symbols"></a>安装Linux debug symbols</h2><p>挂载安装Virtual Scaler ISO到机器上，然后从后台运行以下命令：</p>
-<pre><code class="line-numbers language-shell">mkdir /mnt/cdrom
+                <h1 id="gai-shu">概述</h1>
+<p>本文介绍如何借助systemtap给磁盘注入时延，验证产品慢盘检测功能。</p>
+<h1 id="an-zhuang-yu-bu-shu">安装与部署</h1>
+<h2 id="an-zhuang-linux-debug-symbols">安装Linux debug symbols</h2>
+<p>挂载安装Virtual Scaler ISO到机器上，然后从后台运行以下命令：</p>
+<pre><code class="language-shell">mkdir /mnt/cdrom
 mount /dev/cdrom /mnt/cdrom
 cd /mnt/cdrom/pools/extra
 dpkg -i linux-image-4.14.148-dbg_4.14.148-202009221212.git33a12c4_amd64.deb
 </code></pre>
-<ul>
-<li>此处.deb 请替换成ISO中相应版本的文件，类似linux-image-4.14.148-dbg_***.deb。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>此处.deb 请替换成ISO中相应版本的文件，类似linux-image-4.14.148-dbg_***.deb。</p>
+</li>
 </ul>
-<h2 id="其他package的安装"><a href="#其他package的安装" class="headerlink" title="其他package的安装"></a>其他package的安装</h2><p>直接运行安装包下的install_systemtap.sh:</p>
-<pre><code class="line-numbers language-shell">chmod a+x install_systemtap.sh;
+<h2 id="qi-ta-package-de-an-zhuang">其他package的安装</h2>
+<p>直接运行安装包下的install_systemtap.sh:</p>
+<pre><code class="language-shell">chmod a+x install_systemtap.sh;
 ./ install_systemtap.sh
 </code></pre>
 <p>或</p>
-<pre><code class="line-numbers language-shell">dpkg -i zlib1g-dev_1%3a1.2.8.dfsg-2ubuntu4.3_amd64.deb;
+<pre><code class="language-shell">dpkg -i zlib1g-dev_1%3a1.2.8.dfsg-2ubuntu4.3_amd64.deb;
 dpkg -i liblzma-dev_5.1.1alpha+20120614-2ubuntu2_amd64.deb;
 dpkg -i libelf1_0.170-0.4ubuntu0.1_amd64.deb;
 dpkg -i libelf-dev_0.170-0.4ubuntu0.1_amd64.deb;
@@ -501,21 +650,23 @@ dpkg -i libasprintf-dev_0.19.7-2ubuntu3.1_amd64.deb;
 dpkg -i elfutils_0.170-0.4ubuntu0.1_amd64.deb;
 </code></pre>
 <p>Centos:</p>
-<pre><code class="line-numbers language-shell">yum install elfutils-devel
+<pre><code class="language-shell">yum install elfutils-devel
 https://sourceware.org/systemtap/wiki/SystemTapOnCentOS
 </code></pre>
 <p>解压systemtap并编译安装</p>
-<pre><code class="line-numbers language-shell">tar zxvf systemtap-4.3.tar.gz
+<pre><code class="language-shell">tar zxvf systemtap-4.3.tar.gz
 cd systemtap-4.3/
 ./configure --prefix=/usr/;
 make &amp;&amp; make install
 </code></pre>
 <p>测试systemtap是否安装成功</p>
-<p>如果安装成功，运行以下命令稍候会打印hello world: </p>
-<pre><code class="line-numbers language-shell">stap -e 'probe kernel.function("sys_open") {log("hello world") exit()}'
+<p>如果安装成功，运行以下命令稍候会打印hello world:</p>
+<pre><code class="language-shell">stap -e 'probe kernel.function("sys_open") {log("hello world") exit()}'
+
 </code></pre>
-<h1 id="输出当前读写磁盘的进程"><a href="#输出当前读写磁盘的进程" class="headerlink" title="输出当前读写磁盘的进程"></a>输出当前读写磁盘的进程</h1><p>创建disk.stp文件，输入以下内容：</p>
-<pre><code class="line-numbers language-shell">#!/usr/bin/env stap 
+<h1 id="shu-chu-dang-qian-du-xie-ci-pan-de-jin-cheng">输出当前读写磁盘的进程</h1>
+<p>创建disk.stp文件，输入以下内容：</p>
+<pre><code class="language-shell">#!/usr/bin/env stap 
 #
 # Copyright (C) 2007 Oracle Corp.
 #
@@ -586,19 +737,20 @@ probe end{
   delete read_bytes
   delete write_bytes
 }
+
 </code></pre>
 <p>给该文件运行的权限并执行：</p>
-<pre><code class="line-numbers language-shell">chmod a+x disk.stp
+<pre><code class="language-shell">chmod a+x disk.stp
 ./disk.stp
+
 </code></pre>
-<p>输出如下结果： </p>
-<img class="shadow" src="/img/in-post/disk_stp.png" width="1200">
-
-
-<h1 id="模拟磁盘延迟"><a href="#模拟磁盘延迟" class="headerlink" title="模拟磁盘延迟"></a>模拟磁盘延迟</h1><p>推荐将RAID设置成write back模式。</p>
+<p>输出如下结果：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/disk_stp.png" width="1200">
+<h1 id="mo-ni-ci-pan-yan-chi">模拟磁盘延迟</h1>
+<p>推荐将RAID设置成write back模式。</p>
 <p>使用oceanfile以512k的bs来写数据: <code>oceanfile -d . -p 40 -a 8,20,100,100 -s 10M -b 512K  -i 1</code></p>
 <p>创建以下systemtap文件inject_ka.stp, 并输入以下内容：</p>
-<pre><code class="line-numbers language-shell">global cnt = 0 ;
+<pre><code class="language-shell">global cnt = 0 ;
 probe module("sd_mod").function("sd_init_command") !,
       kernel.function("sd_init_command")
 {
@@ -621,19 +773,20 @@ probe module("sd_mod").function("sd_init_command") !,
 probe begin{
   println("inject_scsi_delay module begin");
 }
+
 </code></pre>
 <p>以如下格式运行：</p>
-<pre><code class="line-numbers language-shell">#stap -g -DMAXSKIPPED=99999999 inject_ka.stp sdb 10
+<pre><code class="language-shell">#stap -g -DMAXSKIPPED=99999999 inject_ka.stp sdb 10
 </code></pre>
 <p>或</p>
-<pre><code class="line-numbers language-shell">#stap -p4 -DMAXSKIPPED=99999999 -m ik -g inject_ka.stp sdb 10
+<pre><code class="language-shell">#stap -p4 -DMAXSKIPPED=99999999 -m ik -g inject_ka.stp sdb 10
 #staprun ik.ko
 </code></pre>
 <p>运行之后，sdc盘的svctm就会在当前数值基本上增加10.</p>
-<img class="shadow" src="/img/in-post/sdc_svctm.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/sdc_svctm.png" width="1200">
 <p>参考：</p>
-<p><a target="_blank" rel="noopener" href="https://sourceware.org/systemtap/examples/io/iostat-scsi.stp">https://sourceware.org/systemtap/examples/io/iostat-scsi.stp</a><br><a target="_blank" rel="noopener" href="https://sourceware.org/systemtap/examples/io/iostat-scsi.txt">https://sourceware.org/systemtap/examples/io/iostat-scsi.txt</a></p>
+<p><a target="_blank" rel="noopener" href="https://sourceware.org/systemtap/examples/io/iostat-scsi.stp">https://sourceware.org/systemtap/examples/io/iostat-scsi.stp</a><br>
+<a target="_blank" rel="noopener" href="https://sourceware.org/systemtap/examples/io/iostat-scsi.txt">https://sourceware.org/systemtap/examples/io/iostat-scsi.txt</a></p>
 
                 
             </div>
@@ -740,10 +893,10 @@ probe begin{
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1057,7 +1210,7 @@ probe begin{
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/126.jpg" class="responsive-img" alt="修改主机名">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/126.jpg" class="responsive-img" alt="修改主机名">
                         
                         <span class="card-title">修改主机名</span>
                     </div>
@@ -1106,7 +1259,7 @@ probe begin{
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/65.jpg" class="responsive-img" alt="使用rsyslog 配置netconsole记录dmesg">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/65.jpg" class="responsive-img" alt="使用rsyslog 配置netconsole记录dmesg">
                         
                         <span class="card-title">使用rsyslog 配置netconsole记录dmesg</span>
                     </div>
@@ -1345,7 +1498,7 @@ probe begin{
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1695,6 +1848,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

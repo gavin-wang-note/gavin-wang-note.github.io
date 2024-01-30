@@ -5,10 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例--控制文件损坏如何恢复, 软硬件测试">
-    <meta name="description" content="概述本文介绍控制文件的损坏与恢复操作方法，控制文件的损坏分为损坏部分控制文件和全部控制文件损坏。
-部分控制文件损坏的恢复损坏部分控制文件，只要还有其他的可用的控制文件，在关闭数据库情况下，将可用的控制文件拷贝并重命名即可。
-具体操作如下：
-">
+    <meta name="description" content="概述
+本文介绍控制文件的损坏与恢复操作方法，控制文件的损坏分为损坏部分控制文件和全部控制文件损坏。
+部分控制文件损坏的恢复
+损坏部分控制文件，只要还有其他的可用的控制文件，在关闭数据库情况下，将可用的控制文件拷贝并重命名即可。
+具体操作如下">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -66,20 +67,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -194,7 +335,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -471,10 +612,13 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>本文介绍控制文件的损坏与恢复操作方法，控制文件的损坏分为损坏部分控制文件和全部控制文件损坏。</p>
-<h1 id="部分控制文件损坏的恢复"><a href="#部分控制文件损坏的恢复" class="headerlink" title="部分控制文件损坏的恢复"></a>部分控制文件损坏的恢复</h1><p>损坏部分控制文件，只要还有其他的可用的控制文件，在关闭数据库情况下，将可用的控制文件拷贝并重命名即可。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>本文介绍控制文件的损坏与恢复操作方法，控制文件的损坏分为损坏部分控制文件和全部控制文件损坏。</p>
+<h1 id="bu-fen-kong-zhi-wen-jian-sun-pi-de-hui-fu">部分控制文件损坏的恢复</h1>
+<p>损坏部分控制文件，只要还有其他的可用的控制文件，在关闭数据库情况下，将可用的控制文件拷贝并重命名即可。</p>
 <p>具体操作如下：</p>
-<h2 id="步骤一-启动数据库报错"><a href="#步骤一-启动数据库报错" class="headerlink" title="步骤一  启动数据库报错"></a>步骤一  启动数据库报错</h2><pre><code class="line-numbers language-shell">SQL&gt; alter session set nls_language = american;
+<h2 id="bu-zou-yi-qi-dong-shu-ju-ku-bao-cuo">步骤一  启动数据库报错</h2>
+<pre><code class="language-shell">SQL&gt; alter session set nls_language = american;
 
 Session altered.
 
@@ -496,14 +640,16 @@ ORA-00205: ?????????, ??????, ???????
 
 SQL&gt;
 </code></pre>
-<h2 id="步骤二-查看错误码"><a href="#步骤二-查看错误码" class="headerlink" title="步骤二  查看错误码"></a>步骤二  查看错误码</h2><pre><code class="line-numbers language-shell">oracle@mmsg02:~&gt; oerr ora 00205
+<h2 id="bu-zou-er-cha-kan-cuo-wu-ma">步骤二  查看错误码</h2>
+<pre><code class="language-shell">oracle@mmsg02:~&gt; oerr ora 00205
 00205, 00000, "error in identifying control file, check alert log for more info"
 // *Cause:  The system could not find a control file of the specified name and
 //         size.
 // *Action: Check that ALL control files are online and that they are the same
 //         files that the system created at cold start time.
 </code></pre>
-<h2 id="步骤三-查看trace日志，获取更详细信息"><a href="#步骤三-查看trace日志，获取更详细信息" class="headerlink" title="步骤三  查看trace日志，获取更详细信息"></a>步骤三  查看trace日志，获取更详细信息</h2><pre><code class="line-numbers language-shell">oracle@mmsg02:~/diag/rdbms/infoxdb/infoxdb/alert&gt; vi /home/oracle/diag/rdbms/infoxdb/infoxdb/trace/infoxdb_m000_2951.trc
+<h2 id="bu-zou-san-cha-kan-trace-ri-zhi-huo-qu-geng-xiang-xi-xin-xi">步骤三  查看trace日志，获取更详细信息</h2>
+<pre><code class="language-shell">oracle@mmsg02:~/diag/rdbms/infoxdb/infoxdb/alert&gt; vi /home/oracle/diag/rdbms/infoxdb/infoxdb/trace/infoxdb_m000_2951.trc
 
 Trace file /home/oracle/diag/rdbms/infoxdb/infoxdb/trace/infoxdb_m000_2951.trc
 Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
@@ -558,8 +704,9 @@ ORA-27048: skgfifi: ????????
 -------------------------------------------------------
 </code></pre>
 <p>由上可知，控制文件被损坏，被损坏的控制文件分别是control01.ctl和control02.ctl</p>
-<h2 id="步骤四-检查是否有可用的控制文件"><a href="#步骤四-检查是否有可用的控制文件" class="headerlink" title="步骤四  检查是否有可用的控制文件"></a>步骤四  检查是否有可用的控制文件</h2><p>这里由于日志未报控制文件control03.ctl出错，可以推断控制文件3是好的，也可以检查一下：</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg02:~/oradata/infoxdb&gt; dbv file=control03.ctl  blocksize=16384
+<h2 id="bu-zou-si-jian-cha-shi-fou-you-ke-yong-de-kong-zhi-wen-jian">步骤四  检查是否有可用的控制文件</h2>
+<p>这里由于日志未报控制文件control03.ctl出错，可以推断控制文件3是好的，也可以检查一下：</p>
+<pre><code class="language-shell">oracle@mmsg02:~/oradata/infoxdb&gt; dbv file=control03.ctl  blocksize=16384
 
 DBVERIFY: Release 11.1.0.7.0 - Production on 星期五 12月 24 12:33:39 2010
 
@@ -602,7 +749,8 @@ Copyright (c) 1982, 2007, Oracle.  All rights reserved.
 DBV-00107: 未知标头格式 (11) (201326603)
 dbv检查控制文件1和2，发现控制文件1和2被损坏，和日志正好吻合。
 </code></pre>
-<h2 id="步骤五-替换被损坏的控制文件，并启动数据库"><a href="#步骤五-替换被损坏的控制文件，并启动数据库" class="headerlink" title="步骤五  替换被损坏的控制文件，并启动数据库"></a>步骤五  替换被损坏的控制文件，并启动数据库</h2><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h2 id="bu-zou-wu-ti-huan-bei-sun-pi-de-kong-zhi-wen-jian-bing-qi-dong-shu-ju-ku">步骤五  替换被损坏的控制文件，并启动数据库</h2>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 ORA-01507: database not mounted
 
 
@@ -658,15 +806,23 @@ Database altered.
 SQL&gt; select * from dba_data_files;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>1、损失单个控制文件是比较简单的，因为数据库中所有的控制文件都是镜相的，只需要简单的拷贝一个好的就可以了</li>
-<li>2、建议镜相控制文件在不同的磁盘上</li>
-<li>3、建议多做控制文件的备份，长期保留一份由alter database backup control file to trace产生的控制文件的文本备份</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、损失单个控制文件是比较简单的，因为数据库中所有的控制文件都是镜相的，只需要简单的拷贝一个好的就可以了</p>
+</li>
+<li class="lvl-2">
+<p>2、建议镜相控制文件在不同的磁盘上</p>
+</li>
+<li class="lvl-2">
+<p>3、建议多做控制文件的备份，长期保留一份由alter database backup control file to trace产生的控制文件的文本备份</p>
+</li>
 </ul>
-<h1 id="所有控制文件损坏的恢复"><a href="#所有控制文件损坏的恢复" class="headerlink" title="所有控制文件损坏的恢复"></a>所有控制文件损坏的恢复</h1><p>损坏所有的控制文件或者人为的删除所有的控制文件，通过备份复制已经不能解决问题，只能重新建立新的控制文件。</p>
+<h1 id="suo-you-kong-zhi-wen-jian-sun-pi-de-hui-fu">所有控制文件损坏的恢复</h1>
+<p>损坏所有的控制文件或者人为的删除所有的控制文件，通过备份复制已经不能解决问题，只能重新建立新的控制文件。</p>
 <p>使用具有dba权限的用户重新创建新控制文件，需要列出控制文件、数据文件、重做日志文件的路径信息，或者使用alter database backup controlfile to trace中产生的trace日志，修改这段日志脚本，使用该脚本重新创建控制文件。</p>
 <p>具体测试步骤如下：</p>
-<h2 id="步骤一-alter-database-backup-controlfile-to-trace"><a href="#步骤一-alter-database-backup-controlfile-to-trace" class="headerlink" title="步骤一 alter database backup controlfile to trace"></a>步骤一 alter database backup controlfile to trace</h2><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
+<h2 id="bu-zou-yi-alter-database-backup-controlfile-to-trace">步骤一 alter database backup controlfile to trace</h2>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 3月 9 09:05:25 2011
 
@@ -683,7 +839,8 @@ SQL&gt; alter database backup controlfile to trace;
 
 SQL&gt; 
 </code></pre>
-<h2 id="步骤二-查看alter-和trace日志"><a href="#步骤二-查看alter-和trace日志" class="headerlink" title="步骤二 查看alter 和trace日志"></a>步骤二 查看alter 和trace日志</h2><pre><code class="line-numbers language-shell">&lt;msg time='2011-03-09T09:06:22.712+08:00' org_id='oracle' comp_id='rdbms'
+<h2 id="bu-zou-er-cha-kan-alter-he-trace-ri-zhi">步骤二 查看alter 和trace日志</h2>
+<pre><code class="language-shell">&lt;msg time='2011-03-09T09:06:22.712+08:00' org_id='oracle' comp_id='rdbms'
  client_id='' type='UNKNOWN' level='16'
  module='sqlplus@mmsc103 (TNS V1-V3)' pid='12477'&gt;
  &lt;txt&gt;Backup controlfile written to trace file /opt/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_ora_12477.trc
@@ -885,7 +1042,8 @@ ALTER TABLESPACE RMAN_TMP ADD TEMPFILE '/opt/oracle/oradata/mmsgdb/rman_tmp.dbf'
 -- End of tempfile additions.
 --
 </code></pre>
-<h2 id="步骤三-模拟控制文件全部丢失"><a href="#步骤三-模拟控制文件全部丢失" class="headerlink" title="步骤三 模拟控制文件全部丢失"></a>步骤三 模拟控制文件全部丢失</h2><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; cd oradata/mmsgdb/
+<h2 id="bu-zou-san-mo-ni-kong-zhi-wen-jian-quan-bu-diu-shi">步骤三 模拟控制文件全部丢失</h2>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; cd oradata/mmsgdb/
 oracle@mmsc103:~/oradata/mmsgdb&gt; l
 total 2268880
 drwxr-x--- 2 oracle oinstall       4096 2011-03-08 18:21 ./
@@ -923,7 +1081,8 @@ drwxr-x--- 3 oracle oinstall       4096 2011-03-03 18:20 ../
 -rw-r----- 1 oracle oinstall  209723392 2011-03-09 09:11 undotbs01.dbf
 -rw-r----- 1 oracle oinstall    5251072 2011-03-09 09:11 users01.dbf
 </code></pre>
-<h2 id="步骤四-动数据库，报错"><a href="#步骤四-动数据库，报错" class="headerlink" title="步骤四  动数据库，报错"></a>步骤四  动数据库，报错</h2><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
+<h2 id="bu-zou-si-dong-shu-ju-ku-bao-cuo">步骤四  动数据库，报错</h2>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 3月 9 09:12:46 2011
 
@@ -941,7 +1100,8 @@ Database Buffers         3959422976 bytes
 Redo Buffers               27201536 bytes
 ORA-00205: ?????????, ??????, ???????
 </code></pre>
-<h2 id="步骤五-查看错误码和跟踪日志，获取详细信息"><a href="#步骤五-查看错误码和跟踪日志，获取详细信息" class="headerlink" title="步骤五  查看错误码和跟踪日志，获取详细信息"></a>步骤五  查看错误码和跟踪日志，获取详细信息</h2><pre><code class="line-numbers language-shell">SQL&gt; host
+<h2 id="bu-zou-wu-cha-kan-cuo-wu-ma-he-gen-zong-ri-zhi-huo-qu-xiang-xi-xin-xi">步骤五  查看错误码和跟踪日志，获取详细信息</h2>
+<pre><code class="language-shell">SQL&gt; host
 oracle@mmsc103:~&gt; oerr ora 00205
 00205, 00000, "error in identifying control file, check alert log for more info"
 // *Cause:  The system could not find a control file of the specified name and
@@ -971,7 +1131,9 @@ Additional information: 3
  &lt;/txt&gt;
 &lt;/msg&gt; 
 </code></pre>
-<h2 id="步骤六-重建数据库控制文件"><a href="#步骤六-重建数据库控制文件" class="headerlink" title="步骤六  重建数据库控制文件"></a>步骤六  重建数据库控制文件</h2><h3 id="修改trace日志中创建控制文件部分内容"><a href="#修改trace日志中创建控制文件部分内容" class="headerlink" title="修改trace日志中创建控制文件部分内容"></a>修改trace日志中创建控制文件部分内容</h3><pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; more control.sql 
+<h2 id="bu-zou-liu-zhong-jian-shu-ju-ku-kong-zhi-wen-jian">步骤六  重建数据库控制文件</h2>
+<h3 id="xiu-gai-trace-ri-zhi-zhong-chuang-jian-kong-zhi-wen-jian-bu-fen-nei-rong">修改trace日志中创建控制文件部分内容</h3>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; more control.sql 
 STARTUP NOMOUNT
 CREATE CONTROLFILE REUSE DATABASE "MMSGDB" NORESETLOGS  ARCHIVELOG
     MAXLOGFILES 16
@@ -1025,8 +1187,9 @@ ALTER TABLESPACE MMSG_TMP ADD TEMPFILE '/opt/oracle/oradata/mmsgdb/mmsgdata02'
 ALTER TABLESPACE RMAN_TMP ADD TEMPFILE '/opt/oracle/oradata/mmsgdb/rman_tmp.dbf'
      SIZE 20971520  REUSE AUTOEXTEND OFF;
 </code></pre>
-<h3 id="重新创建控制文件"><a href="#重新创建控制文件" class="headerlink" title="重新创建控制文件"></a>重新创建控制文件</h3><p>关闭数据库，修改trace文件中创建control文件部分</p>
-<pre><code class="line-numbers language-shell">SQL&gt; @control.sql
+<h3 id="zhong-xin-chuang-jian-kong-zhi-wen-jian">重新创建控制文件</h3>
+<p>关闭数据库，修改trace文件中创建control文件部分</p>
+<pre><code class="language-shell">SQL&gt; @control.sql
 ORACLE 例程已经启动。
 
 Total System Global Area 8417955840 bytes
@@ -1081,24 +1244,42 @@ SQL&gt;
 </code></pre>
 <p>如果没有trace日志文件中记录的重新创建控制文件部分内容，可以手工书写重建控制文件的sql脚本，内容可参考上面的trace日志中内容。</p>
 <p>说明：</p>
-<ul>
-<li>1、重建控制文件用于恢复全部数据文件的损坏，需要注意其书写的正确性，保证包含了所有的数据文件与联机日志</li>
-<li>2、经常有这样一种情况，因为一个磁盘损坏，我们不能再恢复(store)数据文件到这个磁盘，因此在store到另外一个盘的时候，我们就必须重新创建控制文件，用于识别这个新的数据文件，这里也可以用这种方法用于恢复;</li>
-<li>3、如果数据库运行在归档方式下，有可用的控制文件的备份(CONFIGURE CONTROLFILE AUTOBACKUP ON)，则可以使用restore controlfile from ‘备份的控制文件路径+文件名’来完成控制文件的恢复操作，详细操作可参考本文中“控制文件的恢复”内容。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、重建控制文件用于恢复全部数据文件的损坏，需要注意其书写的正确性，保证包含了所有的数据文件与联机日志</p>
+</li>
+<li class="lvl-2">
+<p>2、经常有这样一种情况，因为一个磁盘损坏，我们不能再恢复(store)数据文件到这个磁盘，因此在store到另外一个盘的时候，我们就必须重新创建控制文件，用于识别这个新的数据文件，这里也可以用这种方法用于恢复;</p>
+</li>
+<li class="lvl-2">
+<p>3、如果数据库运行在归档方式下，有可用的控制文件的备份(CONFIGURE CONTROLFILE AUTOBACKUP ON)，则可以使用restore controlfile from ‘备份的控制文件路径+文件名’来完成控制文件的恢复操作，详细操作可参考本文中“控制文件的恢复”内容。</p>
+</li>
 </ul>
-<h1 id="损坏临时数据文件的恢复方法"><a href="#损坏临时数据文件的恢复方法" class="headerlink" title="损坏临时数据文件的恢复方法"></a>损坏临时数据文件的恢复方法</h1><p>临时数据文件的恢复是比较简单的，因为临时文件中不涉及到其它的有用的数据，仅用来排序，所以可以删除后重建。</p>
-<h4 id="1、关闭数据库"><a href="#1、关闭数据库" class="headerlink" title="1、关闭数据库"></a>1、关闭数据库</h4><pre><code class="line-numbers language-shell">SQL&gt;shutdown immediate
+<h1 id="sun-pi-lin-shi-shu-ju-wen-jian-de-hui-fu-fang-fa">损坏临时数据文件的恢复方法</h1>
+<p>临时数据文件的恢复是比较简单的，因为临时文件中不涉及到其它的有用的数据，仅用来排序，所以可以删除后重建。</p>
+<h4 id="1-guan-bi-shu-ju-ku">1、关闭数据库</h4>
+<pre><code class="language-shell">SQL&gt;shutdown immediate
 </code></pre>
-<h4 id="2、删除临时数据文件，模拟媒体失败"><a href="#2、删除临时数据文件，模拟媒体失败" class="headerlink" title="2、删除临时数据文件，模拟媒体失败"></a>2、删除临时数据文件，模拟媒体失败</h4><h4 id="3、启动数据库，检测到文件错误"><a href="#3、启动数据库，检测到文件错误" class="headerlink" title="3、启动数据库，检测到文件错误"></a>3、启动数据库，检测到文件错误</h4><h4 id="4、脱机该数据文件"><a href="#4、脱机该数据文件" class="headerlink" title="4、脱机该数据文件"></a>4、脱机该数据文件</h4><pre><code class="line-numbers language-shell">SQL&gt;alter database datafile ‘全路径+文件名’ offline drop;
+<h4 id="2-shan-chu-lin-shi-shu-ju-wen-jian-mo-ni-mei-ti-shi-bai">2、删除临时数据文件，模拟媒体失败</h4>
+<h4 id="3-qi-dong-shu-ju-ku-jian-ce-dao-wen-jian-cuo-wu">3、启动数据库，检测到文件错误</h4>
+<h4 id="4-tuo-ji-gai-shu-ju-wen-jian">4、脱机该数据文件</h4>
+<pre><code class="language-shell">SQL&gt;alter database datafile ‘全路径+文件名’ offline drop;
 </code></pre>
-<h4 id="5、打开数据库"><a href="#5、打开数据库" class="headerlink" title="5、打开数据库"></a>5、打开数据库</h4><pre><code class="line-numbers language-shell">SQL&gt;alter database open
+<h4 id="5-da-kai-shu-ju-ku">5、打开数据库</h4>
+<pre><code class="language-shell">SQL&gt;alter database open
 </code></pre>
-<h4 id="6、删除该临时表空间"><a href="#6、删除该临时表空间" class="headerlink" title="6、删除该临时表空间"></a>6、删除该临时表空间</h4><pre><code class="line-numbers language-shell">SQL&gt;drop tablespace temp(或其它临时表空间名称) including contents and datafiles;
+<h4 id="6-shan-chu-gai-lin-shi-biao-kong-jian">6、删除该临时表空间</h4>
+<pre><code class="language-shell">SQL&gt;drop tablespace temp(或其它临时表空间名称) including contents and datafiles;
 </code></pre>
-<h4 id="7、重新创建该表空间，并重新分配给用户"><a href="#7、重新创建该表空间，并重新分配给用户" class="headerlink" title="7、重新创建该表空间，并重新分配给用户"></a>7、重新创建该表空间，并重新分配给用户</h4><p>说明：</p>
-<ul>
-<li>1、临时数据文件是非重要文件，不保存永久数据，可以随时删除重建，不影响数据库的数据安全</li>
-<li>2、如果重新建立以后，别忘了重新分配给用户。</li>
+<h4 id="7-zhong-xin-chuang-jian-gai-biao-kong-jian-bing-zhong-xin-fen-pei-gei-yong-hu">7、重新创建该表空间，并重新分配给用户</h4>
+<p>说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、临时数据文件是非重要文件，不保存永久数据，可以随时删除重建，不影响数据库的数据安全</p>
+</li>
+<li class="lvl-2">
+<p>2、如果重新建立以后，别忘了重新分配给用户。</p>
+</li>
 </ul>
 
                 
@@ -1202,10 +1383,10 @@ SQL&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1519,7 +1700,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/73.jpg" class="responsive-img" alt="Oracle管理篇之启动与关闭">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/73.jpg" class="responsive-img" alt="Oracle管理篇之启动与关闭">
                         
                         <span class="card-title">Oracle管理篇之启动与关闭</span>
                     </div>
@@ -1568,7 +1749,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/140.jpg" class="responsive-img" alt="Oracle实例与数据库的区别">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/140.jpg" class="responsive-img" alt="Oracle实例与数据库的区别">
                         
                         <span class="card-title">Oracle实例与数据库的区别</span>
                     </div>
@@ -1799,7 +1980,7 @@ SQL&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2149,6 +2330,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

@@ -5,8 +5,10 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="在linux中查看端口号是哪个进程在占用, 软硬件测试">
-    <meta name="description" content="概述今天升级一套存储，碰到了80端口被占用，导致RGW bind 80 port时bind失败，最终导致RGW服务启用失败，造成S3 业务不可用问题。
-查看端口信息Linux 上的 /etc/services 文件可以查看到更多关于保留端口">
+    <meta name="description" content="概述
+今天升级一套存储，碰到了80端口被占用，导致RGW bind 80 port时bind失败，最终导致RGW服务启用失败，造成S3 业务不可用问题。
+查看端口信息
+Linux 上的 /etc/services 文件可以查看到更多关于保留">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +66,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +334,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,32 +611,44 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>今天升级一套存储，碰到了80端口被占用，导致RGW bind 80 port时bind失败，最终导致RGW服务启用失败，造成S3 业务不可用问题。</p>
-<h1 id="查看端口信息"><a href="#查看端口信息" class="headerlink" title="查看端口信息"></a>查看端口信息</h1><p>Linux 上的 /etc/services 文件可以查看到更多关于保留端口的信息。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>今天升级一套存储，碰到了80端口被占用，导致RGW bind 80 port时bind失败，最终导致RGW服务启用失败，造成S3 业务不可用问题。</p>
+<h1 id="cha-kan-duan-kou-xin-xi">查看端口信息</h1>
+<p>Linux 上的 /etc/services 文件可以查看到更多关于保留端口的信息。</p>
 <p>可以使用以下三种方法查看端口信息。</p>
-<ul>
-<li>ss：可以用于转储套接字统计信息</li>
-<li>netstat：可以显示打开的套接字列表</li>
-<li>lsof：可以列出打开的文件。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>ss：可以用于转储套接字统计信息</p>
+</li>
+<li class="lvl-2">
+<p>netstat：可以显示打开的套接字列表</p>
+</li>
+<li class="lvl-2">
+<p>lsof：可以列出打开的文件。</p>
+</li>
 </ul>
 <p>以下我们将找出端口号为80,被哪个守护进程所使用。</p>
-<h2 id="方法1：使用-ss-命令"><a href="#方法1：使用-ss-命令" class="headerlink" title="方法1：使用 ss 命令"></a>方法1：使用 ss 命令</h2><pre><code class="line-numbers language-shell">root@node167:/var/log/ceph# ss -tlnp | grep ':80'
+<h2 id="fang-fa-1-shi-yong-ss-ming-ling">方法1：使用 ss 命令</h2>
+<pre><code class="language-shell">root@node167:/var/log/ceph# ss -tlnp | grep ':80'
 LISTEN     0      128          *:8080                     *:*                   users:(("apache2",pid=2771,fd=3),("apache2",pid=2770,fd=3),("apache2",pid=2769,fd=3),("apache2",pid=2768,fd=3),("apache2",pid=2767,fd=3),("apache2",pid=2760,fd=3))
 LISTEN     0      128          *:80                       *:*                   users:(("haproxy",pid=2473,fd=4))
 </code></pre>
-<h2 id="方法2：使用-netstat-命令"><a href="#方法2：使用-netstat-命令" class="headerlink" title="方法2：使用 netstat 命令"></a>方法2：使用 netstat 命令</h2><pre><code class="line-numbers language-shell">root@node167:/var/log/ceph# netstat -lntp | grep ':80'
+<h2 id="fang-fa-2-shi-yong-netstat-ming-ling">方法2：使用 netstat 命令</h2>
+<pre><code class="language-shell">root@node167:/var/log/ceph# netstat -lntp | grep ':80'
 tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2760/apache2    
 tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2473/haproxy    
 root@node167:/var/log/ceph# 
 </code></pre>
-<h2 id="方法3：使用-lsof-命令"><a href="#方法3：使用-lsof-命令" class="headerlink" title="方法3：使用 lsof 命令"></a>方法3：使用 lsof 命令</h2><pre><code class="line-numbers language-shell">root@node167:/var/log/ceph# lsof -i:80
+<h2 id="fang-fa-3-shi-yong-lsof-ming-ling">方法3：使用 lsof 命令</h2>
+<pre><code class="language-shell">root@node167:/var/log/ceph# lsof -i:80
 COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 haproxy 2473 root    4u  IPv4   1766      0t0  TCP *:http (LISTEN)
 root@node167:/var/log/ceph# 
 </code></pre>
-<h1 id="此次事故概述"><a href="#此次事故概述" class="headerlink" title="此次事故概述"></a>此次事故概述</h1><p>此次碰到的问题，是升级过程中未对新增功能相关port bind做处理，详情如下：</p>
+<h1 id="ci-ci-shi-gu-gai-shu">此次事故概述</h1>
+<p>此次碰到的问题，是升级过程中未对新增功能相关port bind做处理，详情如下：</p>
 <p>Parts of ceph-client.radosgw.0.log:</p>
-<pre><code class="line-numbers language-shell">2022-06-02 17:05:38.709761 7fec78874040  0 deferred set uid:gid to 0:0 (root:root)
+<pre><code class="language-shell">2022-06-02 17:05:38.709761 7fec78874040  0 deferred set uid:gid to 0:0 (root:root)
 2022-06-02 17:05:38.709778 7fec78874040  0 ceph version 12.2.10-903-g0149c5ceafe (0149c5ceafe1c541f0a5044e1c5c9e4fbc71c64e) luminous (stable), process radosgw, pid 104451
 2022-06-02 17:05:38.713450 7fec78874040  0 stack NetworkStack max thread limit is 24, switching to this now. Higher thread values are unnecessary and currently unsupported.
 2022-06-02 17:05:38.807429 7fec78874040  0 starting handler: civetweb
@@ -503,7 +657,7 @@ root@node167:/var/log/ceph#
 2022-06-02 17:05:38.808175 7fec78874040 -1 ERROR: failed run
 </code></pre>
 <p>Other log:</p>
-<pre><code class="line-numbers language-shell">root@node167:/var/log/ceph# netstat -tnlp | grep ':80'
+<pre><code class="language-shell">root@node167:/var/log/ceph# netstat -tnlp | grep ':80'
 tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2760/apache2    
 tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2473/haproxy    
 root@node167:/var/log/ceph# cat /etc/ceph/ceph.conf | grep -i 'rgw frontends'
@@ -528,10 +682,10 @@ backend rgw_cluster
 root@node167:/var/log/ceph# 
 </code></pre>
 <p>这里可以清晰看到，haproxy占用了RGW的80端口， /etc/haproxy/haproxy.cfg中</p>
-<pre><code class="line-numbers language-shell">server localhost 127.0.0.1:7480 check
+<pre><code class="language-shell">server localhost 127.0.0.1:7480 check
 </code></pre>
 <p>是告知ceph.conf中的rgw，你要使用的是7480这个port，而不是/etc/ceph/ceph.conf使用的却是80 port</p>
-<pre><code class="line-numbers language-shell">rgw frontends = civetweb port=80+443s ssl_certificate=/etc/ezs3/ssl/ezs3_server.pem num_threads=1024 ssl_cipher_list=HIGH:!aNULL:!MD5:!3DES ssl_protocol_version=4
+<pre><code class="language-shell">rgw frontends = civetweb port=80+443s ssl_certificate=/etc/ezs3/ssl/ezs3_server.pem num_threads=1024 ssl_cipher_list=HIGH:!aNULL:!MD5:!3DES ssl_protocol_version=4
 </code></pre>
 <p>问题的解决方法是修改/etc/ceph/ceph.conf中的80 port为 7480。</p>
 
@@ -636,10 +790,10 @@ root@node167:/var/log/ceph#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -953,7 +1107,7 @@ root@node167:/var/log/ceph#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/43.jpg" class="responsive-img" alt="使用edac工具来检测服务器内存故障">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/43.jpg" class="responsive-img" alt="使用edac工具来检测服务器内存故障">
                         
                         <span class="card-title">使用edac工具来检测服务器内存故障</span>
                     </div>
@@ -1006,7 +1160,7 @@ root@node167:/var/log/ceph#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/85.jpg" class="responsive-img" alt="获取OSD与CPU绑定关系">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/85.jpg" class="responsive-img" alt="获取OSD与CPU绑定关系">
                         
                         <span class="card-title">获取OSD与CPU绑定关系</span>
                     </div>
@@ -1237,7 +1391,7 @@ root@node167:/var/log/ceph#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1587,6 +1741,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="iSCSI多路径配置, 软硬件测试">
-    <meta name="description" content="概述配置iSCSI多路径，可以增加HA（高可用性）
-本文以Ubuntu 14.04为示例，在安装了multipath-tools工具后，以此节点作为client去挂载iSCSI设备，将multipath默认active-standy修改为r">
+    <meta name="description" content="概述
+配置iSCSI多路径，可以增加HA（高可用性）
+本文以Ubuntu 14.04为示例，在安装了multipath-tools工具后，以此节点作为client去挂载iSCSI设备，将multipath默认active-standy修改为">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -473,9 +614,12 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>配置iSCSI多路径，可以增加HA（高可用性）</p>
+                <h1 id="gai-shu">概述</h1>
+<p>配置iSCSI多路径，可以增加HA（高可用性）</p>
 <p>本文以Ubuntu 14.04为示例，在安装了multipath-tools工具后，以此节点作为client去挂载iSCSI设备，将multipath默认active-standy修改为rond-robing</p>
-<h1 id="iSCSI多路径配置（client端）"><a href="#iSCSI多路径配置（client端）" class="headerlink" title="iSCSI多路径配置（client端）"></a>iSCSI多路径配置（client端）</h1><h2 id="未设置多路径之前"><a href="#未设置多路径之前" class="headerlink" title="未设置多路径之前"></a>未设置多路径之前</h2><pre><code class="line-numbers language-shell">root@host245:~# multipath -ll
+<h1 id="i-scsi-duo-lu-jing-pei-zhi-client-duan">iSCSI多路径配置（client端）</h1>
+<h2 id="wei-she-zhi-duo-lu-jing-zhi-qian">未设置多路径之前</h2>
+<pre><code class="language-shell">root@host245:~# multipath -ll
 2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
 size=10T features='0' hwhandler='0' wp=rw
 |-+- policy='round-robin 0' prio=1 status=active
@@ -489,7 +633,8 @@ size=10T features='0' hwhandler='0' wp=rw
 `-+- policy='round-robin 0' prio=1 status=enabled
   `- 12:0:0:0 sde 8:64  active ready running
 </code></pre>
-<h2 id="修改multipath-conf"><a href="#修改multipath-conf" class="headerlink" title="修改multipath.conf"></a>修改multipath.conf</h2><pre><code class="line-numbers language-shell">root@host245:~# cat /etc/multipath.conf 
+<h2 id="xiu-gai-multipath-conf">修改multipath.conf</h2>
+<pre><code class="language-shell">root@host245:~# cat /etc/multipath.conf 
 blacklist {
         devnode "^(rbd)[0-9]*"
         devnode "^zd[0-0]*"
@@ -507,9 +652,11 @@ root@host245:~#
 </code></pre>
 <p>说明：</p>
 <p>从path_grouping_policy开始，之后的4行为新增内容</p>
-<h2 id="重启multipath-tool"><a href="#重启multipath-tool" class="headerlink" title="重启multipath-tool"></a>重启multipath-tool</h2><pre><code class="line-numbers language-shell">root@host245:~# /etc/init.d/multipath-tools restart
+<h2 id="zhong-qi-multipath-tool">重启multipath-tool</h2>
+<pre><code class="language-shell">root@host245:~# /etc/init.d/multipath-tools restart
 </code></pre>
-<h2 id="查看设置后效果"><a href="#查看设置后效果" class="headerlink" title="查看设置后效果"></a>查看设置后效果</h2><pre><code class="line-numbers language-shell">root@host245:~# multipath -ll
+<h2 id="cha-kan-she-zhi-hou-xiao-guo">查看设置后效果</h2>
+<pre><code class="language-shell">root@host245:~# multipath -ll
 2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
 size=10T features='0' hwhandler='0' wp=rw
 `-+- policy='round-robin 0' prio=1 status=active
@@ -520,9 +667,10 @@ size=10T features='0' hwhandler='0' wp=rw
   `- 15:0:0:0 sdh 8:112 active ready running
 root@host245:~# 
 </code></pre>
-<h2 id="确认sdX与iSCSI-target关系"><a href="#确认sdX与iSCSI-target关系" class="headerlink" title="确认sdX与iSCSI target关系"></a>确认sdX与iSCSI target关系</h2><p>现在是多路径了，如何分别出sdX对应哪个iSCSI target呢？</p>
+<h2 id="que-ren-sd-x-yu-i-scsi-target-guan-xi">确认sdX与iSCSI target关系</h2>
+<p>现在是多路径了，如何分别出sdX对应哪个iSCSI target呢？</p>
 <p>比如下面的sdf</p>
-<pre><code class="line-numbers language-shell">root@host243:~# lsblk
+<pre><code class="language-shell">root@host243:~# lsblk
 NAME                       MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINT
 sda                          8:0    0  14.6T  0 disk  
 ├─sda1                       8:1    0     8G  0 part  
@@ -547,7 +695,7 @@ sdh                          8:112  0     5T  0 disk
 </code></pre>
 <p>方法如下：</p>
 <p>step1、先获取 Host Number</p>
-<pre><code class="line-numbers language-shell">root@host243:~# multipath -ll
+<pre><code class="language-shell">root@host243:~# multipath -ll
 26a53c128cb536936 dm-0 Bigtera ,VirtualStor_Scal
 size=5.0T features='0' hwhandler='0' wp=rw
 `-+- policy='round-robin 0' prio=1 status=active
@@ -559,245 +707,245 @@ size=5.0T features='0' hwhandler='0' wp=rw
 </code></pre>
 <p>如上文所示， <code>39:0:0:0</code>， 这里的39，就是Host Number， 同理，下面的38,40,37,36都是Host Number，分别对应不同的sdX分区</p>
 <p>step2、根据Host Number，确认连接到哪个target</p>
-<pre><code class="line-numbers language-shell">root@host243:~# iscsiadm -m session -P 3
+<pre><code class="language-shell">root@host243:~# iscsiadm -m session -P 3
 iSCSI Transport Class version 2.0-870
 version 2.0-873
 Target: iqn.2019-12.com:lenove
-    Current Portal: 10.16.172.109:3260,1
-    Persistent Portal: 10.16.172.109:3260,1
-        **********
-        Interface:
-        **********
-        Iface Name: default
-        Iface Transport: tcp
-        Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
-        Iface IPaddress: 10.16.172.243
-        Iface HWaddress: &lt;empty&gt;
-        Iface Netdev: &lt;empty&gt;
-        SID: 10
-        iSCSI Connection State: LOGGED IN
-        iSCSI Session State: LOGGED_IN
-        Internal iscsid Session State: NO CHANGE
-        *********
-        Timeouts:
-        *********
-        Recovery Timeout: 120
-        Target Reset Timeout: 30
-        LUN Reset Timeout: 30
-        Abort Timeout: 15
-        *****
-        CHAP:
-        *****
-        username: &lt;empty&gt;
-        password: ********
-        username_in: &lt;empty&gt;
-        password_in: ********
-        ************************
-        Negotiated iSCSI params:
-        ************************
-        HeaderDigest: None
-        DataDigest: None
-        MaxRecvDataSegmentLength: 262144
-        MaxXmitDataSegmentLength: 1048576
-        FirstBurstLength: 262144
-        MaxBurstLength: 1048576
-        ImmediateData: Yes
-        InitialR2T: No
-        MaxOutstandingR2T: 1
-        ************************
-        Attached SCSI devices:
-        ************************
-        Host Number: 40	State: running
-        scsi40 Channel 00 Id 0 Lun: 0
-            Attached scsi disk sdg		State: running
-    Current Portal: 10.16.172.105:3260,1
-    Persistent Portal: 10.16.172.105:3260,1
-        **********
-        Interface:
-        **********
-        Iface Name: default
-        Iface Transport: tcp
-        Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
-        Iface IPaddress: 10.16.172.243
-        Iface HWaddress: &lt;empty&gt;
-        Iface Netdev: &lt;empty&gt;
-        SID: 6
-        iSCSI Connection State: LOGGED IN
-        iSCSI Session State: LOGGED_IN
-        Internal iscsid Session State: NO CHANGE
-        *********
-        Timeouts:
-        *********
-        Recovery Timeout: 120
-        Target Reset Timeout: 30
-        LUN Reset Timeout: 30
-        Abort Timeout: 15
-        *****
-        CHAP:
-        *****
-        username: &lt;empty&gt;
-        password: ********
-        username_in: &lt;empty&gt;
-        password_in: ********
-        ************************
-        Negotiated iSCSI params:
-        ************************
-        HeaderDigest: None
-        DataDigest: None
-        MaxRecvDataSegmentLength: 262144
-        MaxXmitDataSegmentLength: 1048576
-        FirstBurstLength: 262144
-        MaxBurstLength: 1048576
-        ImmediateData: Yes
-        InitialR2T: No
-        MaxOutstandingR2T: 1
-        ************************
-        Attached SCSI devices:
-        ************************
-        Host Number: 36	State: running
-        scsi36 Channel 00 Id 0 Lun: 0
-            Attached scsi disk sdd		State: running
-    Current Portal: 10.16.172.107:3260,1
-    Persistent Portal: 10.16.172.107:3260,1
-        **********
-        Interface:
-        **********
-        Iface Name: default
-        Iface Transport: tcp
-        Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
-        Iface IPaddress: 10.16.172.243
-        Iface HWaddress: &lt;empty&gt;
-        Iface Netdev: &lt;empty&gt;
-        SID: 7
-        iSCSI Connection State: LOGGED IN
-        iSCSI Session State: LOGGED_IN
-        Internal iscsid Session State: NO CHANGE
-        *********
-        Timeouts:
-        *********
-        Recovery Timeout: 120
-        Target Reset Timeout: 30
-        LUN Reset Timeout: 30
-        Abort Timeout: 15
-        *****
-        CHAP:
-        *****
-        username: &lt;empty&gt;
-        password: ********
-        username_in: &lt;empty&gt;
-        password_in: ********
-        ************************
-        Negotiated iSCSI params:
-        ************************
-        HeaderDigest: None
-        DataDigest: None
-        MaxRecvDataSegmentLength: 262144
-        MaxXmitDataSegmentLength: 1048576
-        FirstBurstLength: 262144
-        MaxBurstLength: 1048576
-        ImmediateData: Yes
-        InitialR2T: No
-        MaxOutstandingR2T: 1
-        ************************
-        Attached SCSI devices:
-        ************************
-        Host Number: 37	State: running
-        scsi37 Channel 00 Id 0 Lun: 0
-            Attached scsi disk sde		State: running
-    Current Portal: 10.16.172.108:3260,1
-    Persistent Portal: 10.16.172.108:3260,1
-        **********
-        Interface:
-        **********
-        Iface Name: default
-        Iface Transport: tcp
-        Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
-        Iface IPaddress: 10.16.172.243
-        Iface HWaddress: &lt;empty&gt;
-        Iface Netdev: &lt;empty&gt;
-        SID: 8
-        iSCSI Connection State: LOGGED IN
-        iSCSI Session State: LOGGED_IN
-        Internal iscsid Session State: NO CHANGE
-        *********
-        Timeouts:
-        *********
-        Recovery Timeout: 120
-        Target Reset Timeout: 30
-        LUN Reset Timeout: 30
-        Abort Timeout: 15
-        *****
-        CHAP:
-        *****
-        username: &lt;empty&gt;
-        password: ********
-        username_in: &lt;empty&gt;
-        password_in: ********
-        ************************
-        Negotiated iSCSI params:
-        ************************
-        HeaderDigest: None
-        DataDigest: None
-        MaxRecvDataSegmentLength: 262144
-        MaxXmitDataSegmentLength: 1048576
-        FirstBurstLength: 262144
-        MaxBurstLength: 1048576
-        ImmediateData: Yes
-        InitialR2T: No
-        MaxOutstandingR2T: 1
-        ************************
-        Attached SCSI devices:
-        ************************
-        Host Number: 38	State: running
-        scsi38 Channel 00 Id 0 Lun: 0
-            Attached scsi disk sdh		State: running
-    Current Portal: 10.16.172.106:3260,1
-    Persistent Portal: 10.16.172.106:3260,1
-        **********
-        Interface:
-        **********
-        Iface Name: default
-        Iface Transport: tcp
-        Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
-        Iface IPaddress: 10.16.172.243
-        Iface HWaddress: &lt;empty&gt;
-        Iface Netdev: &lt;empty&gt;
-        SID: 9
-        iSCSI Connection State: LOGGED IN
-        iSCSI Session State: LOGGED_IN
-        Internal iscsid Session State: NO CHANGE
-        *********
-        Timeouts:
-        *********
-        Recovery Timeout: 120
-        Target Reset Timeout: 30
-        LUN Reset Timeout: 30
-        Abort Timeout: 15
-        *****
-        CHAP:
-        *****
-        username: &lt;empty&gt;
-        password: ********
-        username_in: &lt;empty&gt;
-        password_in: ********
-        ************************
-        Negotiated iSCSI params:
-        ************************
-        HeaderDigest: None
-        DataDigest: None
-        MaxRecvDataSegmentLength: 262144
-        MaxXmitDataSegmentLength: 1048576
-        FirstBurstLength: 262144
-        MaxBurstLength: 1048576
-        ImmediateData: Yes
-        InitialR2T: No
-        MaxOutstandingR2T: 1
-        ************************
-        Attached SCSI devices:
-        ************************
-        Host Number: 39	State: running
-        scsi39 Channel 00 Id 0 Lun: 0
-            Attached scsi disk sdf		State: running
+	Current Portal: 10.16.172.109:3260,1
+	Persistent Portal: 10.16.172.109:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &lt;empty&gt;
+		Iface Netdev: &lt;empty&gt;
+		SID: 10
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &lt;empty&gt;
+		password: ********
+		username_in: &lt;empty&gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 40	State: running
+		scsi40 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdg		State: running
+	Current Portal: 10.16.172.105:3260,1
+	Persistent Portal: 10.16.172.105:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &lt;empty&gt;
+		Iface Netdev: &lt;empty&gt;
+		SID: 6
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &lt;empty&gt;
+		password: ********
+		username_in: &lt;empty&gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 36	State: running
+		scsi36 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdd		State: running
+	Current Portal: 10.16.172.107:3260,1
+	Persistent Portal: 10.16.172.107:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &lt;empty&gt;
+		Iface Netdev: &lt;empty&gt;
+		SID: 7
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &lt;empty&gt;
+		password: ********
+		username_in: &lt;empty&gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 37	State: running
+		scsi37 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sde		State: running
+	Current Portal: 10.16.172.108:3260,1
+	Persistent Portal: 10.16.172.108:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &lt;empty&gt;
+		Iface Netdev: &lt;empty&gt;
+		SID: 8
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &lt;empty&gt;
+		password: ********
+		username_in: &lt;empty&gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 38	State: running
+		scsi38 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdh		State: running
+	Current Portal: 10.16.172.106:3260,1
+	Persistent Portal: 10.16.172.106:3260,1
+		**********
+		Interface:
+		**********
+		Iface Name: default
+		Iface Transport: tcp
+		Iface Initiatorname: iqn.1993-08.org.debian:01:f077d70d498
+		Iface IPaddress: 10.16.172.243
+		Iface HWaddress: &lt;empty&gt;
+		Iface Netdev: &lt;empty&gt;
+		SID: 9
+		iSCSI Connection State: LOGGED IN
+		iSCSI Session State: LOGGED_IN
+		Internal iscsid Session State: NO CHANGE
+		*********
+		Timeouts:
+		*********
+		Recovery Timeout: 120
+		Target Reset Timeout: 30
+		LUN Reset Timeout: 30
+		Abort Timeout: 15
+		*****
+		CHAP:
+		*****
+		username: &lt;empty&gt;
+		password: ********
+		username_in: &lt;empty&gt;
+		password_in: ********
+		************************
+		Negotiated iSCSI params:
+		************************
+		HeaderDigest: None
+		DataDigest: None
+		MaxRecvDataSegmentLength: 262144
+		MaxXmitDataSegmentLength: 1048576
+		FirstBurstLength: 262144
+		MaxBurstLength: 1048576
+		ImmediateData: Yes
+		InitialR2T: No
+		MaxOutstandingR2T: 1
+		************************
+		Attached SCSI devices:
+		************************
+		Host Number: 39	State: running
+		scsi39 Channel 00 Id 0 Lun: 0
+			Attached scsi disk sdf		State: running
 </code></pre>
 <p>比如上文中的 <code>Persistent Portal: 10.16.172.106:3260,1 </code>，对应的Host Number是39(<code>Host Number: 39 State: running </code>)，对应的分区信息是sdf(<code>Attached scsi disk sdf          State: running </code>)，说明访问sdf这个device，是通过10.16.172.106 这个IP进行访问的。</p>
 
@@ -906,10 +1054,10 @@ Target: iqn.2019-12.com:lenove
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1223,7 +1371,7 @@ Target: iqn.2019-12.com:lenove
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/174.jpg" class="responsive-img" alt="如何快速知道S3存储性能">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/174.jpg" class="responsive-img" alt="如何快速知道S3存储性能">
                         
                         <span class="card-title">如何快速知道S3存储性能</span>
                     </div>
@@ -1276,7 +1424,7 @@ Target: iqn.2019-12.com:lenove
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/99.jpg" class="responsive-img" alt="统计cosbench每个任务的IOPS和耗时">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/99.jpg" class="responsive-img" alt="统计cosbench每个任务的IOPS和耗时">
                         
                         <span class="card-title">统计cosbench每个任务的IOPS和耗时</span>
                     </div>
@@ -1519,7 +1667,7 @@ Target: iqn.2019-12.com:lenove
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1869,6 +2017,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

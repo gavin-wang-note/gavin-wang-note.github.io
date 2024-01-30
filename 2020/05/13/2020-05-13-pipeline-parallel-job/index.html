@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Jenkins部署pipeline并发执行pytest自动化用例, 软硬件测试">
-    <meta name="description" content="概述目前现有自动化用例数比较多了，在free style jenkins project中顺次执行，耗时1天左右，很明显，耗时太久，急需用例能够并发执行，从而实现节约时间。
-本文介绍如何通过pipeline project，实现现有用例执行">
+    <meta name="description" content="概述
+目前现有自动化用例数比较多了，在free style jenkins project中顺次执行，耗时1天左右，很明显，耗时太久，急需用例能够并发执行，从而实现节约时间。
+本文介绍如何通过pipeline project，实现现有用例执">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -455,7 +596,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.9k
+                    2k
                 </div>
                 
 
@@ -485,41 +626,44 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>目前现有自动化用例数比较多了，在free style jenkins project中顺次执行，耗时1天左右，很明显，耗时太久，急需用例能够并发执行，从而实现节约时间。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>目前现有自动化用例数比较多了，在free style jenkins project中顺次执行，耗时1天左右，很明显，耗时太久，急需用例能够并发执行，从而实现节约时间。</p>
 <p>本文介绍如何通过pipeline project，实现现有用例执行流程的改造，实现并发执行。</p>
-<h1 id="改造涉及内容"><a href="#改造涉及内容" class="headerlink" title="改造涉及内容"></a>改造涉及内容</h1><p>针对当前automation project，需要做如下内容调整：</p>
-<ul>
-<li><p>(1) run.py中，提取出reboot client，生成pylint数据操作</p>
+<h1 id="gai-zao-she-ji-nei-rong">改造涉及内容</h1>
+<p>针对当前automation project，需要做如下内容调整：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>(1) run.py中，提取出reboot client，生成pylint数据操作</p>
 </li>
-<li><p>(2) Jenkins节点中email-templates发送email内容groovy脚本调整</p>
+<li class="lvl-2">
+<p>(2) Jenkins节点中email-templates发送email内容groovy脚本调整</p>
 </li>
-<li><p>(3) 测试代码config目录下autotest.conf，含有多个，命名格式为autotest_ip.conf</p>
+<li class="lvl-2">
+<p>(3) 测试代码config目录下autotest.conf，含有多个，命名格式为autotest_ip.conf</p>
 </li>
-<li><p>(4) 测试代码jenkins目录下生成build properties文件，以及rsync脚本要做修改，主要是路径问题</p>
+<li class="lvl-2">
+<p>(4) 测试代码jenkins目录下生成build properties文件，以及rsync脚本要做修改，主要是路径问题</p>
 </li>
 </ul>
 <p>说明：</p>
 <p>第(1)点： 以前用例是顺次执行的，只需要执行一次，一旦调整成并发后，存在每个执行node均会执行一次的情况；</p>
-<p>第(3)点： 每个执行用例的集群节点，需要mv autotest_ip.conf为autotest.conf </p>
+<p>第(3)点： 每个执行用例的集群节点，需要mv autotest_ip.conf为autotest.conf</p>
 <p>第(4)点:  free style与pipeline的jenkins project，所需要的workspace与jobspace是不一样的</p>
-<h1 id="需要Jenkins安装的插件"><a href="#需要Jenkins安装的插件" class="headerlink" title="需要Jenkins安装的插件"></a>需要Jenkins安装的插件</h1><p>Warnings，pipeline相关插件，具体安装本文忽略。</p>
-<h1 id="改造过程"><a href="#改造过程" class="headerlink" title="改造过程"></a>改造过程</h1><h2 id="流程示意图"><a href="#流程示意图" class="headerlink" title="流程示意图"></a>流程示意图</h2><img class="shadow" src="/img/in-post/pipeline_project_parallel_circuit.png" width="800">
-
-
-<h2 id="Jenkins-project配置"><a href="#Jenkins-project配置" class="headerlink" title="Jenkins project配置"></a>Jenkins project配置</h2><img class="shadow" src="/img/in-post/pipeline_project_config1.png" width="1200">
-
-<img class="shadow" src="/img/in-post/pipeline_project_config2.png" width="1200">
-
-<img class="shadow" src="/img/in-post/pipeline_project_config3.png" width="1200">
-
-<img class="shadow" src="/img/in-post/pipeline_project_config4.png" width="1200">
-
-<img class="shadow" src="/img/in-post/pipeline_project_config5.png" width="1200">
-
-<img class="shadow" src="/img/in-post/pipeline_project_config6.png" width="1200">
-
-<h2 id="pipelint-Jenkinsfile"><a href="#pipelint-Jenkinsfile" class="headerlink" title="pipelint Jenkinsfile"></a>pipelint Jenkinsfile</h2><p>新增了Jenlinsfile，具体内容示例参考如下：</p>
-<pre><code class="line-numbers language-shell">#!groovy
+<h1 id="xu-yao-jenkins-an-zhuang-de-cha-jian">需要Jenkins安装的插件</h1>
+<p>Warnings，pipeline相关插件，具体安装本文忽略。</p>
+<h1 id="gai-zao-guo-cheng">改造过程</h1>
+<h2 id="liu-cheng-shi-yi-tu">流程示意图</h2>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_parallel_circuit.png" width="800">
+<h2 id="jenkins-project-pei-zhi">Jenkins project配置</h2>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_config1.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_config2.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_config3.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_config4.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_config5.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_project_config6.png" width="1200">
+<h2 id="pipelint-jenkinsfile">pipelint Jenkinsfile</h2>
+<p>新增了Jenlinsfile，具体内容示例参考如下：</p>
+<pre><code class="language-shell">#!groovy
 
 ip_list = IPS.split(',')
 ips_size = ip_list.size()
@@ -761,21 +905,21 @@ pipeline {
             steps {
                 script{
                     echo "Run pylint code style check"
-                    // Ignore pylint comments via "-d C"
+        		    // Ignore pylint comments via "-d C"
                     /*
-                    sh """
-                    	. .venv/bin/activate
-                        pylint -d C -f parseable ${SOURCE_ROOT} --exit-zero | tee ${PYLINT_REPORT}
-                    """
+        		    sh """
+        		    	. .venv/bin/activate
+        			    pylint -d C -f parseable ${SOURCE_ROOT} --exit-zero | tee ${PYLINT_REPORT}
+        		    """
                     */
                 }
-            }
+        	}
 
-            post { 
+        	post { 
                 always { 
                        // Requires Warnings plugin since Violations plugin is deprecated
-                       // http://wiki.jenkins-ci.org/x/G4CGAQ
-                       warnings canComputeNew: false, canResolveRelativePaths: false, canRunOnFailed: true, categoriesPattern: '', defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[parserName: 'PyLint', pattern: "report/pylint.out"]], unHealthy: ''
+        			   // http://wiki.jenkins-ci.org/x/G4CGAQ
+        			   warnings canComputeNew: false, canResolveRelativePaths: false, canRunOnFailed: true, categoriesPattern: '', defaultEncoding: '', excludePattern: '', healthy: '', includePattern: '', messagesPattern: '', parserConfigurations: [[parserName: 'PyLint', pattern: "report/pylint.out"]], unHealthy: ''
                 }
             }
         }
@@ -815,8 +959,9 @@ pipeline {
     }
 }
 </code></pre>
-<h2 id="email-template"><a href="#email-template" class="headerlink" title="email template"></a>email template</h2><p>Jenkins server处，对应的email template内容参考如下:</p>
-<pre><code class="line-numbers language-shell">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"&gt;
+<h2 id="email-template">email template</h2>
+<p>Jenkins server处，对应的email template内容参考如下:</p>
+<pre><code class="language-shell">&lt;!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd"&gt;
 &lt;style type="text/css"&gt;
 /*base css*/
     body
@@ -975,14 +1120,12 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
   &lt;!-- bottom message --&gt;
 &lt;/body&gt;
 </code></pre>
-<h2 id="运行效果"><a href="#运行效果" class="headerlink" title="运行效果"></a>运行效果</h2><p>Jenkins pipeline project流程图：</p>
-<img class="shadow" src="/img/in-post/pipeline_Process_rendering.png" width="1200">
-
+<h2 id="yun-xing-xiao-guo">运行效果</h2>
+<p>Jenkins pipeline project流程图：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_Process_rendering.png" width="1200">
 <p>Jenkins send email效果图：</p>
-<img class="shadow" src="/img/in-post/pipeline_send_email1.png" width="1200">
-
-<img class="shadow" src="/img/in-post/pipeline_send_email2.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_send_email1.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_send_email2.png" width="1200">
 
                 
             </div>
@@ -1097,10 +1240,10 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1414,7 +1557,7 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/73.jpg" class="responsive-img" alt="控制keepalive VIP漂移范围">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/73.jpg" class="responsive-img" alt="控制keepalive VIP漂移范围">
                         
                         <span class="card-title">控制keepalive VIP漂移范围</span>
                     </div>
@@ -1463,7 +1606,7 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/80.jpg" class="responsive-img" alt="API获取Jenkins构建信息">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/80.jpg" class="responsive-img" alt="API获取Jenkins构建信息">
                         
                         <span class="card-title">API获取Jenkins构建信息</span>
                     </div>
@@ -1702,7 +1845,7 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2052,6 +2195,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

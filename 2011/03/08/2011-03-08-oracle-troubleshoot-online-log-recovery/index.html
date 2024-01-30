@@ -5,11 +5,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例--联机日志损坏, 软硬件测试">
-    <meta name="description" content="损坏非当前联机日志步骤一  启动数据库，报错：ORA-00313和ORA-00312SQL&amp;gt; startup
+    <meta name="description" content="损坏非当前联机日志
+步骤一  启动数据库，报错：ORA-00313和ORA-00312
+SQL&amp;gt; startup
 ORACLE 例程已经启动。
 
 Total System Global Area 8417955840 bytes
-Fixe">
+Fi">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -67,20 +69,160 @@ Fixe">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -195,7 +337,7 @@ Fixe">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -472,7 +614,9 @@ Fixe">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="损坏非当前联机日志"><a href="#损坏非当前联机日志" class="headerlink" title="损坏非当前联机日志"></a>损坏非当前联机日志</h1><h2 id="步骤一-启动数据库，报错：ORA-00313和ORA-00312"><a href="#步骤一-启动数据库，报错：ORA-00313和ORA-00312" class="headerlink" title="步骤一  启动数据库，报错：ORA-00313和ORA-00312"></a>步骤一  启动数据库，报错：ORA-00313和ORA-00312</h2><pre><code class="line-numbers language-shell">SQL&gt; startup
+                <h1 id="sun-pi-fei-dang-qian-lian-ji-ri-zhi">损坏非当前联机日志</h1>
+<h2 id="bu-zou-yi-qi-dong-shu-ju-ku-bao-cuo-ora-00313-he-ora-00312">步骤一  启动数据库，报错：ORA-00313和ORA-00312</h2>
+<pre><code class="language-shell">SQL&gt; startup
 ORACLE 例程已经启动。
 
 Total System Global Area 8417955840 bytes
@@ -484,7 +628,8 @@ Redo Buffers               27201536 bytes
 ORA-00313: 无法打开日志组 3 (用于线程 1) 的成员
 ORA-00312: 联机日志 3 线程 1: '/opt/oracle/oradata/mmsgdb/redo03.log'
 </code></pre>
-<h2 id="步骤二-查看v-log视图"><a href="#步骤二-查看v-log视图" class="headerlink" title="步骤二  查看v$log视图"></a>步骤二  查看v$log视图</h2><pre><code class="line-numbers language-shell">SQL&gt; select group#,sequence#,archived,status from v$log;
+<h2 id="bu-zou-er-cha-kan-v-log-shi-tu">步骤二  查看v$log视图</h2>
+<pre><code class="language-shell">SQL&gt; select group#,sequence#,archived,status from v$log;
 
     GROUP#  SEQUENCE# ARC STATUS
 ---------- ---------- --- ----------------
@@ -495,28 +640,38 @@ ORA-00312: 联机日志 3 线程 1: '/opt/oracle/oradata/mmsgdb/redo03.log'
 SQL&gt;
 </code></pre>
 <p>上述结果显示，联机日志3不是当前日志，且已经归档。</p>
-<h2 id="步骤三-用CLEAR命令重建该日志文件"><a href="#步骤三-用CLEAR命令重建该日志文件" class="headerlink" title="步骤三   用CLEAR命令重建该日志文件"></a>步骤三   用CLEAR命令重建该日志文件</h2><pre><code class="line-numbers language-shell">SQL&gt; alter database clear logfile group 3;
+<h2 id="bu-zou-san-yong-clear-ming-ling-zhong-jian-gai-ri-zhi-wen-jian">步骤三   用CLEAR命令重建该日志文件</h2>
+<pre><code class="language-shell">SQL&gt; alter database clear logfile group 3;
 
 数据库已更改。
 
 如果是该日志组还没有归档，则需要用
 SQL&gt;alter database clear unarchived logfile group 3;
 </code></pre>
-<h2 id="步骤四-打开数据库，并备份数据库"><a href="#步骤四-打开数据库，并备份数据库" class="headerlink" title="步骤四   打开数据库，并备份数据库"></a>步骤四   打开数据库，并备份数据库</h2><pre><code class="line-numbers language-shell">SQL&gt; alter database open;
+<h2 id="bu-zou-si-da-kai-shu-ju-ku-bing-bei-fen-shu-ju-ku">步骤四   打开数据库，并备份数据库</h2>
+<pre><code class="language-shell">SQL&gt; alter database open;
 
 数据库已更改。
 
 SQL&gt;
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>1、如果损坏的是非当前的联机日志文件，一般只需要clear就可以重建该日志文件，但是如果该数据库处于归档状态但该日志还没有归档，就需要强行clear。</li>
-<li>2、建议clear，特别是强行clear后作一次数据库的全备份。</li>
-<li>3、此方法适用于归档与非归档数据库.</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、如果损坏的是非当前的联机日志文件，一般只需要clear就可以重建该日志文件，但是如果该数据库处于归档状态但该日志还没有归档，就需要强行clear。</p>
+</li>
+<li class="lvl-2">
+<p>2、建议clear，特别是强行clear后作一次数据库的全备份。</p>
+</li>
+<li class="lvl-2">
+<p>3、此方法适用于归档与非归档数据库.</p>
+</li>
 </ul>
-<h1 id="损坏当前联机日志"><a href="#损坏当前联机日志" class="headerlink" title="损坏当前联机日志"></a>损坏当前联机日志</h1><p>归档模式下日志损坏有两种情况，</p>
-<h2 id="一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，"><a href="#一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，" class="headerlink" title="一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，"></a>一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，</h2><p>当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建，步骤如下：</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
+<h1 id="sun-pi-dang-qian-lian-ji-ri-zhi">损坏当前联机日志</h1>
+<p>归档模式下日志损坏有两种情况，</p>
+<h2 id="yi-shu-ju-ku-zheng-chang-guan-bi-ri-zhi-wen-jian-zhong-mei-you-wei-jue-de-shi-wu-xu-yao-shi-li-hui-fu">一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，</h2>
+<p>当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建，步骤如下：</p>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期二 3月 8 17:46:33 2011
 
@@ -567,9 +722,11 @@ SQL&gt; alter database open;
 
 SQL&gt;
 </code></pre>
-<h2 id="二、日志组中有活动事务，需要介质恢复，"><a href="#二、日志组中有活动事务，需要介质恢复，" class="headerlink" title="二、日志组中有活动事务，需要介质恢复，"></a>二、日志组中有活动事务，需要介质恢复，</h2><p>日志组需要用来数据同步，有两种解决方法：</p>
+<h2 id="er-ri-zhi-zu-zhong-you-huo-dong-shi-wu-xu-yao-jie-zhi-hui-fu">二、日志组中有活动事务，需要介质恢复，</h2>
+<p>日志组需要用来数据同步，有两种解决方法：</p>
 <p>1、通过不完全恢复，保持数据库数据一致性，这种方法要求数据库运行在归档方式下，且有可用的数据文件的备份；</p>
-<h3 id="步骤一-模拟当前日志组中日志文件损坏"><a href="#步骤一-模拟当前日志组中日志文件损坏" class="headerlink" title="步骤一  模拟当前日志组中日志文件损坏"></a>步骤一  模拟当前日志组中日志文件损坏</h3><pre><code class="line-numbers language-shell">SQL&gt; set wrap off
+<h3 id="bu-zou-yi-mo-ni-dang-qian-ri-zhi-zu-zhong-ri-zhi-wen-jian-sun-pi">步骤一  模拟当前日志组中日志文件损坏</h3>
+<pre><code class="language-shell">SQL&gt; set wrap off
 SQL&gt; set linesize 200
 SQL&gt; select * from v$log;
 
@@ -584,7 +741,8 @@ oracle@mmsc103:~/oradata/mmsgdb&gt; rm -rf redo03.log
 oracle@mmsc103:~/oradata/mmsgdb&gt; exit
 exit
 </code></pre>
-<h3 id="步骤二-启动数据库，报错"><a href="#步骤二-启动数据库，报错" class="headerlink" title="步骤二  启动数据库，报错"></a>步骤二  启动数据库，报错</h3><pre><code class="line-numbers language-shell">SQL&gt; startup force
+<h3 id="bu-zou-er-qi-dong-shu-ju-ku-bao-cuo">步骤二  启动数据库，报错</h3>
+<pre><code class="language-shell">SQL&gt; startup force
 ORACLE 例程已经启动。
 
 Total System Global Area 8417955840 bytes
@@ -610,7 +768,8 @@ SQL&gt; select * from v$log;
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤三-clear不成功"><a href="#步骤三-clear不成功" class="headerlink" title="步骤三  clear不成功"></a>步骤三  clear不成功</h3><pre><code class="line-numbers language-shell">SQL&gt; alter database clear unarchived logfile group 3;
+<h3 id="bu-zou-san-clear-bu-cheng-gong">步骤三  clear不成功</h3>
+<pre><code class="language-shell">SQL&gt; alter database clear unarchived logfile group 3;
 alter database clear unarchived logfile group 3
 *
 第 1 行出现错误:
@@ -620,8 +779,9 @@ ORA-00312: 联机日志 3 线程 1: '/opt/oracle/oradata/mmsgdb/redo03.log'
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤四-拷贝有效的备份，进行不完全恢复"><a href="#步骤四-拷贝有效的备份，进行不完全恢复" class="headerlink" title="步骤四  拷贝有效的备份，进行不完全恢复"></a>步骤四  拷贝有效的备份，进行不完全恢复</h3><p>文件拷贝</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc103:~&gt; cd bak_20110307/mmsgdb/
+<h3 id="bu-zou-si-kao-bei-you-xiao-de-bei-fen-jin-xing-bu-wan-quan-hui-fu">步骤四  拷贝有效的备份，进行不完全恢复</h3>
+<p>文件拷贝</p>
+<pre><code class="language-shell">oracle@mmsc103:~&gt; cd bak_20110307/mmsgdb/
 oracle@mmsc103:~/bak_20110307/mmsgdb&gt; l
 total 2256564
 drwxr-x--- 2 oracle oinstall       4096 2011-03-07 15:47 ./
@@ -662,10 +822,12 @@ SQL&gt; alter database open resetlogs;
 SQL&gt;
 </code></pre>
 <p>注意：</p>
-<ul>
-<li>这个时候是不能用RMAN进行恢复的，否则报错：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这个时候是不能用RMAN进行恢复的，否则报错：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">ORA-00283: 恢复会话因错误而取消
+<pre><code class="language-shell">ORA-00283: 恢复会话因错误而取消
 ORA-00313: 无法打开日志组 3 (用于线程 1) 的成员
 ORA-00312: 联机日志 3 线程 1: '/opt/oracle/oradata/mmsgdb/redo03.log'
 ORA-27037: 无法获得文件状态
@@ -673,14 +835,23 @@ Linux-x86_64 Error: 2: No such file or directory
 Additional information: 3
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>1、这种办法恢复的数据库是一致的不完全恢复，会丢失当前联机日志中的事务数据</li>
-<li>2、这种方法适合于归档数据库并且有可用的数据库全备份。</li>
-<li>3、恢复成功之后，记得再做一次数据库的全备份。</li>
-<li>4、建议联机日志文件一定要实现镜相在不同的磁盘上，避免这种情况的发生，因为任何数据的丢失对于生产来说都是不容许的。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、这种办法恢复的数据库是一致的不完全恢复，会丢失当前联机日志中的事务数据</p>
+</li>
+<li class="lvl-2">
+<p>2、这种方法适合于归档数据库并且有可用的数据库全备份。</p>
+</li>
+<li class="lvl-2">
+<p>3、恢复成功之后，记得再做一次数据库的全备份。</p>
+</li>
+<li class="lvl-2">
+<p>4、建议联机日志文件一定要实现镜相在不同的磁盘上，避免这种情况的发生，因为任何数据的丢失对于生产来说都是不容许的。</p>
+</li>
 </ul>
 <p>2、通过强制性恢复，这种方法会导致数据的不一致性，推荐使用方法一。</p>
-<h3 id="步骤一-模拟当前日志组中日志成员被损坏"><a href="#步骤一-模拟当前日志组中日志成员被损坏" class="headerlink" title="步骤一 模拟当前日志组中日志成员被损坏"></a>步骤一 模拟当前日志组中日志成员被损坏</h3><pre><code class="line-numbers language-shell">SQL&gt; set wrap off
+<h3 id="bu-zou-yi-mo-ni-dang-qian-ri-zhi-zu-zhong-ri-zhi-cheng-yuan-bei-sun-pi">步骤一 模拟当前日志组中日志成员被损坏</h3>
+<pre><code class="language-shell">SQL&gt; set wrap off
 SQL&gt; set linesize 200
 SQL&gt; select * from v$log;
 
@@ -712,11 +883,13 @@ Additional information: 3
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤二-修改pfile文件，增加隐性参数"><a href="#步骤二-修改pfile文件，增加隐性参数" class="headerlink" title="步骤二  修改pfile文件，增加隐性参数"></a>步骤二  修改pfile文件，增加隐性参数</h3><pre><code class="line-numbers language-shell">vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
+<h3 id="bu-zou-er-xiu-gai-pfile-wen-jian-zeng-jia-yin-xing-can-shu">步骤二  修改pfile文件，增加隐性参数</h3>
+<pre><code class="language-shell">vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
 #add for test by wangyunzeng
 _allow_resetlogs_corruption=TRUE
 </code></pre>
-<h3 id="步骤三-通过pfile文件启动数据库"><a href="#步骤三-通过pfile文件启动数据库" class="headerlink" title="步骤三  通过pfile文件启动数据库"></a>步骤三  通过pfile文件启动数据库</h3><pre><code class="line-numbers language-shell">SQL&gt; startup force pfile='/opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420' 
+<h3 id="bu-zou-san-tong-guo-pfile-wen-jian-qi-dong-shu-ju-ku">步骤三  通过pfile文件启动数据库</h3>
+<pre><code class="language-shell">SQL&gt; startup force pfile='/opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420' 
 ORACLE 例程已经启动。
 
 Total System Global Area 8417955840 bytes
@@ -731,7 +904,8 @@ ORA-27037: 无法获得文件状态
 Linux-x86_64 Error: 2: No such file or directory
 Additional information: 3
 </code></pre>
-<h3 id="步骤四-进行介质恢复"><a href="#步骤四-进行介质恢复" class="headerlink" title="步骤四  进行介质恢复"></a>步骤四  进行介质恢复</h3><pre><code class="line-numbers language-shell">SQL&gt; recover database until cancel;
+<h3 id="bu-zou-si-jin-xing-jie-zhi-hui-fu">步骤四  进行介质恢复</h3>
+<pre><code class="language-shell">SQL&gt; recover database until cancel;
 ORA-00279: 更改 688820 (在 03/08/2011 18:14:25 生成) 对于线程 1 是必需的
 ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_08/o1_mf_1_1_%u_.arc
 ORA-00280: 更改 688820 (用于线程 1) 在序列 #1 中
@@ -753,7 +927,8 @@ SQL&gt; alter database open resetlogs;
 
 SQL&gt;
 </code></pre>
-<h3 id="步骤五-关闭数据库，去掉pfile文件中隐性参数，重启数据库"><a href="#步骤五-关闭数据库，去掉pfile文件中隐性参数，重启数据库" class="headerlink" title="步骤五   关闭数据库，去掉pfile文件中隐性参数，重启数据库"></a>步骤五   关闭数据库，去掉pfile文件中隐性参数，重启数据库</h3><pre><code class="line-numbers language-shell">SQL&gt; shutdown immediate
+<h3 id="bu-zou-wu-guan-bi-shu-ju-ku-qu-diao-pfile-wen-jian-zhong-yin-xing-can-shu-zhong-qi-shu-ju-ku">步骤五   关闭数据库，去掉pfile文件中隐性参数，重启数据库</h3>
+<pre><code class="language-shell">SQL&gt; shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
 ORACLE 例程已经关闭。
@@ -783,20 +958,33 @@ spfile                               string      /opt/oracle/product/11g/dbs/sp
 SQL&gt;
 </code></pre>
 <p>这里使用的是spfile文件，所以不需要修改pfile文件也可以，只有重启数据库就行。</p>
-<h3 id="步骤六-备份整个数据库"><a href="#步骤六-备份整个数据库" class="headerlink" title="步骤六 备份整个数据库"></a>步骤六 备份整个数据库</h3><p>物理冷备或者物理热备或者RMAN备份都行。</p>
-<h3 id="步骤七-导入数据"><a href="#步骤七-导入数据" class="headerlink" title="步骤七  导入数据"></a>步骤七  导入数据</h3><p>如果有相关的exp导出的数据，可以执行imp导入操作，毕竟数据发生丢失。</p>
-<h3 id="步骤八-表数据分析"><a href="#步骤八-表数据分析" class="headerlink" title="步骤八  表数据分析"></a>步骤八  表数据分析</h3><p>建议执行一下表分析</p>
-<pre><code class="line-numbers language-shell">SQL&gt; ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
+<h3 id="bu-zou-liu-bei-fen-zheng-ge-shu-ju-ku">步骤六 备份整个数据库</h3>
+<p>物理冷备或者物理热备或者RMAN备份都行。</p>
+<h3 id="bu-zou-qi-dao-ru-shu-ju">步骤七  导入数据</h3>
+<p>如果有相关的exp导出的数据，可以执行imp导入操作，毕竟数据发生丢失。</p>
+<h3 id="bu-zou-ba-biao-shu-ju-fen-xi">步骤八  表数据分析</h3>
+<p>建议执行一下表分析</p>
+<pre><code class="language-shell">SQL&gt; ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
 
 表已分析。
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>1、该恢复方法是没有办法之后的恢复方法，一般情况下建议不要采用，因为该方法可能导致数据库的不一致</li>
-<li>2、该方法也丢失数据，但是丢失的数据没有上一种方法的数据多，主要是未写入数据文件的已提交或未提交数据。</li>
-<li>3、建议成功后严格执行以上的6到8步，完成数据库的检查与分析</li>
-<li>4、全部完成后做一次数据库的全备份</li>
-<li>5、建议联机日志文件一定要实现镜相在不同的磁盘上，避免这种情况的发生，因为任何数据的丢失对于生产来说都是不容许的</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>1、该恢复方法是没有办法之后的恢复方法，一般情况下建议不要采用，因为该方法可能导致数据库的不一致</p>
+</li>
+<li class="lvl-2">
+<p>2、该方法也丢失数据，但是丢失的数据没有上一种方法的数据多，主要是未写入数据文件的已提交或未提交数据。</p>
+</li>
+<li class="lvl-2">
+<p>3、建议成功后严格执行以上的6到8步，完成数据库的检查与分析</p>
+</li>
+<li class="lvl-2">
+<p>4、全部完成后做一次数据库的全备份</p>
+</li>
+<li class="lvl-2">
+<p>5、建议联机日志文件一定要实现镜相在不同的磁盘上，避免这种情况的发生，因为任何数据的丢失对于生产来说都是不容许的</p>
+</li>
 </ul>
 
                 
@@ -900,10 +1088,10 @@ SQL&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1217,7 +1405,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/68.jpg" class="responsive-img" alt="Perl脚本实现oracle RMAN自动备份">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/68.jpg" class="responsive-img" alt="Perl脚本实现oracle RMAN自动备份">
                         
                         <span class="card-title">Perl脚本实现oracle RMAN自动备份</span>
                     </div>
@@ -1266,7 +1454,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/180.jpg" class="responsive-img" alt="Oracle RMAN实践篇1">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/180.jpg" class="responsive-img" alt="Oracle RMAN实践篇1">
                         
                         <span class="card-title">Oracle RMAN实践篇1</span>
                     </div>
@@ -1497,7 +1685,7 @@ SQL&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1847,6 +2035,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

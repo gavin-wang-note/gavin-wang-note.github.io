@@ -5,7 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="S3 单一Bucket下写4K数据性能衰减验证, 软硬件测试">
-    <meta name="description" content="测试环境测试环境信息存储端
+    <meta name="description" content="测试环境
+测试环境信息
+存储端
 
 
 
@@ -14,12 +16,13 @@ v8.2-211  (a243210)
 
 
 
+
 节点数
 6 nodes，NJ Lab 技嘉4U36B设备
 
 
 CPU
-node1node3: Intel(R) Xeon(R) Gold 5118 C">
+node1~node3: Intel® Xeon® Gold 5118 C">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -77,20 +80,160 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -205,7 +348,7 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -467,7 +610,7 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    42 分
+                    43 分
                 </div>
                 
 
@@ -490,7 +633,9 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h1><h2 id="测试环境信息"><a href="#测试环境信息" class="headerlink" title="测试环境信息"></a>测试环境信息</h2><p><strong>存储端</strong></p>
+                <h1 id="ce-shi-huan-jing">测试环境</h1>
+<h2 id="ce-shi-huan-jing-xin-xi">测试环境信息</h2>
+<p><strong>存储端</strong></p>
 <table>
 <thead>
 <tr>
@@ -498,13 +643,14 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 <th>v8.2-211  (a243210)</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td><strong>节点数</strong></td>
 <td>6 nodes，NJ Lab 技嘉4U36B设备</td>
 </tr>
 <tr>
 <td><strong>CPU</strong></td>
-<td>node1<del>node3: Intel(R) Xeon(R) Gold 5118 CPU @ 2.30GHz <br>node4</del>node6:  Intel(R) Xeon(R) Silver 4114 CPU @ 2.20GHz</td>
+<td>node1~node3: Intel® Xeon® Gold 5118 CPU @ 2.30GHz <br>node4~node6:  Intel® Xeon® Silver 4114 CPU @ 2.20GHz</td>
 </tr>
 <tr>
 <td><strong>Memory</strong></td>
@@ -512,7 +658,7 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 </tr>
 <tr>
 <td><strong>Disk</strong></td>
-<td>希捷 SATA  8T*36    <br>Intel S4510 SSD: 240G*1     <br>node1<del>node6： 威刚ADATA SR2000CP NVMe 4T*1     <br>node1</del>node3： NVMe P4500/P4600 4T*1</td>
+<td>希捷 SATA  8T*36    <br>Intel S4510 SSD: 240G*1     <br>node1~node6： 威刚ADATA SR2000CP NVMe 4T*1     <br>node1~node3： NVMe P4500/P4600 4T*1</td>
 </tr>
 <tr>
 <td><strong>Network</strong></td>
@@ -522,12 +668,13 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 <td><strong>集群信息</strong></td>
 <td>2块SATA盘组RAID0，每个node 18个OSD，一块ADATA NVME SSD作为OSD Journal&amp;Cache，加入s3-data-pool<br>node1~node3，每个node的一块P4510/4610 NVME SSD作OSD，加入s3-index-pool<br>配置S3 placement， data pool选择s3-data-pool， index pool选择s3-index-pool<br>对metadata，s3-data-pool 和 s3-data-pool 启用PG split功能，并确保PG均衡<br>UI创建S3 账号，并创建bucket<br>参数调优部分，参考下文“参数调优”章节</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>说明：</p>
-<p>​    最初node1<del>node3上是两块ADATA NVME SSD，后来才和node4</del>node6互换SSD，对应测试章节为本文的“Lab最终测试”</p>
+<p>​    最初node1~node3上是两块ADATA NVME SSD，后来才和node4~node6互换SSD，对应测试章节为本文的“Lab最终测试”</p>
 <p><strong>客户端</strong></p>
 <p>​    6台VM，CentOS7，走10G网络向存储端的6个radosgw 发起请求。</p>
-<pre><code class="line-numbers language-shell">[root@centos-1 ~]# hostnamectl 
+<pre><code class="language-shell">[root@centos-1 ~]# hostnamectl 
    Static hostname: centos-1
          Icon name: computer-vm
            Chassis: vm
@@ -541,7 +688,7 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 </code></pre>
 <p><strong>cosbench task config</strong></p>
 <p>内容参考如下：</p>
-<pre><code class="line-numbers language-shell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<pre><code class="language-shell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;workload name="5" description="1200million_4k_data_filling"&gt;
 &lt;storage type="s3" config="accesskey=YGWTYZEPDQVCPX44F6BA;secretkey=ze7bpgdY81wbHYehpzAaM2Y5RyO5rOh99YbH9NCj;endpoint=http://10.16.172.161/" /&gt;
 
@@ -585,47 +732,53 @@ node1node3: Intel(R) Xeon(R) Gold 5118 C">
 
 &lt;/workload&gt;
 </code></pre>
-<h2 id="参数调优"><a href="#参数调优" class="headerlink" title="参数调优"></a>参数调优</h2><h3 id="修改bucket-shards，默认128，改成1000"><a href="#修改bucket-shards，默认128，改成1000" class="headerlink" title="修改bucket shards，默认128，改成1000"></a>修改bucket shards，默认128，改成1000</h3><pre><code class="line-numbers language-shell">radosgw-admin bucket reshard --bucket=bigtera1 --num-shards=1000
+<h2 id="can-shu-diao-you">参数调优</h2>
+<h3 id="xiu-gai-bucket-shards-mo-ren-128-gai-cheng-1000">修改bucket shards，默认128，改成1000</h3>
+<pre><code class="language-shell">radosgw-admin bucket reshard --bucket=bigtera1 --num-shards=1000
 </code></pre>
-<p> 说明：</p>
+<p>说明：</p>
 <p>​      此操作，请务必放在修改了s3 placement，并创建好bucket后再执行。</p>
-<h3 id="调整rgw相关参数"><a href="#调整rgw相关参数" class="headerlink" title="调整rgw相关参数"></a>调整rgw相关参数</h3><pre><code class="line-numbers language-shell">rgw ecsoc bundle shards = 512
+<h3 id="diao-zheng-rgw-xiang-guan-can-shu">调整rgw相关参数</h3>
+<pre><code class="language-shell">rgw ecsoc bundle shards = 512
 rgw gc max objs = 32
 rgw gc obj min wait = 300
 rgw gc processor max_time = 300
 rgw gc processor period = 300
 rgw init timeout = 3000
 </code></pre>
-<h3 id="调整bigterastore-cache"><a href="#调整bigterastore-cache" class="headerlink" title="调整bigterastore cache"></a>调整bigterastore cache</h3><p>默认100万，调整成1000万，尽量避免bigterastore flush cache</p>
-<pre><code class="line-numbers language-shell">be_cache_max_objs = 10000000
+<h3 id="diao-zheng-bigterastore-cache">调整bigterastore cache</h3>
+<p>默认100万，调整成1000万，尽量避免bigterastore flush cache</p>
+<pre><code class="language-shell">be_cache_max_objs = 10000000
 </code></pre>
 <p>说明：</p>
 <p>​    建议写入每个node的ceph.conf [osd]处；</p>
 <p>​    本文 EC 4+2 灌12亿对象场景，不调整此参数。</p>
-<h3 id="避免inode耗尽"><a href="#避免inode耗尽" class="headerlink" title="避免inode耗尽"></a>避免inode耗尽</h3><pre><code class="line-numbers language-shell">ceph tell osd.* injectargs '--bigterastore_obj_meta_size 1024'
+<h3 id="bi-mian-inode-hao-jin">避免inode耗尽</h3>
+<pre><code class="language-shell">ceph tell osd.* injectargs '--bigterastore_obj_meta_size 1024'
 </code></pre>
-<p> 建议写入每个node的ceph.conf [osd]处。</p>
-<h3 id="PG相关"><a href="#PG相关" class="headerlink" title="PG相关"></a>PG相关</h3><p> metadata pool 启用PG split，避免OSD数量过多（默认512 PG数太少）和 bucket中objects数量较多情况下出现osd metaata pool full，引发性能衰减；</p>
+<p>建议写入每个node的ceph.conf [osd]处。</p>
+<h3 id="pg-xiang-guan">PG相关</h3>
+<p>metadata pool 启用PG split，避免OSD数量过多（默认512 PG数太少）和 bucket中objects数量较多情况下出现osd metaata pool full，引发性能衰减；</p>
 <p>s3-data-pool启用PG split；</p>
 <p>确保metadata pool 和 s3-data-pool的PG分布是均衡的。</p>
 <p>说明：</p>
 <p>以本次测试环境为例，虽然产品有deamon /usr/local/bin/bt-pool-reweight-agent.py 来做reweight PG，但整个执行周期有些慢，迟迟没有调整好，所以手工干预了一下，操作步骤大致如下：</p>
 <p>（1）   ceph df 获取要调整的pool id  # 主要是3个pool，一个是metadata pool，一个是s3 data pool 和s3 index pool</p>
 <p>（2）   获取pool预期OSD PG分布crush信息 # 以metadata pool id=10为示例：</p>
-<pre><code class="line-numbers language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 1
+<pre><code class="language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 1
 ceph osd setcrushmap -i 10_crush.bin
 </code></pre>
 <p>上面是理想状态，-t 1表示每个OSD上分布的PG相差1，比如计算出来的每个OSD 分布的PG数平均值为150，预计调整后的状态是：有的OSD 分布的PG数是151，有的是150，有的是152；</p>
 <p>如果-t 1中无法达到预期调整效果，特别是在现有PG分布非常不均衡状态下，放大这个数值，先从差值较大来做调整，然后缩小范围，示例如下：</p>
-<pre><code class="line-numbers language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 30；
+<pre><code class="language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 30；
 ceph osd setcrushmap -i 10_crush.bin
 </code></pre>
 <p>apply下去后：</p>
-<pre><code class="line-numbers language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 10；
+<pre><code class="language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 10；
 ceph osd setcrushmap -i 10_crush.bin
 </code></pre>
 <p>然后</p>
-<pre><code class="line-numbers language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 4；
+<pre><code class="language-shell">crush_reweight_tool -p 10 -o 10_crush.bin -t 4；
 ceph osd setcrushmap -i 10_crush.bin
 
 crush_reweight_tool -p 10 -o 10_crush.bin -t 2；
@@ -636,7 +789,7 @@ ceph osd setcrushmap -i 10_crush.bin
 </code></pre>
 <p>类似上面的操作，如果-t 1达不到预计效果，终止调整。</p>
 <p>3个Pool的PG调整好后，检查一下PG分布，确保没有问题，具体检查方法，请执行附件提供的脚本：pg_allocate.py，输出参考如下：</p>
-<pre><code class="line-numbers language-shell">root@node166:~# ./pg_allocate.py 
+<pre><code class="language-shell">root@node166:~# ./pg_allocate.py 
 dumped all
 
 pool  : 1      10     11     12     13     2      3      4      5      6      7      8      9      | SUM
@@ -759,205 +912,118 @@ osd.110 0      0      0      0      171    0      0      0      0      0      0 
 SUM   : 512    16384  12288  512    512    512    512    512    512    2048   2048   512    512    |
 root@node166:~# 
 </code></pre>
-<h2 id="可行性验证"><a href="#可行性验证" class="headerlink" title="可行性验证"></a>可行性验证</h2><h3 id="EC-4-2，-2盘组RAID0"><a href="#EC-4-2，-2盘组RAID0" class="headerlink" title="EC 4+2， 2盘组RAID0"></a>EC 4+2， 2盘组RAID0</h3><p>2021-09-09</p>
+<h2 id="ke-xing-xing-yan-zheng">可行性验证</h2>
+<h3 id="ec-4-2-2-pan-zu-raid-0">EC 4+2， 2盘组RAID0</h3>
+<p>2021-09-09</p>
 <p>01:52集群异常，是因为忘记调整obj meta size，导致默认值情况下计算的inode耗尽，如下图所示：</p>
-<img class="shadow" src="/img/in-post/clip_image001-16316766830863.png" width="600">
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image001-16316766830863.png" width="600">
 <p>当时数据已经写了3.2亿左右，没有截图，早上上班时候，发现此问题，调整了参数，继续灌数据：</p>
-<img class="shadow" src="/img/in-post/clip_image002-16316766830874.png" width="600">
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image002-16316766830874.png" width="600">
 <p>从上面图可以看出来，凌晨2点48前后，集群没有流量了：</p>
-<img class="shadow" src="/img/in-post/clip_image003-16316766829691.png" width="600">
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image003-16316766829691.png" width="600">
 <p>出现了Near full 和backfillfull，此时还是可以继续写入的，只是接着出现了FULL，97%了，导致数据无法写入：</p>
-<img class="shadow" src="/img/in-post/clip_image004-16316766829702.png" width="600">
- 
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image004-16316766829702.png" width="600">
 <p>早上到Office后，调整了参数，让数据继续灌，不打算终止重新跑，因为只要此刻开始，后面只要写入的数据是平稳的，没有衰减，目的就达到了，持续观察中（下面是灌了4.98亿对象时看到的状况截图）：</p>
-<img class="shadow" src="/img/in-post/clip_image005.png" width="600">
-
-<img class="shadow" src="/img/in-post/clip_image006.png" width="600">
-
-<img class="shadow" src="/img/in-post/clip_image007.png" width="600">
-
-<img class="shadow" src="/img/in-post/clip_image008.png" width="600">
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image005.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image006.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image007.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image008.png" width="600">
 <p>后面3个节点，相较前3个节点， NVME SSD比较弱了。</p>
 <p>重做集群（2021-09-11）：</p>
-<img class="shadow" src="/img/in-post/clip_image009.png" width="600">
- 
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image009.png" width="600">
 <p>写了5.7亿，pool出现 near full，衰减的厉害。</p>
-<img class="shadow" src="/img/in-post/clip_image010.png" width="600">
-
- 
-
-<h3 id="EC-4-2-2盘RAID0-但每个node使用10组RAID做OSD"><a href="#EC-4-2-2盘RAID0-但每个node使用10组RAID做OSD" class="headerlink" title="EC 4+2 2盘RAID0, 但每个node使用10组RAID做OSD"></a>EC 4+2 2盘RAID0, 但每个node使用10组RAID做OSD</h3><p>2021-09-12</p>
-<img class="shadow" src="/img/in-post/clip_image011.png" width="600">
-
-<img class="shadow" src="/img/in-post/clip_image012.png" width="600">
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image010.png" width="600">
+<h3 id="ec-4-2-2-pan-raid-0-dan-mei-ge-node-shi-yong-10-zu-raid-zuo-osd">EC 4+2 2盘RAID0, 但每个node使用10组RAID做OSD</h3>
+<p>2021-09-12</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image011.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image012.png" width="600">
 <p>出现OSD near full，之后写性能下降。</p>
-<h3 id="6盘组RAID0，每个node-6个OSD"><a href="#6盘组RAID0，每个node-6个OSD" class="headerlink" title="6盘组RAID0，每个node 6个OSD"></a>6盘组RAID0，每个node 6个OSD</h3><p>2021-09-13</p>
+<h3 id="6-pan-zu-raid-0-mei-ge-node-6-ge-osd">6盘组RAID0，每个node 6个OSD</h3>
+<p>2021-09-13</p>
 <p>前3个node，用一块 Nvme 做ssd osd pool</p>
-<img class="shadow" src="/img/in-post/clip_image013.png" width="600">
-
-<img class="shadow" src="/img/in-post/clip_image014.png" width="600">
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image013.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image014.png" width="600">
 <p>还是出现了metadata pool full，与osd full的问题</p>
-<p>2021-09-14 </p>
+<p>2021-09-14</p>
 <p>考虑到上面没有多metadata pool做PG split，PG数量太少，objects数量太多，有可能引发osd metadata near full问题，导致性能下降。</p>
 <p>重做环境，继续观察。</p>
-<h1 id="Lab-继续后续测试"><a href="#Lab-继续后续测试" class="headerlink" title="Lab 继续后续测试"></a>Lab 继续后续测试</h1><h2 id="场景1-Enable-Rack-Awareness，-EC-2-1，空桶状况下上传7-2亿4K小对象"><a href="#场景1-Enable-Rack-Awareness，-EC-2-1，空桶状况下上传7-2亿4K小对象" class="headerlink" title="场景1 Enable Rack Awareness， EC 2+1，空桶状况下上传7.2亿4K小对象"></a>场景1 Enable Rack Awareness， EC 2+1，空桶状况下上传7.2亿4K小对象</h2><h3 id="存储端信息"><a href="#存储端信息" class="headerlink" title="存储端信息"></a>存储端信息</h3><p> 灌的object量：</p>
-<img class="shadow" src="/img/in-post/image-20210915120446571.png" width="600">
-
-
-
+<h1 id="lab-ji-xu-hou-xu-ce-shi">Lab 继续后续测试</h1>
+<h2 id="chang-jing-1-enable-rack-awareness-ec-2-1-kong-tong-zhuang-kuang-xia-shang-chuan-7-2-yi-4-k-xiao-dui-xiang">场景1 Enable Rack Awareness， EC 2+1，空桶状况下上传7.2亿4K小对象</h2>
+<h3 id="cun-chu-duan-xin-xi">存储端信息</h3>
+<p>灌的object量：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210915120446571.png" width="600">
 <p>集群统计信息：</p>
-<img class="shadow" src="/img/in-post/image-20210915115732869.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210915120241981.png" width="600">
-
-
-<h3 id="cosbench端统计信息"><a href="#cosbench端统计信息" class="headerlink" title="cosbench端统计信息"></a>cosbench端统计信息</h3><img class="shadow" src="/img/in-post/image-20210915120102542.png" width="600">
-
-
-<img class="shadow" src="/img/in-post/image-20210915120139930.png" width="600">
-
-
- 
-
-<h3 id="性能瓶颈"><a href="#性能瓶颈" class="headerlink" title="性能瓶颈"></a>性能瓶颈</h3><p>如下为node4<del>node6的NVME atop信息片断，这3个节点NVME SSD要表node1</del>node3的NVME SSD弱一个档次。</p>
-<h4 id="node-166"><a href="#node-166" class="headerlink" title="node 166"></a>node 166</h4><img class="shadow" src="/img/in-post/clip_image015.png" width="600">
-<img class="shadow" src="/img/in-post/clip_image016.png" width="600">
-<img class="shadow" src="/img/in-post/clip_image017.png" width="600">
-
- 
-
-<h4 id="node-165"><a href="#node-165" class="headerlink" title="node 165"></a>node 165</h4><img class="shadow" src="/img/in-post/clip_image018.png" width="600">
-<img class="shadow" src="/img/in-post/clip_image019.png" width="600">
-
- 
-
-<h4 id="node-164"><a href="#node-164" class="headerlink" title="node 164"></a>node 164</h4><img class="shadow" src="/img/in-post/clip_image020.png" width="600">
-
- 
-
-<h3 id="疑问"><a href="#疑问" class="headerlink" title="疑问"></a>疑问</h3><p>整个过程中没有看到HDD忙，考虑到NVME SSD空间比较大，而且调整过bigterastore object cache size为1000万，总共是108个HDD OSD和 3 个NVME OSD，SSD 能够容纳的对象数是11亿左右(1000万*111个OSD)，上面总共灌了7.2亿对象，这些对象在SSD里，所以没有看到衰减迹象。</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210915115732869.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210915120241981.png" width="600">
+<h3 id="cosbench-duan-tong-ji-xin-xi">cosbench端统计信息</h3>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210915120102542.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210915120139930.png" width="600">
+<h3 id="xing-neng-ping-jing">性能瓶颈</h3>
+<p>如下为node4~node6的NVME atop信息片断，这3个节点NVME SSD要表node1~node3的NVME SSD弱一个档次。</p>
+<h4 id="node-166">node 166</h4>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image015.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image016.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image017.png" width="600">
+<h4 id="node-165">node 165</h4>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image018.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image019.png" width="600">
+<h4 id="node-164">node 164</h4>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/clip_image020.png" width="600">
+<h3 id="yi-wen">疑问</h3>
+<p>整个过程中没有看到HDD忙，考虑到NVME SSD空间比较大，而且调整过bigterastore object cache size为1000万，总共是108个HDD OSD和 3 个NVME OSD，SSD 能够容纳的对象数是11亿左右(1000万*111个OSD)，上面总共灌了7.2亿对象，这些对象在SSD里，所以没有看到衰减迹象。</p>
 <p>下个场景，改变一下测试策略，不再调整object cache size，使用默认值（100万）。</p>
-<h2 id="场景2-EC-4-2，空桶状况下上传12亿4k小对象"><a href="#场景2-EC-4-2，空桶状况下上传12亿4k小对象" class="headerlink" title="场景2 EC 4+2，空桶状况下上传12亿4k小对象"></a>场景2 EC 4+2，空桶状况下上传12亿4k小对象</h2><p> 使用默认的be cache max objs参数，灌12亿对象到单一bucket中，但灌到8亿的时候出现osd near full，再继续灌下去，出现osd full，然后性能开始下降了，所以先记录数据，终止测试，下一轮次依然是12亿的目标，但会将metadata pool 和s3 data pool的PG数放大验证看看。</p>
-<h3 id="统计信息"><a href="#统计信息" class="headerlink" title="统计信息"></a>统计信息</h3><h4 id="存储UI端"><a href="#存储UI端" class="headerlink" title="存储UI端"></a>存储UI端</h4><img class="shadow" src="/img/in-post/image-20210916194250670.png" width="600">
-
-
-<h4 id="存储后端"><a href="#存储后端" class="headerlink" title="存储后端"></a>存储后端</h4><img class="shadow" src="/img/in-post/image-20210916194313663.png" width="600">
-
-
-
-<h4 id="cosbench-统计"><a href="#cosbench-统计" class="headerlink" title="cosbench 统计"></a>cosbench 统计</h4><img class="shadow" src="/img/in-post/image-20210916194358253.png" width="600">
-
-
-<img class="shadow" src="/img/in-post/image-20210916194428439.png" width="600">
-
-
-
-<h3 id="硬件资源开销"><a href="#硬件资源开销" class="headerlink" title="硬件资源开销"></a>硬件资源开销</h3><p>如果是在灌了5.4+亿对象后截屏信息</p>
-<img class="shadow" src="/img/in-post/image-20210916091341852.png" width="600">
-
-
-
-<h4 id="atop信息"><a href="#atop信息" class="headerlink" title="atop信息"></a>atop信息</h4><p>node161</p>
-<img class="shadow" src="/img/in-post/image-20210916091729055.png" width="600">
-
-
-
+<h2 id="chang-jing-2-ec-4-2-kong-tong-zhuang-kuang-xia-shang-chuan-12-yi-4-k-xiao-dui-xiang">场景2 EC 4+2，空桶状况下上传12亿4k小对象</h2>
+<p>使用默认的be cache max objs参数，灌12亿对象到单一bucket中，但灌到8亿的时候出现osd near full，再继续灌下去，出现osd full，然后性能开始下降了，所以先记录数据，终止测试，下一轮次依然是12亿的目标，但会将metadata pool 和s3 data pool的PG数放大验证看看。</p>
+<h3 id="tong-ji-xin-xi">统计信息</h3>
+<h4 id="cun-chu-ui-duan">存储UI端</h4>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916194250670.png" width="600">
+<h4 id="cun-chu-hou-duan">存储后端</h4>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916194313663.png" width="600">
+<h4 id="cosbench-tong-ji">cosbench 统计</h4>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916194358253.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916194428439.png" width="600">
+<h3 id="ying-jian-zi-yuan-kai-xiao">硬件资源开销</h3>
+<p>如果是在灌了5.4+亿对象后截屏信息</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091341852.png" width="600">
+<h4 id="atop-xin-xi">atop信息</h4>
+<p>node161</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091729055.png" width="600">
 <p>node162</p>
-<img class="shadow" src="/img/in-post/image-20210916091738876.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091738876.png" width="600">
 <p>node163</p>
-<img class="shadow" src="/img/in-post/image-20210916091749509.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091749509.png" width="600">
 <p>node164</p>
-<img class="shadow" src="/img/in-post/image-20210916091759035.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091759035.png" width="600">
 <p>node165</p>
-<img class="shadow" src="/img/in-post/image-20210916091809408.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091809408.png" width="600">
 <p>node166</p>
-<img class="shadow" src="/img/in-post/image-20210916091824733.png" width="600">
-
-
-
-
-<h4 id="iostat信息"><a href="#iostat信息" class="headerlink" title="iostat信息"></a>iostat信息</h4><p>node161</p>
-<img class="shadow" src="/img/in-post/image-20210916091114070.png" width="600">
-
- 
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091824733.png" width="600">
+<h4 id="iostat-xin-xi">iostat信息</h4>
+<p>node161</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091114070.png" width="600">
 <p>node162</p>
-<img class="shadow" src="/img/in-post/image-20210916091512154.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091512154.png" width="600">
 <p>node163</p>
-<img class="shadow" src="/img/in-post/image-20210916091522315.png" width="600">
-
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091522315.png" width="600">
 <p>node164</p>
-<img class="shadow" src="/img/in-post/image-20210916091545140.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091545140.png" width="600">
 <p>node165</p>
-<img class="shadow" src="/img/in-post/image-20210916091555478.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091555478.png" width="600">
 <p>node166</p>
-<img class="shadow" src="/img/in-post/image-20210916091604747.png" width="600">
-
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916091604747.png" width="600">
 <p>注意点：</p>
 <p>在灌了7.6亿对象情况下，发现部分osd的metadata usage 接近near full阈值（0.85），下图是设置bigterastore_obj_meta_size=1024下看到的信息：</p>
-<img class="shadow" src="/img/in-post/image-20210916172730569.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210916172730569.png" width="600">
 <p>现在调整bigterastore_obj_meta_size=512，执行上面的脚本获取osd的metadata usage并没有发生变化。</p>
-<h3 id="再次测试"><a href="#再次测试" class="headerlink" title="再次测试"></a>再次测试</h3><p>2021-09-16</p>
+<h3 id="zai-ci-ce-shi">再次测试</h3>
+<p>2021-09-16</p>
 <p>放大metadata 和 s3-data-pool的PG numbers</p>
-<pre><code class="line-numbers language-shell">root@node166:~# ceph osd pool get s3-data-pool pg_num
+<pre><code class="language-shell">root@node166:~# ceph osd pool get s3-data-pool pg_num
 pg_num: 2048
 root@node166:~# ceph osd pool get metadata pg_num
 pg_num: 8192
 </code></pre>
-<pre><code class="line-numbers language-shell">root@node166:~# cat enlarge_pg.sh 
+<pre><code class="language-shell">root@node166:~# cat enlarge_pg.sh 
 # pool_name='s3-data-pool'
 pool_name='metadata'
 cur_pg_num=`ceph osd pool get ${pool_name} pg_num |awk -F ':' '{{print $NF}}'`
@@ -976,13 +1042,9 @@ done
 root@node166:~# 
 </code></pre>
 <p>当灌到4.4亿的时候，查看了各个osd的matedata usage，发现前3个node与后3个node的用量还是有蛮大差距：</p>
-<img class="shadow" src="/img/in-post/image-20210917163813310-16318678940801.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210917163853593.png" width="600">
-
-
-
-<pre><code class="line-numbers language-shell">root@node163:~# ceph daemon osd.48 perf dump bigterastore
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210917163813310-16318678940801.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210917163853593.png" width="600">
+<pre><code class="language-shell">root@node163:~# ceph daemon osd.48 perf dump bigterastore
 {
     "bigterastore": {
         "bt_js_coll_num": 877,
@@ -1045,194 +1107,107 @@ root@node164:~# ceph daemon osd.56 perf dump bigterastore
 }
 </code></pre>
 <p>Big帮忙确认了一下：</p>
-<p>   前3个node的nvme性能比较强悍，object flush&amp;evict比较快，所以HDD的空间消耗也明显比后面3个节点多，前3个node cache object也少于后面的3台，建议各个node统一下NVME SSD。</p>
-<h2 id="Lab最终测试"><a href="#Lab最终测试" class="headerlink" title="Lab最终测试"></a>Lab最终测试</h2><p>2021-09-17</p>
+<p>前3个node的nvme性能比较强悍，object flush&amp;evict比较快，所以HDD的空间消耗也明显比后面3个节点多，前3个node cache object也少于后面的3台，建议各个node统一下NVME SSD。</p>
+<h2 id="lab-zui-zhong-ce-shi">Lab最终测试</h2>
+<p>2021-09-17</p>
 <p>说明：</p>
 <p>​       如下场景的测试，各个node均有一块ADATA NVME SSD，确保各个node Bigterastore Cache FS inode 均衡，不会因NVME SSD性能不同造成flush/evict不同，引发各个node的Bigterastore Cache FS inode消耗不均衡。</p>
-<h3 id="一倍放大PG数"><a href="#一倍放大PG数" class="headerlink" title="一倍放大PG数"></a>一倍放大PG数</h3><p>每个node使用相同的NVME SSD(ADATA)做OSD的Journal&amp;Cache;</p>
-<p>即将原来node161<del>163上的一块ADATA NVME SSD替换到node164</del>166上，确保node161~166 6个node都有一块ADATA NVME SSD；</p>
-<p>将node164<del>166上的P4510/4610 NVME SSD，给node161</del>163使用，做nvme ssd pool as s3 index pool，因为这3个node的CPU更强悍。</p>
+<h3 id="yi-bei-fang-da-pg-shu">一倍放大PG数</h3>
+<p>每个node使用相同的NVME SSD(ADATA)做OSD的Journal&amp;Cache;</p>
+<p>即将原来node161~163上的一块ADATA NVME SSD替换到node164<sub>166上，确保node161</sub>166 6个node都有一块ADATA NVME SSD；</p>
+<p>将node164~166上的P4510/4610 NVME SSD，给node161~163使用，做nvme ssd pool as s3 index pool，因为这3个node的CPU更强悍。</p>
 <p>虽然Big说不再放大PG数，考虑到对象数据较大，本次测试还是放大了一倍看看效果如何，metadata pool 、s3-data-pool和 s3-index-pool均有放大一倍：</p>
-<img class="shadow" src="/img/in-post/image-20210917180327779.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210917180327779.png" width="600">
 <p>说明：</p>
 <p>​    32768为2副本的metadata pool；</p>
 <p>​    24576为4+2EC s3-data-pool；</p>
 <p>​    1024为2副本s3-index-pool</p>
 <p>整个测试期间，瓶颈在NVME(不是S3 index pool对应的 NVME SSD):</p>
 <p>node161</p>
-<img class="shadow" src="/img/in-post/image-20210918093146977.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918093146977.png" width="600">
 <p>node162</p>
-<img class="shadow" src="/img/in-post/image-20210918092754619.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918092754619.png" width="600">
 <p>node163</p>
-<img class="shadow" src="/img/in-post/image-20210918093206742.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918093206742.png" width="600">
 <p>node164</p>
-<img class="shadow" src="/img/in-post/image-20210918093216922.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918093216922.png" width="600">
 <p>node165</p>
-<img class="shadow" src="/img/in-post/image-20210918093230042.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918093230042.png" width="600">
 <p>node166</p>
-<img class="shadow" src="/img/in-post/image-20210918093239165-16319287600391.png" width="600">
-
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918093239165-16319287600391.png" width="600">
 <p>2021-09-18</p>
 <p>写了6.2个亿对象</p>
-<img class="shadow" src="/img/in-post/image-20210918172307957.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918172307957.png" width="600">
 <p>此时UI统计信息：</p>
-<img class="shadow" src="/img/in-post/image-20210918172246927.png" width="600">
-
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210918172246927.png" width="600">
 <p>这里有波动，基本上一个小时出现一次，推测是flush/evict造成，尚未找到具体证据。</p>
 <p>2021-09-19</p>
-<img class="shadow" src="/img/in-post/image-20210919071321059.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919071510301.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919071335003.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919071413716.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919071413716.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919071529108.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919074457366.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919071321059.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919071510301.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919071335003.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919071413716.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919071413716.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919071529108.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919074457366.png" width="600">
 <p>至此之后，性能直线衰减。</p>
 <p>停掉cosbench task，此后各个node持续flush/evict object到HDD：</p>
-<img class="shadow" src="/img/in-post/image-20210919072945984.png" width="600">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919072945984.png" width="600">
 <p>cosbench停掉10余个小时后：</p>
-<img class="shadow" src="/img/in-post/image-20210919212209412.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919212310757.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919212355948.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919212405803.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919212419913.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919212430537.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919212209412.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919212310757.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919212355948.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919212405803.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919212419913.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919212430537.png" width="600">
 <p>各个node 的cache inode消耗：</p>
-<img class="shadow" src="/img/in-post/image-20210919073449099.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919073449099.png" width="600">
 <p>各个节点HDD inode消耗：</p>
-<img class="shadow" src="/img/in-post/image-20210919074234373.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919074234373.png" width="600">
 <p>说明flush/evich比较慢，停掉cosbench task 大约7个小时候，各个node的osd与cache inode消耗情况如下：</p>
-<img class="shadow" src="/img/in-post/image-20210919160536018.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919160704064.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919160536018.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919160704064.png" width="600">
 <p>从这个角度讲，存储能写多少4k的小object，取决于2方面：</p>
 <ol>
-<li><p>产品默认支持计算出来的inode是否能够满足实际需要；</p>
+<li class="lvl-3">
+<p>产品默认支持计算出来的inode是否能够满足实际需要；</p>
 </li>
-<li><p>ssd flush/evict是否足够快，HDD能够支撑住如此快的flush/evict</p>
+<li class="lvl-3">
+<p>ssd flush/evict是否足够快，HDD能够支撑住如此快的flush/evict</p>
 </li>
 </ol>
 <p>考虑到我验证的场景是验证不会随着bucket中对象数的增多而出现衰减，所以考虑重新测试，降低cosbench写速度，避免因写的太快而flush/evict太慢造成osd cache inode提早耗尽出现性能断崖式衰减。</p>
 <p>继续在灌了10亿基础上，等待cache inode消耗减低至0.5以下后，写3亿4K小对象，观察有10亿基础数据情况下，这3亿对象写期间性能是否会衰减</p>
-<img class="shadow" src="/img/in-post/image-20210919224911546.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210919224922984.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919224911546.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210919224922984.png" width="600">
 <p>期间node164 因memory 耗尽出现osd down，始终无法恢复，重启机器与只启用部分osd（18个osd启用15个），无法恢复；第三次重启机器后，只启用了一半的osd，且等待cache inode 消耗降低到1%情况下：</p>
-<img class="shadow" src="/img/in-post/image-20210922120820942.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210922120820942.png" width="600">
 <p>然后逐步启用余下的osd：</p>
-<img class="shadow" src="/img/in-post/image-20210922144652265.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210922144652265.png" width="600">
 <p>但osd pg log占用太多memory，只能等PG状态全部是active+clean情况下，才会释放多余的pg log所占用的memory：</p>
-<img class="shadow" src="/img/in-post/image-20210922183619848.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210922183619848.png" width="600">
 <p>最终还是没法启动所有的osd，只能停用node164上的部分osd，在PG处于如下状态，灌1亿4Kobjects：</p>
-<img class="shadow" src="/img/in-post/image-20210923092445769.png" width="600">
-
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923092445769.png" width="600">
 <p>期间NVME 与 HDD 都非常忙，重点是NVME，有做Bigterastore cache，新写入的数据会先到Cache里：</p>
-<img class="shadow" src="/img/in-post/image-20210923092826977.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923092826977.png" width="600">
 <p>调整过be_cache_paused_flusher_qsize到32（默认1），cosbench展示的各个driver的OPS波动比较大了，之后又恢复默认值：</p>
-<img class="shadow" src="/img/in-post/image-20210923104645353.png" width="600">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923104645353.png" width="600">
 <p>之后碰到cache写满导致osd crash</p>
-<img class="shadow" src="/img/in-post/image-20210923120045816.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210923120106531.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210923120134914.png" width="600">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923120045816.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923120106531.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923120134914.png" width="600">
 <p>集群测统计信息：</p>
-<img class="shadow" src="/img/in-post/image-20210923120004636.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210923120013254.png" width="600">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923120004636.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923120013254.png" width="600">
 <p>cosbench统计信息：</p>
-<img class="shadow" src="/img/in-post/image-20210923120217426.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923120217426.png" width="600">
 <p>各个node的inode消耗情况：</p>
-<img class="shadow" src="/img/in-post/image-20210923125119637.png" width="600">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210923125119637.png" width="600">
 <p>说明：</p>
-<p>   node164 有部分osd down，因memory不足无法启动起来，后来停用了这个node上的一批osd，所以会存在部分cache FS inode消耗明显高很多的状况。</p>
+<p>node164 有部分osd down，因memory不足无法启动起来，后来停用了这个node上的一批osd，所以会存在部分cache FS inode消耗明显高很多的状况。</p>
 <p>结论：</p>
 <p>​    从UI统计折线图看，无需手工放大PG数，产品Enable PG Split所分裂出来的PG数更优异。</p>
-<h4 id="使用启用PG-Split功能后的PG数，灌4K-1200Million-对象，降低cosbench写速度"><a href="#使用启用PG-Split功能后的PG数，灌4K-1200Million-对象，降低cosbench写速度" class="headerlink" title="使用启用PG Split功能后的PG数，灌4K 1200Million 对象，降低cosbench写速度"></a>使用启用PG Split功能后的PG数，灌4K 1200Million 对象，降低cosbench写速度</h4><pre><code class="line-numbers language-shell">root@node166:~# ./pg_allocate.py 
+<h4 id="shi-yong-qi-yong-pg-split-gong-neng-hou-de-pg-shu-guan-4-k-1200-million-dui-xiang-jiang-di-cosbench-xie-su-du">使用启用PG Split功能后的PG数，灌4K 1200Million 对象，降低cosbench写速度</h4>
+<pre><code class="language-shell">root@node166:~# ./pg_allocate.py 
 dumped all
 
 pool  : 1      10     12     13     14     2      3      4      5      6      7      8      9      | SUM
@@ -1372,97 +1347,89 @@ POOLS:
     s3-data-pool                  13          0B         0        985TiB           0 
     s3-index-pool                 14          0B         0       5.13TiB        1134 
 root@node166:~# 
+
 </code></pre>
 <p>经过几天持续的灌入，后期（大约最后一亿的对象）由于cosbench task部分workers与部分driver还在持续运行中，如下图所示：</p>
-<img class="shadow" src="/img/in-post/image-20210929134618041.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210929134618041.png" width="600">
 <p>部分workers已经结束，但对应driver的部分worker下的mission还在持续运行中：</p>
-<img class="shadow" src="/img/in-post/image-20210929134755657.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210929134818421.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210929134755657.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210929134818421.png" width="600">
 <p>导致cosbench客户端压力不足，整体性能衰减，不应理解为产品问题。</p>
 <p>最终灌12亿对象的效果如下：</p>
 <p>存储端：</p>
-<img class="shadow" src="/img/in-post/image-20210929203936269.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210929204018898.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210929204227169.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210929203936269.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210929204018898.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210929204227169.png" width="600">
 <p>​    由于测试到尾声的时候，cosbench task对应driver里有部分的workers结束，有的整个driver结束，导致后期cosbench 压测的压力不足，所以性能衰减，可以参考28号6:00之前的数据，整体看有衰减，但衰减波动幅度不大。</p>
 <p>只看前11亿数据：</p>
-<img class="shadow" src="/img/in-post/image-20210930053341048.png" width="600">
-
-<img class="shadow" src="/img/in-post/image-20210930053415952.png" width="600">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210930053341048.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210930053415952.png" width="600">
 <p>cosbench task信息：</p>
-<img class="shadow" src="/img/in-post/image-20210930192626096.png" width="600">
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210930192626096.png" width="600">
 <p>cosbench绘制不了折线图了，这里以driver1显示的速度做标记，最初是500ops，跑到结束的时候大约300+，平均下来400+的ops：</p>
-<img class="shadow" src="/img/in-post/image-20210930194736058.png" width="600">
-
-
-<h2 id="基础数据10亿下灌一亿4k"><a href="#基础数据10亿下灌一亿4k" class="headerlink" title="基础数据10亿下灌一亿4k"></a>基础数据10亿下灌一亿4k</h2><p>PG split功能开启，创建s3-data-pool&amp;s3-index-pool，PG分布均衡，做了上面的参数优化</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20210930194736058.png" width="600">
+<h2 id="ji-chu-shu-ju-10-yi-xia-guan-yi-yi-4-k">基础数据10亿下灌一亿4k</h2>
+<p>PG split功能开启，创建s3-data-pool&amp;s3-index-pool，PG分布均衡，做了上面的参数优化</p>
 <p>单一bucket，存在10.2亿数据，持续灌1亿4K对象</p>
 <p>开始是有10.2亿数据：</p>
-<img class="shadow" src="/img/in-post/Base on 102 Million, start to write 10 Million-start.png" width="600">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Base on 102 Million, start to write 10 Million-start.png" width="600">
 <p>然后灌1亿对象：</p>
-<img class="shadow" src="/img/in-post/image-20211009122645425.png" width="600">
-
-<img class="shadow" src="/img/in-post/Base on 102 Million, start to write 10 Million-end.png" width="600">
-
-
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20211009122645425.png" width="600">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Base on 102 Million, start to write 10 Million-end.png" width="600">
 <p>cosbench task信息：</p>
-<img class="shadow" src="/img/in-post/image-20211009122521049.png" width="600">
-
-
-<h1 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h1><ul>
-<li><p>metadata pool， s3 data pool 需要启用PG Split功能</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/image-20211009122521049.png" width="600">
+<h1 id="jie-shu-yu">结束语</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>metadata pool， s3 data pool 需要启用PG Split功能</p>
 </li>
-<li><p>确保 metadata pool， s3 data pool，s3 index pool PG分布均衡</p>
+<li class="lvl-2">
+<p>确保 metadata pool， s3 data pool，s3 index pool PG分布均衡</p>
 </li>
-<li><p>无需人为再次放大metadata pool，s3 data pool, s3 index pool 的 pg_num&amp;pgp_num，放大后并不能提升性能，反而出现间歇性的性能衰减</p>
+<li class="lvl-2">
+<p>无需人为再次放大metadata pool，s3 data pool, s3 index pool 的 pg_num&amp;pgp_num，放大后并不能提升性能，反而出现间歇性的性能衰减</p>
 </li>
-<li><p>集群中各个节点的硬件规格一致，特别在有NVME SSD做OSD Bigterastore Cache情况下，NVME SSD 规格要一致</p>
-<ul>
-<li>如存在有Bigterastore Cache对应SSD性能弱情况下，使得性能弱的SSD所在disk inode的消耗过多（cosbench写的快，但flush/evict慢），会提早出现pool full问题造成性能断崖式衰减</li>
+<li class="lvl-2">
+<p>集群中各个节点的硬件规格一致，特别在有NVME SSD做OSD Bigterastore Cache情况下，NVME SSD 规格要一致</p>
+<ul class="lvl-2">
+<li class="lvl-5">如存在有Bigterastore Cache对应SSD性能弱情况下，使得性能弱的SSD所在disk inode的消耗过多（cosbench写的快，但flush/evict慢），会提早出现pool full问题造成性能断崖式衰减</li>
 </ul>
 </li>
-<li><p>针对客户POC性能测试场景，测试时需区别对待</p>
-<ul>
-<li><p>关注性能指标，有明确OPS要求的场景</p>
-<ul>
-<li><p>如要求OPS为5000的，建议空桶状态下测试，可适当放大cosbench work对应workers数量来压测，比如workers=48</p>
+<li class="lvl-2">
+<p>针对客户POC性能测试场景，测试时需区别对待</p>
+<ul class="lvl-2">
+<li class="lvl-4">
+<p>关注性能指标，有明确OPS要求的场景</p>
+<ul class="lvl-4">
+<li class="lvl-6">
+<p>如要求OPS为5000的，建议空桶状态下测试，可适当放大cosbench work对应workers数量来压测，比如workers=48</p>
 </li>
-<li><p>如要求bucket中有一定数据量，比如bucket下已有5亿对象，确保Bigterastroe Cache所在文件系统的inode消耗处于比较低的水位（e.g:df -f /data/cache/osd-name*）情况下压测，避免在inode处于高消耗状态下压测更多数据，这样只会引发pool full造成断崖式性能下跌</p>
+<li class="lvl-6">
+<p>如要求bucket中有一定数据量，比如bucket下已有5亿对象，确保Bigterastroe Cache所在文件系统的inode消耗处于比较低的水位（e.g:df -f /data/cache/osd-name*）情况下压测，避免在inode处于高消耗状态下压测更多数据，这样只会引发pool full造成断崖式性能下跌</p>
 </li>
 </ul>
 </li>
-<li><p>关注持续稳定不出现性能衰减场景</p>
-<ul>
-<li><p>如要求业务不中断情况下，持续从0~10亿不出现性能衰减，则使用较小的cosbench workers来压测<br>Lab的这套6节点环境验证过如下workers值：</p>
-<ul>
-<li><p>workers=96，每个driver可以达到1500+ OPS</p>
+<li class="lvl-4">
+<p>关注持续稳定不出现性能衰减场景</p>
+<ul class="lvl-4">
+<li class="lvl-6">
+<p>如要求业务不中断情况下，持续从0~10亿不出现性能衰减，则使用较小的cosbench workers来压测<br>
+Lab的这套6节点环境验证过如下workers值：</p>
+<ul class="lvl-6">
+<li class="lvl-9">
+<p>workers=96，每个driver可以达到1500+ OPS</p>
 </li>
-<li><p>workers=8，每个driver可以达到1000 OPS左右</p>
+<li class="lvl-9">
+<p>workers=8，每个driver可以达到1000 OPS左右</p>
 </li>
-<li><p>workers=2，每个driver可以达到200 OPS左右</p>
+<li class="lvl-9">
+<p>workers=2，每个driver可以达到200 OPS左右</p>
 </li>
-<li><p>workers=3，每个driver可以达到400 OPS左右</p>
+<li class="lvl-9">
+<p>workers=3，每个driver可以达到400 OPS左右</p>
 </li>
-<li><p>workers=4，每个driver可以达到500 OPS左右</p>
+<li class="lvl-9">
+<p>workers=4，每个driver可以达到500 OPS左右</p>
 <p>所以Lab里测试0~12亿对象，持续写验证不出现性能瓶颈的场景，使用的是workers=4来验证，在cosbench写入速度与flush/evict object 到HDD之间寻找一个平衡点，避免因cosbench写的太快，flush/evict太慢造成Bigterastore Cache所在文件系统的inode过早被消耗殆尽而出现性能断崖式衰减</p>
 </li>
 </ul>
@@ -1471,7 +1438,8 @@ root@node166:~#
 </li>
 </ul>
 </li>
-<li><p>暂无法根据现有硬件来推算出集群单一bucket中最大能支持存放多少S3 objects</p>
+<li class="lvl-2">
+<p>暂无法根据现有硬件来推算出集群单一bucket中最大能支持存放多少S3 objects</p>
 </li>
 </ul>
 
@@ -1580,10 +1548,10 @@ root@node166:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1897,7 +1865,7 @@ root@node166:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/152.jpg" class="responsive-img" alt="pytest allure详解">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/152.jpg" class="responsive-img" alt="pytest allure详解">
                         
                         <span class="card-title">pytest allure详解</span>
                     </div>
@@ -1962,7 +1930,7 @@ root@node166:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/158.jpg" class="responsive-img" alt="监控BigteraStore cache中inode消耗状况">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/158.jpg" class="responsive-img" alt="监控BigteraStore cache中inode消耗状况">
                         
                         <span class="card-title">监控BigteraStore cache中inode消耗状况</span>
                     </div>
@@ -2201,7 +2169,7 @@ root@node166:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2551,6 +2519,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

@@ -5,10 +5,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="CentOS7设置netconsole, 软硬件测试">
-    <meta name="description" content="Netconsole简述将内核打印的日志信息通过UDP方式发送至另一台服务器。
+    <meta name="description" content="Netconsole简述
+将内核打印的日志信息通过UDP方式发送至另一台服务器。
 本文概述的是基于CentOS7的配置设定，Ubuntu的设定会右差别，请参考之前的另外一篇博文。
-配置内核日志发送端（Client端）说明：
-   这里的cli">
+配置内核日志发送端（Client端）
+说明：
+这里的clie">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -66,20 +68,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -194,7 +336,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -449,7 +591,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    525
+                    532
                 </div>
                 
 
@@ -479,47 +621,60 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="Netconsole简述"><a href="#Netconsole简述" class="headerlink" title="Netconsole简述"></a>Netconsole简述</h1><p>将内核打印的日志信息通过UDP方式发送至另一台服务器。</p>
+                <h1 id="netconsole-jian-shu">Netconsole简述</h1>
+<p>将内核打印的日志信息通过UDP方式发送至另一台服务器。</p>
 <p>本文概述的是基于CentOS7的配置设定，Ubuntu的设定会右差别，请参考之前的另外一篇博文。</p>
-<h1 id="配置内核日志发送端（Client端）"><a href="#配置内核日志发送端（Client端）" class="headerlink" title="配置内核日志发送端（Client端）"></a>配置内核日志发送端（Client端）</h1><p>说明：</p>
-<p>   这里的client端，表明的是当前哪台机器要将kernel log上报到rsyslog server去。</p>
-<h2 id="写入-etc-rc-local中，开机自动设置"><a href="#写入-etc-rc-local中，开机自动设置" class="headerlink" title="写入/etc/rc.local中，开机自动设置"></a>写入/etc/rc.local中，开机自动设置</h2><pre><code class="line-numbers language-shell">dmesg -n 7
+<h1 id="pei-zhi-nei-he-ri-zhi-fa-song-duan-client-duan">配置内核日志发送端（Client端）</h1>
+<p>说明：</p>
+<p>这里的client端，表明的是当前哪台机器要将kernel log上报到rsyslog server去。</p>
+<h2 id="xie-ru-etc-rc-local-zhong-kai-ji-zi-dong-she-zhi">写入/etc/rc.local中，开机自动设置</h2>
+<pre><code class="language-shell">dmesg -n 7
 modprobe configfs
 modprobe netconsole
 </code></pre>
-<h2 id="配置netconsole"><a href="#配置netconsole" class="headerlink" title="配置netconsole"></a>配置netconsole</h2><p>Server端，配置远程接收ip地址、远程接收端口（默认514）、远程接收MAC（可选）、本地发送设备名、本地发送端口</p>
+<h2 id="pei-zhi-netconsole">配置netconsole</h2>
+<p>Server端，配置远程接收ip地址、远程接收端口（默认514）、远程接收MAC（可选）、本地发送设备名、本地发送端口</p>
 <p><code>vi /etc/sysconfig/netconsole</code></p>
-<pre><code class="line-numbers language-shell"># 取消SYSLOGPORT、SYSLOGPORT、SYSLOGMACADDR注释并添加相关参数
+<pre><code class="language-shell"># 取消SYSLOGPORT、SYSLOGPORT、SYSLOGMACADDR注释并添加相关参数
 #--------------------------------------------------------
 #也可执行如下命令插入所需的ip、port、mac
 #端口为接收端服务器rsyslog服务的接收端口
 ip="192.168.1.161"
 echo -e "SYSLOGADDR=$ip\nSYSLOGPORT=514\nSYSLOGMACADDR=$(ping -c 1 $ip&gt;/dev/null&amp;&amp;arp|grep $ip|tr -s ' '|cut -f3 -d ' ')"&gt;&gt;/etc/sysconfig/netconsole
 </code></pre>
-<h2 id="配置-etc-sysconfig-netconsole-中DEV设备"><a href="#配置-etc-sysconfig-netconsole-中DEV设备" class="headerlink" title="配置/etc/sysconfig/netconsole 中DEV设备"></a>配置/etc/sysconfig/netconsole 中DEV设备</h2><p><code>vi /etc/sysconfig/netconsole</code></p>
+<h2 id="pei-zhi-etc-sysconfig-netconsole-zhong-dev-she-bei">配置/etc/sysconfig/netconsole 中DEV设备</h2>
+<p><code>vi /etc/sysconfig/netconsole</code></p>
 <p>修改上述配置文件中的 DEV的值，如果配置了bond，需设置为bondX;否则设置为具体网口名称。</p>
-<h2 id="重启netconsole服务"><a href="#重启netconsole服务" class="headerlink" title="重启netconsole服务"></a>重启netconsole服务</h2><pre><code class="line-numbers language-shell">systemctl restart netconsole
+<h2 id="zhong-qi-netconsole-fu-wu">重启netconsole服务</h2>
+<pre><code class="language-shell">systemctl restart netconsole
 </code></pre>
-<h2 id="启用netconsole自启动"><a href="#启用netconsole自启动" class="headerlink" title="启用netconsole自启动"></a>启用netconsole自启动</h2><pre><code class="line-numbers language-shell">systemctl enable netconsole
+<h2 id="qi-yong-netconsole-zi-qi-dong">启用netconsole自启动</h2>
+<pre><code class="language-shell">systemctl enable netconsole
 </code></pre>
-<h1 id="配置内核日志接收端（Server端）"><a href="#配置内核日志接收端（Server端）" class="headerlink" title="配置内核日志接收端（Server端）"></a>配置内核日志接收端（Server端）</h1><h2 id="修改rsyslog配置文件接收来自UDP的日志"><a href="#修改rsyslog配置文件接收来自UDP的日志" class="headerlink" title="修改rsyslog配置文件接收来自UDP的日志"></a>修改rsyslog配置文件接收来自UDP的日志</h2><p><code>vi /etc/rsyslog.conf</code></p>
-<pre><code class="line-numbers language-shell">#取消$ModLoad imudp和$UDPServerRun 514注释并修改514为需要监听接收udp的端口
+<h1 id="pei-zhi-nei-he-ri-zhi-jie-shou-duan-server-duan">配置内核日志接收端（Server端）</h1>
+<h2 id="xiu-gai-rsyslog-pei-zhi-wen-jian-jie-shou-lai-zi-udp-de-ri-zhi">修改rsyslog配置文件接收来自UDP的日志</h2>
+<p><code>vi /etc/rsyslog.conf</code></p>
+<pre><code class="language-shell">#取消$ModLoad imudp和$UDPServerRun 514注释并修改514为需要监听接收udp的端口
 #或者执行如下命令
 sed -i 's/^#$Mod.*udp$/$ModLoad imudp/g;s/^#$UDP.*/$UDPServerRun 514/g' /etc/rsyslog.conf	#端口替换为自己所需要的
 </code></pre>
-<h2 id="重启rsyslog服务"><a href="#重启rsyslog服务" class="headerlink" title="重启rsyslog服务"></a>重启rsyslog服务</h2><pre><code class="line-numbers language-shell">systemctl restart rsyslog
+<h2 id="zhong-qi-rsyslog-fu-wu">重启rsyslog服务</h2>
+<pre><code class="language-shell">systemctl restart rsyslog
+
 </code></pre>
-<h2 id="检查是否正常监听指定端口"><a href="#检查是否正常监听指定端口" class="headerlink" title="检查是否正常监听指定端口"></a>检查是否正常监听指定端口</h2><pre><code class="line-numbers language-shell">lsof -i:514
+<h2 id="jian-cha-shi-fou-zheng-chang-jian-ting-zhi-ding-duan-kou">检查是否正常监听指定端口</h2>
+<pre><code class="language-shell">lsof -i:514
 </code></pre>
 <p>如下所示即为正常监听中:</p>
-<pre><code class="line-numbers language-shell">[root@centos-7 ~]# lsof -i:514
+<pre><code class="language-shell">[root@centos-7 ~]# lsof -i:514
 COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 rsyslogd 1735 root    3u  IPv4  43816      0t0  UDP *:syslog 
 rsyslogd 1735 root    4u  IPv6  43817      0t0  UDP *:syslog 
 [root@centos-7 ~]# 
 </code></pre>
-<h1 id="查看来自远程服务器发送的内核日志"><a href="#查看来自远程服务器发送的内核日志" class="headerlink" title="查看来自远程服务器发送的内核日志"></a>查看来自远程服务器发送的内核日志</h1><p>在Client端，尝试down与up某个网口，然后在Server端，执行</p>
-<pre><code class="line-numbers language-shell">tail -f /var/log/messages
+<h1 id="cha-kan-lai-zi-yuan-cheng-fu-wu-qi-fa-song-de-nei-he-ri-zhi">查看来自远程服务器发送的内核日志</h1>
+<p>在Client端，尝试down与up某个网口，然后在Server端，执行</p>
+<pre><code class="language-shell">tail -f /var/log/messages
 </code></pre>
 <p>来跟踪日志，检查Client端的kernel log是否将kernel log 上报到当然rsyslog server的messages 文件中</p>
 
@@ -628,10 +783,10 @@ rsyslogd 1735 root    4u  IPv6  43817      0t0  UDP *:syslog
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -945,7 +1100,7 @@ rsyslogd 1735 root    4u  IPv6  43817      0t0  UDP *:syslog
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/110.jpg" class="responsive-img" alt="分片上传2T大小的一个S3对象">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/110.jpg" class="responsive-img" alt="分片上传2T大小的一个S3对象">
                         
                         <span class="card-title">分片上传2T大小的一个S3对象</span>
                     </div>
@@ -1002,7 +1157,7 @@ rsyslogd 1735 root    4u  IPv6  43817      0t0  UDP *:syslog
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/43.jpg" class="responsive-img" alt="使用edac工具来检测服务器内存故障">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/43.jpg" class="responsive-img" alt="使用edac工具来检测服务器内存故障">
                         
                         <span class="card-title">使用edac工具来检测服务器内存故障</span>
                     </div>
@@ -1237,7 +1392,7 @@ rsyslogd 1735 root    4u  IPv6  43817      0t0  UDP *:syslog
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1587,6 +1742,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

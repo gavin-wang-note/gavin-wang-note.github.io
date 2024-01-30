@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="mysql 备份与恢复详解, 软硬件测试">
-    <meta name="description" content="概述MySQL是目前比较流行的关系型数据库管理系统之一，在企业级应用中被广泛使用。无论是研发成员还是数据库管理员，都需要了解MySQL备份与恢复的基本知识。
-备份和恢复是为了防止在数据库发生宕机的情况下保证数据不丢失，或者最小程度丢失的解决">
+    <meta name="description" content="概述
+MySQL是目前比较流行的关系型数据库管理系统之一，在企业级应用中被广泛使用。无论是研发成员还是数据库管理员，都需要了解MySQL备份与恢复的基本知识。
+备份和恢复是为了防止在数据库发生宕机的情况下保证数据不丢失，或者最小程度丢失的解">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -477,10 +618,12 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>MySQL是目前比较流行的关系型数据库管理系统之一，在企业级应用中被广泛使用。无论是研发成员还是数据库管理员，都需要了解MySQL备份与恢复的基本知识。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>MySQL是目前比较流行的关系型数据库管理系统之一，在企业级应用中被广泛使用。无论是研发成员还是数据库管理员，都需要了解MySQL备份与恢复的基本知识。</p>
 <p>备份和恢复是为了防止在数据库发生宕机的情况下保证数据不丢失，或者最小程度丢失的解决方法，不仅能够帮助企业保护数据，还能够使系统在不良情况下快速应对，尽可能使其恢复到正常运行状态。MySQL提供了 mysqldump、ibbackup、replication 工具来备份，当然也有一些三方工具，诸如 xtrabacup、LVM快照等。</p>
 <p>利用周末时间，整理一下，详细介绍MySQL备份与恢复的操作步骤，并提供一些最佳实践，以帮助读者在保护其MySQL数据库方面走得更远。</p>
-<h1 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h1><pre><code class="line-numbers language-shell">root@ubuntu:~# hostnamectl 
+<h1 id="huan-jing">环境</h1>
+<pre><code class="language-shell">root@ubuntu:~# hostnamectl 
    Static hostname: ubuntu
          Icon name: computer-vm
            Chassis: vm
@@ -494,8 +637,8 @@ root@ubuntu:~# mysql --version
 mysql  Ver 14.14 Distrib 5.7.42, for Linux (x86_64) using  EditLine wrapper
 root@ubuntu:~# 
 </code></pre>
-<p>并创建了一个名称为 ‘test’的数据库，存放一张表（user）和一个视图（user_view）：</p>
-<pre><code class="line-numbers language-shell">mysql&gt; create table user (name VARCHAR(25), age INT(3));
+<p>并创建了一个名称为 'test’的数据库，存放一张表（user）和一个视图（user_view）：</p>
+<pre><code class="language-shell">mysql&gt; create table user (name VARCHAR(25), age INT(3));
 Query OK, 0 rows affected (0.02 sec)
 
 mysql&gt; insert into user(name, age) values('zhangsan', 30);
@@ -537,99 +680,149 @@ mysql&gt; select * from user;
 
 mysql&gt;
 </code></pre>
-<h1 id="1-MySQL备份"><a href="#1-MySQL备份" class="headerlink" title="1. MySQL备份"></a>1. MySQL备份</h1><p>无论哪种数据库，都应该频繁备份，以确保数据库永远处于最新状态。最好能够制定合理的备份策略，实现定期备份、归档备份文件；备份文件要存放双份，且存在于不同的物理介质上。</p>
-<h2 id="1-1-备份分类"><a href="#1-1-备份分类" class="headerlink" title="1.1 备份分类"></a>1.1 备份分类</h2><p>下面的备份分类中，并不是所有都适配了 Mysql 和 Innodb引擎，所以部分是没有真正的方案，也有些是交叉分类的（比如在热备又在逻辑文件中）。</p>
-<h3 id="1-1-1-按备份类型"><a href="#1-1-1-按备份类型" class="headerlink" title="1.1.1 按备份类型"></a>1.1.1 按备份类型</h3><ul>
-<li>热备：在数据库运行过程中直接备份</li>
-<li>冷备：在数据库停止的情况下备份，一般直接复制相关的物理文件即可</li>
-<li>温备：在数据库运行过程中备份，但对数据库操作有影响，如加个全局读锁以保证备份数据一致性</li>
+<h1 id="1-my-sql-bei-fen">1. MySQL备份</h1>
+<p>无论哪种数据库，都应该频繁备份，以确保数据库永远处于最新状态。最好能够制定合理的备份策略，实现定期备份、归档备份文件；备份文件要存放双份，且存在于不同的物理介质上。</p>
+<h2 id="1-1-bei-fen-fen-lei">1.1 备份分类</h2>
+<p>下面的备份分类中，并不是所有都适配了 Mysql 和 Innodb引擎，所以部分是没有真正的方案，也有些是交叉分类的（比如在热备又在逻辑文件中）。</p>
+<h3 id="1-1-1-an-bei-fen-lei-xing">1.1.1 按备份类型</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>热备：在数据库运行过程中直接备份</p>
+</li>
+<li class="lvl-2">
+<p>冷备：在数据库停止的情况下备份，一般直接复制相关的物理文件即可</p>
+</li>
+<li class="lvl-2">
+<p>温备：在数据库运行过程中备份，但对数据库操作有影响，如加个全局读锁以保证备份数据一致性</p>
+</li>
 </ul>
-<h3 id="1-1-2-按备份文件"><a href="#1-1-2-按备份文件" class="headerlink" title="1.1.2 按备份文件"></a>1.1.2 按备份文件</h3><ul>
-<li>逻辑文件：指备份出的文件可读，一般指 SQL 语句（适用库升级，迁移，但恢复时间较长需要执行 SQL 语句）</li>
-<li>物理文件：指复制数据库的物理文件</li>
+<h3 id="1-1-2-an-bei-fen-wen-jian">1.1.2 按备份文件</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>逻辑文件：指备份出的文件可读，一般指 SQL 语句（适用库升级，迁移，但恢复时间较长需要执行 SQL 语句）</p>
+</li>
+<li class="lvl-2">
+<p>物理文件：指复制数据库的物理文件</p>
+</li>
 </ul>
-<h3 id="1-1-3-按备份内容"><a href="#1-1-3-按备份内容" class="headerlink" title="1.1.3 按备份内容"></a>1.1.3 按备份内容</h3><ul>
-<li>日志备份：主要备份 bin-log 日志，然后 replay 来完成 point-in-time</li>
-<li>完全备份：对数据库一个完整的备份</li>
-<li>增量备份：在上次完全备份的基础上对更改部分进行备份（MySQL 没真正的增量备份，一般通过 bin-log 完成，要借助第三方工具才能实现）</li>
+<h3 id="1-1-3-an-bei-fen-nei-rong">1.1.3 按备份内容</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>日志备份：主要备份 bin-log 日志，然后 replay 来完成 point-in-time</p>
+</li>
+<li class="lvl-2">
+<p>完全备份：对数据库一个完整的备份</p>
+</li>
+<li class="lvl-2">
+<p>增量备份：在上次完全备份的基础上对更改部分进行备份（MySQL 没真正的增量备份，一般通过 bin-log 完成，要借助第三方工具才能实现）</p>
+</li>
 </ul>
 <p>也有按 **物理备份 **与 <strong>逻辑备份</strong> 进行分类的，视角不同，实则殊途同归。</p>
-<h2 id="1-2-备份的一致性"><a href="#1-2-备份的一致性" class="headerlink" title="1.2 备份的一致性"></a>1.2 备份的一致性</h2><p>数据库备份的一致性要求在备份的时候数据在这一时间点上是一致的，比如银行转账，A 转给 B 现金100 RMB，这个事务过程先扣 A 100元，再去 B 加100元，确保前后数据一致，否则会发生恢复数据后金钱对不上的情况。</p>
+<h2 id="1-2-bei-fen-de-yi-zhi-xing">1.2 备份的一致性</h2>
+<p>数据库备份的一致性要求在备份的时候数据在这一时间点上是一致的，比如银行转账，A 转给 B 现金100 RMB，这个事务过程先扣 A 100元，再去 B 加100元，确保前后数据一致，否则会发生恢复数据后金钱对不上的情况。</p>
 <p>对于 Innodb 引擎来说，因为其支持 MVCC 功能，所以可以先开启一个事务，然后导出一组相关的表，最后提交来实现一致的备份，当然隔离级别要设置为 REPEATABLE READ</p>
-<p>对于 mysqldump 备份工具可以添加 –single-transaction 选项来实现备份一致性（开启事务，设置隔离级别）</p>
+<p>对于 mysqldump 备份工具可以添加 --single-transaction 选项来实现备份一致性（开启事务，设置隔离级别）</p>
 <p>下面来说明备份的途径 。</p>
-<h1 id="2-备份与恢复常用操作示例"><a href="#2-备份与恢复常用操作示例" class="headerlink" title="2. 备份与恢复常用操作示例"></a>2. 备份与恢复常用操作示例</h1><h2 id="2-1-备份-MySQL"><a href="#2-1-备份-MySQL" class="headerlink" title="2.1 备份 MySQL"></a>2.1 备份 MySQL</h2><h3 id="2-1-1-备份全部数据库的数据和结构"><a href="#2-1-1-备份全部数据库的数据和结构" class="headerlink" title="2.1.1 备份全部数据库的数据和结构"></a>2.1.1 备份全部数据库的数据和结构</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 -A &gt; /data/mysql_dump/mydb.sql
+<h1 id="2-bei-fen-yu-hui-fu-chang-yong-cao-zuo-shi-li">2. 备份与恢复常用操作示例</h1>
+<h2 id="2-1-bei-fen-my-sql">2.1 备份 MySQL</h2>
+<h3 id="2-1-1-bei-fen-quan-bu-shu-ju-ku-de-shu-ju-he-jie-gou">2.1.1 备份全部数据库的数据和结构</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 -A &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-2-备份全部数据库的结构（加-d-参数）"><a href="#2-1-2-备份全部数据库的结构（加-d-参数）" class="headerlink" title="2.1.2 备份全部数据库的结构（加 -d 参数）"></a>2.1.2 备份全部数据库的结构（加 -d 参数）</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 -A -d &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-2-bei-fen-quan-bu-shu-ju-ku-de-jie-gou-jia-d-can-shu">2.1.2 备份全部数据库的结构（加 -d 参数）</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 -A -d &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-3-备份全部数据库的数据-加-t-参数"><a href="#2-1-3-备份全部数据库的数据-加-t-参数" class="headerlink" title="2.1.3 备份全部数据库的数据(加 -t 参数)"></a>2.1.3 备份全部数据库的数据(加 -t 参数)</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 -A -t &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-3-bei-fen-quan-bu-shu-ju-ku-de-shu-ju-jia-t-can-shu">2.1.3 备份全部数据库的数据(加 -t 参数)</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 -A -t &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-4-备份单个数据库的数据和结构-数据库名mydb"><a href="#2-1-4-备份单个数据库的数据和结构-数据库名mydb" class="headerlink" title="2.1.4 备份单个数据库的数据和结构(,数据库名mydb)"></a>2.1.4 备份单个数据库的数据和结构(,数据库名mydb)</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot-p123456 mydb &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-4-bei-fen-dan-ge-shu-ju-ku-de-shu-ju-he-jie-gou-shu-ju-ku-ming-mydb">2.1.4 备份单个数据库的数据和结构(,数据库名mydb)</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot-p123456 mydb &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-5-备份单个数据库的结构"><a href="#2-1-5-备份单个数据库的结构" class="headerlink" title="2.1.5 备份单个数据库的结构"></a>2.1.5 备份单个数据库的结构</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 mydb -d &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-5-bei-fen-dan-ge-shu-ju-ku-de-jie-gou">2.1.5 备份单个数据库的结构</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 mydb -d &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-6-备份单个数据库的数据"><a href="#2-1-6-备份单个数据库的数据" class="headerlink" title="2.1.6 备份单个数据库的数据"></a>2.1.6 备份单个数据库的数据</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 mydb -t &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-6-bei-fen-dan-ge-shu-ju-ku-de-shu-ju">2.1.6 备份单个数据库的数据</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 mydb -t &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-7-备份多个表的数据和结构"><a href="#2-1-7-备份多个表的数据和结构" class="headerlink" title="2.1.7 备份多个表的数据和结构"></a>2.1.7 备份多个表的数据和结构</h3><p>数据，结构的单独备份方法与上同。</p>
-<p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 mydb t1 t2 &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-7-bei-fen-duo-ge-biao-de-shu-ju-he-jie-gou">2.1.7 备份多个表的数据和结构</h3>
+<p>数据，结构的单独备份方法与上同。</p>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 mydb t1 t2 &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h3 id="2-1-8-一次备份多个数据库"><a href="#2-1-8-一次备份多个数据库" class="headerlink" title="2.1.8 一次备份多个数据库"></a>2.1.8 一次备份多个数据库</h3><p>​                </p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -p123456 --databases db1 db2 &gt; /data/mysql_dump/mydb.sql
+<h3 id="2-1-8-yi-ci-bei-fen-duo-ge-shu-ju-ku">2.1.8 一次备份多个数据库</h3>
+<p>​</p>
+<pre><code class="language-shell">mysqldump -uroot -p123456 --databases db1 db2 &gt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h2 id="2-2-还原-MySQL-备份内容"><a href="#2-2-还原-MySQL-备份内容" class="headerlink" title="2.2 还原 MySQL 备份内容"></a>2.2 还原 MySQL 备份内容</h2><p>有两种方式还原，第一种是在 MySQL 命令行中，第二种是使用 SHELL 行完成还原</p>
+<h2 id="2-2-huan-yuan-my-sql-bei-fen-nei-rong">2.2 还原 MySQL 备份内容</h2>
+<p>有两种方式还原，第一种是在 MySQL 命令行中，第二种是使用 SHELL 行完成还原</p>
 <p>在系统命令行中，输入如下实现还原：</p>
-<p>​                </p>
-<pre><code class="line-numbers language-shell">mysql -uroot -p123456 &lt; /data/mysql_dump/mydb.sql
+<p>​</p>
+<pre><code class="language-shell">mysql -uroot -p123456 &lt; /data/mysql_dump/mydb.sql
 </code></pre>
-<h6 id="在登录进入mysql系统中-通过source指令找到对应系统中的文件进行还原："><a href="#在登录进入mysql系统中-通过source指令找到对应系统中的文件进行还原：" class="headerlink" title="在登录进入mysql系统中,通过source指令找到对应系统中的文件进行还原："></a>在登录进入mysql系统中,通过source指令找到对应系统中的文件进行还原：</h6><p>​                </p>
-<pre><code class="line-numbers language-shell">mysql&gt; source /data/mysql_dump/mydb.sql
+<h6 id="zai-deng-lu-jin-ru-mysql-xi-tong-zhong-tong-guo-source-zhi-ling-zhao-dao-dui-ying-xi-tong-zhong-de-wen-jian-jin-xing-huan-yuan">在登录进入mysql系统中,通过source指令找到对应系统中的文件进行还原：</h6>
+<p>​</p>
+<pre><code class="language-shell">mysql&gt; source /data/mysql_dump/mydb.sql
 </code></pre>
 <p>在 Linux中，通常使用BASH脚本对需要执行的内容进行编写，加上定时执行命令crontab实现日志自动化生成。</p>
-<h1 id="3-备份与恢复实践"><a href="#3-备份与恢复实践" class="headerlink" title="3. 备份与恢复实践"></a>3. 备份与恢复实践</h1><h2 id="3-1-物理备份与恢复"><a href="#3-1-物理备份与恢复" class="headerlink" title="3.1 物理备份与恢复"></a>3.1 物理备份与恢复</h2><h3 id="3-1-1-物理备份"><a href="#3-1-1-物理备份" class="headerlink" title="3.1.1 物理备份"></a>3.1.1 物理备份</h3><p>MySQL有一种非常简单的备份方法，就是将MySQL中的数据库文件直接复制出来。这是最简单，速度最快的方法。</p>
+<h1 id="3-bei-fen-yu-hui-fu-shi-jian">3. 备份与恢复实践</h1>
+<h2 id="3-1-wu-li-bei-fen-yu-hui-fu">3.1 物理备份与恢复</h2>
+<h3 id="3-1-1-wu-li-bei-fen">3.1.1 物理备份</h3>
+<p>MySQL有一种非常简单的备份方法，就是将MySQL中的数据库文件直接复制出来。这是最简单，速度最快的方法。</p>
 <p>不过在此之前，建议将数据库进行一次完整逻辑备份（防患于未然，建议做），然后将服务器停止，这样才可以保证在复制期间数据库的数据不会发生数据冲突。如果在复制数据库的过程中还有数据写入，就会造成数据不一致。这种情况在开发环境可以，但是在生产环境中很难允许备份服务器。</p>
 <p><strong>注意：</strong></p>
 <p>此方法不适用于InnoDB存储引擎的表，而对于MyISAM存储引擎的表很方便。同时，还原时MySQL的版本最好相同。</p>
-<h3 id="3-1-2-物理恢复"><a href="#3-1-2-物理恢复" class="headerlink" title="3.1.2 物理恢复"></a>3.1.2 物理恢复</h3><p>物理恢复是将备份文件中的物理文件复制到MySQL服务器的目标目录中。下面是物理恢复的一些步骤：</p>
-<ul>
-<li>停止MySQL服务</li>
-<li>复制备份文件到正确的目录</li>
-<li>启动MySQL服务</li>
+<h3 id="3-1-2-wu-li-hui-fu">3.1.2 物理恢复</h3>
+<p>物理恢复是将备份文件中的物理文件复制到MySQL服务器的目标目录中。下面是物理恢复的一些步骤：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>停止MySQL服务</p>
+</li>
+<li class="lvl-2">
+<p>复制备份文件到正确的目录</p>
+</li>
+<li class="lvl-2">
+<p>启动MySQL服务</p>
+</li>
 </ul>
 <p>下面是在Linux系统中使用命令行恢复MySQL数据库的一些命令：</p>
-<pre><code class="line-numbers language-shell">service mysql stop
+<pre><code class="language-shell">service mysql stop
 
 cp 备份文件名 目标目录
 
 service mysql start
 </code></pre>
-<h2 id="3-2-mysqldump"><a href="#3-2-mysqldump" class="headerlink" title="3.2 mysqldump"></a>3.2 mysqldump</h2><p>mysqldump 是属于逻辑备份，也是最常见的备份工具了，缺点在于备份和恢复速度不是特别快，因为是单线程。</p>
-<h3 id="3-2-1-mysqldump-备份"><a href="#3-2-1-mysqldump-备份" class="headerlink" title="3.2.1 mysqldump 备份"></a>3.2.1 mysqldump 备份</h3><p>语法：</p>
-<pre><code class="line-numbers language-shell">mysqldump [arguments] &gt; dump.sql
+<h2 id="3-2-mysqldump">3.2 mysqldump</h2>
+<p>mysqldump 是属于逻辑备份，也是最常见的备份工具了，缺点在于备份和恢复速度不是特别快，因为是单线程。</p>
+<h3 id="3-2-1-mysqldump-bei-fen">3.2.1 mysqldump 备份</h3>
+<p>语法：</p>
+<pre><code class="language-shell">mysqldump [arguments] &gt; dump.sql
 </code></pre>
 <p>详细语法，可执行 <code> mysqldump --help</code> 进行查看，如下为几个重要的参数介绍：</p>
-<pre><code class="line-numbers language-shell">--all-databases：  备份所有数据库
+<pre><code class="language-shell">--all-databases：  备份所有数据库
 --databases：      备份指定数据库
 --single-transaction：备份一致性
 --add-drop-database：添加语句 DROP DATABASE IF EXISTS（默认是 CREATE DATABASE IF NOT EXISTS）
 --hex-blob：binary、blog、bit是十六进制不可见，会以十六进制来展示
 </code></pre>
 <p>示例：</p>
-<pre><code class="line-numbers language-shell">mysqldump -uroot -pp@ssw0rd test &gt; test.sql
+<pre><code class="language-shell">mysqldump -uroot -pp@ssw0rd test &gt; test.sql
 </code></pre>
 <p>注意：</p>
-<ul>
-<li>mysqldump 可以导出存储过程，导出触发器，导出事件，导出数据，但不能导出视图</li>
-<li>如果用户的数据库中还使用了视图，则在用mysqldump备份完数据库后，还需要导出视图的定义，或者备份视图定义的frm文件，并在恢复时进行导入，这样才能保证mysqldump数据库的完全恢复和数据的完整</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>mysqldump 可以导出存储过程，导出触发器，导出事件，导出数据，但不能导出视图</p>
+</li>
+<li class="lvl-2">
+<p>如果用户的数据库中还使用了视图，则在用mysqldump备份完数据库后，还需要导出视图的定义，或者备份视图定义的frm文件，并在恢复时进行导入，这样才能保证mysqldump数据库的完全恢复和数据的完整</p>
+</li>
 </ul>
 <p>视图备份与恢复：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:~# mysql -uroot -pp@ssw0rd test
+<pre><code class="language-shell">root@ubuntu:~# mysql -uroot -pp@ssw0rd test
 mysql: [Warning] Using a password on the command line interface can be insecure.
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
@@ -714,17 +907,20 @@ mysql&gt; exit;
 Bye
 root@ubuntu:~# 
 </code></pre>
-<h3 id="3-2-2-mysqldump-恢复"><a href="#3-2-2-mysqldump-恢复" class="headerlink" title="3.2.2 mysqldump 恢复"></a>3.2.2 mysqldump 恢复</h3><pre><code class="line-numbers language-shell">mysqldump -uroot -pp@ssw0rd test &lt; test.sql
+<h3 id="3-2-2-mysqldump-hui-fu">3.2.2 mysqldump 恢复</h3>
+<pre><code class="language-shell">mysqldump -uroot -pp@ssw0rd test &lt; test.sql
 </code></pre>
-<h2 id="3-3-bin-log"><a href="#3-3-bin-log" class="headerlink" title="3.3 bin-log"></a>3.3 bin-log</h2><p>bin-log 是 Mysql 的日志文件。</p>
-<h3 id="3-3-1-备份"><a href="#3-3-1-备份" class="headerlink" title="3.3.1 备份"></a>3.3.1 备份</h3><p>先要在 <code>/etc/mysql/mysql.conf.d/mysqld.cnf</code> 中[mysql] section 下增加下面一句话，之后会自动记录，名字按 name.00001 格式来递增滚动，其中 name 为 自定义的log-bin name，如下所示：</p>
-<pre><code class="line-numbers language-text">[mysqld]
+<h2 id="3-3-bin-log">3.3 bin-log</h2>
+<p>bin-log 是 Mysql 的日志文件。</p>
+<h3 id="3-3-1-bei-fen">3.3.1 备份</h3>
+<p>先要在 <code>/etc/mysql/mysql.conf.d/mysqld.cnf</code> 中[mysql] section 下增加下面一句话，之后会自动记录，名字按 name.00001 格式来递增滚动，其中 name 为 自定义的log-bin name，如下所示：</p>
+<pre><code class="language-text">[mysqld]
 # 不赋值默认为主机名
 log-bin         = /var/log/mysql/mysql-binlog
 server-id       = 1
 </code></pre>
 <p>重启mysql service后，会在 /var/log/mysql 目录下产生从1 开始的binlog文件：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:/var/log/mysql# ll
+<pre><code class="language-shell">root@ubuntu:/var/log/mysql# ll
 total 28
 drwxr-x---  2 mysql adm    4096 Aug 21 13:23 ./
 drwxrwxr-x 13 root  syslog 4096 Aug 21 13:22 ../
@@ -736,7 +932,7 @@ root@ubuntu:/var/log/mysql#
 </code></pre>
 <p><strong>说明：</strong></p>
 <p>这里的mysqld.cnf配置文件中一定要赋值 server-id，否则会报如下错误(来自/var/log/syslog)：</p>
-<pre><code class="line-numbers language-shell">Aug 21 13:18:29 ubuntu mysql-systemd-start[2327]: Please take a look at https://wiki.debian.org/Teams/MySQL/FAQ for tips on fixing common upgrade issues.
+<pre><code class="language-shell">Aug 21 13:18:29 ubuntu mysql-systemd-start[2327]: Please take a look at https://wiki.debian.org/Teams/MySQL/FAQ for tips on fixing common upgrade issues.
 Aug 21 13:18:29 ubuntu mysql-systemd-start[2327]: Once the problem is resolved, restart the service.
 Aug 21 13:18:29 ubuntu systemd[1]: mysql.service: Control process exited, code=exited status=1
 Aug 21 13:18:29 ubuntu systemd[1]: mysql.service: Failed with result 'exit-code'.
@@ -750,10 +946,11 @@ Aug 21 13:18:29 ubuntu mysql-systemd-start[2335]: 2023-08-21T20:18:29.151581Z 0 
 Aug 21 13:18:29 ubuntu mysql-systemd-start[2335]: 2023-08-21T20:18:29.151958Z 0 [ERROR] Aborting
 </code></pre>
 <p>备份命令：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:/var/log/mysql# mysqlbinlog mysql-binlog.000001 &gt; backup.sql
+<pre><code class="language-shell">root@ubuntu:/var/log/mysql# mysqlbinlog mysql-binlog.000001 &gt; backup.sql
 </code></pre>
-<h3 id="3-3-2-恢复"><a href="#3-3-2-恢复" class="headerlink" title="3.3.2 恢复"></a>3.3.2 恢复</h3><p>使用 Mysql 自带的 mysqlbinlog 命令，其作用将二进制的记录转成可见的文本格式（即 SQL 语句），然后交给 mysql 执行可恢复数据，主要参数如下：</p>
-<pre><code class="line-numbers language-text">root@ubuntu:~# mysqlbinlog [option] log_file
+<h3 id="3-3-2-hui-fu">3.3.2 恢复</h3>
+<p>使用 Mysql 自带的 mysqlbinlog 命令，其作用将二进制的记录转成可见的文本格式（即 SQL 语句），然后交给 mysql 执行可恢复数据，主要参数如下：</p>
+<pre><code class="language-text">root@ubuntu:~# mysqlbinlog [option] log_file
 --start-position：指定某个起始偏移量来恢复（事务区间）
 --stop-positon：指定某个结束偏移量来恢复（事务区间）
 --start-datetime: 指定起始时间(日期区间，e.g:2023-08-21 12:10:36)
@@ -761,7 +958,7 @@ Aug 21 13:18:29 ubuntu mysql-systemd-start[2335]: 2023-08-21T20:18:29.151958Z 0 
 </code></pre>
 <p>恢复命令：</p>
 <p>要先登录对应数据库，在mysql里执行source xx.sql进行恢复，参考如下：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:~# mysql -uroot -pp@ssw0rd test
+<pre><code class="language-shell">root@ubuntu:~# mysql -uroot -pp@ssw0rd test
 mysql: [Warning] Using a password on the command line interface can be insecure.
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
@@ -794,13 +991,13 @@ mysql&gt;
 </code></pre>
 <p><strong>注意：</strong></p>
 <p>在备份bin-log之前，先 FLUSH LOGS，会自动滚动文件，备份滚动后的文件即可：</p>
-<pre><code class="line-numbers language-shell">mysql&gt; flush logs;
+<pre><code class="language-shell">mysql&gt; flush logs;
 Query OK, 0 rows affected (0.01 sec)
 
 mysql&gt; 
 </code></pre>
 <p>此后，会在目录下生成一个全新数字开始的bin-log文件：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:/var/log/mysql# ll
+<pre><code class="language-shell">root@ubuntu:/var/log/mysql# ll
 total 40
 drwxr-x---  2 mysql adm    4096 Aug 21 13:50 ./
 drwxrwxr-x 13 root  syslog 4096 Aug 21 13:22 ../
@@ -812,17 +1009,30 @@ drwxrwxr-x 13 root  syslog 4096 Aug 21 13:22 ../
 -rw-r-----  1 mysql mysql    70 Aug 21 13:50 mysql-binlog.index
 root@ubuntu:/var/log/mysql# 
 </code></pre>
-<h2 id="3-4-冷备"><a href="#3-4-冷备" class="headerlink" title="3.4 冷备"></a>3.4 冷备</h2><p>Innodb 冷备是最简单的，通常只需写个脚本来复制 MySQL 的文件，然后将这些文件放到对应数据库的目录下即可实现数据恢复：</p>
-<ul>
-<li>.frm结构文件</li>
-<li>.idb独立表空间文件</li>
-<li>redo重做日志文件</li>
-<li>共享表空间文件</li>
-<li>my.cnf配置文件</li>
+<h2 id="3-4-leng-bei">3.4 冷备</h2>
+<p>Innodb 冷备是最简单的，通常只需写个脚本来复制 MySQL 的文件，然后将这些文件放到对应数据库的目录下即可实现数据恢复：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>.frm结构文件</p>
+</li>
+<li class="lvl-2">
+<p>.idb独立表空间文件</p>
+</li>
+<li class="lvl-2">
+<p>redo重做日志文件</p>
+</li>
+<li class="lvl-2">
+<p>共享表空间文件</p>
+</li>
+<li class="lvl-2">
+<p>my.cnf配置文件</p>
+</li>
 </ul>
 <p>缺点是：冷备文件比逻辑文件大，因为存放了很多其他数据，而且不能轻易跨平台（SQL 是标准语句，可跨平台）</p>
-<h3 id="3-4-1-备份"><a href="#3-4-1-备份" class="headerlink" title="3.4.1 备份"></a>3.4.1 备份</h3><p>首先关闭数据库，然后执行下面的命令</p>
-<h4 id="3-4-1-1-查看mysql数据存放的目录"><a href="#3-4-1-1-查看mysql数据存放的目录" class="headerlink" title="3.4.1.1 查看mysql数据存放的目录"></a>3.4.1.1 查看mysql数据存放的目录</h4><pre><code class="line-numbers language-shell"># 	 /var/lib/mysql/data
+<h3 id="3-4-1-bei-fen">3.4.1 备份</h3>
+<p>首先关闭数据库，然后执行下面的命令</p>
+<h4 id="3-4-1-1-cha-kan-mysql-shu-ju-cun-fang-de-mu-lu">3.4.1.1 查看mysql数据存放的目录</h4>
+<pre><code class="language-shell"># 	 /var/lib/mysql/data
 mysql&gt; show variables like "%datadir%";
 +---------------+-----------------+
 | Variable_name | Value           |
@@ -837,11 +1047,13 @@ mysql&gt;
 $cd /var/lib/mysql/
 $tar -zcvf mysqlDataBacku.tar.gz  data/
 </code></pre>
-<h4 id="3-4-1-2-备份物理文件"><a href="#3-4-1-2-备份物理文件" class="headerlink" title="3.4.1.2 备份物理文件"></a>3.4.1.2 备份物理文件</h4><pre><code class="line-numbers language-shell">root@ubuntu:~# cd /var/lib/mysql/
+<h4 id="3-4-1-2-bei-fen-wu-li-wen-jian">3.4.1.2 备份物理文件</h4>
+<pre><code class="language-shell">root@ubuntu:~# cd /var/lib/mysql/
 root@ubuntu:/var/lib/mysql# 
 root@ubuntu:/var/lib/mysql# tar -zcvf mysql_cool_backup.tar.gz  /data/
 </code></pre>
-<h3 id="3-4-2-恢复"><a href="#3-4-2-恢复" class="headerlink" title="3.4.2 恢复"></a>3.4.2 恢复</h3><pre><code class="line-numbers language-shell"># 1. 恢复只需将上面的包解压到对应数据库的数据存放目录下
+<h3 id="3-4-2-hui-fu">3.4.2 恢复</h3>
+<pre><code class="language-shell"># 1. 恢复只需将上面的包解压到对应数据库的数据存放目录下
 # 2. 恢复前将原数据备份一下
 # 3. 重启mysql即可
 
@@ -849,49 +1061,64 @@ root@ubuntu:~# cd /var/lib/mysql/
 root@ubuntu:/var/lib/mysql# mv /data/ /data_tmp
 root@ubuntu:/var/lib/mysql# tar -zxvf mysql_cool_backup.tar.gz
 </code></pre>
-<h2 id="3-5-XtraBackup"><a href="#3-5-XtraBackup" class="headerlink" title="3.5 XtraBackup"></a>3.5 XtraBackup</h2><p>Innodb 官方有提供热备工具 ibbackup 的收费软件。</p>
+<h2 id="3-5-xtra-backup">3.5 XtraBackup</h2>
+<p>Innodb 官方有提供热备工具 ibbackup 的收费软件。</p>
 <p>不过可以借用 XtraBackup 开源的热备工具，备份和恢复速度比 mysqldump 快，具体的安装过程这里不说明了（<code>apt install percona-xtrabackup</code>）。</p>
-<h3 id="3-5-1-全量备份"><a href="#3-5-1-全量备份" class="headerlink" title="3.5.1 全量备份"></a>3.5.1 全量备份</h3><h4 id="3-5-1-1-备份"><a href="#3-5-1-1-备份" class="headerlink" title="3.5.1.1 备份"></a>3.5.1.1 备份</h4><pre><code class="line-numbers language-shell">
+<h3 id="3-5-1-quan-liang-bei-fen">3.5.1 全量备份</h3>
+<h4 id="3-5-1-1-bei-fen">3.5.1.1 备份</h4>
+<pre><code class="language-shell">
 root@ubuntu:~# innobackupex 
-    --defaults-file=/etc/mysql/my.cnf  # 有数据存放地址
-    --user=root 
-    --password="123456" 
-    --databases=test
-    --backup /mysqlBackup/		 # 目录下生成日期命名的目录
+	--defaults-file=/etc/mysql/my.cnf  # 有数据存放地址
+	--user=root 
+	--password="123456" 
+	--databases=test
+	--backup /mysqlBackup/		 # 目录下生成日期命名的目录
 </code></pre>
-<h4 id="3-5-1-2-备份一致性"><a href="#3-5-1-2-备份一致性" class="headerlink" title="3.5.1.2 备份一致性"></a>3.5.1.2 备份一致性</h4><p>备份一致性，回滚未提交的事务及同步已经提交的事务至数据文件使数据文件处于一致性</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:~# innobackupex --apply-log /mysqlBackup/2023-08-20_20-39-19/
+<h4 id="3-5-1-2-bei-fen-yi-zhi-xing">3.5.1.2 备份一致性</h4>
+<p>备份一致性，回滚未提交的事务及同步已经提交的事务至数据文件使数据文件处于一致性</p>
+<pre><code class="language-shell">root@ubuntu:~# innobackupex --apply-log /mysqlBackup/2023-08-20_20-39-19/
 </code></pre>
-<h4 id="3-5-1-3-恢复"><a href="#3-5-1-3-恢复" class="headerlink" title="3.5.1.3 恢复"></a>3.5.1.3 恢复</h4><p>要保证原数据目录是空的，因为目录里有binlog日志</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:~# innobackupex 
-    --defaults-file=/etc/mysql/my.cnf 
-    --copy-back /mysqlBackup/2023-08-20_20-39-19/
+<h4 id="3-5-1-3-hui-fu">3.5.1.3 恢复</h4>
+<p>要保证原数据目录是空的，因为目录里有binlog日志</p>
+<pre><code class="language-shell">root@ubuntu:~# innobackupex 
+	--defaults-file=/etc/mysql/my.cnf 
+	--copy-back /mysqlBackup/2023-08-20_20-39-19/
 </code></pre>
-<h3 id="3-5-2-增量备份"><a href="#3-5-2-增量备份" class="headerlink" title="3.5.2 增量备份"></a>3.5.2 增量备份</h3><p>当数据量比较大的时候（10G），每次都全量备份不太实际，可采用业务比较闲（比如周末）全量备份，其余时间增量备份的策略</p>
+<h3 id="3-5-2-zeng-liang-bei-fen">3.5.2 增量备份</h3>
+<p>当数据量比较大的时候（10G），每次都全量备份不太实际，可采用业务比较闲（比如周末）全量备份，其余时间增量备份的策略</p>
 <p>原理：</p>
-<ul>
-<li>首先执行完全备份，并记录下此时检查点 LSN</li>
-<li>随后的增量备份中，比较表空间每页 LSN 是否大于上次备份的检查点 LSN，是则备份该页并更新当前检查点 LSN</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>首先执行完全备份，并记录下此时检查点 LSN</p>
+</li>
+<li class="lvl-2">
+<p>随后的增量备份中，比较表空间每页 LSN 是否大于上次备份的检查点 LSN，是则备份该页并更新当前检查点 LSN</p>
+</li>
 </ul>
-<h4 id="3-5-2-1-全量备份"><a href="#3-5-2-1-全量备份" class="headerlink" title="3.5.2.1 全量备份"></a>3.5.2.1 全量备份</h4><pre><code class="line-numbers language-shell">root@ubuntu:~# innobackupex 
-    --defaults-file=/etc/mysql/my.cnf
-    --user=root
-    --password="123456"
-    --backup /mysqlBackup/
+<h4 id="3-5-2-1-quan-liang-bei-fen">3.5.2.1 全量备份</h4>
+<pre><code class="language-shell">root@ubuntu:~# innobackupex 
+	--defaults-file=/etc/mysql/my.cnf
+	--user=root
+	--password="123456"
+	--backup /mysqlBackup/
 </code></pre>
-<h4 id="3-5-2-2-增量备份"><a href="#3-5-2-2-增量备份" class="headerlink" title="3.5.2.2 增量备份"></a>3.5.2.2 增量备份</h4><pre><code class="line-numbers language-shell">root@ubuntu:~# innobackupex 
-     --defaults-file=/etc/mysql/my.cnf 
-     --user=root 
-     --password=123456 
-     --incremental /backup/ 			# 增量备份文件目录
-    --incremental-basedir=/mysqlBackup/2023-08-20_22-09-29/		# 上次全备或增量备份的目录
+<h4 id="3-5-2-2-zeng-liang-bei-fen">3.5.2.2 增量备份</h4>
+<pre><code class="language-shell">root@ubuntu:~# innobackupex 
+ 	--defaults-file=/etc/mysql/my.cnf 
+ 	--user=root 
+ 	--password=123456 
+ 	--incremental /backup/ 			# 增量备份文件目录
+	--incremental-basedir=/mysqlBackup/2023-08-20_22-09-29/		# 上次全备或增量备份的目录
 </code></pre>
-<h4 id="3-5-2-3-恢复"><a href="#3-5-2-3-恢复" class="headerlink" title="3.5.2.3 恢复"></a>3.5.2.3 恢复</h4><p>保证原数据目录为空</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:~# innobackupex 
-    --apply-log /mysqlBackup/2023-08-20_22-09-29/
-    --incremental-dir=/mysqlBackup/2023-08-20_22-09-29/
+<h4 id="3-5-2-3-hui-fu">3.5.2.3 恢复</h4>
+<p>保证原数据目录为空</p>
+<pre><code class="language-shell">root@ubuntu:~# innobackupex 
+	--apply-log /mysqlBackup/2023-08-20_22-09-29/
+	--incremental-dir=/mysqlBackup/2023-08-20_22-09-29/
 </code></pre>
-<h1 id="备份脚本"><a href="#备份脚本" class="headerlink" title="备份脚本"></a>备份脚本</h1><h2 id="shell-脚本"><a href="#shell-脚本" class="headerlink" title="shell 脚本"></a>shell 脚本</h2><pre><code class="line-numbers language-shell">root@ubuntu:~# cat backup_mysql_db.sh 
+<h1 id="bei-fen-jiao-ben">备份脚本</h1>
+<h2 id="shell-jiao-ben">shell 脚本</h2>
+<pre><code class="language-shell">root@ubuntu:~# cat backup_mysql_db.sh 
 #!/bin/bash
 
 #保存备份个数，备份30天数据
@@ -935,7 +1162,7 @@ fi
 root@ubuntu:~# 
 </code></pre>
 <p>执行结果：</p>
-<pre><code class="line-numbers language-shell">root@ubuntu:~# bash backup_mysql_db.sh 
+<pre><code class="language-shell">root@ubuntu:~# bash backup_mysql_db.sh 
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 root@ubuntu:~# cd mysqlbackup/
 root@ubuntu:~/mysql_backup# ll
@@ -946,7 +1173,8 @@ drwx------ 7 root root 4096 Aug 21 14:27 ../
 -rw-r--r-- 1 root root 3067 Aug 21 14:27 test-2023-08-21-14-27-33.sql
 root@ubuntu:~/mysql_backup# 
 </code></pre>
-<h2 id="python脚本"><a href="#python脚本" class="headerlink" title="python脚本"></a>python脚本</h2><pre><code class="line-numbers language-python">#!/usr/bin/python
+<h2 id="python-jiao-ben">python脚本</h2>
+<pre><code class="language-python">#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 import os
@@ -1043,7 +1271,8 @@ def backup():
 if __name__ == '__main__':
     backup()
 </code></pre>
-<h1 id="备份MySQL的最佳实践"><a href="#备份MySQL的最佳实践" class="headerlink" title="备份MySQL的最佳实践"></a>备份MySQL的最佳实践</h1><p>以下是最佳实践建议，可帮助在备份MySQL数据库时避免一些问题：</p>
+<h1 id="bei-fen-my-sql-de-zui-jia-shi-jian">备份MySQL的最佳实践</h1>
+<p>以下是最佳实践建议，可帮助在备份MySQL数据库时避免一些问题：</p>
 <p>1、多种备份方式的组合使用</p>
 <p>当备份MySQL数据库时，应使用多种备份方式的组合方式，以确保备份的完整性和稳定性。例如，使用逻辑备份和物理备份的组合，或使用热备和冷备的组合。</p>
 <p>备份文件应保留在不同的地方（比如不同的存储主机上），以防止灾难性损失。</p>
@@ -1054,7 +1283,8 @@ if __name__ == '__main__':
 <p>4、备份恢复测试</p>
 <p>应定期测试备份恢复演示，这将帮助确保备份可以成功地恢复，并且可以提供可靠的备份源。</p>
 <p>演示环境尽量是另外一套测试环境，务必避免在生产环境上验证。</p>
-<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>MySQL备份和恢复是保护和维护数据的最基本的方法之一， 结合业务本身，制定合理、合规的备份策略进行备份，保护企业宝贵数据，确保它们用于处于安全保护状态。</p>
+<h1 id="jie-yu">结语</h1>
+<p>MySQL备份和恢复是保护和维护数据的最基本的方法之一， 结合业务本身，制定合理、合规的备份策略进行备份，保护企业宝贵数据，确保它们用于处于安全保护状态。</p>
 
                 
             </div>
@@ -1161,10 +1391,10 @@ if __name__ == '__main__':
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1478,7 +1708,7 @@ if __name__ == '__main__':
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/36.jpg" class="responsive-img" alt="mysql 增量备份">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/36.jpg" class="responsive-img" alt="mysql 增量备份">
                         
                         <span class="card-title">mysql 增量备份</span>
                     </div>
@@ -1535,7 +1765,7 @@ if __name__ == '__main__':
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/140.jpg" class="responsive-img" alt="python操作MySQL数据库基础操作">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/140.jpg" class="responsive-img" alt="python操作MySQL数据库基础操作">
                         
                         <span class="card-title">python操作MySQL数据库基础操作</span>
                     </div>
@@ -1774,7 +2004,7 @@ if __name__ == '__main__':
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2124,6 +2354,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

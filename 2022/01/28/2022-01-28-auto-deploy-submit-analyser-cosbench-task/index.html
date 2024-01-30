@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="自动部署cosbench并提交任务与结果处理解析, 软硬件测试">
-    <meta name="description" content="概述每次跑S3 Performance时，总要花费蛮多时间在构造xml以及xml调测上，避免xml内容有误影响测试。
-此次直接将整个过程（部署jre，部署cosbench，提交任务，自动收集存储信息以及对cosbench测试结果处理），整合">
+    <meta name="description" content="概述
+每次跑S3 Performance时，总要花费蛮多时间在构造xml以及xml调测上，避免xml内容有误影响测试。
+此次直接将整个过程（部署jre，部署cosbench，提交任务，自动收集存储信息以及对cosbench测试结果处理），整">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -481,9 +622,11 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>每次跑S3 Performance时，总要花费蛮多时间在构造xml以及xml调测上，避免xml内容有误影响测试。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>每次跑S3 Performance时，总要花费蛮多时间在构造xml以及xml调测上，避免xml内容有误影响测试。</p>
 <p>此次直接将整个过程（部署jre，部署cosbench，提交任务，自动收集存储信息以及对cosbench测试结果处理），整合成一套完整测试script，提高下工作效率。</p>
-<h2 id="Script-directory-structure"><a href="#Script-directory-structure" class="headerlink" title="Script directory structure"></a>Script directory structure</h2><pre><code class="line-numbers language-shell">[root@node243 bak_cosbench]# tree ./
+<h2 id="script-directory-structure">Script directory structure</h2>
+<pre><code class="language-shell">[root@node243 bak_cosbench]# tree ./
 ./
 ├── 00_run.sh
 ├── 01_check_expect_installed.sh
@@ -526,51 +669,106 @@
 
 4 directories, 34 files
 </code></pre>
-<h1 id="SOP"><a href="#SOP" class="headerlink" title="SOP"></a>SOP</h1><ol>
-<li>Prepare test environment</li>
+<h1 id="sop">SOP</h1>
+<ol>
+<li class="lvl-3">
+<p>Prepare test environment</p>
+</li>
 </ol>
-<ul>
-<li>Install Kylin V10 or CentOS 7 or Ubuntu 16.04 as clients, client number is suggested same as that of gateways</li>
-<li>The IP address of clients must be sequential</li>
-<li>Yum/apt-get install some packages, including expect under packages dir(00_run.sh done) </li>
-<li>Install nmon,ksh on each storage nodes(00_run.sh done)</li>
+<ul class="lvl-0">
+<li class="lvl-4">
+<p>Install Kylin V10 or CentOS 7 or Ubuntu 16.04 as clients, client number is suggested same as that of gateways</p>
+</li>
+<li class="lvl-4">
+<p>The IP address of clients must be sequential</p>
+</li>
+<li class="lvl-4">
+<p>Yum/apt-get install some packages, including expect under packages dir(00_run.sh done)</p>
+</li>
+<li class="lvl-4">
+<p>Install nmon,ksh on each storage nodes(00_run.sh done)</p>
+</li>
 </ul>
 <ol start="2">
-<li>Create a S3 account in web UI</li>
+<li class="lvl-3">
+<p>Create a S3 account in web UI</p>
+</li>
 </ol>
-<ul>
-<li>Only support S3</li>
+<ul class="lvl-0">
+<li class="lvl-4">
+<p>Only support S3</p>
+</li>
 </ul>
 <ol start="3">
-<li>Create a pool, then set as S3 pool</li>
+<li class="lvl-3">
+<p>Create a pool, then set as S3 pool</p>
+</li>
 </ol>
-<ul>
-<li>Not care EC pool or Replicate pool</li>
+<ul class="lvl-0">
+<li class="lvl-4">
+<p>Not care EC pool or Replicate pool</p>
+</li>
 </ul>
 <ol start="4">
-<li>Enable ssh for root on Storage nodes</li>
+<li class="lvl-3">
+<p>Enable ssh for root on Storage nodes</p>
+</li>
 </ol>
-<ul>
-<li>vim /etc/ssh/sshd_config to enable ssh for root(Default, after create cluster, forbidden root account to ssh)</li>
+<ul class="lvl-0">
+<li class="lvl-4">
+<p>vim /etc/ssh/sshd_config to enable ssh for root(Default, after create cluster, forbidden root account to ssh)</p>
+</li>
 </ul>
-<h1 id="Content"><a href="#Content" class="headerlink" title="Content"></a>Content</h1><h2 id="parameter-conf"><a href="#parameter-conf" class="headerlink" title="parameter.conf"></a>parameter.conf</h2><p>This conf defines items below:</p>
+<h1 id="content">Content</h1>
+<h2 id="parameter-conf">parameter.conf</h2>
+<p>This conf defines items below:</p>
 <ol>
-<li>Info of clients and storage nodes</li>
-<li>Config nmonchart result path</li>
-<li>Some parameter for generating cosbench XML, such as workers, runtime, ini xml files, mix ratio and so on</li>
-<li>S3 AKEY&amp;SKEY</li>
+<li class="lvl-3">
+<p>Info of clients and storage nodes</p>
+</li>
+<li class="lvl-3">
+<p>Config nmonchart result path</p>
+</li>
+<li class="lvl-3">
+<p>Some parameter for generating cosbench XML, such as workers, runtime, ini xml files, mix ratio and so on</p>
+</li>
+<li class="lvl-3">
+<p>S3 AKEY&amp;SKEY</p>
+</li>
 </ol>
-<h2 id="Script-info"><a href="#Script-info" class="headerlink" title="Script info"></a>Script info</h2><p>Scripts are usually executed by order of the number prefixed to the filename.</p>
-<h3 id="00-run-sh"><a href="#00-run-sh" class="headerlink" title="00_run.sh:"></a>00_run.sh:</h3><p>This script can be treated as a set which is constituted by the following scripts. You can modify the steps to fill the concrete requirements.</p>
-<h3 id="01-check-expect-installed-sh"><a href="#01-check-expect-installed-sh" class="headerlink" title="01_check_expect_installed.sh"></a>01_check_expect_installed.sh</h3><p>This scripe is used to install some packages on each cosbench client, such as expect, tcl, nc, net-tools and sshpass.</p>
-<h3 id="02-deploy-jre-sh"><a href="#02-deploy-jre-sh" class="headerlink" title="02_deploy_jre.sh"></a>02_deploy_jre.sh</h3><p>This script is used to copy jre(jre-8u171-linux-x64.tar.gz) to all clients according to parameter.conf.<br>Since this script uses expect to interact, it is requested to install expect has not been installed on this client.</p>
-<h3 id="03-deploy-cosbench-sh"><a href="#03-deploy-cosbench-sh" class="headerlink" title="03_deploy_cosbench.sh"></a>03_deploy_cosbench.sh</h3><p>Execute it to install cosbench on all clients if have no cosbench installed before.<br>If has been installed cosbench, if cosbench in running status, do nothing; if not running, will replace controller.conf then start cosbench.<br>The first client as cosbench controller and driver, other nodes run driver.<br>Will stop and disable firewall, if firewall in running status, each cosbench node can’t connect to each other.</p>
-<h3 id="04-deplay-nmon-sh"><a href="#04-deplay-nmon-sh" class="headerlink" title="04_deplay_nmon.sh"></a>04_deplay_nmon.sh</h3><p>Execute it to install nmon,ksh,nmonchart on all clients if have no nmon installed before.<br>Use nmon to collect monitor data from each storage node.<br>nmonchart needs ksh, so install ksh on each storage node.<br>Use nmonchart to chart nmon data on each storage node.<br>    (1) After charted, mush be opened by Google browser<br>    (2) Needs to be able to access Google because needs Google plug-ins online(Can use nmon analyser to save excel)</p>
-<h3 id="05-submit-cosbench-task-sh"><a href="#05-submit-cosbench-task-sh" class="headerlink" title="05_submit_cosbench_task.sh"></a>05_submit_cosbench_task.sh</h3><p>Execute it to generate cosbench xml, then submit cosbench task, then run nmon to monitor storage on each storage node.<br>Support dry run or not, suggest to dry run, prevent problems in direct running, and run completely after ensuring that there are no problems in the whole process.</p>
-<h3 id="06-collect-result-sh"><a href="#06-collect-result-sh" class="headerlink" title="06_collect_result.sh"></a>06_collect_result.sh</h3><p>Execute it to collect nmon result from storage nodes</p>
-<h3 id="07-analyser-cosbench-result-sh"><a href="#07-analyser-cosbench-result-sh" class="headerlink" title="07_analyser_cosbench_result.sh"></a>07_analyser_cosbench_result.sh</h3><p>Execute it to analyser cosbench rest result on cosbench controller node</p>
-<h3 id="08-restart-cosbench-sh"><a href="#08-restart-cosbench-sh" class="headerlink" title="08_restart_cosbench.sh"></a>08_restart_cosbench.sh</h3><p>If wants to restart all of cosbench service, you can run this script to do it.<br>This action will not clean archive and log on each cosbench node by default, if to delete archive or log dir, should pass a parameter to shell, like as:./08_restart_cosbench.sh del.</p>
-<h3 id="config"><a href="#config" class="headerlink" title="config/"></a>config/</h3><pre><code class="line-numbers language-shell">controller_template.conf --&gt; Generate controller.conf then sync to the controller node
+<h2 id="script-info">Script info</h2>
+<p>Scripts are usually executed by order of the number prefixed to the filename.</p>
+<h3 id="00-run-sh">00_run.sh:</h3>
+<p>This script can be treated as a set which is constituted by the following scripts. You can modify the steps to fill the concrete requirements.</p>
+<h3 id="01-check-expect-installed-sh">01_check_expect_installed.sh</h3>
+<p>This scripe is used to install some packages on each cosbench client, such as expect, tcl, nc, net-tools and sshpass.</p>
+<h3 id="02-deploy-jre-sh">02_deploy_jre.sh</h3>
+<p>This script is used to copy jre(jre-8u171-linux-x64.tar.gz) to all clients according to parameter.conf.<br>
+Since this script uses expect to interact, it is requested to install expect has not been installed on this client.</p>
+<h3 id="03-deploy-cosbench-sh">03_deploy_cosbench.sh</h3>
+<p>Execute it to install cosbench on all clients if have no cosbench installed before.<br>
+If has been installed cosbench, if cosbench in running status, do nothing; if not running, will replace controller.conf then start cosbench.<br>
+The first client as cosbench controller and driver, other nodes run driver.<br>
+Will stop and disable firewall, if firewall in running status, each cosbench node can’t connect to each other.</p>
+<h3 id="04-deplay-nmon-sh">04_deplay_nmon.sh</h3>
+<p>Execute it to install nmon,ksh,nmonchart on all clients if have no nmon installed before.<br>
+Use nmon to collect monitor data from each storage node.<br>
+nmonchart needs ksh, so install ksh on each storage node.<br>
+Use nmonchart to chart nmon data on each storage node.<br>
+(1) After charted, mush be opened by Google browser<br>
+(2) Needs to be able to access Google because needs Google plug-ins online(Can use nmon analyser to save excel)</p>
+<h3 id="05-submit-cosbench-task-sh">05_submit_cosbench_task.sh</h3>
+<p>Execute it to generate cosbench xml, then submit cosbench task, then run nmon to monitor storage on each storage node.<br>
+Support dry run or not, suggest to dry run, prevent problems in direct running, and run completely after ensuring that there are no problems in the whole process.</p>
+<h3 id="06-collect-result-sh">06_collect_result.sh</h3>
+<p>Execute it to collect nmon result from storage nodes</p>
+<h3 id="07-analyser-cosbench-result-sh">07_analyser_cosbench_result.sh</h3>
+<p>Execute it to analyser cosbench rest result on cosbench controller node</p>
+<h3 id="08-restart-cosbench-sh">08_restart_cosbench.sh</h3>
+<p>If wants to restart all of cosbench service, you can run this script to do it.<br>
+This action will not clean archive and log on each cosbench node by default, if to delete archive or log dir, should pass a parameter to shell, like as:./08_restart_cosbench.sh del.</p>
+<h3 id="config">config/</h3>
+<pre><code class="language-shell">controller_template.conf --&gt; Generate controller.conf then sync to the controller node
 dry_run.xml                                    --&gt; For dry run
 1M_size_object_write_read_mix_files.xml.ini    --&gt; Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
 10M_size_object_write_read_mix_files.xml.ini   --&gt; Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
@@ -581,9 +779,12 @@ dry_run.xml                                    --&gt; For dry run
 small_object_write_read_mix_files.xml.ini      --&gt; Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
 </code></pre>
 <p>For cosbench xml files(under xml_files), can decide the running sequence by specfying proper filename.</p>
-<h3 id="packages"><a href="#packages" class="headerlink" title="packages/"></a>packages/</h3><p>Include expect, nmon, nmonchart, ksh and other tools.</p>
-<h4 id="subin"><a href="#subin" class="headerlink" title="subin/"></a>subin/</h4><p>Some internal functions used by scripts.</p>
-<h1 id="An-example-of-script-output"><a href="#An-example-of-script-output" class="headerlink" title="An example of script output"></a>An example of script output</h1><pre><code class="line-numbers language-shell">root@node243:~/cosbench# ./06_analyser_cosbench_result.sh 
+<h3 id="packages">packages/</h3>
+<p>Include expect, nmon, nmonchart, ksh and other tools.</p>
+<h4 id="subin">subin/</h4>
+<p>Some internal functions used by scripts.</p>
+<h1 id="an-example-of-script-output">An example of script output</h1>
+<pre><code class="language-shell">root@node243:~/cosbench# ./06_analyser_cosbench_result.sh 
 
 ----------------------------------------------------------------------------------- 
 w1-QA_30workers_4K_30M_files_mix, cost_time:6H:22M:54S                    
@@ -1002,6 +1203,7 @@ MIX_WRITE    92.2            966.762         146.957              96.5833
 MIX_READ     208.41          2185.4          78.9067              25.44               
 MIX_SUM      300.61          3152.16         112.932              61.0117             
 root@node243:~/cosbench# 
+
 </code></pre>
 
                 
@@ -1109,10 +1311,10 @@ root@node243:~/cosbench#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1426,7 +1628,7 @@ root@node243:~/cosbench#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/192.jpg" class="responsive-img" alt="Linux下显示文件隶属于哪个包">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/192.jpg" class="responsive-img" alt="Linux下显示文件隶属于哪个包">
                         
                         <span class="card-title">Linux下显示文件隶属于哪个包</span>
                     </div>
@@ -1475,7 +1677,7 @@ root@node243:~/cosbench#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/171.jpg" class="responsive-img" alt="Delay the first auto start VM in PVE">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/171.jpg" class="responsive-img" alt="Delay the first auto start VM in PVE">
                         
                         <span class="card-title">Delay the first auto start VM in PVE</span>
                     </div>
@@ -1710,7 +1912,7 @@ root@node243:~/cosbench#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2060,6 +2262,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

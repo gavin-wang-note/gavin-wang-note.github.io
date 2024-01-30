@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="快速清除S3 Bucket下Objects, 软硬件测试">
-    <meta name="description" content="概述客户现场碰到ceph集群在 Recovery，但是 backfill full,需要清理掉部分数据。
-本文针对Bucket下上千万的Object的清理，如何做到又快，又不出现将集群压死（集群压力过大），需要寻求一个平衡点，故本文介绍删除">
+    <meta name="description" content="概述
+客户现场碰到ceph集群在 Recovery，但是 backfill full,需要清理掉部分数据。
+本文针对Bucket下上千万的Object的清理，如何做到又快，又不出现将集群压死（集群压力过大），需要寻求一个平衡点，故本文介绍删">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,36 +610,59 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>客户现场碰到ceph集群在 Recovery，但是 backfill full,需要清理掉部分数据。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>客户现场碰到ceph集群在 Recovery，但是 backfill full,需要清理掉部分数据。</p>
 <p>本文针对Bucket下上千万的Object的清理，如何做到又快，又不出现将集群压死（集群压力过大），需要寻求一个平衡点，故本文介绍删除方法，相关参数可根据实际环境进行调测。</p>
-<h1 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h1><ul>
-<li>NJ Lab 4U36B，3台物理设备，每个node 3盘组RAID0, 内置两颗3.84T威刚NVME SSD</li>
-<li>每个节点12个OSD，总计36个OSD</li>
-<li>2+1 EC Pool 作为 S3 Data Pool</li>
-<li>3台Client，运行Cosbench，向单一Bucket中灌入512KiB和 5MiB 大小的对象，按 1:1 比例灌入，大约写入300000个对象</li>
+<h1 id="ce-shi-huan-jing">测试环境</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>NJ Lab 4U36B，3台物理设备，每个node 3盘组RAID0, 内置两颗3.84T威刚NVME SSD</p>
+</li>
+<li class="lvl-2">
+<p>每个节点12个OSD，总计36个OSD</p>
+</li>
+<li class="lvl-2">
+<p>2+1 EC Pool 作为 S3 Data Pool</p>
+</li>
+<li class="lvl-2">
+<p>3台Client，运行Cosbench，向单一Bucket中灌入512KiB和 5MiB 大小的对象，按 1:1 比例灌入，大约写入300000个对象</p>
+</li>
 </ul>
-<h1 id="Object清理思路"><a href="#Object清理思路" class="headerlink" title="Object清理思路"></a>Object清理思路</h1><ul>
-<li>利用aws s3api list-object-versions携带query参数，获取指定Bucket下待清理Objects</li>
-<li>利用aws s3api delete-objects 去delete Objects</li>
+<h1 id="object-qing-li-si-lu">Object清理思路</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>利用aws s3api list-object-versions携带query参数，获取指定Bucket下待清理Objects</p>
+</li>
+<li class="lvl-2">
+<p>利用aws s3api delete-objects 去delete Objects</p>
+</li>
 </ul>
 <p>流程大致如下：</p>
-<ul>
-<li><p>支持清理多个prefix objects</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>支持清理多个prefix objects</p>
 </li>
-<li><p>支持被清理Bucket enable/disable Version下objects的清理</p>
+<li class="lvl-2">
+<p>支持被清理Bucket enable/disable Version下objects的清理</p>
 </li>
-<li><p>支持并发处理</p>
+<li class="lvl-2">
+<p>支持并发处理</p>
 <ol>
-<li><p>每次获取指定数量（e.g:50000）的Objects</p>
+<li class="lvl-6">
+<p>每次获取指定数量（e.g:50000）的Objects</p>
 </li>
-<li><p>获取到的原始数据，并发分割成子文件，每个文件最多只含有1000个待删除Objects</p>
+<li class="lvl-6">
+<p>获取到的原始数据，并发分割成子文件，每个文件最多只含有1000个待删除Objects</p>
 </li>
-<li><p>并发读取各个子文件进行Objects的delete操作</p>
+<li class="lvl-6">
+<p>并发读取各个子文件进行Objects的delete操作</p>
 </li>
 </ol>
 </li>
 </ul>
-<h1 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h1><h2 id="Bucket-没有启用version"><a href="#Bucket-没有启用version" class="headerlink" title="Bucket 没有启用version"></a>Bucket 没有启用version</h2><pre><code class="line-numbers language-shell">*****************************************************************************************
+<h1 id="ce-shi-jie-guo">测试结果</h1>
+<h2 id="bucket-mei-you-qi-yong-version">Bucket 没有启用version</h2>
+<pre><code class="language-shell">*****************************************************************************************
 [2023-04-26 08:45:45]  ceph df:
 GLOBAL:
     SIZE       AVAIL      RAW USED     %RAW USED
@@ -549,10 +713,11 @@ aws s3api list-object-versions --endpoint-url=http://localhost --bucket "bucket0
 [2023-04-26 08:48:32]  Total cost 167s
 </code></pre>
 <p>清理速度：</p>
-<pre><code class="line-numbers language-shell">(726 - 16.2) / 167 = 4.25GiB/s
+<pre><code class="language-shell">(726 - 16.2) / 167 = 4.25GiB/s
 (297854 - 3323) / 167 = 1763 Objects/s
 </code></pre>
-<h2 id="Bucket-启用-version"><a href="#Bucket-启用-version" class="headerlink" title="Bucket 启用 version"></a>Bucket 启用 version</h2><pre><code class="line-numbers language-shell">root@node161:~# bash empty_bucket_v1.2.sh 
+<h2 id="bucket-qi-yong-version">Bucket 启用 version</h2>
+<pre><code class="language-shell">root@node161:~# bash empty_bucket_v1.2.sh 
 ***** This script will to delete objects which PREFIX is Veeam *****
 *****************************************************************************************
 GLOBAL:
@@ -609,18 +774,24 @@ aws s3api list-object-versions --endpoint-url=http://localhost --bucket "bucket0
 root@node161:~# 
 </code></pre>
 <p>清理速度：</p>
-<pre><code class="line-numbers language-shell">(734 - 1.38) / 314 = 2.33 GiB/s
+<pre><code class="language-shell">(734 - 1.38) / 314 = 2.33 GiB/s
 (597759 - 541) / 314 = 1901 Objects/s
 </code></pre>
 <p>TiB 级别的大量数据的删除：</p>
 <div class="note default"><p>说明：</p>
 </div>
-<ul>
-<li>如下删除动作，是先全部Dump完被删除对象，再并发清理。 Script后来有调整，防止最初的dump原始数据耗时太久出现异常。</li>
-<li>如下记录，仅做一个参考（通过其他的测试，从结果上看，Script后来的调整并没有出现删除衰减掉线严重现象）</li>
-<li>全部Dump出来记录再删除，如果这个dump的速度跟不上业务写入的速度（假定业务会持续写入），会出现一直都在dump数据，肯定会消耗比较多的Memory；所以跳转成每次只dump 5万笔记录，然后并发对这5万笔记录清理。</li>
+<ul class="lvl-0">
+<li class="lvl-4">
+<p>如下删除动作，是先全部Dump完被删除对象，再并发清理。 Script后来有调整，防止最初的dump原始数据耗时太久出现异常。</p>
+</li>
+<li class="lvl-4">
+<p>如下记录，仅做一个参考（通过其他的测试，从结果上看，Script后来的调整并没有出现删除衰减掉线严重现象）</p>
+</li>
+<li class="lvl-4">
+<p>全部Dump出来记录再删除，如果这个dump的速度跟不上业务写入的速度（假定业务会持续写入），会出现一直都在dump数据，肯定会消耗比较多的Memory；所以跳转成每次只dump 5万笔记录，然后并发对这5万笔记录清理。</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">*****************************************************************************************
+<pre><code class="language-shell">*****************************************************************************************
 [2023-04-25 15:57:06]  ceph df:
 GLOBAL:
     SIZE       AVAIL      RAW USED     %RAW USED
@@ -684,7 +855,7 @@ POOLS:
     san-pool                      15     4.59TiB      1.25        362TiB     4814435
 </code></pre>
 <p>删除速度：</p>
-<pre><code class="line-numbers language-shell">root@node162:~# python
+<pre><code class="language-shell">root@node162:~# python
 Python 2.7.12 (default, Oct  5 2020, 13:56:01) 
 [GCC 5.4.0 20160609] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
@@ -698,7 +869,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 &gt;&gt;&gt; 
 </code></pre>
 <p>相当于 2.44GiB/s，或2087Objects/s的删除速度。</p>
-<h1 id="测试结果汇总"><a href="#测试结果汇总" class="headerlink" title="测试结果汇总"></a>测试结果汇总</h1><table>
+<h1 id="ce-shi-jie-guo-hui-zong">测试结果汇总</h1>
+<table>
 <thead>
 <tr>
 <th>删除的数据量</th>
@@ -708,7 +880,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 <th>删除速度</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>From 726GiB to 16.2GiB</td>
 <td>From 297854 to 3323</td>
 <td>No</td>
@@ -729,21 +902,27 @@ Type "help", "copyright", "credits" or "license" for more information.
 <td>3673s</td>
 <td>2.442GiB/s; 2087.04 Objects/s</td>
 </tr>
-</tbody></table>
-<h1 id="Script-内容"><a href="#Script-内容" class="headerlink" title="Script 内容"></a>Script 内容</h1><h2 id="prefix-txt文件说明"><a href="#prefix-txt文件说明" class="headerlink" title="prefix.txt文件说明"></a>prefix.txt文件说明</h2><p>prefixes.txt，这个文件要存在，里面记录被删除Object的前缀(是目录哦，如果文件直接放在顶层Bucket下，需要修改脚本中 “aws s3api list-object-version” 动作里的 ‘–prefix "$current_prefix/"‘ 变更成 ‘–prefix "$current_prefix"‘)，如果有多个前缀，每行一个前缀记录，参考如下：</p>
-<p>单个prefix信息：<br>e.g:</p>
-<pre><code class="line-numbers language-shell">root@node161:~# cat prefixes.txt 
+</tbody>
+</table>
+<h1 id="script-nei-rong">Script 内容</h1>
+<h2 id="prefix-txt-wen-jian-shuo-ming">prefix.txt文件说明</h2>
+<p>prefixes.txt，这个文件要存在，里面记录被删除Object的前缀(是目录哦，如果文件直接放在顶层Bucket下，需要修改脚本中 “aws s3api list-object-version” 动作里的 ‘–prefix "$current_prefix/"’ 变更成 ‘–prefix "$current_prefix"’)，如果有多个前缀，每行一个前缀记录，参考如下：</p>
+<p>单个prefix信息：<br>
+e.g:</p>
+<pre><code class="language-shell">root@node161:~# cat prefixes.txt 
 Veeam
 root@node161:~# 
 </code></pre>
-<p>多个prefix信息：<br>e.g:</p>
-<pre><code class="line-numbers language-shell">root@node161:~# cat prefixes.txt 
+<p>多个prefix信息：<br>
+e.g:</p>
+<pre><code class="language-shell">root@node161:~# cat prefixes.txt 
 Veeam
 Video
 Stream
 root@node161:~# 
 </code></pre>
-<h2 id="Script-内容-1"><a href="#Script-内容-1" class="headerlink" title="Script 内容"></a>Script 内容</h2><pre><code class="line-numbers language-shell">root@node244:~# cat empty_bucket_v1.3.sh 
+<h2 id="script-nei-rong-1">Script 内容</h2>
+<pre><code class="language-shell">root@node244:~# cat empty_bucket_v1.3.sh 
 #!/bin/bash
 
 LOG="del.log"
@@ -887,8 +1066,7 @@ function empty_bucket()
             split_no=1000
             file_no=$(($no_of_obj/${split_no}))
             previous_file_no=$((${file_no} - 1))
-            suffix_length=$
-</code></pre>
+            suffix_length=$</code></pre>
 
                 
             </div>
@@ -991,10 +1169,10 @@ function empty_bucket()
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1308,7 +1486,7 @@ function empty_bucket()
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/195.jpg" class="responsive-img" alt="快速识别热插拔硬盘">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/195.jpg" class="responsive-img" alt="快速识别热插拔硬盘">
                         
                         <span class="card-title">快速识别热插拔硬盘</span>
                     </div>
@@ -1365,7 +1543,7 @@ function empty_bucket()
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/4.jpg" class="responsive-img" alt="快速清除rbd image">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/4.jpg" class="responsive-img" alt="快速清除rbd image">
                         
                         <span class="card-title">快速清除rbd image</span>
                     </div>
@@ -1596,7 +1774,7 @@ function empty_bucket()
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1946,6 +2124,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

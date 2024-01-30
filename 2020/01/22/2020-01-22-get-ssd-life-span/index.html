@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="获取SSD寿命, 软硬件测试">
-    <meta name="description" content="前言SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。
-目前lab里常见的SSD，型号有S4610">
+    <meta name="description" content="前言
+SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。
+目前lab里常见的SSD，型号有S461">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,10 +610,13 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。</p>
+                <h1 id="qian-yan">前言</h1>
+<p>SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致晶元厚度越来越薄，当晶元厚度薄到一定程度时，意味着SSD寿命已尽，对于存储产品，更迫切的需要知道当前集群里使用的SSD，其寿命还有多少。</p>
 <p>目前lab里常见的SSD，型号有S4610，S3700和NVME的，NVME的是PCI-e类型的，但intelS4600，S4610，S7300之类型号的SSD，有的设备是在RAID卡上，但有的设备上又不在RAID卡上。如何确定这些NVME，在RAID卡和不在RAID卡上的SSD的剩余寿命呢？</p>
-<h1 id="NVME类型的SSD的使用寿命获取"><a href="#NVME类型的SSD的使用寿命获取" class="headerlink" title="NVME类型的SSD的使用寿命获取"></a>NVME类型的SSD的使用寿命获取</h1><h2 id="方法1：借助nvmemgr获取"><a href="#方法1：借助nvmemgr获取" class="headerlink" title="方法1：借助nvmemgr获取"></a>方法1：借助nvmemgr获取</h2><p>NVME有一个driver，这个driver可以监控NVMESSD的状态以及获取实时信息，有兴趣的可以参考nvmemgr driver的help信息：</p>
-<pre><code class="line-numbers language-shell">root@CVM-01:~# nvmemgr 
+<h1 id="nvme-lei-xing-de-ssd-de-shi-yong-shou-ming-huo-qu">NVME类型的SSD的使用寿命获取</h1>
+<h2 id="fang-fa-1-jie-zhu-nvmemgr-huo-qu">方法1：借助nvmemgr获取</h2>
+<p>NVME有一个driver，这个driver可以监控NVMESSD的状态以及获取实时信息，有兴趣的可以参考nvmemgr driver的help信息：</p>
+<pre><code class="language-shell">root@CVM-01:~# nvmemgr 
 nvmemgr version: 00.06.202
 usage: nvmemgr &lt;command&gt; [&lt;options&gt;] &lt;target&gt; [&lt;args&gt;]
 
@@ -577,7 +721,8 @@ More details about a specific command, see 'nvmemgr command [--help | -h]'
 root@CVM-01:~# 
 </code></pre>
 <p>言归正传，如何通过nvmemgr这个工具获取NVME SSD的寿命呢？</p>
-<h2 id="Step1-获取NVME的controller-name"><a href="#Step1-获取NVME的controller-name" class="headerlink" title="Step1. 获取NVME的controller name"></a>Step1. 获取NVME的controller name</h2><pre><code class="line-numbers language-shell">root@CVM-01:~# nvmemgr list | grep controller
+<h2 id="step-1-huo-qu-nvme-de-controller-name">Step1. 获取NVME的controller name</h2>
+<pre><code class="language-shell">root@CVM-01:~# nvmemgr list | grep controller
 controller nvme0 (namespace nvme0n1):
 controller  (namespace nvme0n1p1):
 controller  (namespace nvme0n1p10):
@@ -606,7 +751,8 @@ controller  (namespace nvme0n1p8):
 controller  (namespace nvme0n1p9):
 </code></pre>
 <p>这里，显示当前系统里，NVME controller name是 <code>nvme0 </code></p>
-<h2 id="Step2-使用nvmemgr-monitor获取对应controller信息"><a href="#Step2-使用nvmemgr-monitor获取对应controller信息" class="headerlink" title="Step2. 使用nvmemgr monitor获取对应controller信息"></a>Step2. 使用nvmemgr monitor获取对应controller信息</h2><pre><code class="line-numbers language-shell">root@CVM-01:~# nvmemgr monitor -i 1000 -p --ctrl nvme0
+<h2 id="step-2-shi-yong-nvmemgr-monitor-huo-qu-dui-ying-controller-xin-xi">Step2. 使用nvmemgr monitor获取对应controller信息</h2>
+<pre><code class="language-shell">root@CVM-01:~# nvmemgr monitor -i 1000 -p --ctrl nvme0
 Manufacture Name:              Memblaze Technology Co.,Ltd
 Product Name:                  PBlaze4
 Model Number:                  INTEL SSDPEDMD800G4                     8DV10131
@@ -652,8 +798,9 @@ Current Read Bandwidth:        0.00MB/s
 Current Write Bandwidth:       0.07MB/s
 </code></pre>
 <p>上面吐出信息，有一行<code>Percentage of Device Life Used 4% </code>,这里意味着，这块SSD，目前已经使用了4%的寿命，还有96%的可用寿命。</p>
-<h2 id="方法2：通过NVME-smart信息获取"><a href="#方法2：通过NVME-smart信息获取" class="headerlink" title="方法2：通过NVME smart信息获取"></a>方法2：通过NVME smart信息获取</h2><p>直接上代码</p>
-<pre><code class="line-numbers language-shell">root@CVM-01:~# cat get_nvme_ssd_life_time.py 
+<h2 id="fang-fa-2-tong-guo-nvme-smart-xin-xi-huo-qu">方法2：通过NVME smart信息获取</h2>
+<p>直接上代码</p>
+<pre><code class="language-shell">root@CVM-01:~# cat get_nvme_ssd_life_time.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -812,12 +959,15 @@ if __name__ == '__main__':
     print smart_log.percent_used
 </code></pre>
 <p>执行效果：</p>
-<pre><code class="line-numbers language-shell">root@CVM-01:~# python get_nvme_ssd_life_time.py 
+<pre><code class="language-shell">root@CVM-01:~# python get_nvme_ssd_life_time.py 
 4
 root@CVM-01:~# 
 </code></pre>
 <p>结果返回是4，说明只使用了4%的寿命，还剩余96%的寿命，这里计算出来的，和通过nvmemgr monitor获取到的，完全一致~</p>
-<h1 id="非NVME-SSD寿命获取"><a href="#非NVME-SSD寿命获取" class="headerlink" title="非NVME SSD寿命获取"></a>非NVME SSD寿命获取</h1><h2 id="如何区分SSD是不是在RAID卡上呢？"><a href="#如何区分SSD是不是在RAID卡上呢？" class="headerlink" title="如何区分SSD是不是在RAID卡上呢？"></a>如何区分SSD是不是在RAID卡上呢？</h2><h3 id="SSD-不在RAID卡上"><a href="#SSD-不在RAID卡上" class="headerlink" title="SSD 不在RAID卡上"></a>SSD 不在RAID卡上</h3><pre><code class="line-numbers language-shell">root@node243:~# lsscsi
+<h1 id="fei-nvme-ssd-shou-ming-huo-qu">非NVME SSD寿命获取</h1>
+<h2 id="ru-he-qu-fen-ssd-shi-bu-shi-zai-raid-qia-shang-ni">如何区分SSD是不是在RAID卡上呢？</h2>
+<h3 id="ssd-bu-zai-raid-qia-shang">SSD 不在RAID卡上</h3>
+<pre><code class="language-shell">root@node243:~# lsscsi
 [0:0:9:0]    enclosu GOOXIBM  2U12SXP 24Sx12G  B013  -        
 [0:0:13:0]   disk    ATA      INTEL SSDSC2KG48 0100  /dev/sdk 
 [0:0:23:0]   disk    ATA      INTEL SSDSC2KG48 0121  /dev/sdl 
@@ -832,7 +982,8 @@ root@CVM-01:~#
 [0:2:8:0]    disk    AVAGO    MR9361-8i        4.68  /dev/sdi 
 [0:2:9:0]    disk    AVAGO    MR9361-8i        4.68  /dev/sdj
 </code></pre>
-<h3 id="SSD-在RAID卡上"><a href="#SSD-在RAID卡上" class="headerlink" title="SSD 在RAID卡上"></a>SSD 在RAID卡上</h3><pre><code class="line-numbers language-shell">root@node243:~# lsblk -d -o name,rota
+<h3 id="ssd-zai-raid-qia-shang">SSD 在RAID卡上</h3>
+<pre><code class="language-shell">root@node243:~# lsblk -d -o name,rota
 NAME ROTA
 sda     1
 sdb     1
@@ -864,7 +1015,7 @@ root@node243:~#
 </code></pre>
 <p>对比了一下 <code>lsscsi </code>吐出的信息，发现在RAID卡上的SSD，都会含有RAID卡的型号，而且没法直接看出是否是SSD，自然也没法分辨出SSD分区信息。</p>
 <p>本文RAID卡型号是LSI的，显示是AVAGO，截取了片段信息，如下:</p>
-<pre><code class="line-numbers language-shell">root@CVM-01:~# /opt/MegaRAID/MegaCli/MegaCli64 adpallinfo -a0
+<pre><code class="language-shell">root@CVM-01:~# /opt/MegaRAID/MegaCli/MegaCli64 adpallinfo -a0
                                      
 Adapter #0
 
@@ -875,12 +1026,18 @@ Product Name    : AVAGO 3108 MegaRAID
 Serial No       : 
 FW Package Build: 24.15.0-0018
 </code></pre>
-<h2 id="SSD不在RAID卡上，SSD寿命的获取"><a href="#SSD不在RAID卡上，SSD寿命的获取" class="headerlink" title="SSD不在RAID卡上，SSD寿命的获取"></a>SSD不在RAID卡上，SSD寿命的获取</h2><p>说明：</p>
-<ul>
-<li>通过<code>lsblk</code>或者<code>lsscsi</code>命令，都可以获取SSD分区信息</li>
-<li>如果SSD在RAID卡上，但是设置成JBOD模式，依然可以通过本章节方法获取SSD寿命</li>
+<h2 id="ssd-bu-zai-raid-qia-shang-ssd-shou-ming-de-huo-qu">SSD不在RAID卡上，SSD寿命的获取</h2>
+<p>说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>通过<code>lsblk</code>或者<code>lsscsi</code>命令，都可以获取SSD分区信息</p>
+</li>
+<li class="lvl-2">
+<p>如果SSD在RAID卡上，但是设置成JBOD模式，依然可以通过本章节方法获取SSD寿命</p>
+</li>
 </ul>
-<h3 id="Step1-先获取到SSD分区信息"><a href="#Step1-先获取到SSD分区信息" class="headerlink" title="Step1. 先获取到SSD分区信息"></a>Step1. 先获取到SSD分区信息</h3><pre><code class="line-numbers language-shell">root@node-196:~# lsblk -d -o name,rota
+<h3 id="step-1-xian-huo-qu-dao-ssd-fen-qu-xin-xi">Step1. 先获取到SSD分区信息</h3>
+<pre><code class="language-shell">root@node-196:~# lsblk -d -o name,rota
 NAME ROTA
 rbd0    0
 sdd     0
@@ -898,7 +1055,8 @@ root@node-196:~# lsscsi
 root@node-196:~# 
 </code></pre>
 <p>如上，可以看出，SSD对应分区是/dev/sdd 和 /dev/sde，对于rbd0，是存储export出来的device，这里忽略它。</p>
-<h3 id="Step2-查看smart信息"><a href="#Step2-查看smart信息" class="headerlink" title="Step2. 查看smart信息"></a>Step2. 查看smart信息</h3><pre><code class="line-numbers language-shell">root@node-196:~# smartctl -a /dev/sdd
+<h3 id="step-2-cha-kan-smart-xin-xi">Step2. 查看smart信息</h3>
+<pre><code class="language-shell">root@node-196:~# smartctl -a /dev/sdd
 smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-server] (local build)
 Copyright (C) 2002-18, Bruce Allen, Christian Franke, www.smartmontools.org
 
@@ -924,27 +1082,27 @@ SMART overall-health self-assessment test result: PASSED
 
 General SMART Values:
 Offline data collection status:  (0x02)	Offline data collection activity
-                    was completed without error.
-                    Auto Offline Data Collection: Disabled.
+					was completed without error.
+					Auto Offline Data Collection: Disabled.
 Self-test execution status:      (   0)	The previous self-test routine completed
-                    without error or no self-test has ever 
-                    been run.
+					without error or no self-test has ever 
+					been run.
 Total time to complete Offline 
 data collection: 		(    2) seconds.
 Offline data collection
 capabilities: 			 (0x79) SMART execute Offline immediate.
-                    No Auto Offline data collection support.
-                    Suspend Offline collection upon new
-                    command.
-                    Offline surface scan supported.
-                    Self-test supported.
-                    Conveyance Self-test supported.
-                    Selective Self-test supported.
+					No Auto Offline data collection support.
+					Suspend Offline collection upon new
+					command.
+					Offline surface scan supported.
+					Self-test supported.
+					Conveyance Self-test supported.
+					Selective Self-test supported.
 SMART capabilities:            (0x0003)	Saves SMART data before entering
-                    power-saving mode.
-                    Supports SMART auto save timer.
+					power-saving mode.
+					Supports SMART auto save timer.
 Error logging capability:        (0x01)	Error logging supported.
-                    General Purpose Logging supported.
+					General Purpose Logging supported.
 Short self-test routine 
 recommended polling time: 	 (   1) minutes.
 Extended self-test routine
@@ -952,9 +1110,9 @@ recommended polling time: 	 (   2) minutes.
 Conveyance self-test routine
 recommended polling time: 	 (   2) minutes.
 SCT capabilities: 	       (0x003d)	SCT Status supported.
-                    SCT Error Recovery Control supported.
-                    SCT Feature Control supported.
-                    SCT Data Table supported.
+					SCT Error Recovery Control supported.
+					SCT Feature Control supported.
+					SCT Data Table supported.
 
 SMART Attributes Data Structure revision number: 1
 Vendor Specific SMART Attributes with Thresholds:
@@ -1006,8 +1164,10 @@ If Selective self-test is pending on power-up, resume after 0 minute delay.
 root@node-196:~#
 </code></pre>
 <p>上面吐出的信息，有一行<code>Media_Wearout_Indicator</code>，这行有一列<code>WORST</code>，它对应的值，就是当前SSD寿命剩余百分比值，比如这里的95%，表示此块SSD还有95%的使用寿命。</p>
-<h2 id="SSD在RAID卡上，SSD寿命的获取"><a href="#SSD在RAID卡上，SSD寿命的获取" class="headerlink" title="SSD在RAID卡上，SSD寿命的获取"></a>SSD在RAID卡上，SSD寿命的获取</h2><h3 id="Step1-获取SSD分区名称"><a href="#Step1-获取SSD分区名称" class="headerlink" title="Step1. 获取SSD分区名称"></a>Step1. 获取SSD分区名称</h3><p>尝试使用lsblk去获取</p>
-<pre><code class="line-numbers language-shell">root@node243:~# lsblk -d -o name,rota
+<h2 id="ssd-zai-raid-qia-shang-ssd-shou-ming-de-huo-qu">SSD在RAID卡上，SSD寿命的获取</h2>
+<h3 id="step-1-huo-qu-ssd-fen-qu-ming-cheng">Step1. 获取SSD分区名称</h3>
+<p>尝试使用lsblk去获取</p>
+<pre><code class="language-shell">root@node243:~# lsblk -d -o name,rota
 NAME ROTA
 sda     1
 sdb     1
@@ -1025,7 +1185,7 @@ root@node243:~#
 </code></pre>
 <p>发现吐出的结果全部是1，很显然，当SSD在RAID卡上，且加入RAID组后，lsblk无法获取出哪个分区是SSD了。。。怎么破？</p>
 <p>换个思路，使用megacli命令试试：</p>
-<pre><code class="line-numbers language-shell">root@node243:~# /opt/MegaRAID/MegaCli/MegaCli64 ldpdinfo aall | grep -Ei 'Device Id:|Inquiry Data:|Raw Size:'
+<pre><code class="language-shell">root@node243:~# /opt/MegaRAID/MegaCli/MegaCli64 ldpdinfo aall | grep -Ei 'Device Id:|Inquiry Data:|Raw Size:'
 Enclosure Device ID: 9
 Device Id: 24
 Raw Size: 279.396 GB [0x22ecb25c Sectors]
@@ -1077,7 +1237,8 @@ Inquiry Data: BTYM72940D40480BGN  INTEL SSDSC2KG480G7                     SCV101
 root@node243:~# 
 </code></pre>
 <p>这里有一列信息<code>Inquiry Data</code>，表示每个Device的序列号，里面有品牌信息，其中，<code>INTEL SSDSC2KG480G7</code>表示这块盘，是INTEL SSD，容量480G，至此，可以知道，<code>Device Id: 13</code>（这很重要）这块盘，是SSD，对应分区是/dev/sdl（至于如何确认RAID卡上RAID组对应哪个系统分区（盘符）信息，参考我的其他推文）</p>
-<h3 id="Step2-smartctl获取smart信息"><a href="#Step2-smartctl获取smart信息" class="headerlink" title="Step2. smartctl获取smart信息"></a>Step2. smartctl获取smart信息</h3><pre><code class="line-numbers language-shell">root@node243:~# smartctl -a -d megaraid,23 /dev/sdl
+<h3 id="step-2-smartctl-huo-qu-smart-xin-xi">Step2. smartctl获取smart信息</h3>
+<pre><code class="language-shell">root@node243:~# smartctl -a -d megaraid,23 /dev/sdl
 smartctl 6.6 2016-05-31 r4324 [x86_64-linux-4.1.49-server] (local build)
 Copyright (C) 2002-16, Bruce Allen, Christian Franke, www.smartmontools.org
 
@@ -1104,27 +1265,27 @@ Warning: This result is based on an Attribute check.
 
 General SMART Values:
 Offline data collection status:  (0x00)	Offline data collection activity
-                    was never started.
-                    Auto Offline Data Collection: Disabled.
+					was never started.
+					Auto Offline Data Collection: Disabled.
 Self-test execution status:      (   0)	The previous self-test routine completed
-                    without error or no self-test has ever 
-                    been run.
+					without error or no self-test has ever 
+					been run.
 Total time to complete Offline 
 data collection: 		(    0) seconds.
 Offline data collection
 capabilities: 			 (0x79) SMART execute Offline immediate.
-                    No Auto Offline data collection support.
-                    Suspend Offline collection upon new
-                    command.
-                    Offline surface scan supported.
-                    Self-test supported.
-                    Conveyance Self-test supported.
-                    Selective Self-test supported.
+					No Auto Offline data collection support.
+					Suspend Offline collection upon new
+					command.
+					Offline surface scan supported.
+					Self-test supported.
+					Conveyance Self-test supported.
+					Selective Self-test supported.
 SMART capabilities:            (0x0003)	Saves SMART data before entering
-                    power-saving mode.
-                    Supports SMART auto save timer.
+					power-saving mode.
+					Supports SMART auto save timer.
 Error logging capability:        (0x01)	Error logging supported.
-                    General Purpose Logging supported.
+					General Purpose Logging supported.
 Short self-test routine 
 recommended polling time: 	 (   1) minutes.
 Extended self-test routine
@@ -1132,9 +1293,9 @@ recommended polling time: 	 (   2) minutes.
 Conveyance self-test routine
 recommended polling time: 	 (   2) minutes.
 SCT capabilities: 	       (0x003d)	SCT Status supported.
-                    SCT Error Recovery Control supported.
-                    SCT Feature Control supported.
-                    SCT Data Table supported.
+					SCT Error Recovery Control supported.
+					SCT Feature Control supported.
+					SCT Data Table supported.
 
 SMART Attributes Data Structure revision number: 1
 Vendor Specific SMART Attributes with Thresholds:
@@ -1186,7 +1347,7 @@ If Selective self-test is pending on power-up, resume after 0 minute delay.
 root@node243:~# 
 </code></pre>
 <p>这是一个完整的SSD 分区的smart信息，信息有些多，过滤一下，只获取我们关心的几个值就好：</p>
-<pre><code class="line-numbers language-shell">root@node243:~# smartctl -a -d megaraid,23 /dev/sdl | grep -Ei 'Device Model|Serial Number|User Capacity|Media_Wearout_Indicator'
+<pre><code class="language-shell">root@node243:~# smartctl -a -d megaraid,23 /dev/sdl | grep -Ei 'Device Model|Serial Number|User Capacity|Media_Wearout_Indicator'
 Device Model:     INTEL SSDSC2KG480G7
 Serial Number:    BTYM7406012Z480BGN
 User Capacity:    480,103,981,056 bytes [480 GB]
@@ -1195,7 +1356,7 @@ root@node243:~#
 </code></pre>
 <p>从smart吐出的信息可以看出，这块SSD的使用寿命还有99%(对应smart信息的WORST那一列的值)</p>
 <p>那如果不带device id，能直接通过smartctl获取SSD寿命信息么？</p>
-<pre><code class="line-numbers language-shell">root@node243:~# smartctl -a /dev/sdl
+<pre><code class="language-shell">root@node243:~# smartctl -a /dev/sdl
 smartctl 6.6 2016-05-31 r4324 [x86_64-linux-4.1.49-server] (local build)
 Copyright (C) 2002-16, Bruce Allen, Christian Franke, www.smartmontools.org
 
@@ -1222,10 +1383,12 @@ root@node243:~#
 </code></pre>
 <p>从吐出信息来看，是没有的~~</p>
 <p>说明：</p>
-<ul>
-<li>由于lab里只有intel的SSD，这个SSD使用寿命对应smart项是233（Media_Wearout_Indicator），但并不是所有类型的SSD的都是233，参考如下：</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>由于lab里只有intel的SSD，这个SSD使用寿命对应smart项是233（Media_Wearout_Indicator），但并不是所有类型的SSD的都是233，参考如下：</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell">SSD_INDICATOR = {
+<pre><code class="language-shell">SSD_INDICATOR = {
     'INTEL': '233',
     'INDILINX': '209',
     'MICRON': '202',
@@ -1335,10 +1498,10 @@ root@node243:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1652,7 +1815,7 @@ root@node243:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/72.jpg" class="responsive-img" alt="利用gparted扩展根分区">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/72.jpg" class="responsive-img" alt="利用gparted扩展根分区">
                         
                         <span class="card-title">利用gparted扩展根分区</span>
                     </div>
@@ -1701,7 +1864,7 @@ root@node243:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/86.jpg" class="responsive-img" alt="利用modinfo查看kernel使用的driver版本">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/86.jpg" class="responsive-img" alt="利用modinfo查看kernel使用的driver版本">
                         
                         <span class="card-title">利用modinfo查看kernel使用的driver版本</span>
                     </div>
@@ -1932,7 +2095,7 @@ root@node243:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2282,6 +2445,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

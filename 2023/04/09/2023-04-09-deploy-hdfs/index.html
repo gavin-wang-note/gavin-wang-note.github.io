@@ -5,9 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Linux下部署HDFS, 软硬件测试">
-    <meta name="description" content="HDFS 安装部署一、系统浅析HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。
+    <meta name="description" content="HDFS 安装部署
+一、系统浅析
+HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。
 NameNode（名称节点）：
-保存整个文件系统的目录信息、文件信息及分块信息，如果主 NameN">
+保存整个文件系统的目录信息、文件信息及分块信息，如果主 Nam">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +67,160 @@ NameNode（名称节点）：
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +335,7 @@ NameNode（名称节点）：
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -478,22 +620,25 @@ NameNode（名称节点）：
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="HDFS-安装部署"><a href="#HDFS-安装部署" class="headerlink" title="HDFS 安装部署"></a>HDFS 安装部署</h1><h2 id="一、系统浅析"><a href="#一、系统浅析" class="headerlink" title="一、系统浅析"></a>一、系统浅析</h2><p>HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。</p>
+                <h1 id="hdfs-an-zhuang-bu-shu">HDFS 安装部署</h1>
+<h2 id="yi-xi-tong-qian-xi">一、系统浅析</h2>
+<p>HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。</p>
 <p>NameNode（名称节点）：</p>
 <p>保存整个文件系统的目录信息、文件信息及分块信息，如果主 NameNode 失效，切换到Secondary NameNode。</p>
 <p>NameNode管理文件系统的命名空间，它维护着文件系统树及整棵树内所有的文件和目录，即元数据（MetaData）。</p>
 <p>如果NameNode不可用，那么等同于整个HDFS文件系统不可用。如果NameNode由于故障导致磁盘数据丢失，那么等同于整个HDFS文件系统数据丢失。如果NameNode块映射关系的内存爆满，那么等同于整个HDFS文件系统无法再继续存储，也就是意味着NameNode内存决定了HDFS能够存储的块数量。</p>
 <p>DataNode（数据节点）：</p>
-<p>分布在廉价的计算机上，用于存储Block块文件。 DataNode角色的节点是真正存放块（block）数据的节点，当DataNode启动时，它将扫描其本地文件系统，生成与每个本地文件相对应的所有HDFS数据块的列表，并将此报告发送到NameNode。该报告称为BlockReport。 </p>
+<p>分布在廉价的计算机上，用于存储Block块文件。 DataNode角色的节点是真正存放块（block）数据的节点，当DataNode启动时，它将扫描其本地文件系统，生成与每个本地文件相对应的所有HDFS数据块的列表，并将此报告发送到NameNode。该报告称为BlockReport。</p>
 <p>现在需要将hdfs部署在我司scaler之上。即可以通过 HDFS客户端上载文件，然后底层存储接入scaler，以scaler存储HDFS数据。</p>
-<h2 id="二、scaler-集群部署"><a href="#二、scaler-集群部署" class="headerlink" title="二、scaler 集群部署"></a>二、scaler 集群部署</h2><p>本文以scaler 8.3 版本详细说明HDFS部署在scaler上的操作过程。</p>
+<h2 id="er-scaler-ji-qun-bu-shu">二、scaler 集群部署</h2>
+<p>本文以scaler 8.3 版本详细说明HDFS部署在scaler上的操作过程。</p>
 <p>1、创建集群</p>
 <p>关于scaler 8.3部分的部署暂不描述。</p>
 <p>2、创建pool hdfs</p>
 <p>3、将pool hdfs 加入cephfs data pool</p>
 <p>4、新建sharefolder，名字为hdfs</p>
 <p>5、在hdfs下创建文件夹备HDFS的namenode、datanode、jornalnode使用</p>
-<pre><code class="line-numbers language-shell">root@host11:/var/share/ezfs/shareroot/hdfs# mkdir host11 host12 host13
+<pre><code class="language-shell">root@host11:/var/share/ezfs/shareroot/hdfs# mkdir host11 host12 host13
 root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host11/name host11/data host11/jn
 root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host12/name host12/data host12/jn
 root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host13/name host13/data host13/jn
@@ -512,18 +657,23 @@ root@host11:/var/share/ezfs/shareroot/hdfs# tree
 │   └── name
 │   └── jn
 </code></pre>
-<h2 id="三、HDFS部署"><a href="#三、HDFS部署" class="headerlink" title="三、HDFS部署"></a>三、HDFS部署</h2><h3 id="1、hadoop下载"><a href="#1、hadoop下载" class="headerlink" title="1、hadoop下载"></a>1、hadoop下载</h3><pre><code class="line-numbers language-shell">wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz
+<h2 id="san-hdfs-bu-shu">三、HDFS部署</h2>
+<h3 id="1-hadoop-xia-zai">1、hadoop下载</h3>
+<pre><code class="language-shell">wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz
 </code></pre>
-<h3 id="2、解压"><a href="#2、解压" class="headerlink" title="2、解压"></a>2、解压</h3><p>在所有节点上解压hadoop包， 命令如下</p>
-<pre><code class="line-numbers language-shell">tar -zxvf hadoop-3.3.2.tar.gz -C /usr/local/
+<h3 id="2-jie-ya">2、解压</h3>
+<p>在所有节点上解压hadoop包， 命令如下</p>
+<pre><code class="language-shell">tar -zxvf hadoop-3.3.2.tar.gz -C /usr/local/
 </code></pre>
-<h3 id="3、重命名"><a href="#3、重命名" class="headerlink" title="3、重命名"></a>3、重命名</h3><p>在所有节点上重命名hadoop</p>
-<pre><code class="line-numbers language-shell">onnode all mv /usr/local/hadoop-3.3.2 /usr/local/hadoop
+<h3 id="3-zhong-ming-ming">3、重命名</h3>
+<p>在所有节点上重命名hadoop</p>
+<pre><code class="language-shell">onnode all mv /usr/local/hadoop-3.3.2 /usr/local/hadoop
  
 </code></pre>
-<h3 id="4、环境变量配置"><a href="#4、环境变量配置" class="headerlink" title="4、环境变量配置"></a>4、环境变量配置</h3><p>Hadoop安装时需要配置一些环境变量，如指定HADOOP_HOME位置，指定java环境变量等，主要集中在两个配置文件中。</p>
+<h3 id="4-huan-jing-bian-liang-pei-zhi">4、环境变量配置</h3>
+<p>Hadoop安装时需要配置一些环境变量，如指定HADOOP_HOME位置，指定java环境变量等，主要集中在两个配置文件中。</p>
 <p>修改/etc/profile配置</p>
-<pre><code class="line-numbers language-shell">vim /etc/profile
+<pre><code class="language-shell">vim /etc/profile
 # 添加如下配置
 export HADOOP_HOME=/usr/local/hadoop
 export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
@@ -533,11 +683,11 @@ export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
  
 </code></pre>
 <p>加载环境变量</p>
-<pre><code class="line-numbers language-shell">source /etc/profile
+<pre><code class="language-shell">source /etc/profile
 </code></pre>
 <p>修改hadoop-env.sh配置</p>
 <p>hadoop-env.sh为hadoop运行环境定义hadoop运行环境相关的配置信息</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 # 添加如下配置
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
 export HADOOP_HOME=/usr/local/hadoop
@@ -551,18 +701,20 @@ export HDFS_NAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
 export HDFS_SECONDARYNAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
 </code></pre>
 <p>修改dev_env.sh配置</p>
-<pre><code class="line-numbers language-shell">vim /etc/profile.d/dev_env.sh
+<pre><code class="language-shell">vim /etc/profile.d/dev_env.sh
 # 添加如下配置
 export HADOOP_HOME=/usr/local/hadoop
 export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
  
 </code></pre>
 <p>以上配置文件完成，需要同步复制到其它所有节点</p>
-<h3 id="5、修改目录权限"><a href="#5、修改目录权限" class="headerlink" title="5、修改目录权限"></a>5、修改目录权限</h3><p>用户名及用户组</p>
-<pre><code class="line-numbers language-shell">chown -R root /usr/local/hadoop
+<h3 id="5-xiu-gai-mu-lu-quan-xian">5、修改目录权限</h3>
+<p>用户名及用户组</p>
+<pre><code class="language-shell">chown -R root /usr/local/hadoop
 chgrp -R root /usr/local/hadoop
 </code></pre>
-<h3 id="6、验证"><a href="#6、验证" class="headerlink" title="6、验证"></a>6、验证</h3><pre><code class="line-numbers language-shell">root@host12:/usr/local/hadoop/etc/hadoop#  hadoop version
+<h3 id="6-yan-zheng">6、验证</h3>
+<pre><code class="language-shell">root@host12:/usr/local/hadoop/etc/hadoop#  hadoop version
 Hadoop 3.3.2
 Source code repository git@github.com:apache/hadoop.git -r 0bcb014209e219273cb6fd4152df7df713cbac61
 Compiled by chao on 2022-02-21T18:39Z
@@ -571,11 +723,13 @@ From source with checksum 4b40fff8bb27201ba07b6fa5651217fb
 This command was run using /usr/local/hadoop/share/hadoop/common/hadoop-common-3.3.2.jar
 </code></pre>
 <p>如上提示即为配置成功</p>
-<h3 id="7、修改HDFS配置文件"><a href="#7、修改HDFS配置文件" class="headerlink" title="7、修改HDFS配置文件"></a>7、修改HDFS配置文件</h3><p>Hadoop所有的配置文件都存在于安装目录下的etc/hadoop中，需要修改如下配置文件</p>
-<h4 id="7-1、core-site-xml配置"><a href="#7-1、core-site-xml配置" class="headerlink" title="7.1、core-site.xml配置"></a>7.1、core-site.xml配置</h4><p>core-site.xml：集群全局参数，用于定义系统级别的参数，如HDFS URL 、Hadoop的临时目录等 </p>
-<p>·    fs.defaultFS：HDFS的默认访问路径。 </p>
+<h3 id="7-xiu-gai-hdfs-pei-zhi-wen-jian">7、修改HDFS配置文件</h3>
+<p>Hadoop所有的配置文件都存在于安装目录下的etc/hadoop中，需要修改如下配置文件</p>
+<h4 id="7-1-core-site-xml-pei-zhi">7.1、core-site.xml配置</h4>
+<p>core-site.xml：集群全局参数，用于定义系统级别的参数，如HDFS URL 、Hadoop的临时目录等</p>
+<p>·    fs.defaultFS：HDFS的默认访问路径。</p>
 <p>·    hadoop.tmp.dir：Hadoop临时文件的存放目录，可自定义。</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/hadoop/etc/hadoop/core-site.xml
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/core-site.xml
 
 &lt;configuration&gt;
    &lt;property&gt;
@@ -593,8 +747,9 @@ This command was run using /usr/local/hadoop/share/hadoop/common/hadoop-common-3
 &lt;/configuration&gt;
  
 </code></pre>
-<h4 id="7-2、修改hdfs-hdfs-site-xml配置"><a href="#7-2、修改hdfs-hdfs-site-xml配置" class="headerlink" title="7.2、修改hdfs hdfs-site.xml配置"></a>7.2、修改hdfs hdfs-site.xml配置</h4><p>hdfs-site.xml HDFS 如名称节点和数据节点的存放位置、文件副本的个数、文件的读取权限等</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+<h4 id="7-2-xiu-gai-hdfs-hdfs-site-xml-pei-zhi">7.2、修改hdfs hdfs-site.xml配置</h4>
+<p>hdfs-site.xml HDFS 如名称节点和数据节点的存放位置、文件副本的个数、文件的读取权限等</p>
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml
 
 &lt;configuration&gt;
     &lt;!-- 定义集群名称 --&gt;
@@ -695,8 +850,9 @@ This command was run using /usr/local/hadoop/share/hadoop/common/hadoop-common-3
 &lt;/configuration&gt;
  
 </code></pre>
-<h4 id="7-3、修改启停配置"><a href="#7-3、修改启停配置" class="headerlink" title="7.3、修改启停配置"></a>7.3、修改启停配置</h4><p>修改启动的配置文件：start-dfs.sh</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/hadoop/sbin/start-dfs.sh
+<h4 id="7-3-xiu-gai-qi-ting-pei-zhi">7.3、修改启停配置</h4>
+<p>修改启动的配置文件：<a target="_blank" rel="noopener" href="http://start-dfs.sh">start-dfs.sh</a></p>
+<pre><code class="language-shell">vim /usr/local/hadoop/sbin/start-dfs.sh
 # 添加如下配置
 HDFS_DATANODE_USER=root
 HADOOP_SECURE_USER=root
@@ -704,9 +860,10 @@ HDFS_NAMENODE_USER=root
 HDFS_SECONDARYNAMENODE_USER=root
 HDFS_ZKFC_USER=root
 HDFS_JOURNALNODE_USER=root
+
 </code></pre>
-<p>修改停用的配置文件：stop-dfs.sh</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/hadoop/sbin/stop-dfs.sh
+<p>修改停用的配置文件：<a target="_blank" rel="noopener" href="http://stop-dfs.sh">stop-dfs.sh</a></p>
+<pre><code class="language-shell">vim /usr/local/hadoop/sbin/stop-dfs.sh
 # 添加如下配置
 HDFS_DATANODE_USER=root
 HADOOP_SECURE_USER=root
@@ -716,33 +873,42 @@ HDFS_ZKFC_USER=root
 HDFS_JOURNALNODE_USER=root
  
 </code></pre>
-<h4 id="7-4、workers-设置"><a href="#7-4、workers-设置" class="headerlink" title="7.4、workers 设置"></a>7.4、workers 设置</h4><pre><code class="line-numbers language-shell">vim /usr/local/hadoop/etc/hadoop/workers
+<h4 id="7-4-workers-she-zhi">7.4、workers 设置</h4>
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/workers
 host11
 host12
 host13
 # 以实际机器的hostname为准
  
 </code></pre>
-<h4 id="7-5、hosts设置"><a href="#7-5、hosts设置" class="headerlink" title="7.5、hosts设置"></a>7.5、hosts设置</h4><p>服务器端host配置</p>
-<pre><code class="line-numbers language-shell">vim /etc/hosts
+<h4 id="7-5-hosts-she-zhi">7.5、hosts设置</h4>
+<p>服务器端host配置</p>
+<pre><code class="language-shell">vim /etc/hosts
 172.17.73.11 host11
 172.17.73.12 host12
 172.17.73.13 host13
 # 需要把127.0.1.1 注释掉，否则后面会出错。
 # 以实际机器的hostname为准
+
 </code></pre>
-<h4 id="7-6、创建软件链接"><a href="#7-6、创建软件链接" class="headerlink" title="7.6、创建软件链接"></a>7.6、创建软件链接</h4><pre><code class="line-numbers language-shell">onnode all ln -s /usr/share/elasticsearch/jdk/bin/jps /bin/jps
+<h4 id="7-6-chuang-jian-ruan-jian-lian-jie">7.6、创建软件链接</h4>
+<pre><code class="language-shell">onnode all ln -s /usr/share/elasticsearch/jdk/bin/jps /bin/jps
  
 </code></pre>
-<h2 id="四、zookeeper部分："><a href="#四、zookeeper部分：" class="headerlink" title="四、zookeeper部分："></a>四、zookeeper部分：</h2><h3 id="1、解压"><a href="#1、解压" class="headerlink" title="1、解压"></a>1、解压</h3><pre><code class="line-numbers language-shell">tar -zxvf /home/btadmin/zookeeper.tar.gz -C /usr/local
+<h2 id="si-zookeeper-bu-fen">四、zookeeper部分：</h2>
+<h3 id="1-jie-ya">1、解压</h3>
+<pre><code class="language-shell">tar -zxvf /home/btadmin/zookeeper.tar.gz -C /usr/local
  
 </code></pre>
-<h3 id="2、创建文件夹"><a href="#2、创建文件夹" class="headerlink" title="2、创建文件夹"></a>2、创建文件夹</h3><pre><code class="line-numbers language-shell">mkdir -p /usr/local/zookeeper/zkData
+<h3 id="2-chuang-jian-wen-jian-jia">2、创建文件夹</h3>
+<pre><code class="language-shell">mkdir -p /usr/local/zookeeper/zkData
  
 </code></pre>
-<h3 id="3、修改文件名"><a href="#3、修改文件名" class="headerlink" title="3、修改文件名"></a>3、修改文件名</h3><pre><code class="line-numbers language-shell">mv /usr/local/zookeeper/conf/zoo_sample.cfg /usr/local/zookeeper/conf/zoo.cfg
+<h3 id="3-xiu-gai-wen-jian-ming">3、修改文件名</h3>
+<pre><code class="language-shell">mv /usr/local/zookeeper/conf/zoo_sample.cfg /usr/local/zookeeper/conf/zoo.cfg
 </code></pre>
-<h3 id="4、修改文件zoo-cfg"><a href="#4、修改文件zoo-cfg" class="headerlink" title="4、修改文件zoo.cfg"></a>4、修改文件zoo.cfg</h3><pre><code class="line-numbers language-shell">vim /usr/local/zookeeper/conf/zoo.cfg
+<h3 id="4-xiu-gai-wen-jian-zoo-cfg">4、修改文件zoo.cfg</h3>
+<pre><code class="language-shell">vim /usr/local/zookeeper/conf/zoo.cfg
 
 #添加如下配置
 
@@ -754,25 +920,29 @@ server.3=host13:2888:3888
 admin.serverPort=8085
  
 </code></pre>
-<h3 id="5、修改目录权限-1"><a href="#5、修改目录权限-1" class="headerlink" title="5、修改目录权限"></a>5、修改目录权限</h3><p>用户名及用户组</p>
-<pre><code class="line-numbers language-shell">chown -R root /usr/local/zookeeper
+<h3 id="5-xiu-gai-mu-lu-quan-xian-1">5、修改目录权限</h3>
+<p>用户名及用户组</p>
+<pre><code class="language-shell">chown -R root /usr/local/zookeeper
 chgrp -R root /usr/local/zookeeper
 </code></pre>
-<h3 id="6、修改文件myid文件"><a href="#6、修改文件myid文件" class="headerlink" title="6、修改文件myid文件"></a>6、修改文件myid文件</h3><p>在多个节点上分别配置myid文件，序号依次增加</p>
+<h3 id="6-xiu-gai-wen-jian-myid-wen-jian">6、修改文件myid文件</h3>
+<p>在多个节点上分别配置myid文件，序号依次增加</p>
 <p>在第一个节点值为1</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/zookeeper/zkData/myid
+<pre><code class="language-shell">vim /usr/local/zookeeper/zkData/myid
 1
 </code></pre>
 <p>在第二个节点值为2</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/zookeeper/zkData/myid
+<pre><code class="language-shell">vim /usr/local/zookeeper/zkData/myid
 2
 </code></pre>
 <p>在第三个节点值为3</p>
-<pre><code class="line-numbers language-shell">vim /usr/local/zookeeper/zkData/myid
+<pre><code class="language-shell">vim /usr/local/zookeeper/zkData/myid
 3
 </code></pre>
-<h2 id="五、启动集群"><a href="#五、启动集群" class="headerlink" title="五、启动集群"></a>五、启动集群</h2><p>HDFS HA配置完成后，下面我们将集群启动</p>
-<h3 id="1、先启动zookeeper集群"><a href="#1、先启动zookeeper集群" class="headerlink" title="1、先启动zookeeper集群"></a>1、先启动zookeeper集群</h3><pre><code class="line-numbers language-shell"># 在所有节点分别执行如下命令：
+<h2 id="wu-qi-dong-ji-qun">五、启动集群</h2>
+<p>HDFS HA配置完成后，下面我们将集群启动</p>
+<h3 id="1-xian-qi-dong-zookeeper-ji-qun">1、先启动zookeeper集群</h3>
+<pre><code class="language-shell"># 在所有节点分别执行如下命令：
 /usr/local/zookeeper/bin/zkServer.sh start
  
 # 在第一个节点执行如下命令：
@@ -782,29 +952,31 @@ hdfs zkfc -formatZK
 hdfs --daemon start zkfc
 </code></pre>
 <p>执行成功后可看：</p>
-<pre><code class="line-numbers language-shell">root@host13:/home/btadmin# jps
+<pre><code class="language-shell">root@host13:/home/btadmin# jps
 180491 Jps
 154684 DFSZKFailoverController
  
 # 看到DFSZKFailoverController表示启动成功
 </code></pre>
-<h3 id="2、启动HDFS"><a href="#2、启动HDFS" class="headerlink" title="2、启动HDFS"></a>2、启动HDFS</h3><p>删除各个节点的$HADOOP_HOME/tmp目录下的所有文件（如果是新建环境不需要此步）</p>
+<h3 id="2-qi-dong-hdfs">2、启动HDFS</h3>
+<p>删除各个节点的$HADOOP_HOME/tmp目录下的所有文件（如果是新建环境不需要此步）</p>
 <p>在各个节点分别执行下面命令，启动三台JournalNode ：</p>
-<pre><code class="line-numbers language-shell">hdfs --daemon start journalnode
+<pre><code class="language-shell">hdfs --daemon start journalnode
 </code></pre>
-<p> 启动结果如下</p>
-<pre><code class="line-numbers language-shell">root@host11:/usr/local/hadoop/sbin# jps
+<p>启动结果如下</p>
+<pre><code class="language-shell">root@host11:/usr/local/hadoop/sbin# jps
 494797 JournalNode
  
 # 表示JournalNode启动成功
 </code></pre>
-<h3 id="3、格式化namenode"><a href="#3、格式化namenode" class="headerlink" title="3、格式化namenode"></a>3、格式化namenode</h3><p>只在第一个节点上执行namenode格式化。</p>
+<h3 id="3-ge-shi-hua-namenode">3、格式化namenode</h3>
+<p>只在第一个节点上执行namenode格式化。</p>
 <p>注意：如果没有启动JournalNode，格式化将失败</p>
-<pre><code class="line-numbers language-shell">hdfs namenode -format
+<pre><code class="language-shell">hdfs namenode -format
  
 </code></pre>
 <p>出现如下输出代表格式化成功：</p>
-<pre><code class="line-numbers language-shell">2023-04-21 13:51:54,909 INFO util.GSet: 0.25% max memory 1.7 GB = 4.4 MB
+<pre><code class="language-shell">2023-04-21 13:51:54,909 INFO util.GSet: 0.25% max memory 1.7 GB = 4.4 MB
 2023-04-21 13:51:54,909 INFO util.GSet: capacity      = 2^19 = 524288 entries
 2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.window.num.buckets = 10
 2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.num.users = 10
@@ -828,26 +1000,31 @@ hdfs --daemon start zkfc
 SHUTDOWN_MSG: Shutting down NameNode at host11/127.0.0.1
 ************************************************************
 </code></pre>
-<h3 id="4、启动第一个节点的namenode"><a href="#4、启动第一个节点的namenode" class="headerlink" title="4、启动第一个节点的namenode"></a>4、启动第一个节点的namenode</h3><p>注意：namenode在启动前必须执行格式化namenode操作，如果不执行，则启动namenode操作失败</p>
+<h3 id="4-qi-dong-di-yi-ge-jie-dian-de-namenode">4、启动第一个节点的namenode</h3>
+<p>注意：namenode在启动前必须执行格式化namenode操作，如果不执行，则启动namenode操作失败</p>
 <p>如果先启动namenode失败后，需要再格式化namenode的话，需要把name data jn文件夹下的内容全部删除，/tmp/下hadoop部分的内容删除后，格式化namenode才能成功</p>
 <p>在第一个节点启动namenode， 启动namenode后会生成images元数据</p>
-<pre><code class="line-numbers language-shell">hdfs --daemon start namenode
+<pre><code class="language-shell">hdfs --daemon start namenode
 </code></pre>
-<h3 id="5、启动第二，三个节点的bootstrapStandby"><a href="#5、启动第二，三个节点的bootstrapStandby" class="headerlink" title="5、启动第二，三个节点的bootstrapStandby"></a>5、启动第二，三个节点的bootstrapStandby</h3><p>在启动第二，三节点的namenode之前 ，需要先执行同步数据操作，将第一个节点上的NameNode元数据拷贝到第二个，第三个节点上。命令如下：</p>
-<pre><code class="line-numbers language-shell">hdfs namenode -bootstrapStandby
+<h3 id="5-qi-dong-di-er-san-ge-jie-dian-de-bootstrap-standby">5、启动第二，三个节点的bootstrapStandby</h3>
+<p>在启动第二，三节点的namenode之前 ，需要先执行同步数据操作，将第一个节点上的NameNode元数据拷贝到第二个，第三个节点上。命令如下：</p>
+<pre><code class="language-shell">hdfs namenode -bootstrapStandby
 </code></pre>
 <p>输出以下信息代表拷贝成功：</p>
-<pre><code class="line-numbers language-shell">18/03/15 14:28:01 INFO common.Storage: Storage directory /opt/modules/hadoop-2.7.1/tmp/dfs/name has been successfully formatted.
+<pre><code class="language-shell">18/03/15 14:28:01 INFO common.Storage: Storage directory /opt/modules/hadoop-2.7.1/tmp/dfs/name has been successfully formatted.
 </code></pre>
 <p>启动第二，三节点namenode，命令如下</p>
-<pre><code class="line-numbers language-shell">hdfs --daemon start namenode
+<pre><code class="language-shell">hdfs --daemon start namenode
 </code></pre>
-<h3 id="6、启动所有节点的datanode"><a href="#6、启动所有节点的datanode" class="headerlink" title="6、启动所有节点的datanode"></a>6、启动所有节点的datanode</h3><p>在所有节点上启动datanode</p>
-<pre><code class="line-numbers language-shell">hdfs --daemon start datanode
+<h3 id="6-qi-dong-suo-you-jie-dian-de-datanode">6、启动所有节点的datanode</h3>
+<p>在所有节点上启动datanode</p>
+<pre><code class="language-shell">hdfs --daemon start datanode
 </code></pre>
-<h3 id="7、切换nn1为namenode-active"><a href="#7、切换nn1为namenode-active" class="headerlink" title="7、切换nn1为namenode active"></a>7、切换nn1为namenode active</h3><pre><code class="line-numbers language-shell">hdfs haadmin -transitionToActive nn1
+<h3 id="7-qie-huan-nn-1-wei-namenode-active">7、切换nn1为namenode active</h3>
+<pre><code class="language-shell">hdfs haadmin -transitionToActive nn1
 </code></pre>
-<h3 id="8、确认服务状态"><a href="#8、确认服务状态" class="headerlink" title="8、确认服务状态"></a>8、确认服务状态</h3><pre><code class="line-numbers language-shell">onnode all jps
+<h3 id="8-que-ren-fu-wu-zhuang-tai">8、确认服务状态</h3>
+<pre><code class="language-shell">onnode all jps
  
 &gt;&gt; NODE: 10.10.10.11 &lt;&lt;
 439493 Jps
@@ -874,29 +1051,28 @@ SHUTDOWN_MSG: Shutting down NameNode at host11/127.0.0.1
 209885 Jps
 </code></pre>
 <p>至此，HDAP集群搭建完成</p>
-<h2 id="六、客户端配置"><a href="#六、客户端配置" class="headerlink" title="六、客户端配置"></a>六、客户端配置</h2><p>修改客户端hosts配置文件：</p>
+<h2 id="liu-ke-hu-duan-pei-zhi">六、客户端配置</h2>
+<p>修改客户端hosts配置文件：</p>
 <p>打开文件c:\Windows\System32\drivers\etc\hosts</p>
-<pre><code class="line-numbers language-shell">172.17.73.11 host11
+<pre><code class="language-shell">172.17.73.11 host11
 172.17.73.12 host12
 172.17.73.13 host13
 </code></pre>
-<h2 id="七、HDFS使用"><a href="#七、HDFS使用" class="headerlink" title="七、HDFS使用"></a>七、HDFS使用</h2><p>使用浏览器打开HDFS 客户端</p>
-<pre><code class="line-numbers language-shell">http://172.17.73.11:50070/
+<h2 id="qi-hdfs-shi-yong">七、HDFS使用</h2>
+<p>使用浏览器打开HDFS 客户端</p>
+<pre><code class="language-shell">http://172.17.73.11:50070/
 </code></pre>
-<img class="shadow" src="/img/in-post/HDFS-1.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-1.png" width="1200">
 <p>可以看到当前节点是NN1且处于active状态</p>
 <p>上传文件，打开如下界面</p>
-<img class="shadow" src="/img/in-post/HDFS-2.png" width="1200">
-
-<img class="shadow" src="/img/in-post/HDFS-3.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-2.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-3.png" width="1200">
 <p>上传文件后如下：</p>
-<img class="shadow" src="/img/in-post/HDFS-4.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-4.png" width="1200">
 <p>上传成功！</p>
-<h2 id="八、遇到问题及解决方法"><a href="#八、遇到问题及解决方法" class="headerlink" title="八、遇到问题及解决方法"></a>八、遇到问题及解决方法</h2><p>问题1、第二或第三个节点执行BootstrapStandby 格式无法成功。 显示如下</p>
-<pre><code class="line-numbers language-shell">2023-04-21 13:55:00,314 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 0 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+<h2 id="ba-yu-dao-wen-ti-ji-jie-jue-fang-fa">八、遇到问题及解决方法</h2>
+<p>问题1、第二或第三个节点执行BootstrapStandby 格式无法成功。 显示如下</p>
+<pre><code class="language-shell">2023-04-21 13:55:00,314 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 0 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
 2023-04-21 13:55:01,315 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 1 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
 2023-04-21 13:55:02,316 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 2 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
 2023-04-21 13:55:03,317 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 3 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
@@ -914,10 +1090,11 @@ SHUTDOWN_MSG: Shutting down NameNode at host11/127.0.0.1
 /************************************************************
 SHUTDOWN_MSG: Shutting down NameNode at host12/172.17.73.12
 ************************************************************/
+
 </code></pre>
 <p>解决：</p>
 <p>查看端口的使用情况，发现请求的9000端口使用情况如下：</p>
-<pre><code class="line-numbers language-shell">root@host11:/tmp# lsof -i:9000
+<pre><code class="language-shell">root@host11:/tmp# lsof -i:9000
 COMMAND    PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 java    498909 root  330u  IPv4 689923      0t0  TCP 127.0.1.1:9000 (LISTEN)
 端口的ip是127.0.1.1
@@ -926,44 +1103,38 @@ java    498909 root  330u  IPv4 689923      0t0  TCP 127.0.1.1:9000 (LISTEN)
 <p>把/etc/hosts里127.0.1.1注释掉。重启node1</p>
 <p>然后按顺序重新启动journalnode. namenode</p>
 <p>再次查看</p>
-<pre><code class="line-numbers language-shell">root@host11:/usr/local/hadoop/sbin# lsof -i:9000
+<pre><code class="language-shell">root@host11:/usr/local/hadoop/sbin# lsof -i:9000
 COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 java 
 </code></pre>
 <p>结果正常</p>
 <p>问题二：无法上传文件，如下</p>
-<img class="shadow" src="/img/in-post/HDFS-5.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-5.png" width="1200">
 <p>解决方法：</p>
-<pre><code class="line-numbers language-shell">root@host11:/usr/local/hadoop/sbin# hdfs haadmin -getServiceState nn2
+<pre><code class="language-shell">root@host11:/usr/local/hadoop/sbin# hdfs haadmin -getServiceState nn2
 active
  
 </code></pre>
 <p>从UI上登录active节点即可</p>
-<img class="shadow" src="/img/in-post/HDFS-6.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-6.png" width="1200">
 <p>问题三：上传文件失败</p>
-<img class="shadow" src="/img/in-post/HDFS-7.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-7.png" width="1200">
 <p>解决方法：</p>
 <p>客户端没有配置host</p>
 <p>打开文件c:\Windows\System32\drivers\etc\hosts</p>
 <p>添加三个节点的host</p>
-<pre><code class="line-numbers language-shell">172.17.73.11 host11
+<pre><code class="language-shell">172.17.73.11 host11
 172.17.73.12 host12
 172.17.73.13 host13
 </code></pre>
 <p>再次尝试</p>
-<img class="shadow" src="/img/in-post/HDFS-8.png" width="1200">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-8.png" width="1200">
 <p>文件上传成功！</p>
 <p>问题四：启动zookeeper失败</p>
 <p>bug现象：</p>
-<img class="shadow" src="/img/in-post/HDFS-9.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-9.png" width="1200">
 <p>log：</p>
-<pre><code class="line-numbers language-shell">2023-04-24 14:37:11,952 [myid:] - WARN  [main:ConstraintSecurityHandler@759] - ServletContext@o.e.j.s.ServletContextHandler@1b68ddbd{/,null,STARTING} has uncovered http methods for path: /*
+<pre><code class="language-shell">2023-04-24 14:37:11,952 [myid:] - WARN  [main:ConstraintSecurityHandler@759] - ServletContext@o.e.j.s.ServletContextHandler@1b68ddbd{/,null,STARTING} has uncovered http methods for path: /*
 2023-04-24 14:37:11,961 [myid:] - INFO  [main:ContextHandler@915] - Started o.e.j.s.ServletContextHandler@1b68ddbd{/,null,AVAILABLE}
 2023-04-24 14:37:11,970 [myid:] - ERROR [main:ZooKeeperServerMain@86] - Unable to start AdminServer, exiting abnormally
 org.apache.zookeeper.server.admin.AdminServer$AdminServerException: Problem starting AdminServer on address 0.0.0.0, port 8080 and command URL /commands
@@ -1104,10 +1275,10 @@ Unable to start AdminServer, exiting abnormally
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1421,7 +1592,7 @@ Unable to start AdminServer, exiting abnormally
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/115.jpg" class="responsive-img" alt="查看JBOD Write Cache Policy">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/115.jpg" class="responsive-img" alt="查看JBOD Write Cache Policy">
                         
                         <span class="card-title">查看JBOD Write Cache Policy</span>
                     </div>
@@ -1470,7 +1641,7 @@ Unable to start AdminServer, exiting abnormally
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/162.jpg" class="responsive-img" alt="Loop assign GWs to different VS">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/162.jpg" class="responsive-img" alt="Loop assign GWs to different VS">
                         
                         <span class="card-title">Loop assign GWs to different VS</span>
                     </div>
@@ -1701,7 +1872,7 @@ Unable to start AdminServer, exiting abnormally
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2051,6 +2222,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

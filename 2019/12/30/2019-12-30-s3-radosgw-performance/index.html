@@ -5,15 +5,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="如何快速知道S3存储性能, 软硬件测试">
-    <meta name="description" content="前言当ceph S3集群搭建成功后，想知道当前存储的RGW性能如何， 如何快速评估呢？
+    <meta name="description" content="前言
+当ceph S3集群搭建成功后，想知道当前存储的RGW性能如何， 如何快速评估呢？
 本文介绍3种方法：
 
+
 s3cmd并发
+
+
 rest-bench
+
+
 cosbench
 
-s3cmd 快速评估详请参考我同事Bean的blog：
-https://">
+
+s3cmd 快速评估
+详请参考我同事Bean的blog：
+">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -71,20 +79,160 @@ https://">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -199,7 +347,7 @@ https://">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -480,24 +628,38 @@ https://">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>当ceph S3集群搭建成功后，想知道当前存储的RGW性能如何， 如何快速评估呢？</p>
+                <h1 id="qian-yan">前言</h1>
+<p>当ceph S3集群搭建成功后，想知道当前存储的RGW性能如何， 如何快速评估呢？</p>
 <p>本文介绍3种方法：</p>
-<ul>
-<li>s3cmd并发</li>
-<li>rest-bench</li>
-<li>cosbench</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>s3cmd并发</p>
+</li>
+<li class="lvl-2">
+<p>rest-bench</p>
+</li>
+<li class="lvl-2">
+<p>cosbench</p>
+</li>
 </ul>
-<h1 id="s3cmd-快速评估"><a href="#s3cmd-快速评估" class="headerlink" title="s3cmd 快速评估"></a>s3cmd 快速评估</h1><p>详请参考我同事Bean的blog：</p>
+<h1 id="s-3-cmd-kuai-su-ping-gu">s3cmd 快速评估</h1>
+<p>详请参考我同事Bean的blog：</p>
 <p><code>https://bean-li.github.io/s3cmd-put-to-slow/ </code></p>
-<h1 id="Step1-rest-bench"><a href="#Step1-rest-bench" class="headerlink" title="Step1. rest-bench"></a>Step1. rest-bench</h1><p>说明：</p>
-<ul>
-<li>rest-bench这个工具，年久失修，在ceph的早期版本开发的（ceph version 0.80.11），运行到最后会crash，好在crash之前，很多的结果已经吐出来的，将就用吧，不用care CORE dump问题</li>
+<h1 id="step-1-rest-bench">Step1. rest-bench</h1>
+<p>说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>rest-bench这个工具，年久失修，在ceph的早期版本开发的（ceph version 0.80.11），运行到最后会crash，好在crash之前，很多的结果已经吐出来的，将就用吧，不用care CORE dump问题</p>
+</li>
 </ul>
-<h2 id="安装rest-bench"><a href="#安装rest-bench" class="headerlink" title="安装rest-bench"></a>安装rest-bench</h2><pre><code class="line-numbers language-shell">apt-get update
+<h2 id="an-zhuang-rest-bench">安装rest-bench</h2>
+<pre><code class="language-shell">apt-get update
 apt-get install rest-bench
 </code></pre>
-<h2 id="Step2-创建Bucket"><a href="#Step2-创建Bucket" class="headerlink" title="Step2. 创建Bucket"></a>Step2. 创建Bucket</h2><p>本文以s3cmd来创建bucket，当然，也可以通过其他可视化工具（S3 Browser 或者 CloudBerry Explorer for Amazon S3 Freeware）进行Bucket的创建， 如下操作，是在获知S3账号的AKEY和SKEY情况下进行的。</p>
-<h3 id="准备测试脚本"><a href="#准备测试脚本" class="headerlink" title="准备测试脚本"></a>准备测试脚本</h3><pre><code class="line-numbers language-shell">export RGW=localhost:7480
+<h2 id="step-2-chuang-jian-bucket">Step2. 创建Bucket</h2>
+<p>本文以s3cmd来创建bucket，当然，也可以通过其他可视化工具（S3 Browser 或者 CloudBerry Explorer for Amazon S3 Freeware）进行Bucket的创建， 如下操作，是在获知S3账号的AKEY和SKEY情况下进行的。</p>
+<h3 id="zhun-bei-ce-shi-jiao-ben">准备测试脚本</h3>
+<pre><code class="language-shell">export RGW=localhost:7480
 export SECS=10
 export SIZE=$((1&lt;&lt;22)) # 4MB object size
 export BUCKET=bench
@@ -509,10 +671,12 @@ rest-bench -t $CONCURRENCY -b $SIZE --seconds=$SECS --api-host=$RGW --bucket=$BU
 </code></pre>
 <p>如上脚本，可以放在一个shell script里，也可以直接在ssh console里执行</p>
 <p>说明：</p>
-<ul>
-<li>下列结果，为VM的测试结果，仅做示例</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>下列结果，为VM的测试结果，仅做示例</p>
+</li>
 </ul>
-<pre><code class="line-numbers language-shell"> Maintaining 16 concurrent writes of 4194304 bytes for up to 10 seconds or 0 objects
+<pre><code class="language-shell"> Maintaining 16 concurrent writes of 4194304 bytes for up to 10 seconds or 0 objects
  Object prefix: benchmark_data_auto-70-1_839993
    sec Cur ops   started  finished  avg MB/s  cur MB/s  last lat   avg lat
      0       5         5         0         0         0         -         0
@@ -541,12 +705,18 @@ Stddev Latency:         1.42932
 Max latency:            6.14039
 Min latency:            0.088134
 </code></pre>
-<h1 id="cosbench"><a href="#cosbench" class="headerlink" title="cosbench"></a>cosbench</h1><p>说明：</p>
-<ul>
-<li>这个工具是Intel 开源的工具，业内也非常认可它，很多厂商都使用它进行S3的性能测试。</li>
-<li>本文以6节点做配置示例</li>
+<h1 id="cosbench">cosbench</h1>
+<p>说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这个工具是Intel 开源的工具，业内也非常认可它，很多厂商都使用它进行S3的性能测试。</p>
+</li>
+<li class="lvl-2">
+<p>本文以6节点做配置示例</p>
+</li>
 </ul>
-<h2 id="controller侧controller-conf内容"><a href="#controller侧controller-conf内容" class="headerlink" title="controller侧controller.conf内容"></a>controller侧controller.conf内容</h2><pre><code class="line-numbers language-shell">[controller]
+<h2 id="controller-ce-controller-conf-nei-rong">controller侧controller.conf内容</h2>
+<pre><code class="language-shell">[controller]
 drivers = 6
 log_level = INFO
 log_file = log/system.log
@@ -576,25 +746,30 @@ url = http://10.0.26.95:18088/driver
 name = driver6
 url = http://10.0.26.96:18088/driver
 </code></pre>
-<h2 id="driver侧driver-conf内容"><a href="#driver侧driver-conf内容" class="headerlink" title="driver侧driver.conf内容"></a>driver侧driver.conf内容</h2><p>driver1的driver.conf内容：</p>
-<pre><code class="line-numbers language-shell">[driver]
+<h2 id="driver-ce-driver-conf-nei-rong">driver侧driver.conf内容</h2>
+<p>driver1的driver.conf内容：</p>
+<pre><code class="language-shell">[driver]
 log_level = DEBUG
 name = driver1
 url = http://10.0.26.91:18088/driver
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>其他node的driver.conf，只是name后面的driver名称（需要与controller.conf匹配）和URL地址的变化，其他没什么变化</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>其他node的driver.conf，只是name后面的driver名称（需要与controller.conf匹配）和URL地址的变化，其他没什么变化</p>
+</li>
 </ul>
-<h2 id="workload示例"><a href="#workload示例" class="headerlink" title="workload示例"></a>workload示例</h2><h3 id="示例1：-36Threads-运行900秒"><a href="#示例1：-36Threads-运行900秒" class="headerlink" title="示例1： 36Threads,运行900秒"></a>示例1： 36Threads,运行900秒</h3><pre><code class="line-numbers language-shell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<h2 id="workload-shi-li">workload示例</h2>
+<h3 id="shi-li-1-36-threads-yun-xing-900-miao">示例1： 36Threads,运行900秒</h3>
+<pre><code class="language-shell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;workload name="Bigtera BT-H4400 HCI 1VM 36Threads" description="1GB tests. include writes, reads, mix tests"&gt;
 &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.161" /&gt;
 
   &lt;workflow&gt;
 
-        &lt;!-- ******************************* --&gt;
-      &lt;!-- 1mch 24wrks 36threads write job --&gt;
-        &lt;!-- ******************************* --&gt;
+		&lt;!-- ******************************* --&gt;
+  	&lt;!-- 1mch 24wrks 36threads write job --&gt;
+		&lt;!-- ******************************* --&gt;
 
     &lt;workstage name="1mch-23wrks-36threads-write-init"&gt;
         &lt;work name="1mch-24wrks-36threads-write-init" type="init" workers="1" interval="10" division="container" runtime="0" rampup="0" rampdown="0" driver="driver1"  config="cprefix=bigterahci;containers=r(1,48)" /&gt;
@@ -621,7 +796,7 @@ url = http://10.0.26.91:18088/driver
             &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.161"/&gt;
             &lt;operation type="write" ratio="100" division="object" config="cprefix=bigterahci;oprefix=1GB_;containers=u(7,8);objects=u(1,10);sizes=c(1)GB;createContainer=false;" id="none" /&gt;
         &lt;/work&gt;
-        
+		
         &lt;work name="write2-11_7070" type="write" workers="1" interval="10" division="object" runtime="900" rampup="0" rampdown="0" driver="driver1"  &gt;
             &lt;auth type="none" config=""/&gt;
             &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.161"/&gt;
@@ -642,7 +817,7 @@ url = http://10.0.26.91:18088/driver
             &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.164"/&gt;
             &lt;operation type="write" ratio="100" division="object" config="cprefix=bigterahci;oprefix=1GB_;containers=u(15,16);objects=u(1,10);sizes=c(1)GB;createContainer=false;" id="none" /&gt;
         &lt;/work&gt;
-        
+		
         &lt;work name="write1-12_7070" type="write" workers="2" interval="10" division="object" runtime="900" rampup="0" rampdown="0" driver="driver1"  &gt;
             &lt;auth type="none" config=""/&gt;
             &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.162"/&gt;
@@ -727,7 +902,7 @@ url = http://10.0.26.91:18088/driver
             &lt;operation type="write" ratio="100" division="object" config="cprefix=bigterahci;oprefix=1GB_;containers=u(47,48);objects=u(1,10);sizes=c(1)GB;createContainer=false;" id="none" /&gt;
         &lt;/work&gt;
     &lt;/workstage&gt;
-        
+		
     &lt;workstage name="1mch-24wrks-36threads-write-cleanup"&gt;
           &lt;work type="cleanup" workers="1" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(1,48);objects=r(1,10)" /&gt;
     &lt;/workstage&gt;
@@ -735,9 +910,9 @@ url = http://10.0.26.91:18088/driver
           &lt;work type="dispose" workers="1" driver="driver1" config="cprefix=bigterahci;containers=r(1,48)" /&gt;
     &lt;/workstage&gt;
 
-        &lt;!-- ****************************** --&gt;
-      &lt;!-- 1mch 24wrks 36threads read job --&gt;
-        &lt;!-- ****************************** --&gt;
+		&lt;!-- ****************************** --&gt;
+  	&lt;!-- 1mch 24wrks 36threads read job --&gt;
+		&lt;!-- ****************************** --&gt;
 
     &lt;workstage name="1mch-24wrks-36threads-read-init"&gt;
         &lt;work name="1mch-24wrks-36threads-read-init" type="init" workers="1" interval="10" division="container" runtime="0" rampup="0" rampdown="0" driver="driver1"  config="cprefix=bigterahci;containers=r(1,48)" /&gt;
@@ -781,7 +956,7 @@ url = http://10.0.26.91:18088/driver
                   &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.164"/&gt;
                   &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(15,16);objects=u(1,10)" /&gt;
           &lt;/work&gt;
-          
+		  
           &lt;work name="read1-12-7070" workers="2" runtime="900" rampup="10" rampdown="0" interval="10" driver="driver1" &gt;
                   &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.162"/&gt;
                   &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(17,18);objects=u(1,10)" /&gt;
@@ -815,7 +990,7 @@ url = http://10.0.26.91:18088/driver
                   &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.164"/&gt;
                   &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(31,32);objects=u(1,10)" /&gt;
           &lt;/work&gt;
-          
+		  
           &lt;work name="read1-13-7070" workers="2" runtime="900" rampup="10" rampdown="0" interval="10" driver="driver1" &gt;
                   &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.163"/&gt;
                   &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(33,34);objects=u(1,10)" /&gt;
@@ -859,9 +1034,9 @@ url = http://10.0.26.91:18088/driver
           &lt;work type="dispose" workers="1" driver="driver1" config="cprefix=bigterahci;containers=r(1,48)" /&gt;
     &lt;/workstage&gt;
 
-        &lt;!-- ***************************** --&gt;
-      &lt;!-- 1mch 24wrks 36threads mix job --&gt;
-        &lt;!-- ***************************** --&gt;
+		&lt;!-- ***************************** --&gt;
+  	&lt;!-- 1mch 24wrks 36threads mix job --&gt;
+		&lt;!-- ***************************** --&gt;
 
     &lt;workstage name="1mch-24wrks-36threads-mix-init"&gt;
         &lt;work name="1mch-24wrks-36threads-mix-init" type="init" workers="1" interval="10" division="container" runtime="0" rampup="0" rampdown="0" driver="driver1"  config="cprefix=bigterahci;containers=r(1,48)" /&gt;
@@ -874,10 +1049,10 @@ url = http://10.0.26.91:18088/driver
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(7,8);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(9,10);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(11,12);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
-        &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(13,14);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
+	    &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(13,14);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(15,16);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(17,18);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
-        &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(19,20);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
+		&lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(19,20);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(21,22);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
         &lt;work type="prepare" workers="8" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(23,24);objects=r(1,10);content=zero;sizes=c(1)GB" /&gt;
     &lt;/workstage&gt;
@@ -901,7 +1076,7 @@ url = http://10.0.26.91:18088/driver
                 &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.164"/&gt;
                 &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(3,4);objects=u(1,10)" /&gt;
         &lt;/work&gt;
-        
+		
         &lt;work name="mix2-11_7070" type="write" workers="1" interval="10" division="object" runtime="900" rampup="0" rampdown="0" driver="driver1"  &gt;
             &lt;auth type="none" config=""/&gt;
             &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.161"/&gt;
@@ -920,7 +1095,7 @@ url = http://10.0.26.91:18088/driver
                 &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.161"/&gt;
                 &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(7,8);objects=u(1,10)" /&gt;
         &lt;/work&gt;
-        
+		
         &lt;work name="mix1-12_7070" type="write" workers="2" interval="10" division="object" runtime="900" rampup="0" rampdown="0" driver="driver1"  &gt;
             &lt;auth type="none" config=""/&gt;
             &lt;storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.162"/&gt;
@@ -997,7 +1172,7 @@ url = http://10.0.26.91:18088/driver
                 &lt;operation type="read" ratio="100" config="cprefix=bigterahci;oprefix=1GB_;containers=u(23,24);objects=u(1,10)" /&gt;
         &lt;/work&gt;
     &lt;/workstage&gt;
-        
+		
     &lt;workstage name="1mch-24wrks-36threads-mix-cleanup"&gt;
           &lt;work type="cleanup" workers="1" driver="driver1" config="cprefix=bigterahci;oprefix=1GB_;containers=r(1,48);objects=r(1,10)" /&gt;
     &lt;/workstage&gt;
@@ -1005,22 +1180,27 @@ url = http://10.0.26.91:18088/driver
           &lt;work type="dispose" workers="1" driver="driver1" config="cprefix=bigterahci;containers=r(1,48)" /&gt;
     &lt;/workstage&gt;
 
-    &lt;/workflow&gt;
+	&lt;/workflow&gt;
 &lt;/workload&gt;
 </code></pre>
 <p>说明:</p>
-<ul>
-<li>如果只考虑运行多长时间，则xml中需要定义 <code>runtime="900" </code>，表示运行900秒</li>
-<li>如果要考虑在对应bucket里生成一定数量的object，则需要改成 <code>totalOps="500000" </code>，这里的500000表示50万个object</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果只考虑运行多长时间，则xml中需要定义 <code>runtime="900" </code>，表示运行900秒</p>
+</li>
+<li class="lvl-2">
+<p>如果要考虑在对应bucket里生成一定数量的object，则需要改成 <code>totalOps="500000" </code>，这里的500000表示50万个object</p>
+</li>
 </ul>
-<h3 id="示例2：-60Threads-顺序写固定数量的object"><a href="#示例2：-60Threads-顺序写固定数量的object" class="headerlink" title="示例2： 60Threads,顺序写固定数量的object"></a>示例2： 60Threads,顺序写固定数量的object</h3><pre><code class="line-numbers language-shell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+<h3 id="shi-li-2-60-threads-shun-xu-xie-gu-ding-shu-liang-de-object">示例2： 60Threads,顺序写固定数量的object</h3>
+<pre><code class="language-shell">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;workload name="SEG_phyical_round1_60threads_ONLY_W" description="1VM 60threads w24work WR"&gt;
 &lt;storage type="s3" config="accesskey=DJL9ZF20DDPEGYCCY902;secretkey=K7DMecYvlsfU9jf6K6bDTc3afnPwwnWmbQyZ1aK8;endpoint=http://10.10.172.63" /&gt;
 
   &lt;workflow&gt;
-        &lt;!-- ******************************* --&gt;
-      &lt;!-- 1mch 20wrks 60threads write job --&gt;
-        &lt;!-- ******************************* --&gt;
+		&lt;!-- ******************************* --&gt;
+  	&lt;!-- 1mch 20wrks 60threads write job --&gt;
+		&lt;!-- ******************************* --&gt;
 
     &lt;workstage name="1mch-20wrks-60threads-write-init"&gt;
         &lt;work name="1mch-20wrks-60threads-write-init" type="init" workers="1" interval="10" division="container" runtime="0" rampup="0" rampdown="0" driver="driver1"  config="cprefix=seg;containers=r(1,1)" /&gt;
@@ -1138,24 +1318,29 @@ url = http://10.0.26.91:18088/driver
     &lt;/workstage&gt;
 --&gt;
 
-    &lt;/workflow&gt;
+	&lt;/workflow&gt;
 &lt;/workload&gt;
 </code></pre>
-<h2 id="cosbench的补充说明"><a href="#cosbench的补充说明" class="headerlink" title="cosbench的补充说明"></a>cosbench的补充说明</h2><p>container selector用 “s”, object selector用 “r”, 然后container数量跟object的”数量”要”互质”</p>
+<h2 id="cosbench-de-bu-chong-shuo-ming">cosbench的补充说明</h2>
+<p>container selector用 “s”, object selector用 “r”, 然后container数量跟object的"数量"要"互质"</p>
 <p>示例:</p>
-<pre><code class="line-numbers language-shell">&lt;operation type="write" ratio="100" division="object" config="cprefix=tmo;oprefix=round2_10KB_;containers=s(8,10);objects=r(25001,50000);sizes=c(10240)B;createContainer=false;" id="none" /&gt;
+<pre><code class="language-shell">&lt;operation type="write" ratio="100" division="object" config="cprefix=tmo;oprefix=round2_10KB_;containers=s(8,10);objects=r(25001,50000);sizes=c(10240)B;createContainer=false;" id="none" /&gt;
 </code></pre>
-<p>10-8+1 = 3<br>50000-25001+1 = 25000<br>3跟25000数量</p>
+<p>10-8+1 = 3<br>
+50000-25001+1 = 25000<br>
+3跟25000数量</p>
 <p>然后如果是设置timeout就要保证Dataset够大，不会写到重复的</p>
 <p>如果是设置totalOps那設定的值照这个示例就是 3 * 25000 = 75000</p>
 <p>如果contrainers和objects用range/sequential的selector时，最终生成的object个数为他们的最小公倍数，比如containers=s(1,10);objects=s(1,20)，这样最后的object个数时20，而不是200，所以要灌全200个object，有两个方法：</p>
-<ul>
-<li><ol>
-<li>在prepare workstage里会每个object都写到（不管使用的是何种division），因此利用prepare workstage来灌object</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<ol>
+<li class="lvl-5">在prepare workstage里会每个object都写到（不管使用的是何种division），因此利用prepare workstage来灌object</li>
 </ol>
 </li>
-<li><ol start="2">
-<li>如果是normal workstage的话，需要contrainers和objects的个数互为质数(relatively-prime)</li>
+<li class="lvl-2">
+<ol start="2">
+<li class="lvl-5">如果是normal workstage的话，需要contrainers和objects的个数互为质数(relatively-prime)</li>
 </ol>
 </li>
 </ul>
@@ -1261,10 +1446,10 @@ url = http://10.0.26.91:18088/driver
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1578,7 +1763,7 @@ url = http://10.0.26.91:18088/driver
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/133.jpg" class="responsive-img" alt="解决因RAID卡提示VD有cache而无法创建RAID问题">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/133.jpg" class="responsive-img" alt="解决因RAID卡提示VD有cache而无法创建RAID问题">
                         
                         <span class="card-title">解决因RAID卡提示VD有cache而无法创建RAID问题</span>
                     </div>
@@ -1635,7 +1820,7 @@ url = http://10.0.26.91:18088/driver
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/74.jpg" class="responsive-img" alt="iSCSI多路径配置">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/74.jpg" class="responsive-img" alt="iSCSI多路径配置">
                         
                         <span class="card-title">iSCSI多路径配置</span>
                     </div>
@@ -1870,7 +2055,7 @@ url = http://10.0.26.91:18088/driver
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -2220,6 +2405,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

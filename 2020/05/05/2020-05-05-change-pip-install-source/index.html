@@ -5,7 +5,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="更改pip&amp;easy_install默认安装源, 软硬件测试">
-    <meta name="description" content="概述pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介绍">
+    <meta name="description" content="概述
+pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -63,20 +64,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -191,7 +332,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -468,23 +609,42 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介绍如何解决这些问题。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>pip默认安装源来自国外，很多时候由于墙的原因，导致下载很慢，或者超时，为了解决这个问题，尝试修改了pip默认安装源（具体操作下文介绍）。但在更改默认源后，如果被安装的包有依赖，需要先安装依赖的包，但这个依赖包还是使用的默认源。本文介绍如何解决这些问题。</p>
 <p>说明：</p>
-<ul>
-<li>本文以Ubuntu OS为例进行文档描述。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>本文以Ubuntu OS为例进行文档描述。</p>
+</li>
 </ul>
-<h1 id="pip-与easy-install"><a href="#pip-与easy-install" class="headerlink" title="pip 与easy_install"></a>pip 与easy_install</h1><p>这两个都是Python的包管理工具，简单来说pip是easy_install的升级版，推荐优先使用pip。</p>
-<p>如果python通过源码setup.py文件进行安装，如python setup.py install xxx，那么其安装所依赖包的下载镜像源的配置文件为easy_install的配置，所以即便修改了pip的下载镜像配置文件(e.g:<del>/.pip/pip.conf)是没有效果的，要修改</del>/.pydistutils.cfg才能起作用，具体方式在下文说明。</p>
-<h1 id="国内安装源"><a href="#国内安装源" class="headerlink" title="国内安装源"></a>国内安装源</h1><h2 id="安装源列表"><a href="#安装源列表" class="headerlink" title="安装源列表"></a>安装源列表</h2><ul>
-<li>阿里：<a target="_blank" rel="noopener" href="https://mirrors.aliyun.com/pypi/simple">https://mirrors.aliyun.com/pypi/simple</a></li>
-<li>豆瓣：<a target="_blank" rel="noopener" href="http://pypi.douban.com/simple/">http://pypi.douban.com/simple/</a></li>
-<li>清华大学：<a target="_blank" rel="noopener" href="https://pypi.tuna.tsinghua.edu.cn/simple">https://pypi.tuna.tsinghua.edu.cn/simple</a></li>
-<li>中国科学技术大学： <a target="_blank" rel="noopener" href="https://pypi.mirrors.ustc.edu.cn/simple">https://pypi.mirrors.ustc.edu.cn/simple</a></li>
-<li>华中理工大学： <a target="_blank" rel="noopener" href="http://pypi.hustunique.com/simple">http://pypi.hustunique.com/simple</a></li>
-<li>山东理工大学： <a target="_blank" rel="noopener" href="http://pypi.sdutlinux.org/simple">http://pypi.sdutlinux.org/simple</a></li>
+<h1 id="pip-yu-easy-install">pip 与easy_install</h1>
+<p>这两个都是Python的包管理工具，简单来说pip是easy_install的升级版，推荐优先使用pip。</p>
+<p>如果python通过源码setup.py文件进行安装，如python <a target="_blank" rel="noopener" href="http://setup.py">setup.py</a> install xxx，那么其安装所依赖包的下载镜像源的配置文件为easy_install的配置，所以即便修改了pip的下载镜像配置文件(e.g:<sub>/.pip/pip.conf)是没有效果的，要修改</sub>/.pydistutils.cfg才能起作用，具体方式在下文说明。</p>
+<h1 id="guo-nei-an-zhuang-yuan">国内安装源</h1>
+<h2 id="an-zhuang-yuan-lie-biao">安装源列表</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>阿里：<a target="_blank" rel="noopener" href="https://mirrors.aliyun.com/pypi/simple">https://mirrors.aliyun.com/pypi/simple</a></p>
+</li>
+<li class="lvl-2">
+<p>豆瓣：<a target="_blank" rel="noopener" href="http://pypi.douban.com/simple/">http://pypi.douban.com/simple/</a></p>
+</li>
+<li class="lvl-2">
+<p>清华大学：<a target="_blank" rel="noopener" href="https://pypi.tuna.tsinghua.edu.cn/simple">https://pypi.tuna.tsinghua.edu.cn/simple</a></p>
+</li>
+<li class="lvl-2">
+<p>中国科学技术大学： <a target="_blank" rel="noopener" href="https://pypi.mirrors.ustc.edu.cn/simple">https://pypi.mirrors.ustc.edu.cn/simple</a></p>
+</li>
+<li class="lvl-2">
+<p>华中理工大学： <a target="_blank" rel="noopener" href="http://pypi.hustunique.com/simple">http://pypi.hustunique.com/simple</a></p>
+</li>
+<li class="lvl-2">
+<p>山东理工大学： <a target="_blank" rel="noopener" href="http://pypi.sdutlinux.org/simple">http://pypi.sdutlinux.org/simple</a></p>
+</li>
 </ul>
-<h2 id="测速"><a href="#测速" class="headerlink" title="测速"></a>测速</h2><p>阿里:</p>
-<pre><code class="line-numbers language-shell">root@pytest-70-97:~# ping -c 3 aliyun.com
+<h2 id="ce-su">测速</h2>
+<p>阿里:</p>
+<pre><code class="language-shell">root@pytest-70-97:~# ping -c 3 aliyun.com
 PING aliyun.com (140.205.60.46) 56(84) bytes of data.
 64 bytes from 140.205.60.46: icmp_seq=1 ttl=44 time=9.64 ms
 64 bytes from 140.205.60.46: icmp_seq=2 ttl=44 time=8.91 ms
@@ -496,7 +656,7 @@ rtt min/avg/max/mdev = 8.917/9.272/9.647/0.318 ms
 root@pytest-70-97:~#
 </code></pre>
 <p>豆瓣:</p>
-<pre><code class="line-numbers language-shell">root@pytest-70-97:~# ping -c 3 douban.com
+<pre><code class="language-shell">root@pytest-70-97:~# ping -c 3 douban.com
 PING douban.com (154.8.131.171) 56(84) bytes of data.
 64 bytes from 154.8.131.171: icmp_seq=1 ttl=49 time=25.7 ms
 64 bytes from 154.8.131.171: icmp_seq=2 ttl=49 time=26.3 ms
@@ -508,7 +668,7 @@ rtt min/avg/max/mdev = 25.784/25.981/26.344/0.256 ms
 root@pytest-70-97:~# 
 </code></pre>
 <p>清华大学:</p>
-<pre><code class="line-numbers language-shell">root@pytest-70-97:~# ping -c 3 tuna.tsinghua.edu.cn
+<pre><code class="language-shell">root@pytest-70-97:~# ping -c 3 tuna.tsinghua.edu.cn
 PING tuna.tsinghua.edu.cn (101.6.6.172) 56(84) bytes of data.
 64 bytes from 101.6.6.172: icmp_seq=1 ttl=47 time=33.8 ms
 64 bytes from 101.6.6.172: icmp_seq=2 ttl=47 time=31.3 ms
@@ -518,9 +678,10 @@ PING tuna.tsinghua.edu.cn (101.6.6.172) 56(84) bytes of data.
 3 packets transmitted, 3 received, 0% packet loss, time 11045ms
 rtt min/avg/max/mdev = 31.311/32.210/33.874/1.195 ms
 root@pytest-70-97:~# 
+
 </code></pre>
 <p>中国科学技术大学:</p>
-<pre><code class="line-numbers language-shell">root@pytest-70-97:~# ping -c 3 ustc.edu.cn
+<pre><code class="language-shell">root@pytest-70-97:~# ping -c 3 ustc.edu.cn
 PING ustc.edu.cn (202.38.64.246) 56(84) bytes of data.
 64 bytes from 202.38.64.246: icmp_seq=1 ttl=49 time=16.6 ms
 64 bytes from 202.38.64.246: icmp_seq=2 ttl=49 time=16.2 ms
@@ -532,7 +693,7 @@ rtt min/avg/max/mdev = 16.204/16.465/16.602/0.212 ms
 root@pytest-70-97:~# 
 </code></pre>
 <p>华中理工大学:</p>
-<pre><code class="line-numbers language-shell">root@pytest-70-97:~# ping -c 3 hustunique.com
+<pre><code class="language-shell">root@pytest-70-97:~# ping -c 3 hustunique.com
 PING hustunique.com (129.211.140.244) 56(84) bytes of data.
 64 bytes from 129.211.140.244: icmp_seq=1 ttl=53 time=10.4 ms
 64 bytes from 129.211.140.244: icmp_seq=2 ttl=53 time=10.1 ms
@@ -544,7 +705,7 @@ rtt min/avg/max/mdev = 10.182/10.323/10.415/0.131 ms
 root@pytest-70-97:~# 
 </code></pre>
 <p>山东理工大学:</p>
-<pre><code class="line-numbers language-shell">root@pytest-70-97:~# ping -c 3 sdutlinux.org
+<pre><code class="language-shell">root@pytest-70-97:~# ping -c 3 sdutlinux.org
 PING sdutlinux.org (170.178.168.203) 56(84) bytes of data.
 64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=1 ttl=51 time=182 ms
 64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=2 ttl=51 time=181 ms
@@ -556,32 +717,37 @@ rtt min/avg/max/mdev = 181.990/182.156/182.343/0.144 ms
 root@pytest-70-97:~# 
 </code></pre>
 <p>从ping效果上看，还是阿里更快一些，故而本文以阿里pip源为示例进行讲述。</p>
-<h1 id="修改pip默认安装源"><a href="#修改pip默认安装源" class="headerlink" title="修改pip默认安装源"></a>修改pip默认安装源</h1><h2 id="方法1-配置方式修改（永久有效）"><a href="#方法1-配置方式修改（永久有效）" class="headerlink" title="方法1 配置方式修改（永久有效）"></a>方法1 配置方式修改（永久有效）</h2><p>创建或修改pip.conf文件，如果文件或目录不存在，创建之</p>
-<pre><code class="line-numbers language-shell">cd ~
+<h1 id="xiu-gai-pip-mo-ren-an-zhuang-yuan">修改pip默认安装源</h1>
+<h2 id="fang-fa-1-pei-zhi-fang-shi-xiu-gai-yong-jiu-you-xiao">方法1 配置方式修改（永久有效）</h2>
+<p>创建或修改pip.conf文件，如果文件或目录不存在，创建之</p>
+<pre><code class="language-shell">cd ~
 mkdir .pip
 cd .pip
 vi pip.conf
 </code></pre>
 <p>添加如下内容：</p>
-<pre><code class="line-numbers language-shell">[global]
+<pre><code class="language-shell">[global]
 index-url=http://mirrors.aliyun.com/pypi/simple/
 
 [install]
 trusted-host=mirrors.aliyun.com
 </code></pre>
-<h2 id="方法2-命令方式临时修改"><a href="#方法2-命令方式临时修改" class="headerlink" title="方法2 命令方式临时修改"></a>方法2 命令方式临时修改</h2><p><code>pip install -i https://mirrors.aliyun.com/pypi/simple fabric</code></p>
-<h1 id="更改easy-install默认安装源"><a href="#更改easy-install默认安装源" class="headerlink" title="更改easy_install默认安装源"></a>更改easy_install默认安装源</h1><p>这个主要是解决开篇提及到的pip安装有依赖包时没有使用指定的源问题。</p>
+<h2 id="fang-fa-2-ming-ling-fang-shi-lin-shi-xiu-gai">方法2 命令方式临时修改</h2>
+<p><code>pip install -i https://mirrors.aliyun.com/pypi/simple fabric</code></p>
+<h1 id="geng-gai-easy-install-mo-ren-an-zhuang-yuan">更改easy_install默认安装源</h1>
+<p>这个主要是解决开篇提及到的pip安装有依赖包时没有使用指定的源问题。</p>
 <p>打开<code>pydistutils.cfg</code></p>
 <p><code>vi ~/.pydistutils.cfg </code></p>
 <p>写入以下内容</p>
-<pre><code class="line-numbers language-shell">[easy_install]
+<pre><code class="language-shell">[easy_install]
 index_url = https://mirrors.aliyun.com/pypi/simple
 </code></pre>
-<h1 id="安装测试"><a href="#安装测试" class="headerlink" title="安装测试"></a>安装测试</h1><p>读取了<code>requirements.txt(pip install -r requirements.txt)</code>，安装效果如下：</p>
-<img class="shadow" src="/img/in-post/pip_install_test.png" width="1200">
-
+<h1 id="an-zhuang-ce-shi">安装测试</h1>
+<p>读取了<code>requirements.txt(pip install -r requirements.txt)</code>，安装效果如下：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pip_install_test.png" width="1200">
 <p>发现已经不在使用python官方源了，换成了阿里的源。</p>
-<h1 id="综述"><a href="#综述" class="headerlink" title="综述"></a>综述</h1><p>只有同时修改了pip 和 easy_install的默认安装源，才能彻底解决pip install时使用指定安装源。</p>
+<h1 id="zong-shu">综述</h1>
+<p>只有同时修改了pip 和 easy_install的默认安装源，才能彻底解决pip install时使用指定安装源。</p>
 
                 
             </div>
@@ -684,10 +850,10 @@ index_url = https://mirrors.aliyun.com/pypi/simple
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1001,7 +1167,7 @@ index_url = https://mirrors.aliyun.com/pypi/simple
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/158.jpg" class="responsive-img" alt="Megacli详解">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/158.jpg" class="responsive-img" alt="Megacli详解">
                         
                         <span class="card-title">Megacli详解</span>
                     </div>
@@ -1050,7 +1216,7 @@ index_url = https://mirrors.aliyun.com/pypi/simple
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/191.jpg" class="responsive-img" alt="Put S3 objects with metadata">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/191.jpg" class="responsive-img" alt="Put S3 objects with metadata">
                         
                         <span class="card-title">Put S3 objects with metadata</span>
                     </div>
@@ -1281,7 +1447,7 @@ index_url = https://mirrors.aliyun.com/pypi/simple
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1631,6 +1797,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="S3 分片上传对象报416错误码, 软硬件测试">
-    <meta name="description" content="概述python boto上传一个2T大小的对象，产品报HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：
-root@node224:~# time python s3_upload.p">
+    <meta name="description" content="概述
+python boto上传一个2T大小的对象，产品报HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：
+root@node224:~# time python s3_upload.">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@ root@node224:~# time python s3_upload.p">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@ root@node224:~# time python s3_upload.p">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -473,8 +614,9 @@ root@node224:~# time python s3_upload.p">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>python boto上传一个2T大小的对象，产品报HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：</p>
-<pre><code class="line-numbers language-shell">root@node224:~# time python s3_upload.py                                                                                         
+                <h1 id="gai-shu">概述</h1>
+<p>python boto上传一个2T大小的对象，产品报HTTP 416 错误码, Requested Range Not Satisfiable， 如下所示：</p>
+<pre><code class="language-shell">root@node224:~# time python s3_upload.py                                                                                         
 [DEBUG]  Enable rgw debug log
 {
     "success": ""
@@ -497,15 +639,19 @@ user    15m8.592s
 sys     11m23.152s
 root@node224:~#
 </code></pre>
-<h1 id="问题过程记录"><a href="#问题过程记录" class="headerlink" title="问题过程记录"></a>问题过程记录</h1><h2 id="修改参数"><a href="#修改参数" class="headerlink" title="修改参数"></a>修改参数</h2><pre><code class="line-numbers language-shell">root@node224:/var/log/ceph# ceph daemon client.radosgw.0 config show | grep multipart
+<h1 id="wen-ti-guo-cheng-ji-lu">问题过程记录</h1>
+<h2 id="xiu-gai-can-shu">修改参数</h2>
+<pre><code class="language-shell">root@node224:/var/log/ceph# ceph daemon client.radosgw.0 config show | grep multipart
     "rgw_multipart_min_part_size": "5242880",
     "rgw_multipart_part_upload_limit": "600000",
 </code></pre>
 <p>这里调整了产品的两个参数，一个是最小分片大小(5MiB)，另外一个是允许的分片数上限(默认10000)</p>
-<h2 id="测试过程"><a href="#测试过程" class="headerlink" title="测试过程"></a>测试过程</h2><p>经过测试，分片上传2T， 50G 和 100G, 50G的成功，100G的就失败了，由此推算出 按8M一个分片上传，单个文件大小介于50G到100G之间，会出现失败，至于文件大小临界点，下文介绍到。</p>
-<h2 id="问题摸索"><a href="#问题摸索" class="headerlink" title="问题摸索"></a>问题摸索</h2><p>按8M一个分片上传，通过上传 50G 、 100G 和 2T文件，开启RGW debug情况下，看到如下信息：</p>
+<h2 id="ce-shi-guo-cheng">测试过程</h2>
+<p>经过测试，分片上传2T， 50G 和 100G, 50G的成功，100G的就失败了，由此推算出 按8M一个分片上传，单个文件大小介于50G到100G之间，会出现失败，至于文件大小临界点，下文介绍到。</p>
+<h2 id="wen-ti-mo-suo">问题摸索</h2>
+<p>按8M一个分片上传，通过上传 50G 、 100G 和 2T文件，开启RGW debug情况下，看到如下信息：</p>
 <p>50G：</p>
-<pre><code class="line-numbers language-shell">2022-06-30 16:58:45.321050 7f3da254a700 20  bucket index object: .dir.1ed581f4-fc6f-4b86-88e4-b6895841272b.4373.1.54
+<pre><code class="language-shell">2022-06-30 16:58:45.321050 7f3da254a700 20  bucket index object: .dir.1ed581f4-fc6f-4b86-88e4-b6895841272b.4373.1.54
 2022-06-30 16:58:45.323798 7f3da254a700  2 req 23325:0.004960:s3:POST /test/50G.file:init_multipart:completing
 2022-06-30 16:58:45.324043 7f3da254a700  2 req 23325:0.005205:s3:POST /test/50G.file:init_multipart:op status=0
 2022-06-30 16:58:45.324081 7f3da254a700  2 req 23325:0.005243:s3:POST /test/50G.file:init_multipart:http status=200
@@ -529,7 +675,7 @@ root@node224:~#
 2022-06-30 16:58:47.857122 7f3da254a700  1 ====== starting new request req=0x7f3da25437d0 =====
 </code></pre>
 <p>100G:</p>
-<pre><code class="line-numbers language-shell">2022-06-30 15:48:03.980991 7f54d680a700  2 RGWDataChangesLog::ChangesRenewThread: start
+<pre><code class="language-shell">2022-06-30 15:48:03.980991 7f54d680a700  2 RGWDataChangesLog::ChangesRenewThread: start
 2022-06-30 15:48:09.436299 7f54bd7d8700 20 CONTENT_LENGTH=1345746
 2022-06-30 15:48:09.436313 7f54bd7d8700 20 CONTENT_TYPE=text/xml
 2022-06-30 15:48:09.436314 7f54bd7d8700 20 HTTP_ACCEPT_ENCODING=identity
@@ -547,7 +693,7 @@ root@node224:~#
 2022-06-30 15:48:09.436329 7f54bd7d8700  1 ====== starting new request req=0x7f54bd7d1860 =====
 </code></pre>
 <p>1T</p>
-<pre><code class="line-numbers language-shell">2022-06-30 17:29:15.016098 7f0ef6d31700 20 Read xattr: user.rgw.source_zone
+<pre><code class="language-shell">2022-06-30 17:29:15.016098 7f0ef6d31700 20 Read xattr: user.rgw.source_zone
 2022-06-30 17:29:15.016102 7f0ef6d31700 15 Encryption mode:
 2022-06-30 17:29:15.049927 7f0ef6530700 20 CONTENT_LENGTH=15728640
 2022-06-30 17:29:15.049948 7f0ef6530700 20 CONTENT_TYPE=application/octet-stream
@@ -567,8 +713,8 @@ root@node224:~#
 2022-06-30 17:29:15.049973 7f0ef6530700 20 SERVER_PORT=80
 2022-06-30 17:29:15.049975 7f0ef6530700  1 ====== starting new request req=0x7f0ef6529860 =====
 </code></pre>
-<p>2T  </p>
-<pre><code class="line-numbers language-shell">2022-06-30 14:30:21.497960 7fc3b4ecd700 20  bucket index object: .dir.a36a7e3f-2952-4680-9b9c-8497fa9a2c73.5279.1.70
+<p>2T</p>
+<pre><code class="language-shell">2022-06-30 14:30:21.497960 7fc3b4ecd700 20  bucket index object: .dir.a36a7e3f-2952-4680-9b9c-8497fa9a2c73.5279.1.70
 2022-06-30 14:30:21.500356 7fc3b4ecd700 15 omap_set obj=default.rgw.buckets.non-ec:a36a7e3f-2952-4680-9b9c-8497fa9a2c73.5279.1__multipart_2T.file.2~i1zS2MRnaC6rvPxD36aRh-rsRPnkJHW.meta key=part.00015316
 2022-06-30 14:30:21.501809 7fc3b4ecd700  2 req 15319:13.402100:s3:PUT /test/2T.file:put_obj:completing
 2022-06-30 14:30:21.501872 7fc3b4ecd700  2 req 15319:13.402162:s3:PUT /test/2T.file:put_obj:op status=0
@@ -603,7 +749,8 @@ root@node224:~#
 <th>content length</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>50G</td>
 <td>8M</td>
 <td>670945(约0.64MiB)</td>
@@ -628,26 +775,35 @@ root@node224:~#
 <td>8M</td>
 <td>134217728(128MiB)</td>
 </tr>
-</tbody></table>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>如果上传较大文件，为了确保成功率，需做如下调整：</p>
-<ul>
-<li>Client端上传时，放大单个分片大小</li>
-<li>ceph 开放参数<code>rgw_max_put_param_size</code> 的设置，配置content buffer 的大小，默认是1MB</li>
+</tbody>
+</table>
+<h1 id="zong-jie">总结</h1>
+<p>如果上传较大文件，为了确保成功率，需做如下调整：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>Client端上传时，放大单个分片大小</p>
+</li>
+<li class="lvl-2">
+<p>ceph 开放参数<code>rgw_max_put_param_size</code> 的设置，配置content buffer 的大小，默认是1MB</p>
+</li>
 </ul>
 <p>但参数<code>rgw_max_put_param_size</code> 目前是写死在代码里的，更改ceph的这个参数设置是无效的（有实测）。</p>
 <p>最终解决方法是：</p>
 <p>​     RD更改了 RGWCompleteMultipart 代码，统一了POST 与 GET传参（int RGWCompleteMultipart_ObjStore::post_params()  和 int RGWCompleteMultipart_ObjStore::get_params()），即让Get也听从传递的参数rgw_max_put_param_size；同时将rgw_max_put_param_size参数默认值放大50倍（默认值是 1 * 1024 * 1024）。</p>
 <p>在未修改之前，如果要上传1T大小的对象，单个chunk size=8MiB，最低分片大小是 1 * 1024 * 1024 * 1024 / (1 * 1024 * 1024) = 1GiB (因为rgw_max_put_param_size=1 * 1024 * 1024)</p>
-<h1 id="资料参考"><a href="#资料参考" class="headerlink" title="资料参考"></a>资料参考</h1><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/wuyan6293/article/details/82115584">https://blog.csdn.net/wuyan6293/article/details/82115584</a></p>
-<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>8.0 8.2的旧版本，对于分片上传，代码写死为10000片，这限制了分片上传的文件大小。<br>S3Browser等工具，默认分配大小为8M，按照旧版本的10000片，最大80GB的file大小。</p>
+<h1 id="zi-liao-can-kao">资料参考</h1>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/wuyan6293/article/details/82115584">https://blog.csdn.net/wuyan6293/article/details/82115584</a></p>
+<h1 id="jie-yu">结语</h1>
+<p>8.0 8.2的旧版本，对于分片上传，代码写死为10000片，这限制了分片上传的文件大小。<br>
+S3Browser等工具，默认分配大小为8M，按照旧版本的10000片，最大80GB的file大小。</p>
 <p>当前我们将如下参数改为128000片，S3browser可支持到1000GiB，如果需要上传更大的文件，则需要调整分片上传，每个分片的大小，测试验证后确认每个分配64MB可以传6T的文件。</p>
 <p>为什么将总分片数限制在128000，而不是更大。原因是BigteraJournal的transaction有个限制MaxTransactionNumOps，最大128K个op，再大会crash。而且标准AWS，支持单个对象最大5TB，再大也就不支持了。</p>
-<pre><code class="line-numbers language-shell">    self.set(section, 'rgw multipart part upload limit', '128000')
+<pre><code class="language-shell">    self.set(section, 'rgw multipart part upload limit', '128000')
     self.set(section, 'rgw max put param size', '52428800')
 </code></pre>
 <p>最终，在上述调整情况下， 上传了一个2T(48MiB分片大小)， 3.6T(64MiB分片大小)， 4T(64MiB分片大小) 和 6T(64MiB分片大小)的单个大小的文件，均上传OK：</p>
-<p><img class="shadow" src="/img/in-post/big_object_upload.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/ui_shows_big_object.png" width="1200"></p>
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/big_object_upload.png" width="1200"></p>
+<p><img class="shadow" src="/img/loading.gif" data-original="/img/in-post/ui_shows_big_object.png" width="1200"></p>
 
                 
             </div>
@@ -750,10 +906,10 @@ root@node224:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1067,7 +1223,7 @@ root@node224:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/123.jpg" class="responsive-img" alt="记一次根据epoch查找问题触发时间点">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/123.jpg" class="responsive-img" alt="记一次根据epoch查找问题触发时间点">
                         
                         <span class="card-title">记一次根据epoch查找问题触发时间点</span>
                     </div>
@@ -1116,7 +1272,7 @@ root@node224:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/110.jpg" class="responsive-img" alt="分片上传2T大小的一个S3对象">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/110.jpg" class="responsive-img" alt="分片上传2T大小的一个S3对象">
                         
                         <span class="card-title">分片上传2T大小的一个S3对象</span>
                     </div>
@@ -1355,7 +1511,7 @@ root@node224:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1705,6 +1861,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

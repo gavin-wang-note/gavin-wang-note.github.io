@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="UID与EUID区别, 软硬件测试">
-    <meta name="description" content="概述Linux系统中每个进程都有2个ID，分别为用户ID（UID）和有效用户ID（EUID），UID（实际用户）是一个重要的环境变量，可用于检查当前脚本是以超级用户（root）还是普通用户的身份运行。
-UID与EUID，两者之间有什么区别，">
+    <meta name="description" content="概述
+Linux系统中每个进程都有2个ID，分别为用户ID（UID）和有效用户ID（EUID），UID（实际用户）是一个重要的环境变量，可用于检查当前脚本是以超级用户（root）还是普通用户的身份运行。
+UID与EUID，两者之间有什么区别">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@ UID与EUID，两者之间有什么区别，">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@ UID与EUID，两者之间有什么区别，">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -443,7 +584,7 @@ UID与EUID，两者之间有什么区别，">
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    573
+                    574
                 </div>
                 
 
@@ -473,14 +614,18 @@ UID与EUID，两者之间有什么区别，">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>Linux系统中每个进程都有2个ID，分别为用户ID（UID）和有效用户ID（EUID），UID（实际用户）是一个重要的环境变量，可用于检查当前脚本是以超级用户（root）还是普通用户的身份运行。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>Linux系统中每个进程都有2个ID，分别为用户ID（UID）和有效用户ID（EUID），UID（实际用户）是一个重要的环境变量，可用于检查当前脚本是以超级用户（root）还是普通用户的身份运行。</p>
 <p>UID与EUID，两者之间有什么区别，本文介绍之。</p>
-<h1 id="UID与EUID的区别"><a href="#UID与EUID的区别" class="headerlink" title="UID与EUID的区别"></a>UID与EUID的区别</h1><h2 id="从理论上介绍一下两者区别"><a href="#从理论上介绍一下两者区别" class="headerlink" title="从理论上介绍一下两者区别"></a>从理论上介绍一下两者区别</h2><p>实际用户(UID)</p>
+<h1 id="uid-yu-euid-de-qu-bie">UID与EUID的区别</h1>
+<h2 id="cong-li-lun-shang-jie-shao-yi-xia-liang-zhe-qu-bie">从理论上介绍一下两者区别</h2>
+<p>实际用户(UID)</p>
 <p>实际用户ID是指运行这个进程的用户uid。这个用户uid会被设置为父进程的实际用户ID，并且在系统调用中都不会发生改变。一般情况下，登录进程会将用户登录那个shell的实际用户ID设置为 登录用户的uid，并且这个用户所有进程的实际用户ID都会继承这个值。 超级用户可能会把实际用户 ID设置修改为任意值，但是其他用户不可以。</p>
 <p>有效用户</p>
 <p>有效用户ID是当前进程所使用的用户ID。 权限认证一般是使用这个值。 初始时，这个ID等于实际用户ID。</p>
-<h2 id="通过实例展示UID与EUID的区别"><a href="#通过实例展示UID与EUID的区别" class="headerlink" title="通过实例展示UID与EUID的区别"></a>通过实例展示UID与EUID的区别</h2><p>先来看一段perl脚本</p>
-<pre><code class="line-numbers language-shell">test01@node77:/home$ cat id.pl 
+<h2 id="tong-guo-shi-li-zhan-shi-uid-yu-euid-de-qu-bie">通过实例展示UID与EUID的区别</h2>
+<p>先来看一段perl脚本</p>
+<pre><code class="language-shell">test01@node77:/home$ cat id.pl 
 #!/usr/bin/perl
 
 use warnings;
@@ -494,13 +639,13 @@ test01@node77:/home$
 <p>说明:</p>
 <p>perl里面的特殊变量$&lt;、$&gt;表示uid euid; $(、$)表示gid egid。只是，$(和$)会存储一个列表，第一位表示的才是gid和egid，这个是perl的设置，不在本文讨论范围。</p>
 <p>在root用户下执行，效果如下：</p>
-<pre><code class="line-numbers language-shell">root@node77:/home# perl id.pl 
+<pre><code class="language-shell">root@node77:/home# perl id.pl 
 uid: 0                    euid: 0                   
 gid: 0 0                  egid: 0 0                 
 root@node77:/home# 
 </code></pre>
 <p>非root用户下执行，效果如下：</p>
-<pre><code class="line-numbers language-shell">test01@node77:/home$ perl id.pl 
+<pre><code class="language-shell">test01@node77:/home$ perl id.pl 
 uid: 1000                 euid: 1000                
 gid: 1000 1000            egid: 1000 1000           
 test01@node77:/home$ 
@@ -508,10 +653,17 @@ test01@node77:/home$
 <p>说明：</p>
 <p>第一次运行的时候，使用的是超级权限(root)，所以uid=0，gid=0；</p>
 <p>第二次运行的时候，使用的是普通用户，uid=1000，gid=1000，由于没有使用setgid对gid进行改变，所以uid=gid。</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><ul>
-<li>有效用户ID(euid)代表它的属主，限制进程的权限</li>
-<li>在没有seteuid的情况下，uid=euid，guid同理</li>
-<li>当进程以root权限调用setuid()后，root权限会被丢弃，所以root权限下，使用setuid()更加安全</li>
+<h1 id="zong-jie">总结</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>有效用户ID(euid)代表它的属主，限制进程的权限</p>
+</li>
+<li class="lvl-2">
+<p>在没有seteuid的情况下，uid=euid，guid同理</p>
+</li>
+<li class="lvl-2">
+<p>当进程以root权限调用setuid()后，root权限会被丢弃，所以root权限下，使用setuid()更加安全</p>
+</li>
 </ul>
 
                 
@@ -619,10 +771,10 @@ test01@node77:/home$
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -936,7 +1088,7 @@ test01@node77:/home$
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/70.jpg" class="responsive-img" alt="who与whoami与who an i与w的区别">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/70.jpg" class="responsive-img" alt="who与whoami与who an i与w的区别">
                         
                         <span class="card-title">who与whoami与who an i与w的区别</span>
                     </div>
@@ -985,7 +1137,7 @@ test01@node77:/home$
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/42.jpg" class="responsive-img" alt="Oracle 管理篇之表空间">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/42.jpg" class="responsive-img" alt="Oracle 管理篇之表空间">
                         
                         <span class="card-title">Oracle 管理篇之表空间</span>
                     </div>
@@ -1216,7 +1368,7 @@ test01@node77:/home$
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1566,6 +1718,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

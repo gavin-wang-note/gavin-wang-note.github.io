@@ -5,10 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle SQL篇之表空间, 软硬件测试">
-    <meta name="description" content="查看表大小有两种含义的表大小：一种是分配给一个表的物理空间数量，而不管空间是否被使用。可以这样查询获得字节数：
+    <meta name="description" content="查看表大小
+有两种含义的表大小：一种是分配给一个表的物理空间数量，而不管空间是否被使用。可以这样查询获得字节数：
 select segment_name, bytes 
 from user_segments 
-where segment_ty">
+where segment_t">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -66,20 +67,160 @@ where segment_ty">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -194,7 +335,7 @@ where segment_ty">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -441,7 +582,7 @@ where segment_ty">
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    430
+                    431
                 </div>
                 
 
@@ -471,28 +612,33 @@ where segment_ty">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="查看表大小"><a href="#查看表大小" class="headerlink" title="查看表大小"></a>查看表大小</h1><p>有两种含义的表大小：一种是分配给一个表的物理空间数量，而不管空间是否被使用。可以这样查询获得字节数：</p>
-<pre><code class="line-numbers language-shell">select segment_name, bytes 
+                <h1 id="cha-kan-biao-da-xiao">查看表大小</h1>
+<p>有两种含义的表大小：一种是分配给一个表的物理空间数量，而不管空间是否被使用。可以这样查询获得字节数：</p>
+<pre><code class="language-shell">select segment_name, bytes 
 from user_segments 
 where segment_type = 'TABLE'; 
 </code></pre>
 <p>或者</p>
-<pre><code class="line-numbers language-shell">Select Segment_Name,Sum(bytes)/1024/1024 From User_Extents Group By Segment_Name
+<pre><code class="language-shell">Select Segment_Name,Sum(bytes)/1024/1024 From User_Extents Group By Segment_Name
 </code></pre>
 <p>另一种表实际使用的空间。这样查询：</p>
-<pre><code class="line-numbers language-shell">analyze table AREAINFO compute statistics; 
+<pre><code class="language-shell">analyze table AREAINFO compute statistics; 
 
 select   TABLE_NAME,TABLESPACE_NAME, NUM_ROWS ,AVG_ROW_LEN,  NUM_ROWS*AVG_ROW_LEN   
 from user_tables 
 where table_name = 'AREAINFO';
 </code></pre>
 <p>说明：</p>
-<ul>
-<li>表名称要大写，红色加粗部分。</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>表名称要大写，红色加粗部分。</p>
+</li>
 </ul>
-<h1 id="查看每个表空间的大小"><a href="#查看每个表空间的大小" class="headerlink" title="查看每个表空间的大小"></a>查看每个表空间的大小</h1><pre><code class="line-numbers language-shell">Select Tablespace_Name,Sum(bytes)/1024/1024 From Dba_Segments Group By Tablespace_Name
+<h1 id="cha-kan-mei-ge-biao-kong-jian-de-da-xiao">查看每个表空间的大小</h1>
+<pre><code class="language-shell">Select Tablespace_Name,Sum(bytes)/1024/1024 From Dba_Segments Group By Tablespace_Name
 </code></pre>
-<h1 id="看数据库有多少个tablespace"><a href="#看数据库有多少个tablespace" class="headerlink" title="看数据库有多少个tablespace"></a>看数据库有多少个tablespace</h1><pre><code class="line-numbers language-shell">oracle@mmsg:~&gt; sqlplus / as sysdba
+<h1 id="kan-shu-ju-ku-you-duo-shao-ge-tablespace">看数据库有多少个tablespace</h1>
+<pre><code class="language-shell">oracle@mmsg:~&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 7月 1 17:37:14 2010
 
@@ -521,7 +667,8 @@ MMSG_TMP                                                           8192        1
 
 SQL&gt;
 </code></pre>
-<h1 id="如何查有多少个数据库实例"><a href="#如何查有多少个数据库实例" class="headerlink" title="如何查有多少个数据库实例"></a>如何查有多少个数据库实例</h1><pre><code class="line-numbers language-shell">SQL&gt; select instance_number,instance_name,status from v$instance;
+<h1 id="ru-he-cha-you-duo-shao-ge-shu-ju-ku-shi-li">如何查有多少个数据库实例</h1>
+<pre><code class="language-shell">SQL&gt; select instance_number,instance_name,status from v$instance;
 
 INSTANCE_NUMBER INSTANCE_NAME    STATUS
 --------------- ---------------- ------------
@@ -631,10 +778,10 @@ SQL&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -948,7 +1095,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/21.jpg" class="responsive-img" alt="Oracle案例--OEM启动失败">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/21.jpg" class="responsive-img" alt="Oracle案例--OEM启动失败">
                         
                         <span class="card-title">Oracle案例--OEM启动失败</span>
                     </div>
@@ -997,7 +1144,7 @@ SQL&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/104.jpg" class="responsive-img" alt="Oracle SQL篇之账号">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/104.jpg" class="responsive-img" alt="Oracle SQL篇之账号">
                         
                         <span class="card-title">Oracle SQL篇之账号</span>
                     </div>
@@ -1228,7 +1375,7 @@ SQL&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1578,6 +1725,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

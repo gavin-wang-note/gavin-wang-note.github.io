@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例之监听, 软硬件测试">
-    <meta name="description" content="概述listener，主要用来监听客户端向数据库服务器端提出的连接请求，是基于服务器端的服务，那么它也只存在于数据库服务器端，进行监听器的设置也是在数据库服务器端完成的。
-要排除客户端与服务器端的连接问题，首先检查客户端配置是否正确(客户端">
+    <meta name="description" content="概述
+listener，主要用来监听客户端向数据库服务器端提出的连接请求，是基于服务器端的服务，那么它也只存在于数据库服务器端，进行监听器的设置也是在数据库服务器端完成的。
+要排除客户端与服务器端的连接问题，首先检查客户端配置是否正确(客户">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -469,17 +610,23 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>listener，主要用来监听客户端向数据库服务器端提出的连接请求，是基于服务器端的服务，那么它也只存在于数据库服务器端，进行监听器的设置也是在数据库服务器端完成的。</p>
+                <h1 id="gai-shu">概述</h1>
+<p>listener，主要用来监听客户端向数据库服务器端提出的连接请求，是基于服务器端的服务，那么它也只存在于数据库服务器端，进行监听器的设置也是在数据库服务器端完成的。</p>
 <p>要排除客户端与服务器端的连接问题，首先检查客户端配置是否正确(客户端配置必须与数据库服务器端监听配置一致)，再根据错误提示解决。本文主要介绍在使用oracle过程中，碰到的一些监听故障/问题的记录/汇总。</p>
-<h1 id="ORA-12541-TNS-没有监听器"><a href="#ORA-12541-TNS-没有监听器" class="headerlink" title="ORA-12541: TNS: 没有监听器"></a>ORA-12541: TNS: 没有监听器</h1><p>显而易见，服务器端的监听器没有启动，另外检查客户端IP地址或端口填写是否正确。启动监听器：</p>
-<pre><code class="line-numbers language-shell">$ lsnrctl start
+<h1 id="ora-12541-tns-mei-you-jian-ting-qi">ORA-12541: TNS: 没有监听器</h1>
+<p>显而易见，服务器端的监听器没有启动，另外检查客户端IP地址或端口填写是否正确。启动监听器：</p>
+<pre><code class="language-shell">$ lsnrctl start
 </code></pre>
-<h1 id="ORA-12500-TNS-监听程序无法启动专用服务器进程"><a href="#ORA-12500-TNS-监听程序无法启动专用服务器进程" class="headerlink" title="ORA-12500: TNS: 监听程序无法启动专用服务器进程"></a>ORA-12500: TNS: 监听程序无法启动专用服务器进程</h1><p>没有启动Oracle实例服务。启动实例服务。</p>
-<h1 id="ORA-12535-TNS-操作超时"><a href="#ORA-12535-TNS-操作超时" class="headerlink" title="ORA-12535: TNS: 操作超时"></a>ORA-12535: TNS: 操作超时</h1><pre><code class="line-numbers language-shell">TNS-12154 (ORA-12154)：TNS:could not resolve service name
+<h1 id="ora-12500-tns-jian-ting-cheng-xu-wu-fa-qi-dong-zhuan-yong-fu-wu-qi-jin-cheng">ORA-12500: TNS: 监听程序无法启动专用服务器进程</h1>
+<p>没有启动Oracle实例服务。启动实例服务。</p>
+<h1 id="ora-12535-tns-cao-zuo-chao-shi">ORA-12535: TNS: 操作超时</h1>
+<pre><code class="language-shell">TNS-12154 (ORA-12154)：TNS:could not resolve service name
 </code></pre>
 <p>检查输入的服务名与配置的服务名是否一致。另外注意生成的本地服务名文件(Linux/Unix下$ORACLE_HOME/network/admin/tnsnames.ora)里每项服务的首行服务名称前不能有空格。</p>
-<h1 id="ORA-12514-TNS-监听进程不能解析在连接描述符中给出的-SERVICE-NAME"><a href="#ORA-12514-TNS-监听进程不能解析在连接描述符中给出的-SERVICE-NAME" class="headerlink" title="ORA-12514: TNS: 监听进程不能解析在连接描述符中给出的 SERVICE_NAME"></a>ORA-12514: TNS: 监听进程不能解析在连接描述符中给出的 SERVICE_NAME</h1><p>检查tnsnames.ora里的服务名输入是否正确。该服务名必须与服务器端监听器配置的全局数据库名一致。</p>
-<h1 id="ORA-12514-TNS-：监听程序当前无法识别连接描述符中请求的服务"><a href="#ORA-12514-TNS-：监听程序当前无法识别连接描述符中请求的服务" class="headerlink" title="ORA-12514:TNS:：监听程序当前无法识别连接描述符中请求的服务"></a>ORA-12514:TNS:：监听程序当前无法识别连接描述符中请求的服务</h1><p>现象：</p>
+<h1 id="ora-12514-tns-jian-ting-jin-cheng-bu-neng-jie-xi-zai-lian-jie-miao-shu-fu-zhong-gei-chu-de-service-name">ORA-12514: TNS: 监听进程不能解析在连接描述符中给出的 SERVICE_NAME</h1>
+<p>检查tnsnames.ora里的服务名输入是否正确。该服务名必须与服务器端监听器配置的全局数据库名一致。</p>
+<h1 id="ora-12514-tns-jian-ting-cheng-xu-dang-qian-wu-fa-shi-bie-lian-jie-miao-shu-fu-zhong-qing-qiu-de-fu-wu">ORA-12514:TNS:：监听程序当前无法识别连接描述符中请求的服务</h1>
+<p>现象：</p>
 <p>（1）在服务端和客户端使用sqlplus user/password@SID均无法连接</p>
 <p>（2）在服务端使用sqlplus user/password@SID可以建立连接，客户端使用使用sqlplus user/password@SID无法建立连接。</p>
 <p>解决：</p>
@@ -487,11 +634,10 @@
 <p>当前主机名（hostname），如果不是，修改成当前主机名（hostname）或IP地址；</p>
 <p>（方法2）在listener.ora文件中添加SID_LIST_LISTENER信息。</p>
 <p>创建监听错误</p>
-<img class="shadow" src="/img/in-post/oracle-listener-create-error.png" widtgh="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/oracle-listener-create-error.png" widtgh="1200">
 <p>这个问题的解决方法如下：</p>
-<p>在ORACLE_HOME/network/admin/listener.ora文件中增加”SID_LIST_LISTENER = “这部分内容。</p>
-<pre><code class="line-numbers language-shell">LISTENER =
+<p>在ORACLE_HOME/network/admin/listener.ora文件中增加"SID_LIST_LISTENER = "这部分内容。</p>
+<pre><code class="language-shell">LISTENER =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
       (ADDRESS = (PROTOCOL = TCP)(HOST=10.164.75.167)(PORT = 1521))
@@ -507,15 +653,16 @@ SID_LIST_LISTENER =
 </code></pre>
 <p>注：</p>
 <p>Oracle System Identifier (SID)</p>
-<pre><code class="line-numbers language-shell">A name that identifies a specific instance of a running pre-release 8.1 Oracle
+<pre><code class="language-shell">A name that identifies a specific instance of a running pre-release 8.1 Oracle
 database. For any database, there is at least one instance referencing the database.
 For pre-release 8.1 databases, SID is used to identify the database. The SID is
 included in the connect descriptor of a tnsnames.ora file and in the definition of the
 listener in the listener.ora file.
 </code></pre>
 <p>如果SID值不作人为的修改，该值默认为PLSExtProc，且完全可以正常运行（目前141  上的数据库该值就是PLSExtProc）。因此我觉得可能是如果不指定SID值的话，oracle会自动地去搜索运行的实例，然后找出一个匹配的，但是如果直接指定SID，则省去了搜索的步骤，也就加快了连接速度。不过这种猜想目前尚未得到证实，如果大家对这方面了解的话，希望不吝赐教。</p>
-<h1 id="启动监听时出错-–-12514"><a href="#启动监听时出错-–-12514" class="headerlink" title="启动监听时出错 – 12514"></a>启动监听时出错 – 12514</h1><p>正确创建监听后，启动监听时监听启动异常，报12514错误。</p>
-<pre><code class="line-numbers language-shell">oerr ora 12514
+<h1 id="qi-dong-jian-ting-shi-chu-cuo-12514">启动监听时出错 – 12514</h1>
+<p>正确创建监听后，启动监听时监听启动异常，报12514错误。</p>
+<pre><code class="language-shell">oerr ora 12514
 12514, 00000, "TNS:listener does not currently know of service requested in connect descriptor"
 // *Cause:  The listener received a request to establish a connection to a
 // database or other service. The connect descriptor received by the listener
@@ -537,8 +684,9 @@ listener in the listener.ora file.
 <p>解决方法同上。</p>
 <p>如果出现TNS错误时，有可能是因为没有加载数据库实例，加载方法如下：</p>
 <p>在SQL/PLUS中输入startup force，强制加载数据库实例。</p>
-<h1 id="oracle数据库监听启动失败，报00525，12560等错的解决方法"><a href="#oracle数据库监听启动失败，报00525，12560等错的解决方法" class="headerlink" title="oracle数据库监听启动失败，报00525，12560等错的解决方法"></a>oracle数据库监听启动失败，报00525，12560等错的解决方法</h1><p>启动数据库监听，报如下警告：</p>
-<pre><code class="line-numbers language-shell">LSNRCTL&gt; start
+<h1 id="oracle-shu-ju-ku-jian-ting-qi-dong-shi-bai-bao-00525-12560-deng-cuo-de-jie-jue-fang-fa">oracle数据库监听启动失败，报00525，12560等错的解决方法</h1>
+<p>启动数据库监听，报如下警告：</p>
+<pre><code class="language-shell">LSNRCTL&gt; start
 Starting /opt/oracle/product/11g//bin/tnslsnr: please wait...
 TNSLSNR for Linux: Version 11.1.0.7.0 - Production
 System parameter file is /opt/oracle/product/11g//network/admin/listener.ora
@@ -557,24 +705,25 @@ Listener failed to start. See the error message(s) above...
 <p>将ICP监听取消，将 (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))这句话注释掉不使用，可以暂时解决该问题。可以使数据库作为客户端来使用</p>
 <p>方法二：</p>
 <p>修改如下文件夹的权限</p>
-<pre><code class="line-numbers language-shell">/tmp/.oracle的权限 
+<pre><code class="language-shell">/tmp/.oracle的权限 
 /var/tmp/.oracle的权限 
 </code></pre>
-<p>oracle应该有这些目录的权限，用oinstall </p>
-<pre><code class="line-numbers language-shell">chown -R  oracle:oinstall /tmp/.oracle 
+<p>oracle应该有这些目录的权限，用oinstall</p>
+<pre><code class="language-shell">chown -R  oracle:oinstall /tmp/.oracle 
 chown -R  oracle:oinstall /var/tmp/.oracle 
 </code></pre>
-<h1 id="AIX下监听无法停止"><a href="#AIX下监听无法停止" class="headerlink" title="AIX下监听无法停止"></a>AIX下监听无法停止</h1><p>AIX下ORACLE11G（版本：Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production）监听停止、启动失败</p>
+<h1 id="aix-xia-jian-ting-wu-fa-ting-zhi">AIX下监听无法停止</h1>
+<p>AIX下ORACLE11G（版本：Oracle Database 11g Enterprise Edition Release 11.1.0.6.0 - 64bit Production）监听停止、启动失败</p>
 <p>表象:</p>
 <p>停止监听</p>
-<pre><code class="line-numbers language-shell">% lsnrctl stop
+<pre><code class="language-shell">% lsnrctl stop
 LSNRCTL for IBM/AIX RISC System/6000: Version 11.1.0.6.0 - Production on 17-6月 -2009 19:22:34
 Copyright (c) 1991, 2007, Oracle.  All rights reserved.
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=infox2)(PORT=1521)))
 TNS-01190: The user is not authorized to execute the requested listener command
 </code></pre>
 <p>启动监听</p>
-<pre><code class="line-numbers language-shell">% lsnrctl start
+<pre><code class="language-shell">% lsnrctl start
 LSNRCTL for IBM/AIX RISC System/6000: Version 11.1.0.6.0 - Production on 17-6月 -2009 19:51:21
 Copyright (c) 1991, 2007, Oracle.  All rights reserved.
 Starting /opt/oracle/app/product/11.1.0/db_1/bin/tnslsnr: please wait...
@@ -591,7 +740,7 @@ Listener failed to start. See the error message(s) above...
 </code></pre>
 <p>解决方法</p>
 <p>修改ORACLE_HOME目录下lintener.ora文件，例如修改为：</p>
-<pre><code class="line-numbers language-shell">LISTENER =
+<pre><code class="language-shell">LISTENER =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
       (ADDRESS = (PROTOCOL = TCP)(HOST=10.164.75.22)(PORT = 1521))
@@ -606,18 +755,21 @@ SID_LIST_LISTENER =
     )
   )
 </code></pre>
-<p>注：<br>oracle版本为Version 11.1.0.6.0的，几乎都会遇见上述监听相关问题，解决方法一般都是增加SID信息。</p>
-<h1 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h1><p>当不得已而为之的时候，删除监听，重新建立一个监听。</p>
+<p>注：<br>
+oracle版本为Version 11.1.0.6.0的，几乎都会遇见上述监听相关问题，解决方法一般都是增加SID信息。</p>
+<h1 id="jie-yu">结语</h1>
+<p>当不得已而为之的时候，删除监听，重新建立一个监听。</p>
 <p>测试tns的时候，可以通过tnsping 来进行。</p>
 <p>在服务器测试，示例如下：</p>
-<pre><code class="line-numbers language-shell">tnsping mmsgdb（这里的mmsgdb是数据库的实例名） 
+<pre><code class="language-shell">tnsping mmsgdb（这里的mmsgdb是数据库的实例名） 
 </code></pre>
 <p>客户端测试如下：</p>
-<pre><code class="line-numbers language-shell">tnsping 10.164.75.220/mmsgdb
+<pre><code class="language-shell">tnsping 10.164.75.220/mmsgdb
 </code></pre>
 <p>以上是Oracle客户端连接服务器端常见的一些问题，当然不能囊括所有的连接异常。解决问题的关键在于方法与思路，而不是每种问题都有固定的答案。</p>
-<h1 id="TNS-01189案例"><a href="#TNS-01189案例" class="headerlink" title="TNS-01189案例"></a>TNS-01189案例</h1><p>表象:</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg01:~/product/11g/network/admin&gt; lsnrctl status
+<h1 id="tns-01189-an-li">TNS-01189案例</h1>
+<p>表象:</p>
+<pre><code class="language-shell">oracle@mmsg01:~/product/11g/network/admin&gt; lsnrctl status
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 31-3?? -2010 18:09:47
 
@@ -647,11 +799,12 @@ oracle@mmsg01:~/product/11g/network/admin&gt;
 <p>主机名为mmsg01，而在/etc/hosts文件中，虽然找到了主机名为mmsg01的记录，但是ifconfig观察之后，发现小网段（192网段）显示的IP信息与/etc/hosts文件中不一致，且/etc/hosts文件中缺少外网段（10网段）的记录。</p>
 <p>解决方法</p>
 <p>修改/etc/hosts文件，增加小网段和外网段信息，例如：</p>
-<pre><code class="line-numbers language-shell">192.168.100.106 mmsg01
+<pre><code class="language-shell">192.168.100.106 mmsg01
 10.164.75.102    mmsg01
 </code></pre>
-<h1 id="机器更换IP后监听启动失败"><a href="#机器更换IP后监听启动失败" class="headerlink" title="机器更换IP后监听启动失败"></a>机器更换IP后监听启动失败</h1><p>日志</p>
-<pre><code class="line-numbers language-shell">&lt;msg time='2010-04-20T09:56:43.897+08:00' org_id='oracle' comp_id='tnslsnr'
+<h1 id="ji-qi-geng-huan-ip-hou-jian-ting-qi-dong-shi-bai">机器更换IP后监听启动失败</h1>
+<p>日志</p>
+<pre><code class="language-shell">&lt;msg time='2010-04-20T09:56:43.897+08:00' org_id='oracle' comp_id='tnslsnr'
  type='UNKNOWN' level='16' host_id='mmsg'
  host_addr='10.164.74.222'&gt;
  &lt;txt&gt;以 pid=14276 开始
@@ -689,8 +842,9 @@ TIMESTAMP * CONNECT DATA [* PROTOCOL INFO] * EVENT [* SID] * RETURN CODE
 <p>修改lintener.ora中host为当前机器IP地址；</p>
 <p>修改/etc/host文件，将该文件中的IP地址更换成当前的IP地址（即变化后的IP地址）；</p>
 <p>如上修改后重新启动监听</p>
-<h1 id="停止监听报TNS-01190"><a href="#停止监听报TNS-01190" class="headerlink" title="停止监听报TNS-01190"></a>停止监听报TNS-01190</h1><p>表象</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg1:~&gt; lsnrctl stop
+<h1 id="ting-zhi-jian-ting-bao-tns-01190">停止监听报TNS-01190</h1>
+<p>表象</p>
+<pre><code class="language-shell">oracle@mmsg1:~&gt; lsnrctl stop
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 11-8月 -2010 08:49:50
 
@@ -701,7 +855,7 @@ TNS-01190: 用户无权执行所请求的监听程序命令
 </code></pre>
 <p>原因</p>
 <p>Oracle用户未设置监听密码等信息，导致其他用户停止了oracle的监听，并重新启动了监听。</p>
-<pre><code class="line-numbers language-shell">oracle@mmsg1:~/product/11g/network/admin&gt; ps -ef | grep oracle
+<pre><code class="language-shell">oracle@mmsg1:~/product/11g/network/admin&gt; ps -ef | grep oracle
 oracle   26896 25801  0 Aug10 pts/2    00:00:00 su oracle
 oracle   26897 26896  0 Aug10 pts/2    00:00:00 bash
 oracle   26915 26897  0 Aug10 pts/2    00:00:00 bash
@@ -714,9 +868,10 @@ oracle    9763  9624  0 08:55 pts/1    00:00:00 grep oracle
 </code></pre>
 <p>解决方法</p>
 <p>root用户kill掉相关进程id，oracle用户重新启动linstner，并设置监听密码，防止非oracle用户远程启动、停止监听。</p>
-<h1 id="TNS-01201案例Listener-cannot-find-executable"><a href="#TNS-01201案例Listener-cannot-find-executable" class="headerlink" title="TNS-01201案例Listener cannot find executable"></a>TNS-01201案例Listener cannot find executable</h1><p>表象</p>
+<h1 id="tns-01201-an-li-listener-cannot-find-executable">TNS-01201案例Listener cannot find executable</h1>
+<p>表象</p>
 <p>启动监听时候，报TNS-01201错</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11g/network/admin&gt; lsnrctl start
+<pre><code class="language-shell">oracle@mmsc101:~/product/11g/network/admin&gt; lsnrctl start
 
 LSNRCTL for Linux: Version 11.1.0.6.0 - Production on 08-OCT-2011 15:38:38
 
@@ -734,7 +889,7 @@ Listener failed to start. See the error message(s) above...
 </code></pre>
 <p>解决过程</p>
 <p>1、查询错误码信息</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11g/network/admin&gt; oerr TNS 01201
+<pre><code class="language-shell">oracle@mmsc101:~/product/11g/network/admin&gt; oerr TNS 01201
 01201, 00000, "Listener cannot find executable %s for SID %s"
 // *Cause:  The executable for the Oracle dedicated server process cannot be
 // found.
@@ -745,11 +900,11 @@ Listener failed to start. See the error message(s) above...
 oracle@mmsc101:~/product/11g/network/admin&gt; 
 </code></pre>
 <p>2、确定一下当前ORACLE_HOME目录</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~&gt; echo  $ORACLE_HOME
+<pre><code class="language-shell">oracle@mmsc101:~&gt; echo  $ORACLE_HOME
 /opt/oracle/product/11g
 </code></pre>
 <p>3、 检查下监听配置文件</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11g/bin&gt; more  /opt/oracle/product/11g/network/admin/listener.ora
+<pre><code class="language-shell">oracle@mmsc101:~/product/11g/bin&gt; more  /opt/oracle/product/11g/network/admin/listener.ora
 # listener.ora Network Configuration File: /home/oracle/product/11g/network/admin/listener.ora
 # Generated by Oracle configuration tools.
 
@@ -785,7 +940,7 @@ LISTENER_RM =
 </code></pre>
 <p>发现监听文件中SID_LIST_LISTENER配置ORACLE_HOME为/home/oracle/product/11g，与实际不符，进行修改。</p>
 <p>4、修改监听配置文件</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11g/bin&gt; 
+<pre><code class="language-shell">oracle@mmsc101:~/product/11g/bin&gt; 
 
 
 oracle@mmsc101:~/product/11g/network/admin&gt; vi listener.ora 
@@ -824,8 +979,8 @@ LISTENER_RM =
           (ADDRESS = (PROTOCOL = TCP)(HOST = 10.137.73.5)(PORT = 1523))
 )
 </code></pre>
-<p>5、报错后启动监听                                                                              </p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11g/network/admin&gt; lsnrctl start
+<p>5、报错后启动监听</p>
+<pre><code class="language-shell">oracle@mmsc101:~/product/11g/network/admin&gt; lsnrctl start
 
 LSNRCTL for Linux: Version 11.1.0.6.0 - Production on 08-OCT-2011 15:42:42
 
@@ -960,10 +1115,10 @@ oracle@mmsc101:~/product/11g/network/admin&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1277,7 +1432,7 @@ oracle@mmsc101:~/product/11g/network/admin&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/88.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-21561">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/88.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-21561">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-21561</span>
                     </div>
@@ -1326,7 +1481,7 @@ oracle@mmsc101:~/product/11g/network/admin&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/127.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01113">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/127.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01113">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-01113</span>
                     </div>
@@ -1557,7 +1712,7 @@ oracle@mmsc101:~/product/11g/network/admin&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1907,6 +2062,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

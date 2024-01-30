@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="如何知道CPU降频了呢, 软硬件测试">
-    <meta name="description" content="概述最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；
-还有一次是设备两路电源线被同事拔掉了一根，只剩">
+    <meta name="description" content="概述
+最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；
+还有一次是设备两路电源线被同事拔掉了一根，只">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -439,7 +580,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    415
+                    417
                 </div>
                 
 
@@ -469,25 +610,26 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；</p>
+                <h1 id="gai-shu">概述</h1>
+<p>最近碰到过几次服务器出现CPU降频的问题，其中两次是硬件BIOS固件的bug，不小心踩到了（概率很低，但有幸被我碰到，巨坑），后来从硬件厂商那获取到了高阶版本，刷了高阶版本的固件解决掉了；</p>
 <p>还有一次是设备两路电源线被同事拔掉了一根，只剩下一路了，供电不足，导致CPU主动降频；</p>
 <p>今天RD在tuning performance时，再次碰到了CPU降频问题，问题是tuning performance过程中ganesha 跑到 1000 多 %，很凶，造成服务器机体温度升高，整个Lab平均温度达到31度，增加空调紧急降温后恢复正常。</p>
 <p>由于碰到过多次，本文汇总下如何判断CPU发生了降频，避免忘记（其实今天没看出来哪里降频了，所以才写了此文XD）。</p>
-<h1 id="查看CPU降频的方法"><a href="#查看CPU降频的方法" class="headerlink" title="查看CPU降频的方法"></a>查看CPU降频的方法</h1><h2 id="lscpu"><a href="#lscpu" class="headerlink" title="lscpu"></a>lscpu</h2><img class="shadow" src="/img/in-post/lscpu.png" width="1200">
-
-
+<h1 id="cha-kan-cpu-jiang-pin-de-fang-fa">查看CPU降频的方法</h1>
+<h2 id="lscpu">lscpu</h2>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/lscpu.png" width="1200">
 <p>如上图所示：</p>
-<pre><code class="line-numbers language-shell">CPU MHz:               2579.700
+<pre><code class="language-shell">CPU MHz:               2579.700
 CPU max MHz:           3000.0000
 CPU min MHz:           800.0000
 </code></pre>
 <p>这里有CPU当前HZ（CPU MHz）信息和min MHz（CPU min MHz），如果CPU MHz的值是小于CPU min MHz的值，说明CPU被降频了。</p>
-<h2 id="atop中查看cruf"><a href="#atop中查看cruf" class="headerlink" title="atop中查看cruf"></a>atop中查看cruf</h2><p>借助atop命令（公司产品有安装），查看CPU的curf（ARM平台，华为鲲鹏服务器，这里的值为’？’，不知道为什么【需要打流量？？】，X86是OK的）</p>
-<img class="shadow" src="/img/in-post/atop_cruf.png" width="1200">
-
-
+<h2 id="atop-zhong-cha-kan-cruf">atop中查看cruf</h2>
+<p>借助atop命令（公司产品有安装），查看CPU的curf（ARM平台，华为鲲鹏服务器，这里的值为’？'，不知道为什么【需要打流量？？】，X86是OK的）</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/atop_cruf.png" width="1200">
 <p>如果curf（current frequency）只有几十MHz(正常情况下是XGHz)，CPU铁定是被降频了，此时观察atop中众多process，几乎清一色的只消耗1%的process</p>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>CPU降频的原因，目前碰到的：</p>
+<h1 id="zong-jie">总结</h1>
+<p>CPU降频的原因，目前碰到的：</p>
 <p>（1）硬件设备温度过高</p>
 <p>（2）BIOS固件的bug</p>
 <p>（3）供电不足</p>
@@ -593,10 +735,10 @@ CPU min MHz:           800.0000
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -910,7 +1052,7 @@ CPU min MHz:           800.0000
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/172.jpg" class="responsive-img" alt="CentOS中cp -f copy强制覆盖命令无效">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/172.jpg" class="responsive-img" alt="CentOS中cp -f copy强制覆盖命令无效">
                         
                         <span class="card-title">CentOS中cp -f copy强制覆盖命令无效</span>
                     </div>
@@ -959,7 +1101,7 @@ CPU min MHz:           800.0000
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/198.jpg" class="responsive-img" alt="WebBIOS里取消磁盘的JBOD设置">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/198.jpg" class="responsive-img" alt="WebBIOS里取消磁盘的JBOD设置">
                         
                         <span class="card-title">WebBIOS里取消磁盘的JBOD设置</span>
                     </div>
@@ -1190,7 +1332,7 @@ CPU min MHz:           800.0000
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1540,6 +1682,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

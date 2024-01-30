@@ -5,9 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="kerberos安装与客户端配置, 软硬件测试">
-    <meta name="description" content="概述由于产品有使用到kerberos做NFS Auth, 近期环境出现异常，也没有文档记录kerberos安装过程，故重新部署并记录文档。
-环境规划在部署之前一定要提前规划好角色、域名以及IP地址，否则会出现异常
-系统: ubuntu-18">
+    <meta name="description" content="概述
+由于产品有使用到kerberos做NFS Auth, 近期环境出现异常，也没有文档记录kerberos安装过程，故重新部署并记录文档。
+环境规划
+在部署之前一定要提前规划好角色、域名以及IP地址，否则会出现异常
+系统: ubuntu-">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +67,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +335,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -470,8 +612,10 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>由于产品有使用到kerberos做NFS Auth, 近期环境出现异常，也没有文档记录kerberos安装过程，故重新部署并记录文档。</p>
-<h1 id="环境规划"><a href="#环境规划" class="headerlink" title="环境规划"></a>环境规划</h1><p>在部署之前一定要提前规划好角色、域名以及IP地址，否则会出现异常</p>
+                <h1 id="gai-shu">概述</h1>
+<p>由于产品有使用到kerberos做NFS Auth, 近期环境出现异常，也没有文档记录kerberos安装过程，故重新部署并记录文档。</p>
+<h1 id="huan-jing-gui-hua">环境规划</h1>
+<p>在部署之前一定要提前规划好角色、域名以及IP地址，否则会出现异常</p>
 <p>系统: ubuntu-18.04.6-desktop-amd64.iso，主机名与地址配置:</p>
 <table>
 <thead>
@@ -481,30 +625,32 @@
 <th>IP地址</th>
 </tr>
 </thead>
-<tbody><tr>
+<tbody>
+<tr>
 <td>Kadmin KDC</td>
-<td>kadminkdc.njqa.com</td>
+<td><a target="_blank" rel="noopener" href="http://kadminkdc.njqa.com">kadminkdc.njqa.com</a></td>
 <td>172.17.75.240</td>
 </tr>
 <tr>
 <td>kerberos client1</td>
-<td>kclient241.njqa.com</td>
+<td><a target="_blank" rel="noopener" href="http://kclient241.njqa.com">kclient241.njqa.com</a></td>
 <td>172.17.75.241</td>
 </tr>
 <tr>
 <td>kerberos client2</td>
-<td>kclient242.njqa.com</td>
+<td><a target="_blank" rel="noopener" href="http://kclient242.njqa.com">kclient242.njqa.com</a></td>
 <td>172.17.75.242</td>
 </tr>
 <tr>
 <td>Scaler集群</td>
-<td>scaler.njqa.com</td>
+<td><a target="_blank" rel="noopener" href="http://scaler.njqa.com">scaler.njqa.com</a></td>
 <td>172.17.72.11; 172.17.72.12;172.17.72.13</td>
 </tr>
-</tbody></table>
+</tbody>
+</table>
 <p>添加域名映射到/etc/hosts文件中，确保集群和kdc以及client可以通过全称域名互相访问（若有DNS服务器更好，可以避免一些奇怪的问题）</p>
 <p>多节点集群每个节点都应当配置好hosts，否则不能在集群配置界面配置kerberos服务器为全称域名</p>
-<pre><code class="line-numbers language-shell">172.17.75.240   kadminkdc.njqa.com      kadminkdc
+<pre><code class="language-shell">172.17.75.240   kadminkdc.njqa.com      kadminkdc
 172.17.75.241   kclient241.njqa.com     kclient241
 172.17.75.242   kclient242.njqa.com     kclient242
 
@@ -512,25 +658,27 @@
 172.17.72.112   scaler.njqa.com    node112
 172.17.72.113   scaler.njqa.com    node113
 </code></pre>
-<h1 id="集群为多节点情况下需要所有节点都配置映射到一个域名"><a href="#集群为多节点情况下需要所有节点都配置映射到一个域名" class="headerlink" title="集群为多节点情况下需要所有节点都配置映射到一个域名"></a>集群为多节点情况下需要所有节点都配置映射到一个域名</h1><p>Kerberos服务器对时间较为敏感，可以在KDC和kerberos client上配置NTP同步时间,Scaler集群自带NTP服务</p>
-<pre><code class="line-numbers language-shell">apt-get install ntp -y
+<h1 id="ji-qun-wei-duo-jie-dian-qing-kuang-xia-xu-yao-suo-you-jie-dian-du-pei-zhi-ying-she-dao-yi-ge-yu-ming">集群为多节点情况下需要所有节点都配置映射到一个域名</h1>
+<p>Kerberos服务器对时间较为敏感，可以在KDC和kerberos client上配置NTP同步时间,Scaler集群自带NTP服务</p>
+<pre><code class="language-shell">apt-get install ntp -y
 </code></pre>
 <p>另外若有防火墙需要先将防火墙关闭ufw disable,或者让防火墙允许Kerberos服务通过</p>
-<h1 id="配置KDC和kadmin"><a href="#配置KDC和kadmin" class="headerlink" title="配置KDC和kadmin"></a>配置KDC和kadmin</h1><h2 id="安装相关组件"><a href="#安装相关组件" class="headerlink" title="安装相关组件"></a>安装相关组件</h2><pre><code class="line-numbers language-shell">apt-get install krb5-kdc krb5-admin-server
+<h1 id="pei-zhi-kdc-he-kadmin">配置KDC和kadmin</h1>
+<h2 id="an-zhuang-xiang-guan-zu-jian">安装相关组件</h2>
+<pre><code class="language-shell">apt-get install krb5-kdc krb5-admin-server
 </code></pre>
 <p>安装完成后会弹出Kerberos的配置界面，该配置界面也可以使用命令dpkg-reconfigure krb5-kdc来打开</p>
-<h3 id="填写Realm，Kerberos的Realm为大写，我们使用NJQA-COM"><a href="#填写Realm，Kerberos的Realm为大写，我们使用NJQA-COM" class="headerlink" title="填写Realm，Kerberos的Realm为大写，我们使用NJQA.COM"></a>填写Realm，Kerberos的Realm为大写，我们使用NJQA.COM</h3><img class="shadow" src="/img/in-post/kerberos/kerberos-1.png" width="1200">
-
-<p>设置Kerberos server，为我们的Kerberos主机名，按照规划应当填入kadminkdc.njqa.com，图中仅作参考</p>
-<img class="shadow" src="/img/in-post/kerberos/kerberos-2.png" width="1200">
-
-<p>设置Administrative server，因为我们只有一台KDC服务器，所以设置为这台Kerberos的主机名，按照规划应当填入kadminkdc.njqa.com ，图中仅作参考</p>
-<img class="shadow" src="/img/in-post/kerberos/kerberos-3.png" width="1200">
-
-<h3 id="创建Kerberos数据库，里面维护着认证系统中所有主机的密码"><a href="#创建Kerberos数据库，里面维护着认证系统中所有主机的密码" class="headerlink" title="创建Kerberos数据库，里面维护着认证系统中所有主机的密码"></a>创建Kerberos数据库，里面维护着认证系统中所有主机的密码</h3><p>krb5_newrealm 按照提示设置密码即可</p>
-<img class="shadow" src="/img/in-post/kerberos/kerberos-4.png" width="1200">
-
-<h3 id="为Kerberos添加一个管理员帐号，以管理认证系统中的principal，再添加三个principals，两个用于client，另一个用于scaler集群"><a href="#为Kerberos添加一个管理员帐号，以管理认证系统中的principal，再添加三个principals，两个用于client，另一个用于scaler集群" class="headerlink" title="为Kerberos添加一个管理员帐号，以管理认证系统中的principal，再添加三个principals，两个用于client，另一个用于scaler集群"></a>为Kerberos添加一个管理员帐号，以管理认证系统中的principal，再添加三个principals，两个用于client，另一个用于scaler集群</h3><pre><code class="line-numbers language-shell">root@kdc:~# kadmin.local
+<h3 id="tian-xie-realm-kerberos-de-realm-wei-da-xie-a-href-http-xn-njqa-965-fm-4-a-046-gd-65-a-com-wo-men-shi-yong-njqa-com-a">填写Realm，Kerberos的Realm为大写，<a target="_blank" rel="noopener" href="http://xn--NJQA-965fm4a046gd65a.COM">我们使用NJQA.COM</a></h3>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-1.png" width="1200">
+<p>设置Kerberos server，为我们的Kerberos主机名，<a target="_blank" rel="noopener" href="http://xn--kadminkdc-4b3oo3df69az1somcc3vn59cot4e.njqa.com">按照规划应当填入kadminkdc.njqa.com</a>，图中仅作参考</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-2.png" width="1200">
+<p>设置Administrative server，因为我们只有一台KDC服务器，所以设置为这台Kerberos的主机名，<a target="_blank" rel="noopener" href="http://xn--kadminkdc-4b3oo3df69az1somcc3vn59cot4e.njqa.com">按照规划应当填入kadminkdc.njqa.com</a> ，图中仅作参考</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-3.png" width="1200">
+<h3 id="chuang-jian-kerberos-shu-ju-ku-li-mian-wei-hu-zhao-ren-zheng-xi-tong-zhong-suo-you-zhu-ji-de-mi-ma">创建Kerberos数据库，里面维护着认证系统中所有主机的密码</h3>
+<p>krb5_newrealm 按照提示设置密码即可</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-4.png" width="1200">
+<h3 id="wei-kerberos-tian-jia-yi-ge-guan-li-yuan-zhang-hao-yi-guan-li-ren-zheng-xi-tong-zhong-de-principal-zai-tian-jia-san-ge-principals-liang-ge-yong-yu-client-ling-yi-ge-yong-yu-scaler-ji-qun">为Kerberos添加一个管理员帐号，以管理认证系统中的principal，再添加三个principals，两个用于client，另一个用于scaler集群</h3>
+<pre><code class="language-shell">root@kdc:~# kadmin.local
 Authenticating as principal root/admin@NJQA.COM with password.
 kadmin.local:  ank root/admin@NJQA.COM                                                           #管理员账号
 WARNING: no policy specified for root/admin@NJQA.COM; defaulting to no policy
@@ -556,8 +704,9 @@ Enter password for principal "nfs/scaler.njqa.com@NJQA.COM":
 Re-enter password for principal "nfs/scaler.njqa.com@NJQA.COM": 
 Principal "nfs/scaler.njqa.com@NJQA.COM" created.
 </code></pre>
-<h3 id="为-kadmind-服务创建一个密钥表文件"><a href="#为-kadmind-服务创建一个密钥表文件" class="headerlink" title="为 kadmind 服务创建一个密钥表文件"></a>为 kadmind 服务创建一个密钥表文件</h3><p>此命令序列创建一个包含 kadmin/<fqdn> 和 kadmin/changepw 的主体项的特殊密钥表文件。kadmind 服务需要使用这些主体，要更改口令也需要使用这些主体。请注意，当主体实例为主机名时，无论 /etc/resolv.conf 文件中的域名是大写还是小写，都必须以小写字母指定FQDN。</fqdn></p>
-<pre><code class="line-numbers language-shell">kadmin.local: ktadd -k /etc/krb5/kadm5.keytab kadmin/kadminkdc.njqa.com@NJQA.COM
+<h3 id="wei-kadmind-fu-wu-chuang-jian-yi-ge-mi-yao-biao-wen-jian">为 kadmind 服务创建一个密钥表文件</h3>
+<p>此命令序列创建一个包含 kadmin/<fqdn> 和 kadmin/changepw 的主体项的特殊密钥表文件。kadmind 服务需要使用这些主体，要更改口令也需要使用这些主体。请注意，当主体实例为主机名时，无论 /etc/resolv.conf 文件中的域名是大写还是小写，都必须以小写字母指定FQDN。</fqdn></p>
+<pre><code class="language-shell">kadmin.local: ktadd -k /etc/krb5/kadm5.keytab kadmin/kadminkdc.njqa.com@NJQA.COM
 Entry for principal kadmin/kadminkdc.example.com@NJQA.COM with kvno 3, encryption type AES-256 CTS mode
           with 96-bit SHA-1 HMAC added to keytab WRFILE:/etc/krb5/kadm5.keytab.
 Entry for principal kadmin/kadminkdc.example.com@NJQA.COM with kvno 3, encryption type AES-128 CTS mode
@@ -582,10 +731,12 @@ Entry for principal kadmin/changepw@NJQA.COM with kvno 3, encryption type DES cb
           with RSA-MD5 added to keytab WRFILE:/etc/krb5/kadm5.keytab.
 kadmin.local:
 </code></pre>
-<h3 id="运行以下命令（这两个deamon需要保持运行状态）"><a href="#运行以下命令（这两个deamon需要保持运行状态）" class="headerlink" title="运行以下命令（这两个deamon需要保持运行状态）"></a>运行以下命令（这两个deamon需要保持运行状态）</h3><pre><code class="line-numbers language-shell">krb5kdc
+<h3 id="yun-xing-yi-xia-ming-ling-zhe-liang-ge-deamon-xu-yao-bao-chi-yun-xing-zhuang-tai">运行以下命令（这两个deamon需要保持运行状态）</h3>
+<pre><code class="language-shell">krb5kdc
 kadmind
 </code></pre>
-<h3 id="编辑配置文件"><a href="#编辑配置文件" class="headerlink" title="编辑配置文件"></a>编辑配置文件</h3><pre><code class="line-numbers language-shell">vim /etc/krb5.conf
+<h3 id="bian-ji-pei-zhi-wen-jian">编辑配置文件</h3>
+<pre><code class="language-shell">vim /etc/krb5.conf
 
 [logging]
         default = FILE:/var/log/krb5.log
@@ -634,13 +785,19 @@ vim /etc/krb5kdc/kdc.conf
         supported_enctypes = aes256-cts:normal arcfour-hmac:normal des3-hmac-sha1:normal des-cbc-crc:normal des:normal des:v4 des:norealm des:onlyrealm des:afs3                                                 
         default_principal_flags = +preauth
     }
+
 </code></pre>
-<ul>
-<li>/etc/krb5.conf中原本内容删除，替换成上面的内容</li>
-<li>/etc/krb5kdc/kdc.conf中将supported_enctypes前面的#去掉，并增加多种认证方式</li>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>/etc/krb5.conf中原本内容删除，替换成上面的内容</p>
+</li>
+<li class="lvl-2">
+<p>/etc/krb5kdc/kdc.conf中将supported_enctypes前面的#去掉，并增加多种认证方式</p>
+</li>
 </ul>
-<h3 id="配置acl"><a href="#配置acl" class="headerlink" title="配置acl"></a>配置acl</h3><p>将步骤3中添加的3个principal添加进acl文件中</p>
-<pre><code class="line-numbers language-shell">vim /etc/krb5kdc/kadm5.acl
+<h3 id="pei-zhi-acl">配置acl</h3>
+<p>将步骤3中添加的3个principal添加进acl文件中</p>
+<pre><code class="language-shell">vim /etc/krb5kdc/kadm5.acl
 
 # This file Is the access control list for krb5 administration.
 # When this file is edited run service krb5-admin-server restart to activate
@@ -652,9 +809,10 @@ root/admin@NJQA.COM       *
 host/admin@NJQA.COM       *
 nfs/admin@NJQA.COM        *
 </code></pre>
-<h3 id="添加日志和存取principal的权限"><a href="#添加日志和存取principal的权限" class="headerlink" title="添加日志和存取principal的权限"></a>添加日志和存取principal的权限</h3><p>若不修改此项，日志记录和存取principal时会有问题</p>
+<h3 id="tian-jia-ri-zhi-he-cun-qu-principal-de-quan-xian">添加日志和存取principal的权限</h3>
+<p>若不修改此项，日志记录和存取principal时会有问题</p>
 <p>在ReadWriteDirectories项添加路径/etc/krb5kdc /var/log以增加权限</p>
-<pre><code class="line-numbers language-shell">vim /lib/systemd/system/krb5-admin-server.service
+<pre><code class="language-shell">vim /lib/systemd/system/krb5-admin-server.service
 
 [Unit]
 Description=Kerberos 5 Admin Server
@@ -695,9 +853,12 @@ Restart=on-abnormal
 WantedBy=multi-user.target
 </code></pre>
 <p>修改完成后使用systemctl daemon-reload命令重新加载</p>
-<h3 id="重启服务"><a href="#重启服务" class="headerlink" title="重启服务"></a>重启服务</h3><p><code>systemctl restart krb5-admin-server.service krb5-kdc.service</code></p>
-<h1 id="配置Kerberos-client"><a href="#配置Kerberos-client" class="headerlink" title="配置Kerberos client"></a>配置Kerberos client</h1><h2 id="安装相关组件-1"><a href="#安装相关组件-1" class="headerlink" title="安装相关组件"></a>安装相关组件</h2><p><code>apt-get install krb5-user</code>，在配置界面填写的内容与Kerberos主机填写内容相同，即Server、Client与Kerberos的krb5.conf是相同的<br>可以将KDC的krb5.conf拷贝到Client端</p>
-<pre><code class="line-numbers language-shell">root@kclient241:/etc/apt# scp 172.17.75.240:/etc/krb5.conf /etc/krb5.conf
+<h3 id="zhong-qi-fu-wu">重启服务</h3>
+<p><code>systemctl restart krb5-admin-server.service krb5-kdc.service</code></p>
+<h1 id="pei-zhi-kerberos-client">配置Kerberos client</h1>
+<h2 id="an-zhuang-xiang-guan-zu-jian-1">安装相关组件</h2>
+<p><code>apt-get install krb5-user</code>，在配置界面填写的内容与Kerberos主机填写内容相同，即Server、Client与Kerberos的krb5.conf是相同的可以将KDC的krb5.conf拷贝到Client端</p>
+<pre><code class="language-shell">root@kclient241:/etc/apt# scp 172.17.75.240:/etc/krb5.conf /etc/krb5.conf
 The authenticity of host '172.17.75.240 (172.17.75.240)' can't be established.
 ECDSA key fingerprint is SHA256:LnlXsXoJenNd6t5MXyebncsPsgRHJwsHrd+nMt4AHNE.
 Are you sure you want to continue connecting (yes/no)? yes
@@ -705,8 +866,9 @@ Warning: Permanently added '172.17.75.240' (ECDSA) to the list of known hosts.
 root@172.17.75.240's password: 
 krb5.conf                                                                                       100%  542   779.2KB/s   00:00
 </code></pre>
-<h2 id="通过我们创建的管理员帐号登录后获取Server的krb5-keytab"><a href="#通过我们创建的管理员帐号登录后获取Server的krb5-keytab" class="headerlink" title="通过我们创建的管理员帐号登录后获取Server的krb5.keytab"></a>通过我们创建的管理员帐号登录后获取Server的krb5.keytab</h2><p>如下</p>
-<pre><code class="line-numbers language-shell">root@kclient241:~# kadmin
+<h2 id="tong-guo-wo-men-chuang-jian-de-guan-li-yuan-zhang-hao-deng-lu-hou-huo-qu-server-de-krb-5-keytab">通过我们创建的管理员帐号登录后获取Server的krb5.keytab</h2>
+<p>如下</p>
+<pre><code class="language-shell">root@kclient241:~# kadmin
 Authenticating as principal root/admin@NJQA.COM with password.
 Password for root/admin@NJQA.COM: 
 kadmin:  ktadd -k /etc/krb5.keytab host/kclient241.njqa.com@NJQA.COM
@@ -716,7 +878,8 @@ Entry for principal host/kclient241.njqa.com@NJQA.COM with kvno 2, encryption ty
 Entry for principal host/kclient241.njqa.com@NJQA.COM with kvno 2, encryption type des-cbc-crc added to keytab WRFILE:/etc/krb5.keytab.
 kadmin:  q
 </code></pre>
-<h2 id="使用kinit申请TGT验证认证配置是否成功，kinit执行完成后使用klist查看凭证已拿到"><a href="#使用kinit申请TGT验证认证配置是否成功，kinit执行完成后使用klist查看凭证已拿到" class="headerlink" title="使用kinit申请TGT验证认证配置是否成功，kinit执行完成后使用klist查看凭证已拿到"></a>使用kinit申请TGT验证认证配置是否成功，kinit执行完成后使用klist查看凭证已拿到</h2><pre><code class="line-numbers language-shell">root@kclient241:~# kinit -kt /etc/krb5.keytab host/kclient241.njqa.com@NJQA.COM
+<h2 id="shi-yong-kinit-shen-qing-tgt-yan-zheng-ren-zheng-pei-zhi-shi-fou-cheng-gong-kinit-zhi-xing-wan-cheng-hou-shi-yong-klist-cha-kan-ping-zheng-yi-na-dao">使用kinit申请TGT验证认证配置是否成功，kinit执行完成后使用klist查看凭证已拿到</h2>
+<pre><code class="language-shell">root@kclient241:~# kinit -kt /etc/krb5.keytab host/kclient241.njqa.com@NJQA.COM
 root@kclient241:~# klist
 Ticket cache: FILE:/tmp/krb5cc_0
 Default principal: host/kclient241.njqa.com@NJQA.COM
@@ -725,29 +888,34 @@ Valid starting       Expires              Service principal
 2023-01-31T15:32:50  2023-01-31T22:12:50  krbtgt/njqa.COM@NJQA.COM
 </code></pre>
 <p>如果这里有问题请检查hostname、hosts、krb5.conf、各个principal是否正确，krb5.keytab是否存在，还有最容易忽略的时间是否统一可以手动校准也可以使用NTP、Chrony等时间同步服务来做</p>
-<h2 id="在kclient242上按照1-3步骤也操作一遍"><a href="#在kclient242上按照1-3步骤也操作一遍" class="headerlink" title="在kclient242上按照1-3步骤也操作一遍"></a>在kclient242上按照1-3步骤也操作一遍</h2><h1 id="配置Scaler集群"><a href="#配置Scaler集群" class="headerlink" title="配置Scaler集群"></a>配置Scaler集群</h1><p>注意：<br>1.	提前配置好集群的node的hostname以及hosts<br>1.	多节点集群中每个节点都需要配置好hosts</p>
+<h2 id="zai-kclient-242-shang-an-zhao-1-3-bu-zou-ye-cao-zuo-yi-bian">在kclient242上按照1-3步骤也操作一遍</h2>
+<h1 id="pei-zhi-scaler-ji-qun">配置Scaler集群</h1>
+<p>注意：</p>
+<ol>
+<li class="lvl-4">
+<p>提前配置好集群的node的hostname以及hosts</p>
+</li>
+<li class="lvl-4">
+<p>多节点集群中每个节点都需要配置好hosts</p>
+</li>
+</ol>
 <p>在虚拟存储器的配置界面找到Kerberos配置，点击…配置kerberos，其中kerberos服务器建议使用全称域名配置</p>
-<img class="shadow" src="/img/in-post/kerberos/kerberos-5.png" width="1200">
-
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-5.png" width="1200">
 <p>配置好Kerberos后添加principal</p>
-<img class="shadow" src="/img/in-post/kerberos/kerberos-6.png" width="1200">
-
-<img class="shadow" src="/img/in-post/kerberos/kerberos-7.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-6.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-7.png" width="1200">
 <p>在虚拟存储器的NAS页面中创建共享文件夹，在NFS菜单中选择krb5、krb5i或krb5p，创建基于Kerberos认证的共享文件夹</p>
-<img class="shadow" src="/img/in-post/kerberos/kerberos-8.png" width="1200">
-
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/kerberos/kerberos-8.png" width="1200">
 <p>然后在Kerberos client端mount共享文件夹</p>
 <p>使用nfs4挂载krb5的共享文件夹</p>
 <p>mount时使用主机名、ip地址或全称域名均可</p>
-<pre><code class="line-numbers language-shell">root@kclient241:~# mount -t nfs -o vers=4.2 node111:/vol/folder01 /mnt/folder01/
+<pre><code class="language-shell">root@kclient241:~# mount -t nfs -o vers=4.2 node111:/vol/folder01 /mnt/folder01/
 root@kclient241:~# mount |grep node111
 node111:/vol/folder01 on /mnt/folder01 type nfs4 (rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=krb5,clientaddr=172.17.75.241,local_lock=none,addr=172.17.72.111)
 root@kclient241:~# 
 </code></pre>
 <p>使用nfs3挂载krb5i的共享文件夹</p>
-<pre><code class="line-numbers language-shell">root@kclient241:~# mount -t nfs -o vers=3 node111:/vol/folder02 /mnt/folder02/
+<pre><code class="language-shell">root@kclient241:~# mount -t nfs -o vers=3 node111:/vol/folder02 /mnt/folder02/
 root@kclient241:~# mount |grep node111
 node111:/vol/folder01 on /mnt/folder01 type nfs4 (rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=krb5,clientaddr=172.17.75.241,local_lock=none,addr=172.17.72.111)
 node111:/vol/folder02 on /mnt/folder02 type nfs (rw,relatime,vers=3,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=krb5i,mountaddr=172.17.72.111,mountvers=3,mountport=47733,mountproto=udp,local_lock=none,addr=172.17.72.111)
@@ -855,10 +1023,10 @@ root@kclient241:~#
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1172,7 +1340,7 @@ root@kclient241:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/155.jpg" class="responsive-img" alt="评测USB接口速度">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/155.jpg" class="responsive-img" alt="评测USB接口速度">
                         
                         <span class="card-title">评测USB接口速度</span>
                     </div>
@@ -1221,7 +1389,7 @@ root@kclient241:~#
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/113.jpg" class="responsive-img" alt="S3 object encryption by awscli">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/113.jpg" class="responsive-img" alt="S3 object encryption by awscli">
                         
                         <span class="card-title">S3 object encryption by awscli</span>
                     </div>
@@ -1452,7 +1620,7 @@ root@kclient241:~#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1802,6 +1970,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

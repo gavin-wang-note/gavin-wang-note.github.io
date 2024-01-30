@@ -5,9 +5,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle案例--错误码之ORA-01031, 软硬件测试">
-    <meta name="description" content="ORA-01031  权限问题解决方法表象oracle@mmsc101:~/product/11/network/admin&amp;gt; sqlplus sys/sys@mmsgdb as sysdba
+    <meta name="description" content="ORA-01031  权限问题解决方法
+表象
+oracle@mmsc101:~/product/11/network/admin&amp;gt; sqlplus sys/sys@mmsgdb as sysdba
 
-SQL*Plus: Release 1">
+SQL*Plus: Release">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -65,20 +67,160 @@ SQL*Plus: Release 1">
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -193,7 +335,7 @@ SQL*Plus: Release 1">
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -470,7 +612,9 @@ SQL*Plus: Release 1">
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="ORA-01031-权限问题解决方法"><a href="#ORA-01031-权限问题解决方法" class="headerlink" title="ORA-01031  权限问题解决方法"></a>ORA-01031  权限问题解决方法</h1><h2 id="表象"><a href="#表象" class="headerlink" title="表象"></a>表象</h2><pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus sys/sys@mmsgdb as sysdba
+                <h1 id="ora-01031-quan-xian-wen-ti-jie-jue-fang-fa">ORA-01031  权限问题解决方法</h1>
+<h2 id="biao-xiang">表象</h2>
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 16:44:47 2011
 
@@ -483,7 +627,7 @@ ORA-01031: 鏉冮檺涓嶈冻
 Enter user-name: 
 </code></pre>
 <p>报错，ORA-01031，用户权限不足导致，官方参考解决方法信息如下：</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; oerr ora 01031
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; oerr ora 01031
 01031, 00000, "insufficient privileges"
 // *Cause: An attempt was made to change the current username or password
 //         without the appropriate privilege. This error also occurs if
@@ -499,13 +643,14 @@ Enter user-name:
 //          administrator to regrant the privilege at the appropriate label.
 oracle@mmsc101:~/product/11/network/admin&gt; 
 </code></pre>
-<h2 id="解决过程"><a href="#解决过程" class="headerlink" title="解决过程"></a>解决过程</h2><p>尝试赋权限</p>
-<pre><code class="line-numbers language-shell">grant create session to sys with admin option;
+<h2 id="jie-jue-guo-cheng">解决过程</h2>
+<p>尝试赋权限</p>
+<pre><code class="language-shell">grant create session to sys with admin option;
 grant dba to sys;
 alter user sys default role all;
 </code></pre>
 <p>赋权限后尝试登陆，结果：失败</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus sys/sys@mmsgdb as sysdba
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 16:59:57 2011
 
@@ -518,7 +663,7 @@ ORA-01031: 鏉冮檺涓嶈冻
 Enter user-name: 
 </code></pre>
 <p>之后，查询视图</p>
-<pre><code class="line-numbers language-shell">SQL&gt; select * from v$pwfile_users;
+<pre><code class="language-shell">SQL&gt; select * from v$pwfile_users;
 
 no rows selected
 
@@ -526,7 +671,7 @@ SQL&gt;
 </code></pre>
 <p>视图表中无记录，说明当前oracle并没有使用口令文件，而在系统的dbs目录下，的确是有个口令文件的：orapwmmsgdb，难道口令文件有问题，还是用户的密码不对。这里先否定用户密码不对问题，因为如果密码不对，报错则不是ORA-01031了，而是其他的ORA错误码了，问题就出现在口令文件上了。</p>
 <p>dbs目录下，删除原来的口令文件，尝试重新创建新的口令文件。</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/dbs&gt; orapwd
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/dbs&gt; orapwd
 Usage: orapwd file=&lt;fname&gt; password=&lt;password&gt; entries=&lt;users&gt; force=&lt;y/n&gt; ignorecase=&lt;y/n&gt; nosysdba=&lt;y/n&gt;
 
   where
@@ -540,10 +685,10 @@ Usage: orapwd file=&lt;fname&gt; password=&lt;password&gt; entries=&lt;users&gt;
   There must be no spaces around the equal-to (=) character.
 </code></pre>
 <p>创建新的口令文件</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/dbs&gt; orapwd file=/opt/oracle/product/11/dbs/orapwmmsgdb password=sys
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/dbs&gt; orapwd file=/opt/oracle/product/11/dbs/orapwmmsgdb password=sys
 </code></pre>
 <p>重启数据库</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/dbs&gt; sqlplus / as sysdba
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/dbs&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 17:08:23 2011
 
@@ -568,7 +713,7 @@ Database opened.
 SQL&gt; 
 </code></pre>
 <p>尝试登陆，还是报错，继续定位</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/dbs&gt; sqlplus sys/sys@mmsgdb as sysdba
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/dbs&gt; sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 17:08:54 2011
 
@@ -592,7 +737,7 @@ SP2-0157: unable to CONNECT to ORACLE after 3 attempts, exiting SQL*Plus
 oracle@mmsc101:~/product/11/dbs&gt; 
 </code></pre>
 <p>再次查询视图</p>
-<pre><code class="line-numbers language-shell">SQL&gt; select * from v$pwfile_users;
+<pre><code class="language-shell">SQL&gt; select * from v$pwfile_users;
 
 no rows selected
 
@@ -600,7 +745,7 @@ SQL&gt;
 </code></pre>
 <p>仍然无数据，说明还是没有使用口令文件，继续……</p>
 <p>查看tns文件信息</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; more tnsnames.ora 
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; more tnsnames.ora 
 MMSGDB =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.137.49.36)(PORT = 1521))
@@ -621,11 +766,12 @@ MMSGDB_37 =
   )
 oracle@mmsc101:~/product/11/network/admin&gt;
 </code></pre>
-<p>tns文件信息显示，数据库名是mmsgdb，实例名是ora11，orapw的帮助命令中，并没有写明filename中该如何命名，实际命名规则则是：<br>file=$ORACLE_HOME/dbs/orapw$ORACLE_SID</p>
+<p>tns文件信息显示，数据库名是mmsgdb，实例名是ora11，orapw的帮助命令中，并没有写明filename中该如何命名，实际命名规则则是：<br>
+file=$ORACLE_HOME/dbs/orapw$ORACLE_SID</p>
 <p>$ORACLE_SID是什么</p>
 <p>这里的$ORACLE_SID是什么呢？数据库名？实例名？</p>
 <p>都不是，确切的讲，这个东西是环境变量值。证据如下：</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~&gt; more .bash_profile 
+<pre><code class="language-shell">oracle@mmsc101:~&gt; more .bash_profile 
 
 export ORACLE_BASE=/opt/oracle
 export ORACLE_HOME=/opt/oracle/product/11
@@ -645,11 +791,13 @@ export CLASSPATH=$CLASSPATH:/opt/oracle/product/11/network/jlib
 export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 </code></pre>
 <p>之前orapw创建的口令文件名称是orapwmmsgdb，显然是没有正确的口令文件，导致OS认证失败，尝试与MMSGDB建立连接，没有权限去登陆其他的数据库，自然报权限问题。</p>
-<h2 id="获取解决方法"><a href="#获取解决方法" class="headerlink" title="获取解决方法"></a>获取解决方法</h2><p>重新创建正确的口令文件：</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; orapwd file=/opt/oracle/product/11/dbs/orapwora11 password=sys
+<h2 id="huo-qu-jie-jue-fang-fa">获取解决方法</h2>
+<p>重新创建正确的口令文件：</p>
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; orapwd file=/opt/oracle/product/11/dbs/orapwora11 password=sys
 </code></pre>
-<h2 id="验证方法是否有效"><a href="#验证方法是否有效" class="headerlink" title="验证方法是否有效"></a>验证方法是否有效</h2><p>查询视图</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus / as sysdba
+<h2 id="yan-zheng-fang-fa-shi-fou-you-xiao">验证方法是否有效</h2>
+<p>查询视图</p>
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 18:05:49 2011
 
@@ -674,7 +822,7 @@ TRUE            TRUE            FALSE
 SQL&gt;
 </code></pre>
 <p>已经有数据了，尝试sys用户登陆试试：</p>
-<pre><code class="line-numbers language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus sys/sys@mmsgdb as sysdba
+<pre><code class="language-shell">oracle@mmsc101:~/product/11/network/admin&gt; sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 17:45:21 2011
 
@@ -693,7 +841,8 @@ Oracle Database Vault and Real Application Testing options
 oracle@mmsc101:~/product/11/network/admin&gt; 
 </code></pre>
 <p>登陆成功，问题得到解决。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>1、这个问题，开始是找寻了network/admin目录下的sqlnet.ora文件，认为数据库解析文件出现了问题，也给该文件增加了权限，没啥效果。接着尝试tnsping操作，发现是可以与数据库正常建立连接的，此路就此终止，因为不是sqlnet.ora文件导致出现的问题；</p>
+<h2 id="zong-jie">总结</h2>
+<p>1、这个问题，开始是找寻了network/admin目录下的sqlnet.ora文件，认为数据库解析文件出现了问题，也给该文件增加了权限，没啥效果。接着尝试tnsping操作，发现是可以与数据库正常建立连接的，此路就此终止，因为不是sqlnet.ora文件导致出现的问题；</p>
 <p>2、就是用户的口令了，刚开始是不知道sys用户的密码是多少，报错也就没放在心上，就直接修改了sys的密码为sys，尝试登陆，还是报错；</p>
 <p>3、再接着就是给sys用户副权限，因为报错就是权限不足啊，赋了权限后还是没解决；</p>
 <p>4、认证出现了问题？于是就查找口令问题（因为登陆方式中使用了口令认证方式登陆，而非OS认证），查询视图，没数据，而dbs目录下有口令文件，疑惑就产生了……</p>
@@ -801,10 +950,10 @@ oracle@mmsc101:~/product/11/network/admin&gt;
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1118,7 +1267,7 @@ oracle@mmsc101:~/product/11/network/admin&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/164.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-32004">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/164.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-32004">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-32004</span>
                     </div>
@@ -1167,7 +1316,7 @@ oracle@mmsc101:~/product/11/network/admin&gt;
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/59.jpg" class="responsive-img" alt="Oracle Shared Pool与Processes参数的关系">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/59.jpg" class="responsive-img" alt="Oracle Shared Pool与Processes参数的关系">
                         
                         <span class="card-title">Oracle Shared Pool与Processes参数的关系</span>
                     </div>
@@ -1398,7 +1547,7 @@ oracle@mmsc101:~/product/11/network/admin&gt;
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1748,6 +1897,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>

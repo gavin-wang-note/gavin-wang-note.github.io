@@ -5,8 +5,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="keywords" content="Oracle Shared Pool与Processes参数的关系, 软硬件测试">
-    <meta name="description" content="前言大家都知道，我们使用ORACLE数据库时，常常会为实例配置一个processes参数，此参数故名思意，就是设置整个数据库系统可以启动多少个进程(包括系统自己的后台进程)
-设置不合理的processes参数值，会导致实例无法启动。此参数还">
+    <meta name="description" content="前言
+大家都知道，我们使用ORACLE数据库时，常常会为实例配置一个processes参数，此参数故名思意，就是设置整个数据库系统可以启动多少个进程(包括系统自己的后台进程)
+设置不合理的processes参数值，会导致实例无法启动。此参数">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -64,20 +65,160 @@
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
 
-<meta name="generator" content="Hexo 7.1.1">
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
 <style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
 <link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
 </head>
 
 
-<body>
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
     <header class="navbar-fixed">
     <nav id="headNav" class="bg-color nav-transparent">
         <div id="navContainer" class="nav-wrapper container">
             <div class="brand-logo">
                 <a href="/" class="waves-effect waves-light">
                     
-                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
                     
                     <span class="logo-span">努力，奋进</span>
                 </a>
@@ -192,7 +333,7 @@
 
     <div class="mobile-head bg-color">
         
-        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
         
         <div class="logo-name">努力，奋进</div>
         <div class="logo-desc">
@@ -439,7 +580,7 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.4k
+                    1.5k
                 </div>
                 
 
@@ -469,14 +610,18 @@
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>大家都知道，我们使用ORACLE数据库时，常常会为实例配置一个processes参数，此参数故名思意，就是设置整个数据库系统可以启动多少个进程(包括系统自己的后台进程)</p>
+                <h1 id="qian-yan">前言</h1>
+<p>大家都知道，我们使用ORACLE数据库时，常常会为实例配置一个processes参数，此参数故名思意，就是设置整个数据库系统可以启动多少个进程(包括系统自己的后台进程)</p>
 <p>设置不合理的processes参数值，会导致实例无法启动。此参数还有其它许许多多的含义和作用，影响着数据库系统的运行。</p>
 <p>比如，ORACLE在哪里为其分配内存,分配多大内存？此内存信息在ORACLE instance级的作用？为什么processes参数是一个静态参数？</p>
 <p>通过本文，相信大家能找到一个的答案。下面是通过一些测试，来回答上述问题。</p>
-<h1 id="实践"><a href="#实践" class="headerlink" title="实践"></a>实践</h1><h2 id="测试环境"><a href="#测试环境" class="headerlink" title="测试环境"></a>测试环境</h2><pre><code class="line-numbers language-shell">OS: SUSE Linux Enterprise Server 10 SP1 (x86_64) Kernel 2.6.16.46-0.12-smp (1)
+<h1 id="shi-jian">实践</h1>
+<h2 id="ce-shi-huan-jing">测试环境</h2>
+<pre><code class="language-shell">OS: SUSE Linux Enterprise Server 10 SP1 (x86_64) Kernel 2.6.16.46-0.12-smp (1)
 ORACLE VERSION: Release 11.1.0.6.0
 </code></pre>
-<h2 id="修改processes"><a href="#修改processes" class="headerlink" title="修改processes"></a>修改processes</h2><pre><code class="line-numbers language-shell">SQL&gt; alter system set processes=20000 scope=spfile;
+<h2 id="xiu-gai-processes">修改processes</h2>
+<pre><code class="language-shell">SQL&gt; alter system set processes=20000 scope=spfile;
 
 系统已更改。
 
@@ -503,8 +648,9 @@ ORA-27303: additional information: semids = 132, maxprocs = 20000
 SQL&gt;
 </code></pre>
 <p>从上面的错误说明，oracle会根据processes参数的值在共享池中分配一定数量的内存，参数值越大，分配的内存也越多。</p>
-<h2 id="修改process"><a href="#修改process" class="headerlink" title="修改process"></a>修改process</h2><p>修改process为300，重启数据库，查看shared pool  中processes值</p>
-<pre><code class="line-numbers language-shell">SQL&gt; show parameter processes
+<h2 id="xiu-gai-process">修改process</h2>
+<p>修改process为300，重启数据库，查看shared pool  中processes值</p>
+<pre><code class="language-shell">SQL&gt; show parameter processes
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -534,7 +680,7 @@ shared pool  processes                        2400  --300个进程要在共享�
 已选择9行。
 </code></pre>
 <p>修改process为100，重启数据库，查看shared pool  中processes值</p>
-<pre><code class="line-numbers language-shell">SQL&gt; alter system set processes = 100 scope=spfile;
+<pre><code class="language-shell">SQL&gt; alter system set processes = 100 scope=spfile;
 
 系统已更改。
 重启数据库后
@@ -569,7 +715,7 @@ shared pool  processes                         800  --100个进程要在共享�
 </code></pre>
 <p>从上面两次修改processes参数的值，可以看出每个进程将会在shared pool中分配8字节内存，那此8字节信息是什么呢？</p>
 <p>我们查看如下的v$process视图</p>
-<pre><code class="line-numbers language-shell">SQL&gt;  desc v$process;
+<pre><code class="language-shell">SQL&gt;  desc v$process;
  名称                                      是否为空? 类型
  ----------------------------------------- -------- ----------------------------
  ADDR                                               RAW(8)
@@ -630,7 +776,7 @@ SQL&gt;
 <p>为什么processes参数是一个静态参数？这跟ORACLE关于此参数的内存申请很有关系，个人猜想，此控制结构的信息是以数组的方式保存的，大家都知道数组结构是不能动态扩大的，不像队列或者线性链表。</p>
 <p>db_cache与pga之间走的是数据流；shared pool保存的一些信息，可以看成了对pga的控制流。</p>
 <p>刚才查看了64位AIX 6.1操作系统</p>
-<pre><code class="line-numbers language-shell">SQL&gt; show parameter processes
+<pre><code class="language-shell">SQL&gt; show parameter processes
 
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -658,7 +804,7 @@ shared pool  process group array             66448
 已选择9行。
 </code></pre>
 <p>AIX5.3</p>
-<pre><code class="line-numbers language-shell">% sqlplus "/ as sysdba"
+<pre><code class="language-shell">% sqlplus "/ as sysdba"
 
 SQL*Plus: Release 9.2.0.8.0 - Production on Fri Jun 24 12:01:48 2011
 
@@ -789,10 +935,10 @@ shared pool            processes                                               1
                         <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
                     </ul>
                     <div id="alipay">
-                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
                     </div>
                     <div id="wechat">
-                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
                     </div>
                 </div>
             </div>
@@ -1106,7 +1252,7 @@ shared pool            processes                                               1
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/28.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01031">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/28.jpg" class="responsive-img" alt="Oracle案例--错误码之ORA-01031">
                         
                         <span class="card-title">Oracle案例--错误码之ORA-01031</span>
                     </div>
@@ -1155,7 +1301,7 @@ shared pool            processes                                               1
                     <div class="card-image">
                         
                         
-                        <img src="/medias/featureimages/86.jpg" class="responsive-img" alt="Oracle案例--表空间--UNDO表空间膨胀">
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/86.jpg" class="responsive-img" alt="Oracle案例--表空间--UNDO表空间膨胀">
                         
                         <span class="card-title">Oracle案例--表空间--UNDO表空间膨胀</span>
                     </div>
@@ -1386,7 +1532,7 @@ shared pool            processes                                               1
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">473.6k</span>
+                        class="white-color">475.1k</span>
             
             
             
@@ -1736,6 +1882,19 @@ $(function () {
     <script src="/libs/instantpage/instantpage.js" type="module"></script>
     
 
-</body>
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
 
 </html>
