@@ -1,0 +1,2520 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="频繁启用&amp;停用ES服务，出现local-fs.target failed with result dependency, 软硬件测试">
+    <meta name="description" content="概述
+Ubuntu16.04，产品新增了Elasticsearch功能，在测试ES服务启用过程冲，选择240G 的Intel S4510 型号的SSD一块作为ES的data：
+Model Family:     Intel S4510/S4">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>频繁启用&amp;停用ES服务，出现local-fs.target failed with result dependency | 努力，奋进</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">努力，奋进</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">努力，奋进</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/gavin-wang-note" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/gavin-wang-note" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/33.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">频繁启用&amp;停用ES服务，出现local-fs.target failed with result dependency</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/python/">
+                                <span class="chip bg-color">python</span>
+                            </a>
+                        
+                            <a href="/tags/elasticsearch/">
+                                <span class="chip bg-color">elasticsearch</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/python/" class="post-category">
+                                python
+                            </a>
+                        
+                            <a href="/categories/elasticsearch/" class="post-category">
+                                elasticsearch
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2020-06-22
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2024-01-26
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    7.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    42 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p>Ubuntu16.04，产品新增了Elasticsearch功能，在测试ES服务启用过程冲，选择240G 的Intel S4510 型号的SSD一块作为ES的data：</p>
+<pre><code class="language-shell">Model Family:     Intel S4510/S4610/S4500/S4600 Series SSDs
+Device Model:     INTEL SSDSC2KG240G8
+</code></pre>
+<p>在频繁测试ES服务启&amp;停过程中，发现有个node上的众多服务接收到终止信号(15),而且复现几率非常的高,此时ipmi console出现如下信息：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/emergency_mode.png" width="1200">
+<p>执行systemctl --failed，信息如下：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/systemctl_failed.png" width="1200">
+<p>使用 ‘journalctl -xb’，dump的信息中，未找到问题发生的原因，只有类似如下的片断信息：</p>
+<pre><code class="language-shell">Jun 19 18:20:17 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:17 node76 multipath[829224]: sdf: using deprecated getuid callout
+Jun 19 18:20:18 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:18 node76 kernel:  sdf: sdf1
+Jun 19 18:20:18 node76 multipath[829250]: sdf: using deprecated getuid callout
+Jun 19 18:20:19 node76 multipath[829286]: sdf: using deprecated getuid callout
+Jun 19 18:20:19 node76 sshd[829305]: Accepted publickey for root from 10.10.10.75 port 53688 ssh2: RSA SHA256:5/ngrgVfOOOLNuPyS1dflwHrc/sN9BSgDxNHVmJA0UE
+Jun 19 18:20:19 node76 sshd[829305]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Jun 19 18:20:19 node76 systemd-logind[1841]: New session 3065 of user root.
+-- Subject: A new session 3065 has been created for user root
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A new session with the ID 3065 has been created for the user root.
+--
+-- The leading process of the session is 829305.
+Jun 19 18:20:19 node76 systemd[1]: Started Session 3065 of user root.
+-- Subject: Unit session-3065.scope has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit session-3065.scope has finished starting up.
+--
+-- The start-up result is done.
+Jun 19 18:20:19 node76 multipath[829322]: sdf: using deprecated getuid callout
+Jun 19 18:20:19 node76 sshd[829305]: Received disconnect from 10.10.10.75 port 53688:11: disconnected by user
+Jun 19 18:20:19 node76 sshd[829305]: Disconnected from 10.10.10.75 port 53688
+Jun 19 18:20:19 node76 sshd[829305]: pam_unix(sshd:session): session closed for user root
+Jun 19 18:20:19 node76 systemd-logind[1841]: Removed session 3065.
+-- Subject: Session 3065 has been terminated
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A session with the ID 3065 has been terminated.
+Jun 19 18:20:19 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:19 node76 sshd[829336]: Accepted publickey for root from 10.10.10.75 port 53694 ssh2: RSA SHA256:5/ngrgVfOOOLNuPyS1dflwHrc/sN9BSgDxNHVmJA0UE
+Jun 19 18:20:19 node76 sshd[829336]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Jun 19 18:20:19 node76 kernel:  sdf: sdf1
+Jun 19 18:20:19 node76 systemd-logind[1841]: New session 3066 of user root.
+-- Subject: A new session 3066 has been created for user root
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A new session with the ID 3066 has been created for the user root.
+--
+-- The leading process of the session is 829336.
+Jun 19 18:20:19 node76 systemd[1]: Started Session 3066 of user root.
+-- Subject: Unit session-3066.scope has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit session-3066.scope has finished starting up.
+--
+-- The start-up result is done.
+Jun 19 18:20:19 node76 multipath[829356]: sdf: using deprecated getuid callout
+Jun 19 18:20:19 node76 sshd[829336]: Received disconnect from 10.10.10.75 port 53694:11: disconnected by user
+Jun 19 18:20:19 node76 sshd[829336]: Disconnected from 10.10.10.75 port 53694
+Jun 19 18:20:19 node76 sshd[829336]: pam_unix(sshd:session): session closed for user root
+Jun 19 18:20:19 node76 systemd-logind[1841]: Removed session 3066.
+-- Subject: Session 3066 has been terminated
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A session with the ID 3066 has been terminated.
+Jun 19 18:20:20 node76 sshd[829382]: Accepted publickey for root from 10.10.10.75 port 53696 ssh2: RSA SHA256:5/ngrgVfOOOLNuPyS1dflwHrc/sN9BSgDxNHVmJA0UE
+Jun 19 18:20:20 node76 sshd[829382]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Jun 19 18:20:20 node76 systemd-logind[1841]: New session 3067 of user root.
+-- Subject: A new session 3067 has been created for user root
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A new session with the ID 3067 has been created for the user root.
+--
+-- The leading process of the session is 829382.
+Jun 19 18:20:20 node76 systemd[1]: Started Session 3067 of user root.
+-- Subject: Unit session-3067.scope has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit session-3067.scope has finished starting up.
+--
+-- The start-up result is done.
+Jun 19 18:20:20 node76 sshd[829382]: Received disconnect from 10.10.10.75 port 53696:11: disconnected by user
+Jun 19 18:20:20 node76 sshd[829382]: Disconnected from 10.10.10.75 port 53696
+Jun 19 18:20:20 node76 sshd[829382]: pam_unix(sshd:session): session closed for user root
+Jun 19 18:20:20 node76 systemd-logind[1841]: Removed session 3067.
+-- Subject: Session 3067 has been terminated
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A session with the ID 3067 has been terminated.
+Jun 19 18:20:20 node76 sshd[829415]: Accepted publickey for root from 10.10.10.75 port 53702 ssh2: RSA SHA256:5/ngrgVfOOOLNuPyS1dflwHrc/sN9BSgDxNHVmJA0UE
+Jun 19 18:20:20 node76 sshd[829415]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Jun 19 18:20:20 node76 systemd-logind[1841]: New session 3068 of user root.
+-- Subject: A new session 3068 has been created for user root
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A new session with the ID 3068 has been created for the user root.
+--
+-- The leading process of the session is 829415.
+Jun 19 18:20:20 node76 systemd[1]: Started Session 3068 of user root.
+-- Subject: Unit session-3068.scope has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit session-3068.scope has finished starting up.
+--
+-- The start-up result is done.
+Jun 19 18:20:20 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:20 node76 kernel:  sdf: sdf1
+Jun 19 18:20:20 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:20 node76 kernel:  sdf:
+Jun 19 18:20:20 node76 multipath[829431]: sdf: using deprecated getuid callout
+Jun 19 18:20:20 node76 sshd[829415]: Received disconnect from 10.10.10.75 port 53702:11: disconnected by user
+Jun 19 18:20:20 node76 sshd[829415]: Disconnected from 10.10.10.75 port 53702
+Jun 19 18:20:20 node76 sshd[829415]: pam_unix(sshd:session): session closed for user root
+Jun 19 18:20:20 node76 systemd-logind[1841]: Removed session 3068.
+-- Subject: Session 3068 has been terminated
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A session with the ID 3068 has been terminated.
+Jun 19 18:20:21 node76 systemd-udevd[829425]: inotify_add_watch(9, /dev/sdf1, 10) failed: No such file or directory
+Jun 19 18:20:21 node76 multipath[829479]: sdf: using deprecated getuid callout
+Jun 19 18:20:21 node76 multipath[829507]: sdf: using deprecated getuid callout
+Jun 19 18:20:21 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:21 node76 kernel:  sdf:
+Jun 19 18:20:21 node76 multipath[829550]: sdf: using deprecated getuid callout
+Jun 19 18:20:22 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:22 node76 kernel:  sdf:
+Jun 19 18:20:22 node76 multipath[829590]: sdf: using deprecated getuid callout
+Jun 19 18:20:22 node76 multipath[829616]: sdf: using deprecated getuid callout
+Jun 19 18:20:23 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:23 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:23 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:20:23 node76 multipath[829658]: sdf: using deprecated getuid callout
+Jun 19 18:20:23 node76 multipath[829685]: sdf: using deprecated getuid callout
+
+..............................此处省略一部分信息......................................
+
+Jun 19 18:22:48 node76 systemd[1]: Started Session 3077 of user root.
+-- Subject: Unit session-3077.scope has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit session-3077.scope has finished starting up.
+--
+-- The start-up result is done.
+Jun 19 18:22:59 node76 sshd[844776]: Accepted publickey for root from 10.16.172.75 port 41614 ssh2: RSA SHA256:5/ngrgVfOOOLNuPyS1dflwHrc/sN9BSgDxNHVmJA0UE
+Jun 19 18:22:59 node76 sshd[844776]: pam_unix(sshd:session): session opened for user root by (uid=0)
+Jun 19 18:22:59 node76 systemd-logind[1841]: New session 3078 of user root.
+-- Subject: A new session 3078 has been created for user root
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+-- Documentation: http://www.freedesktop.org/wiki/Software/systemd/multiseat
+--
+-- A new session with the ID 3078 has been created for the user root.
+--
+-- The leading process of the session is 844776.
+Jun 19 18:22:59 node76 systemd[1]: Started Session 3078 of user root.
+-- Subject: Unit session-3078.scope has finished start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit session-3078.scope has finished starting up.
+--
+-- The start-up result is done.
+Jun 19 18:22:59 node76 radosgw[793492]: 2020-06-19 18:22:59.685447 7f3df412b700 -1 received  signal: Terminated from  PID: 1 task name: /sbin/init  UID: 0
+Jun 19 18:22:59 node76 radosgw[793492]: 2020-06-19 18:22:59.685486 7f3e336e4040 -1 shutting down
+Jun 19 18:22:59 node76 systemd[1]: Stopping Ceph rados gateway...
+-- Subject: Unit ceph-radosgw@radosgw.0.service has begun shutting down
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+</code></pre>
+<p>重新开机启动后，syslog日志片断如下:</p>
+<pre><code class="language-shell">Jun 18 18:19:35 node75 kernel: [174076.635228] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:19:35 node75 kernel: [174076.639312]  sdf:
+Jun 18 18:19:35 node75 multipath: sdf: using deprecated getuid callout
+Jun 18 18:19:35 node75 ntpd[3446]: Listen normally on 68 bond0 10.16.172.79:123
+Jun 18 18:19:35 node75 ntpd[3446]: Listen normally on 69 bond0 10.16.172.80:123
+Jun 18 18:19:35 node75 ntpd[3446]: new interface(s) found: waking up resolver
+Jun 18 18:19:35 node75 systemd-udevd[149835]: inotify_add_watch(9, /dev/sdf1, 10) failed: No such file or directory
+Jun 18 18:19:35 node75 systemd[1]: Mounting /opt/datasearch/0...
+Jun 18 18:19:35 node75 mount[149927]: mount: special device /dev/disk/by-partlabel/datasearch0 does not exist
+Jun 18 18:19:35 node75 systemd[1]: opt-datasearch-0.mount: Mount process exited, code=exited status=32
+Jun 18 18:19:35 node75 systemd[1]: Failed to mount /opt/datasearch/0.
+Jun 18 18:19:35 node75 systemd[1]: opt-datasearch-0.mount: Unit entered failed state.
+Jun 18 18:19:35 node75 multipath: sdf: using deprecated getuid callout
+Jun 18 18:19:36 node75 kernel: [174077.640278] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:19:36 node75 kernel: [174077.642668]  sdf:
+Jun 18 18:19:37 node75 kernel: [174078.789459] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:19:37 node75 kernel: [174078.794294] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:19:37 node75 kernel: [174078.800320] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:19:38 node75 kernel: [174079.491352] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:19:38 node75 multipath: message repeated 5 times: [ sdf: using deprecated getuid callout]
+Jun 18 18:19:40 node75 systemd[1]: Stopping ezs3 bucket logging agent service...
+Jun 18 18:19:44 node75 systemd[1]: Stopped ezs3 bucket logging agent service.
+Jun 18 18:19:44 node75 systemd[1]: Reloading.
+Jun 18 18:19:44 node75 systemd[1]: Reloading.
+Jun 18 18:19:44 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:19:44 node75 systemd[1]: Stopping Ceph rados gateway...
+Jun 18 18:19:44 node75 radosgw[138955]: 2020-06-18 18:19:44.455571 7f349a88c700 -1 received  signal: Terminated from  PID: 1 task name: /sbin/init  UID: 0
+Jun 18 18:19:44 node75 radosgw[138955]: 2020-06-18 18:19:44.455636 7f34d9e45040 -1 shutting down
+Jun 18 18:19:44 node75 systemd[1]: Stopped Ceph rados gateway.
+Jun 18 18:19:44 node75 systemd[1]: Reloading.
+Jun 18 18:19:44 node75 systemd[1]: Reloading.
+Jun 18 18:19:44 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:19:45 node75 radosgw[131963]: 2020-06-18 18:19:45.107577 7fcfdfa6a700 -1 received  signal: Terminated from  PID: 1 task name: /sbin/init  UID: 0
+Jun 18 18:19:45 node75 radosgw[131963]: 2020-06-18 18:19:45.107620 7fd01f023040 -1 shutting down
+Jun 18 18:19:45 node75 systemd[1]: Stopping Ceph rados gateway...
+Jun 18 18:19:45 node75 systemd[1]: Stopped Ceph rados gateway.
+Jun 18 18:19:45 node75 systemd[1]: Started Ceph rados gateway.
+Jun 18 18:19:45 node75 systemd[1]: Reloading.
+Jun 18 18:19:45 node75 systemd[1]: Reloading.
+Jun 18 18:19:45 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:19:45 node75 systemd[1]: Stopped ezs3 bucket logging agent service.
+Jun 18 18:19:45 node75 systemd[1]: Starting ezs3 bucket logging agent service...
+Jun 18 18:19:45 node75 systemd[1]: Stopped ezs3 bucket logging agent service.
+Jun 18 18:19:45 node75 systemd[1]: Starting ezs3 bucket logging agent service...
+Jun 18 18:19:46 node75 systemd[1]: ezs3-bucket-logging-agent.service: Supervising process 152415 which is not our child. We'll most likely not notice when it exits.
+Jun 18 18:19:46 node75 systemd[1]: Started ezs3 bucket logging agent service.
+Jun 18 18:19:46 node75 systemd[1]: Reloading.
+Jun 18 18:19:46 node75 systemd[1]: Reloading.
+Jun 18 18:19:47 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:19:53 node75 Keepalived[149387]: Stopping
+Jun 18 18:19:53 node75 Keepalived_vrrp[149388]: (VRRP0) sent 0 priority
+Jun 18 18:19:53 node75 systemd[1]: Stopping Keepalive Daemon (LVS and VRRP)...
+Jun 18 18:19:53 node75 avahi-daemon[1704]: Withdrawing address record for 10.16.172.80 on bond0.
+Jun 18 18:19:53 node75 avahi-daemon[1704]: Withdrawing address record for 10.16.172.79 on bond0.
+Jun 18 18:19:53 node75 Keepalived_vrrp[149388]: (DATASEARCH) sent 0 priority
+Jun 18 18:19:54 node75 Keepalived_vrrp[149388]: Stopped
+Jun 18 18:19:54 node75 Keepalived[149387]: Stopped Keepalived v2.0.10 (09/19,2019), git commit 6.0-rc1-9509-gb73d9e153
+Jun 18 18:19:54 node75 systemd[1]: Stopped Keepalive Daemon (LVS and VRRP).
+Jun 18 18:19:54 node75 systemd[1]: Started Keepalive Daemon (LVS and VRRP).
+Jun 18 18:19:54 node75 Keepalived[154125]: Starting Keepalived v2.0.10 (09/19,2019), git commit 6.0-rc1-9509-gb73d9e153
+Jun 18 18:19:54 node75 Keepalived[154125]: Running on Linux 4.14.148-server #1 SMP Thu Jun 11 18:49:19 CST 2020 (built for Linux 4.4.176)
+Jun 18 18:19:54 node75 Keepalived[154125]: Command line: '/usr/sbin/keepalived' '--dont-fork'
+Jun 18 18:19:54 node75 Keepalived[154125]: Opening file '/etc/keepalived/keepalived.conf'.
+Jun 18 18:19:54 node75 Keepalived[154125]: Starting VRRP child process, pid=154126
+Jun 18 18:19:54 node75 Keepalived_vrrp[154126]: Registering Kernel netlink reflector
+Jun 18 18:19:54 node75 Keepalived_vrrp[154126]: Registering Kernel netlink command channel
+Jun 18 18:19:54 node75 Keepalived_vrrp[154126]: Opening file '/etc/keepalived/keepalived.conf'.
+Jun 18 18:19:54 node75 Keepalived_vrrp[154126]: Registering gratuitous ARP shared channel
+Jun 18 18:19:54 node75 Keepalived_vrrp[154126]: (VRRP0) Entering BACKUP STATE (init)
+Jun 18 18:19:55 node75 ntpd[3446]: Deleting interface #68 bond0, 10.16.172.79#123, interface stats: received=0, sent=0, dropped=0, active_time=20 secs
+Jun 18 18:19:55 node75 ntpd[3446]: Deleting interface #69 bond0, 10.16.172.80#123, interface stats: received=0, sent=0, dropped=0, active_time=20 secs
+Jun 18 18:19:56 node75 Keepalived_vrrp[154126]: (VRRP0) Entering MASTER STATE
+Jun 18 18:19:56 node75 Keepalived_vrrp[154126]: (VRRP0) using locally configured advertisement interval (400 milli-sec)
+Jun 18 18:19:56 node75 avahi-daemon[1704]: Registering new address record for 10.16.172.79 on bond0.IPv4.
+Jun 18 18:19:57 node75 ntpd[3446]: Listen normally on 70 bond0 10.16.172.79:123
+Jun 18 18:19:57 node75 ntpd[3446]: new interface(s) found: waking up resolver
+Jun 18 18:20:01 node75 CRON[154717]: (root) CMD (bash /usr/local/bin/monitor_ctdb.sh &gt;/dev/null 2&gt;&amp;1)
+Jun 18 18:21:49 node75 systemd[1]: Started Session 3232 of user root.
+Jun 18 18:22:01 node75 CRON[165327]: (root) CMD (bash /usr/local/bin/monitor_ctdb.sh &gt;/dev/null 2&gt;&amp;1)
+Jun 18 18:22:03 node75 systemd[1]: Stopping ezrpc service...
+Jun 18 18:22:04 node75 systemd[1]: Started Session 3234 of user root.
+Jun 18 18:22:05 node75 systemd[1]: Stopped ezrpc service.
+Jun 18 18:22:05 node75 systemd[1]: Starting ezrpc service...
+Jun 18 18:22:05 node75 systemd[1]: Started Session 3235 of user root.
+Jun 18 18:22:05 node75 systemd[1]: Started Session 3236 of user root.
+Jun 18 18:22:05 node75 systemd[1]: ezrpc.service: Supervising process 165656 which is not our child. We'll most likely not notice when it exits.
+Jun 18 18:22:05 node75 systemd[1]: Started ezrpc service.
+Jun 18 18:22:06 node75 systemd[1]: Started Session 3237 of user root.
+Jun 18 18:22:07 node75 systemd[1]: Started Session 3238 of user root.
+Jun 18 18:22:09 node75 systemd[1]: Started Session 3239 of user root.
+Jun 18 18:22:10 node75 systemd[1]: Started Session 3240 of user root.
+Jun 18 18:22:10 node75 systemd[1]: Started Session 3241 of user root.
+Jun 18 18:22:10 node75 systemd[1]: Started Session 3242 of user root.
+Jun 18 18:22:10 node75 systemd[1]: Started Session 3243 of user root.
+Jun 18 18:22:11 node75 systemd[1]: Started Session 3244 of user root.
+Jun 18 18:22:11 node75 systemd[1]: Started Session 3245 of user root.
+Jun 18 18:22:13 node75 systemd[1]: Started Session 3246 of user root.
+Jun 18 18:22:14 node75 systemd[1]: Started Session 3247 of user root.
+Jun 18 18:22:17 node75 systemd[1]: Started Session 3248 of user root.
+Jun 18 18:22:22 node75 kernel: [174244.149039] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:22 node75 multipath: sdf: using deprecated getuid callout
+Jun 18 18:22:23 node75 kernel: [174245.160084] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:23 node75 kernel: [174245.163924]  sdf:
+Jun 18 18:22:24 node75 kernel: [174246.313987] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:24 node75 kernel: [174246.320486] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:24 node75 kernel: [174246.326831] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:25 node75 kernel: [174247.217690] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:26 node75 kernel: [174247.496059] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:27 node75 kernel: [174248.504647] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:27 node75 kernel: [174248.512515]  sdf:
+Jun 18 18:22:27 node75 multipath: message repeated 8 times: [ sdf: using deprecated getuid callout]
+Jun 18 18:22:28 node75 kernel: [174249.667311] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:28 node75 kernel: [174249.673618] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:28 node75 systemd[1]: Started Session 3258 of user root.
+Jun 18 18:22:28 node75 multipath: sdf: using deprecated getuid callout
+Jun 18 18:22:29 node75 kernel: [174250.362596] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:30 node75 kernel: [174251.374819] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:30 node75 kernel: [174251.379011]  sdf: sdf1
+Jun 18 18:22:30 node75 kernel: [174252.064736] ata2.00: Enabling discard_zeroes_data
+Jun 18 18:22:30 node75 kernel: [174252.069092]  sdf: sdf1
+Jun 18 18:22:30 node75 multipath: message repeated 5 times: [ sdf: using deprecated getuid callout]
+Jun 18 18:22:34 node75 systemd[1]: Started Session 3259 of user root.
+Jun 18 18:22:34 node75 systemd[1]: Started Session 3260 of user root.
+Jun 18 18:22:35 node75 systemd[1]: Started Session 3261 of user root.
+Jun 18 18:22:37 node75 kernel: [174258.563000] EXT4-fs (sdf1): mounted filesystem with ordered data mode. Opts: (null)
+Jun 18 18:22:37 node75 systemd[1]: Failed to set up mount unit: Device or resource busy
+Jun 18 18:22:37 node75 systemd[1]: Reloading.
+Jun 18 18:22:37 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:22:37 node75 systemd[1]: Reloading.
+Jun 18 18:22:38 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:22:38 node75 systemd[1]: Reloading.
+Jun 18 18:22:38 node75 systemd[1]: Started ACPI event daemon.
+Jun 18 18:22:38 node75 systemd[1]: Starting Elasticsearch...
+Jun 18 18:22:38 node75 elasticsearch[169315]: OpenJDK 64-Bit Server VM warning: Option UseConcMarkSweepGC was deprecated in version 9.0 and will likely be removed in a future release.
+Jun 18 18:22:42 node75 systemd[1]: Started Session 3262 of user root.
+Jun 18 18:22:49 node75 systemd[1]: Started Session 3263 of user root.
+Jun 18 18:22:50 node75 systemd[1]: Started Session 3264 of user root.
+Jun 18 18:22:51 node75 systemd[1]: Started Session 3265 of user root.
+Jun 18 18:22:51 node75 systemd[1]: Started Elasticsearch.
+Jun 18 18:22:52 node75 elasticsearch[169315]: loading dict /usr/share/elasticsearch/plugins/jieba/dic/user.dict
+Jun 18 18:22:52 node75 elasticsearch[169315]: loading dict /usr/share/elasticsearch/plugins/jieba/dic/sougou.dict
+Jun 18 18:22:53 node75 systemd[1]: Started Session 3266 of user root
+</code></pre>
+<p>说明一下：</p>
+<p>上文中的sdf这个分区，是启用ES时选择的ES DATA disk,为了能够复现这个问题，写了支script指定循环次数去启用，停用ES 服务，并检查对应的挂载点，ES集群健康状态，ceph集群健康状态（因为出现shutdown ceph核心服务进行，ceph集群不健康作为退出条件）.</p>
+<h1 id="wen-ti-fu-xian-shi-yong-de-python-jiao-ben">问题复现使用的python脚本</h1>
+<pre><code class="language-python">#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+
+import os
+import sys
+import time
+import json
+import requests
+from requests.exceptions import ConnectionError
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+
+def login_session(public_ip, user_id, password):
+    login_url = "https://{}:8080/auth".format(public_ip)
+    login_data = {"user_id": user_id, "password": password}
+
+    session = requests.session()
+    session.keep_alive = False
+    session.headers.update({'Accept': 'application/json, text/javascript, */*; q=0.01'})
+    response = session.request("POST", login_url, json=login_data, verify=False)
+
+    if response.status_code != 200:
+        print("[ERROR]    Login web error, http status code is {} \n".format(response.status_code))
+        sys.exit(1)
+
+    return session
+
+
+def http_request(session, http_method, url, params=None, data=None, public_ip=None, user_id=None, password=None):
+    params = {} if params is None else params
+    data = {} if data is None else data
+
+    # set SSL Verify to False
+    session.verify = False
+
+    # Set session keep alive to False
+    session.keep_alive = False
+
+    if "cgi-bin" in url:
+        # Legacy CGI
+        try:
+            response = session.request(http_method, url, params=params, data=data)
+        except ConnectionError as ex:
+            time.sleep(2)
+            response = session.request(http_method, url, params=params, data=data)
+
+        if response.status_code == 401:
+            session = login_session(public_ip, user_id, password)
+            response = session.request(http_method, url, params=params, data=data)
+    else:
+        # Restful CGI
+        response = session.request(http_method, url, params=params, json=data)
+
+        if response.status_code == 401:
+            session = login_session(public_ip, user_id, password)
+            response = session.request(http_method, url, params=params, json=data)
+
+    if response.status_code == 500:
+        print("[ERROR]    Send HTTP request failed, backend return 500, internal server error \n")
+        sys.exit(1)
+
+    return response
+
+
+def es_enable_data(public_ip, storage_ip, vip):
+
+    data = {
+        "ip":storage_ip,
+        "vip":vip,
+        "router_id":"80",
+        "num_shards":"6",
+        "num_replicas":"1",
+        "storage_location":"disk",
+        "disks":"[\"/dev/sdf\"]"
+    }
+
+    return data
+
+
+def enable_es(public_ip, storage_ip, session, http_method, url, data):
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    print("\n[{}] [Action]   Start to enable ES service on node : ({})".format(cur_time, storage_ip))
+
+    response = http_request(session, http_method, url, data=data)
+
+    if json.loads(response.text)['return_code'] == 0:
+        progress_url = "https://{}:8080/cgi-bin/ezs3/json/elasticsearch_role_progress".format(public_ip)
+        check_progress(session, storage_ip, progress_url)
+
+        check_es_service_file(storage_ip)
+        check_mount_point(storage_ip)
+        check_fstab(storage_ip)
+    else:
+        print("[ERROR]    Enable ES service failed, backend return : ({})".format(response.text))
+        sys.exit(1)
+
+
+def es_disable_data(storage_ip):
+    data = {'ip': storage_ip}
+
+    return data
+
+def disable_es(public_ip, storage_ip, session, http_method, url, data):
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    print("\n[{}] [Action]   Disable ES service on node : ({})".format(cur_time, storage_ip))
+
+    response = http_request(session, http_method, url, data=data)
+
+    if json.loads(response.text)['return_code'] == 0:
+        progress_url = "https://{}:8080/cgi-bin/ezs3/json/elasticsearch_role_progress".format(public_ip)
+        check_progress(session, storage_ip, progress_url, enable_flag=False)
+
+        check_fstab(storage_ip, enable_flag=False)
+        check_mount_point(storage_ip, enable_flag=False)
+        check_es_service_file(storage_ip, enable_flag=False)
+    else:
+        print("[ERROR]    Disable ES service failed, backend return : ({})".format(response.text))
+        sys.exit(1)
+
+
+def progress_params(storae_ip, enable='true'):
+    param = {'ip': storae_ip, 'enable': enable}
+
+    return param
+
+
+def get_enable_progress(session, url, param):
+    for i in xrange(60):
+        response = http_request(session, "GET", url, params=param) 
+        res = json.loads(response.text)
+        if res['return_code'] == 0:
+            progress = res['response']['info']['progress']
+            if progress == 100:
+                break
+            else:
+                if i == 30:
+                    print("                                 Wait for more than 150s, go on")
+                if i &gt;= 58:
+                    print("                                 ES progress is : ({})".format(progress))
+                time.sleep(5)
+    else:
+        cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+        print("[{}] [ERROR]    Check ES progress failed, exit! \n".format(cur_time))
+        sys.exit(1)
+
+
+def check_progress(session, storage_ip, url, enable_flag=True):
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    if enable_flag:
+        print("[{}] [Check]    Check ES enable progress on node : ({})".format(cur_time, storage_ip))
+        param = progress_params(storage_ip)
+    else:
+        print("[{}] [Check]    Check ES disable progress on node : ({})".format(cur_time, storage_ip))
+        param = progress_params(storage_ip, enable='false')
+
+    get_enable_progress(session, url, param=param)
+
+
+def get_radosgw_pid(hosts):
+    host_rgw_pid = {}
+    for each_host in hosts:
+        pid = os.popen("ssh {} ps aux | grep client.radosgw.0 | grep -v grep | awk '{{print $2}}'").read().strip()
+        if pid:
+            host_rgw_pid[each_host] = pid
+        else:
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("[{}] [ERROR]    Not get radosgw pid on node :({})".foramt(cur_time, each_host))
+            sys.exit(1)
+
+    return host_rgw_pid
+
+
+def check_fstab(storage_ip, enable_flag=True):
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    print("[{}] [Check]    Check mount config in /etc/fstab on node : ({})".format(cur_time, storage_ip))
+
+    fstab_content = os.popen("ssh {} 'cat /etc/fstab | grep datasearch'".format(storage_ip)).read().strip()
+    if enable_flag:
+        if "datasearch" not in fstab_content:
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("[{}] [ERROR]    Enable ES, but not find mount point information in /etc/fstab \n".format(cur_time))
+            sys.exit(1)
+    else:
+        if "datasearch" in fstab_content:
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("[{}] [ERROR]    Disable ES, but still find mount point information in /etc/fstab \n".format(cur_time))
+            sys.exit(1)
+
+
+def check_mount_point(storage_ip, enable_flag=True, pre_check=False):
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    if not pre_check:
+        print("[{}] [Check]    Check mount point on node : ({})".format(cur_time, storage_ip))
+
+    mount_info = os.popen("ssh {} 'mount | grep datasearch'".format(storage_ip)).read().strip()
+    if enable_flag:
+        if not mount_info:
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("[{}] [ERROR]    Enable ES, but not find mount point \n".format(cur_time))
+            sys.exit(1)
+    else:
+        if mount_info:
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            if not pre_check:
+                print("[{}] [ERROR]    Disable ES, but still find mount point \n".format(cur_time))
+            else:
+                print("[{}] [ERROR]    Precheck before enable ES, but still find mount point on node : ({}) \n".format(cur_time, storage_ip))
+            sys.exit(1)
+
+
+def check_es_service_file(storage_ip, enable_flag=True):
+    file_path = "/etc/systemd/system/multi-user.target.wants/elasticsearch.service"
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    print("\n[{}] [Check]    Check {}".format(cur_time, file_path))
+
+    if enable_flag:
+        if not os.path.exists(file_path):
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("[{}] [ERROR]  Enable ES, but not find ({}) \n".format(cur_time, file_path))
+            sys.exit(1)
+    else:
+        if os.path.exists(file_path):
+            cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+            print("[{}] [ERROR]  Disable ES, but still find ({}) \n".format(cur_time, file_path))
+            sys.exit(1)
+
+
+def check_es_cluster_helath(public_ip):
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    print("\n[{}] [Check]    Check ES cluster status".format(cur_time))
+
+    cmd = "curl -s GET http://{}:9200/_cluster/health | json_pp | grep status".format(public_ip)
+    for i in xrange(30):
+        es_health = os.popen(cmd).read().strip()
+        if 'green' not in es_health:
+            time.sleep(5)
+            if i == 29:
+                cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+                print("[{}] [ERROR]    ES Cluser helath status is : ({})".format(cur_time, es_health))
+        else:
+            break
+    else:
+        cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+        print("[{}] [ERROR]  Wait 60s, but ES cluser status is not 'green' \n".format(cur_time))
+        sys.exit(1)
+
+
+def check_ceph_cluster_health():
+    cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    print("\n[{}] [Check]    Check ceph cluster status".format(cur_time))
+
+    cmd = "ceph -s | grep health"
+    for i in xrange(30):
+        ceph_health = os.popen(cmd).read().strip()
+        if "HEALTH_OK" not in ceph_health:
+            time.sleep(5)
+        else:
+            break
+    else:
+        cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+        print("[{}] [ERROR]  Wait 60s, but ceoh cluser status is not 'HEALTH_OK' \n".format(cur_time))
+        sys.exit(1)
+
+
+def force_clean(storage_ip):
+    print("[Action]   Start to force to clean umount and disk on node : ({})".format(storage_ip))
+
+    umount_cmd = "ssh {} 'umount /opt/datasearch/0'".format(storage_ip)
+    sgdisk_o = "ssh {} 'sgdisk -o /dev/sdf'".format(storage_ip)
+    sgdisk_z = "ssh {} 'sgdisk -Z /dev/sdf'".format(storage_ip)
+    ude = "ssh {} 'udevadm settle'".format(storage_ip)
+    wip = " ssh {} 'wipefs -a -f /dev/sdf'".format(storage_ip)
+    rm_folder = "ssh {} 'rm -rf /opt/datasearch/0/'".format(storage_ip)
+    os.popen(umount_cmd)
+    os.popen(sgdisk_o)
+    os.popen(sgdisk_z)
+    os.popen(ude)
+    os.popen(wip)
+    os.popen(rm_folder)
+
+
+def loop_run(loop_times):
+    password = "1"
+    user_id = "admin"
+    vip = "10.16.172.80/22"
+    public_ip = "10.16.172.75"
+    storage_ips = ["10.10.10.75", "10.10.10.76", "10.10.10.77"]
+
+    session = login_session(public_ip, user_id, password)
+    enable_es_url = "https://{}:8080/cgi-bin/ezs3/json/elasticsearch_role_enable".format(public_ip)
+    disable_es_url = "https://{}:8080/cgi-bin/ezs3/json/elasticsearch_role_disable".format(public_ip)
+
+    for i in xrange(loop_times):
+        print("\n---------------------------------------------- {} --------------------------------------------".format(i+1))
+        # Before disable, check datasearch mount point again, because not known why the mount point mount again
+        cur_time = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+        print("[{}] [Check]    Precheck mount point on each node before enable ES service".format(cur_time))
+
+        # Only check once by the first time
+        if i &lt; 1:
+            for each_storage_ip in storage_ips:
+                check_mount_point(each_storage_ip, enable_flag=False, pre_check=True)
+            time.sleep(1)
+        else:
+            for j in xrange(10):
+                for each_storage_ip in storage_ips:
+                    check_mount_point(each_storage_ip, enable_flag=False, pre_check=True)
+                time.sleep(1)
+
+        # # Force clean
+        # for each_storae_ip in storage_ips:
+        #     force_clean(each_storae_ip)
+
+        # Enable ES service on all node
+        for each_storage_ip in storage_ips:
+            enable_es_data = es_enable_data(public_ip, each_storage_ip, vip)
+            enable_es(public_ip, each_storage_ip, session, "POST", enable_es_url, data=enable_es_data)
+
+        # Check ES cluser status
+        os.popen("iptables -F")
+        check_es_cluster_helath(public_ip)
+
+        # Disable ES service on all node
+        for each_storage_ip in storage_ips:
+            disable_es_data = es_disable_data(each_storage_ip) 
+            disable_es(public_ip, each_storage_ip, session, "POST", disable_es_url, data=disable_es_data)
+
+
+        # Check ceph cluster status
+        check_ceph_cluster_health()
+        time.sleep(2)
+
+        # # Force clean
+        # for each_storae_ip in storage_ips:
+        #     force_clean(each_storae_ip)
+
+
+if __name__ == '__main__':
+    loop_times = sys.argv[1]
+
+    if loop_times &lt; 1:
+        print("[ERROR]  loop_times must &gt;=1 \n")
+        sys.exit(1)
+
+    loop_run(int(loop_times))
+</code></pre>
+<h1 id="zhi-xing-xiao-guo">执行效果</h1>
+<pre><code class="language-shell">root@node75:~# python enable_disable_es.py 3
+
+---------------------------------------------- 1 --------------------------------------------
+[Action]   Start to force to clean umount and disk on node : (10.10.10.75)
+umount: /opt/datasearch/0: mountpoint not found
+[Action]   Start to force to clean umount and disk on node : (10.10.10.76)
+umount: /opt/datasearch/0: mountpoint not found
+[Action]   Start to force to clean umount and disk on node : (10.10.10.77)
+umount: /opt/datasearch/0: mountpoint not found
+
+[2020-06-19 14:17:39] [Action]   Start to enable ES service on node : (10.10.10.75)
+[2020-06-19 14:17:40] [Check]    Check ES enable progress on node : (10.10.10.75)
+[2020-06-19 14:19:41] [Check]    Check mount config in /etc/fstab on node : (10.10.10.75)
+[2020-06-19 14:19:41] [Check]    Check mount point on node : (10.10.10.75)
+
+[2020-06-19 14:19:41] [Action]   Start to enable ES service on node : (10.10.10.76)
+[2020-06-19 14:19:41] [Check]    Check ES enable progress on node : (10.10.10.76)
+[2020-06-19 14:20:22] [Check]    Check mount config in /etc/fstab on node : (10.10.10.76)
+[2020-06-19 14:20:22] [Check]    Check mount point on node : (10.10.10.76)
+
+[2020-06-19 14:20:22] [Action]   Start to enable ES service on node : (10.10.10.77)
+[2020-06-19 14:20:22] [Check]    Check ES enable progress on node : (10.10.10.77)
+[2020-06-19 14:20:58] [Check]    Check mount config in /etc/fstab on node : (10.10.10.77)
+[2020-06-19 14:20:58] [Check]    Check mount point on node : (10.10.10.77)
+
+[2020-06-19 14:20:58] [Check]    Check ES cluster status
+
+[2020-06-19 14:21:04] [Action]   Disable ES service on node : (10.10.10.75)
+[2020-06-19 14:21:04] [Check]    Check ES disable progress on node : (10.10.10.75)
+[2020-06-19 14:21:14] [Check]    Check mount config in /etc/fstab on node : (10.10.10.75)
+[2020-06-19 14:21:14] [Check]    Check mount point on node : (10.10.10.75)
+
+[2020-06-19 14:21:14] [Action]   Disable ES service on node : (10.10.10.76)
+[2020-06-19 14:21:14] [Check]    Check ES disable progress on node : (10.10.10.76)
+[2020-06-19 14:21:24] [Check]    Check mount config in /etc/fstab on node : (10.10.10.76)
+[2020-06-19 14:21:25] [Check]    Check mount point on node : (10.10.10.76)
+
+[2020-06-19 14:21:25] [Action]   Disable ES service on node : (10.10.10.77)
+[2020-06-19 14:21:25] [Check]    Check ES disable progress on node : (10.10.10.77)
+[2020-06-19 14:21:50] [Check]    Check mount config in /etc/fstab on node : (10.10.10.77)
+[2020-06-19 14:21:50] [Check]    Check mount point on node : (10.10.10.77)
+
+[2020-06-19 14:21:51] [Check]    Check ceph cluster status
+[Action]   Start to force to clean umount and disk on node : (10.10.10.75)
+umount: /opt/datasearch/0: mountpoint not found
+[Action]   Start to force to clean umount and disk on node : (10.10.10.76)
+umount: /opt/datasearch/0: mountpoint not found
+[Action]   Start to force to clean umount and disk on node : (10.10.10.77)
+umount: /opt/datasearch/0: mountpoint not found
+
+---------------------------------------------- 2 --------------------------------------------
+[Action]   Start to force to clean umount and disk on node : (10.10.10.75)
+umount: /opt/datasearch/0: mountpoint not found
+[Action]   Start to force to clean umount and disk on node : (10.10.10.76)
+umount: /opt/datasearch/0: mountpoint not found
+[Action]   Start to force to clean umount and disk on node : (10.10.10.77)
+umount: /opt/datasearch/0: mountpoint not found
+
+[2020-06-19 14:22:13] [Action]   Start to enable ES service on node : (10.10.10.75)
+[2020-06-19 14:22:14] [Check]    Check ES enable progress on node : (10.10.10.75)
+                                 Wait for more than 150s, go on
+                                 ES progress is : (30)
+                                 ES progress is : (30)
+[2020-06-19 14:27:16] [ERROR]    Check ES progress failed, exit! 
+
+root@node75:~#
+</code></pre>
+<h1 id="wei-he-hui-chu-xian-local-fs-target-failed-with-result-dependency">为何会出现 ‘local-fs.target failed with result dependency’</h1>
+<p>这篇文章： <code>https://unix.stackexchange.com/questions/416640/how-to-disable-systemd-agressive-emergency-shell-behaviour </code></p>
+<p>有提及到:</p>
+<pre><code class="language-shell">If you search through the unit files, there are only a very few ways for the boot to fall back to emergency.target. It's usually when a .mount unit for a local filesystem fails, causing local-fs.target to fail. Or when your initramfs fails to mount the root filesystem, if your initramfs uses systemd.
+
+local-fs.target has OnFailure=emergency.target. And it gets failed because units for local filesystems are automatically added to the Requires list of local-fs.target (unless they have DefaultDependencies=no).
+</code></pre>
+<p>没有尝试去修改 <code>/lib/systemd/system/local-fs.target </code> 中 <code>OnFailure=</code> 为空(此文件中DefaultDependencies=no)，也没有新增<code>/etc/systemd/system/local-fs.target.d/nofail.conf </code>文件单独去设置``OnFailure=``` 为空。</p>
+<h1 id="jie-jue-fang-fa">解决方法</h1>
+<p>由于担心修改<code>local-fs.target </code>会带来额外影响，这里没有采用修改<code>OnFailure=</code> 为空的方法，具体处理方法如下：</p>
+<p>使用systemctl show查看local-fs.target requires</p>
+<pre><code class="language-shell">root@node76:/var/log# systemctl show --property Requires local-fs.target
+Requires=-.mount opt-datasearch-0.mount
+root@node76:/var/log#
+</code></pre>
+<p>这里有个opt-datasearch-0.mount，而这个正好是ES data所对应的挂载点信息，说明启停ES服务时动了/etc/fstab文件了，新增或删除了/etc/fsta对应的ES挂载点信息了，依照这个思路，调整一下产品修改/etc/fstab时间点，在停用ES时，最先去修改/etc/fstab文件，然后才去执行清理zone-group、umount、formate disk，disable es等等动作，然后使用上述脚本验证了30次，问题没有再次浮现。而在调整前，几次就会复现。</p>
+<h1 id="tui-lun">推论</h1>
+<p>产品停用ES时：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/disable_es1.png" width="1200">
+<p>上图中，红色箭头1，是自己手动添加的，这个步骤，原先是放在红色箭头2的函数里的。 可以看出，停用ES服务时，先拔除了elasticsearch的开机自启动，再进行ES disk分区的擦写操作（其中包括修改/etc/fstab文件）：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/disable_es2.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/disable_es3.png" width="1200">
+<p>而ES disk对应的mount挂载点：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/fstab_content.png" width="1200">
+<p>options 选项是auto,部分journalctl -xb信息如下：</p>
+<pre><code class="language-shell">Jun 19 18:30:02 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:30:02 node76 kernel:  sdf: sdf1
+Jun 19 18:30:02 node76 kernel: ata2.00: Enabling discard_zeroes_data
+Jun 19 18:30:02 node76 kernel:  sdf:
+Jun 19 18:30:02 node76 multipath[854423]: sdf: using deprecated getuid callout
+Jun 19 18:30:02 node76 systemd-udevd[854418]: inotify_add_watch(9, /dev/sdf1, 10) failed: No such file or directory
+Jun 19 18:30:02 node76 systemd[1]: Mounting /opt/datasearch/0...
+-- Subject: Unit opt-datasearch-0.mount has begun start-up
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+-- Unit opt-datasearch-0.mount has begun starting up.
+Jun 19 18:30:02 node76 systemd[1]: Stopped target Local File Systems.
+-- Subject: Unit local-fs.target has finished shutting down
+cal-fs.targetlocal-fs.target
+-- Defined-By: systemd
+-- Support: http://lists.freedesktop.org/mailman/listinfo/systemd-devel
+--
+</code></pre>
+<p>推断，local-fs.target requires <code>opt-datasearch-0.mount</code>，而对应挂载点出现’not found’(见开篇’systemctl --failed’的输出信息)，导致local-fs.target出现timeout（DefaultTimeoutStartSec=90，/etc/systemd/system.conf文件中，默认90s），而local-fs.target.wants是需要/etc/fstab,这里还有个Conflicts=shutdown.target</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/local-fs.target.wants.png" width="1200">
+<p>最终应该是触发了shutdown操作，停止了众多的服务，而被停止的服务，是依赖于local-fs.target的，以ceph-osd为示例：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/ceph-osd.target.wants.png" width="1200">
+<h1 id="jie-yu">结语</h1>
+<p>分析至此，基本上知道问题的所在了，具体解法如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>启用ES服务时，等ES相关的服务启用好后，最最后更改/etc/fstab文件；</p>
+</li>
+<li class="lvl-2">
+<p>停用ES服务时，第一步就是更改/etc/fstab文件。</p>
+</li>
+</ul>
+<h1 id="can-kao-wen-dang">参考文档</h1>
+<pre><code class="language-shell">https://zhangguanzhang.github.io/2019/01/30/fstab/
+https://www.freedesktop.org/software/systemd/man/systemd.mount.html
+https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#
+http://www.jinbuguo.com/systemd/systemd.special.html
+https://unix.stackexchange.com/questions/416640/how-to-disable-systemd-agressive-emergency-shell-behaviour
+https://www.freedesktop.org/software/systemd/man/systemd.unit.html
+</code></pre>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2020/06/22/disable_es_local_fs.target_failed_with_result_dependency/">https://gavin-wang-note.github.io/2020/06/22/disable_es_local_fs.target_failed_with_result_dependency/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/python/">
+                                    <span class="chip bg-color">python</span>
+                                </a>
+                            
+                                <a href="/tags/elasticsearch/">
+                                    <span class="chip bg-color">elasticsearch</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+        <style>
+    .valine-card {
+        margin: 1.5rem auto;
+    }
+
+    .valine-card .card-content {
+        padding: 20px 20px 5px 20px;
+    }
+
+    #vcomments textarea {
+        box-sizing: border-box;
+        background: url("/medias/comment_bg.png") 100% 100% no-repeat;
+    }
+
+    #vcomments p {
+        margin: 2px 2px 10px;
+        font-size: 1.05rem;
+        line-height: 1.78rem;
+    }
+
+    #vcomments blockquote p {
+        text-indent: 0.2rem;
+    }
+
+    #vcomments a {
+        padding: 0 2px;
+        color: #4cbf30;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    #vcomments img {
+        max-width: 100%;
+        height: auto;
+        cursor: pointer;
+    }
+
+    #vcomments ol li {
+        list-style-type: decimal;
+    }
+
+    #vcomments ol,
+    ul {
+        display: block;
+        padding-left: 2em;
+        word-spacing: 0.05rem;
+    }
+
+    #vcomments ul li,
+    ol li {
+        display: list-item;
+        line-height: 1.8rem;
+        font-size: 1rem;
+    }
+
+    #vcomments ul li {
+        list-style-type: disc;
+    }
+
+    #vcomments ul ul li {
+        list-style-type: circle;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    #vcomments table, th, td {
+        border: 0;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments h1 {
+        font-size: 1.85rem;
+        font-weight: bold;
+        line-height: 2.2rem;
+    }
+
+    #vcomments h2 {
+        font-size: 1.65rem;
+        font-weight: bold;
+        line-height: 1.9rem;
+    }
+
+    #vcomments h3 {
+        font-size: 1.45rem;
+        font-weight: bold;
+        line-height: 1.7rem;
+    }
+
+    #vcomments h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    #vcomments h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: 1.4rem;
+    }
+
+    #vcomments h6 {
+        font-size: 1rem;
+        line-height: 1.3rem;
+    }
+
+    #vcomments p {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+
+    #vcomments hr {
+        margin: 12px 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+
+    #vcomments blockquote {
+        margin: 15px 0;
+        border-left: 5px solid #42b983;
+        padding: 1rem 0.8rem 0.3rem 0.8rem;
+        color: #666;
+        background-color: rgba(66, 185, 131, .1);
+    }
+
+    #vcomments pre {
+        font-family: monospace, monospace;
+        padding: 1.2em;
+        margin: .5em 0;
+        background: #272822;
+        overflow: auto;
+        border-radius: 0.3em;
+        tab-size: 4;
+    }
+
+    #vcomments code {
+        font-family: monospace, monospace;
+        padding: 1px 3px;
+        font-size: 0.92rem;
+        color: #e96900;
+        background-color: #f8f8f8;
+        border-radius: 2px;
+    }
+
+    #vcomments pre code {
+        font-family: monospace, monospace;
+        padding: 0;
+        color: #e8eaf6;
+        background-color: #272822;
+    }
+
+    #vcomments pre[class*="language-"] {
+        padding: 1.2em;
+        margin: .5em 0;
+    }
+
+    #vcomments code[class*="language-"],
+    pre[class*="language-"] {
+        color: #e8eaf6;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+
+    #vcomments b,
+    strong {
+        font-weight: bold;
+    }
+
+    #vcomments dfn {
+        font-style: italic;
+    }
+
+    #vcomments small {
+        font-size: 85%;
+    }
+
+    #vcomments cite {
+        font-style: normal;
+    }
+
+    #vcomments mark {
+        background-color: #fcf8e3;
+        padding: .2em;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+</style>
+
+<div class="card valine-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="vcomments" class="card-content" style="display: grid">
+    </div>
+</div>
+
+<script src="/libs/valine/av-min.js"></script>
+<script src="/libs/valine/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        appId: 'KwdHYxl35AMSyYmRusfD4jAb-MdYXbMMI',
+        appKey: 'Fmya2ecU2tXuNNihFWGH9V0P',
+        serverURLs: 'https://kwdhyxl3.api.lncldglobal.com',
+        notify: 'false' === 'true',
+        verify: 'false' === 'true',
+        visitor: 'true' === 'true',
+        avatar: 'mm',
+        pageSize: '12',
+        lang: 'zh-cn',
+        placeholder: 'just go go'
+    });
+</script>
+
+<!--酷Q推送-->
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2020/06/23/get_lab_ipmi_address/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/45.jpg" class="responsive-img" alt="快速获取Lab中哪些IPMI IP地址被使用">
+                        
+                        <span class="card-title">快速获取Lab中哪些IPMI IP地址被使用</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2020-06-23
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
+                                </a>
+                            
+                            <a href="/categories/fping/" class="post-category">
+                                    fping
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
+                    </a>
+                    
+                    <a href="/tags/fping/">
+                        <span class="chip bg-color">fping</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2020/06/16/ceph_multi_tenancy/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/193.jpg" class="responsive-img" alt="ceph S3 多租户">
+                        
+                        <span class="card-title">ceph S3 多租户</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2020-06-16
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/ceph/" class="post-category">
+                                    ceph
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/ceph/">
+                        <span class="chip bg-color">ceph</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: 努力，奋进<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 15px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2013-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">495.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+                <span id="sitetime"> Loading ...</span>
+                <script>
+                    var calcSiteTime = function () {
+                        var seconds = 1000;
+                        var minutes = seconds * 60;
+                        var hours = minutes * 60;
+                        var days = hours * 24;
+                        var years = days * 365;
+                        var today = new Date();
+                        var startYear = "2013";
+                        var startMonth = "9";
+                        var startDate = "28";
+                        var startHour = "0";
+                        var startMinute = "0";
+                        var startSecond = "0";
+                        var todayYear = today.getFullYear();
+                        var todayMonth = today.getMonth() + 1;
+                        var todayDate = today.getDate();
+                        var todayHour = today.getHours();
+                        var todayMinute = today.getMinutes();
+                        var todaySecond = today.getSeconds();
+                        var t1 = Date.UTC(startYear, startMonth, startDate, startHour, startMinute, startSecond);
+                        var t2 = Date.UTC(todayYear, todayMonth, todayDate, todayHour, todayMinute, todaySecond);
+                        var diff = t2 - t1;
+                        var diffYears = Math.floor(diff / years);
+                        var diffDays = Math.floor((diff / days) - diffYears * 365);
+
+                        // 区分是否有年份.
+                        var language = 'zh-CN';
+                        if (startYear === String(todayYear)) {
+                            document.getElementById("year").innerHTML = todayYear;
+                            var daysTip = 'This site has been running for ' + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                daysTip = '本站已运行 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                daysTip = '本站已運行 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = daysTip;
+                        } else {
+                            document.getElementById("year").innerHTML = startYear + " - " + todayYear;
+                            var yearsAndDaysTip = 'This site has been running for ' + diffYears + ' years and '
+                                + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                yearsAndDaysTip = '本站已运行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                yearsAndDaysTip = '本站已運行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = yearsAndDaysTip;
+                        }
+                    }
+
+                    calcSiteTime();
+                </script>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/gavin-wang-note" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:wangyun_zeng@163.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

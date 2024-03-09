@@ -1,0 +1,2241 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="Linux下部署HDFS, 软硬件测试">
+    <meta name="description" content="HDFS 安装部署
+一、系统浅析
+HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。
+NameNode（名称节点）：
+保存整个文件系统的目录信息、文件信息及分块信息，如果主 Nam">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>Linux下部署HDFS | 努力，奋进</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="努力，奋进" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">努力，奋进</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">努力，奋进</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/gavin-wang-note" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/gavin-wang-note" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/163.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">Linux下部署HDFS</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/HDFS/">
+                                <span class="chip bg-color">HDFS</span>
+                            </a>
+                        
+                            <a href="/tags/HadoopFS/">
+                                <span class="chip bg-color">HadoopFS</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/HDFS/" class="post-category">
+                                HDFS
+                            </a>
+                        
+                            <a href="/categories/HadoopFS/" class="post-category">
+                                HadoopFS
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2023-04-09
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2024-01-26
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    4.6k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    23 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="hdfs-an-zhuang-bu-shu">HDFS 安装部署</h1>
+<h2 id="yi-xi-tong-qian-xi">一、系统浅析</h2>
+<p>HDFS是Hadoop生态下的分布式文件系统, 其中，DataNode和NameNode是HDFS的两大核心。</p>
+<p>NameNode（名称节点）：</p>
+<p>保存整个文件系统的目录信息、文件信息及分块信息，如果主 NameNode 失效，切换到Secondary NameNode。</p>
+<p>NameNode管理文件系统的命名空间，它维护着文件系统树及整棵树内所有的文件和目录，即元数据（MetaData）。</p>
+<p>如果NameNode不可用，那么等同于整个HDFS文件系统不可用。如果NameNode由于故障导致磁盘数据丢失，那么等同于整个HDFS文件系统数据丢失。如果NameNode块映射关系的内存爆满，那么等同于整个HDFS文件系统无法再继续存储，也就是意味着NameNode内存决定了HDFS能够存储的块数量。</p>
+<p>DataNode（数据节点）：</p>
+<p>分布在廉价的计算机上，用于存储Block块文件。 DataNode角色的节点是真正存放块（block）数据的节点，当DataNode启动时，它将扫描其本地文件系统，生成与每个本地文件相对应的所有HDFS数据块的列表，并将此报告发送到NameNode。该报告称为BlockReport。</p>
+<p>现在需要将hdfs部署在我司scaler之上。即可以通过 HDFS客户端上载文件，然后底层存储接入scaler，以scaler存储HDFS数据。</p>
+<h2 id="er-scaler-ji-qun-bu-shu">二、scaler 集群部署</h2>
+<p>本文以scaler 8.3 版本详细说明HDFS部署在scaler上的操作过程。</p>
+<p>1、创建集群</p>
+<p>关于scaler 8.3部分的部署暂不描述。</p>
+<p>2、创建pool hdfs</p>
+<p>3、将pool hdfs 加入cephfs data pool</p>
+<p>4、新建sharefolder，名字为hdfs</p>
+<p>5、在hdfs下创建文件夹备HDFS的namenode、datanode、jornalnode使用</p>
+<pre><code class="language-shell">root@host11:/var/share/ezfs/shareroot/hdfs# mkdir host11 host12 host13
+root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host11/name host11/data host11/jn
+root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host12/name host12/data host12/jn
+root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host13/name host13/data host13/jn
+查看目录结构：
+root@host11:/var/share/ezfs/shareroot/hdfs# tree
+├── host11
+│   ├── data
+│   └── name
+│   └── jn
+├── host12
+│   ├── data
+│   └── name
+│   └── jn
+├── host13
+│   ├── data
+│   └── name
+│   └── jn
+</code></pre>
+<h2 id="san-hdfs-bu-shu">三、HDFS部署</h2>
+<h3 id="1-hadoop-xia-zai">1、hadoop下载</h3>
+<pre><code class="language-shell">wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz
+</code></pre>
+<h3 id="2-jie-ya">2、解压</h3>
+<p>在所有节点上解压hadoop包， 命令如下</p>
+<pre><code class="language-shell">tar -zxvf hadoop-3.3.2.tar.gz -C /usr/local/
+</code></pre>
+<h3 id="3-zhong-ming-ming">3、重命名</h3>
+<p>在所有节点上重命名hadoop</p>
+<pre><code class="language-shell">onnode all mv /usr/local/hadoop-3.3.2 /usr/local/hadoop
+ 
+</code></pre>
+<h3 id="4-huan-jing-bian-liang-pei-zhi">4、环境变量配置</h3>
+<p>Hadoop安装时需要配置一些环境变量，如指定HADOOP_HOME位置，指定java环境变量等，主要集中在两个配置文件中。</p>
+<p>修改/etc/profile配置</p>
+<pre><code class="language-shell">vim /etc/profile
+# 添加如下配置
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
+# export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+# export PATH=$JAVA_HOME/bin:$PATH
+# export CLASSPATH=.:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
+ 
+</code></pre>
+<p>加载环境变量</p>
+<pre><code class="language-shell">source /etc/profile
+</code></pre>
+<p>修改hadoop-env.sh配置</p>
+<p>hadoop-env.sh为hadoop运行环境定义hadoop运行环境相关的配置信息</p>
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh
+# 添加如下配置
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
+export HADOOP_HOME=/usr/local/hadoop
+export HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+export HADOOP_SECURE_LOG=/var/log/hdfs
+export HADOOP_ROOT_LOGGER=INFO,console
+export HADOOP_DAEMON_ROOT_LOGGER=INFO,RFA
+export HADOOP_SECURITY_LOGGER=INFO,NullAppender
+export HADOOP_AUDIT_LOGGER=INFO,NullAppender
+export HDFS_NAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
+export HDFS_SECONDARYNAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
+</code></pre>
+<p>修改dev_env.sh配置</p>
+<pre><code class="language-shell">vim /etc/profile.d/dev_env.sh
+# 添加如下配置
+export HADOOP_HOME=/usr/local/hadoop
+export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
+ 
+</code></pre>
+<p>以上配置文件完成，需要同步复制到其它所有节点</p>
+<h3 id="5-xiu-gai-mu-lu-quan-xian">5、修改目录权限</h3>
+<p>用户名及用户组</p>
+<pre><code class="language-shell">chown -R root /usr/local/hadoop
+chgrp -R root /usr/local/hadoop
+</code></pre>
+<h3 id="6-yan-zheng">6、验证</h3>
+<pre><code class="language-shell">root@host12:/usr/local/hadoop/etc/hadoop#  hadoop version
+Hadoop 3.3.2
+Source code repository git@github.com:apache/hadoop.git -r 0bcb014209e219273cb6fd4152df7df713cbac61
+Compiled by chao on 2022-02-21T18:39Z
+Compiled with protoc 3.7.1
+From source with checksum 4b40fff8bb27201ba07b6fa5651217fb
+This command was run using /usr/local/hadoop/share/hadoop/common/hadoop-common-3.3.2.jar
+</code></pre>
+<p>如上提示即为配置成功</p>
+<h3 id="7-xiu-gai-hdfs-pei-zhi-wen-jian">7、修改HDFS配置文件</h3>
+<p>Hadoop所有的配置文件都存在于安装目录下的etc/hadoop中，需要修改如下配置文件</p>
+<h4 id="7-1-core-site-xml-pei-zhi">7.1、core-site.xml配置</h4>
+<p>core-site.xml：集群全局参数，用于定义系统级别的参数，如HDFS URL 、Hadoop的临时目录等</p>
+<p>·    fs.defaultFS：HDFS的默认访问路径。</p>
+<p>·    hadoop.tmp.dir：Hadoop临时文件的存放目录，可自定义。</p>
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/core-site.xml
+
+&lt;configuration&gt;
+   &lt;property&gt;
+       &lt;name&gt;fs.defaultFS&lt;/name&gt;
+       &lt;value&gt;hdfs://mycluster&lt;/value&gt; 
+   &lt;/property&gt;
+   &lt;property&gt;
+       &lt;name&gt;hadoop.tmp.dir&lt;/name&gt;
+       &lt;value&gt;/usr/local/hadoop/tmp&lt;/value&gt;
+   &lt;/property&gt;
+   &lt;property&gt;
+       &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;
+       &lt;value&gt;host11:2181,host12:2181,host13:2181&lt;/value&gt;
+   &lt;/property&gt;
+&lt;/configuration&gt;
+ 
+</code></pre>
+<h4 id="7-2-xiu-gai-hdfs-hdfs-site-xml-pei-zhi">7.2、修改hdfs hdfs-site.xml配置</h4>
+<p>hdfs-site.xml HDFS 如名称节点和数据节点的存放位置、文件副本的个数、文件的读取权限等</p>
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml
+
+&lt;configuration&gt;
+    &lt;!-- 定义集群名称 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.nameservices&lt;/name&gt;
+        &lt;value&gt;mycluster&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 定义集群中NameNode节点 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.namenodes.mycluster&lt;/name&gt;
+        &lt;value&gt;nn1,nn2,nn3&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn1的RPC通信地址 host11为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.mycluster.nn1&lt;/name&gt;
+        &lt;value&gt;host11:9000&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn2的RPC通信地址 host12为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.mycluster.nn2&lt;/name&gt;
+        &lt;value&gt;host12:9000&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn3的RPC通信地址 host13为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.mycluster.nn3&lt;/name&gt;
+        &lt;value&gt;host13:9000&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn1的http通信地址  host11为实际机器的hostname--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.mycluster.nn1&lt;/name&gt;
+        &lt;value&gt;host11:50070&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn2的http通信地址 host12为实际机器的hostname--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.mycluster.nn2&lt;/name&gt;
+        &lt;value&gt;host12:50070&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- nn3的http通信地址 host13为实际机器的hostname --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.mycluster.nn3&lt;/name&gt;
+        &lt;value&gt;host13:50070&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 指定NameNode元数据在JournalNode上的存放位置 hostname以实际配置为准 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.namenode.shared.edits.dir&lt;/name&gt;
+        &lt;value&gt;qjournal://host11:8485;host12:8485;host13:8485/mycluster&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 配置隔离机制，即同一时刻只能有一台服务器对外响应 --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.fencing.methods&lt;/name&gt;
+        &lt;value&gt;sshfence&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 使用隔离机制时需要ssh无秘钥登录--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.fencing.ssh.private-key-files&lt;/name&gt;
+        &lt;value&gt;/root/.ssh/id_rsa&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 1、声明journalnode服务器存储目录 目录结构在上文中已经创建，如果不创建则会报错
+         2、/host11/jn， 每个节点都需要修改为自己节点hostname，三个节点各不相同
+    --&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.journalnode.edits.dir&lt;/name&gt;
+        &lt;value&gt;/var/share/ezfs/shareroot/hdfs/host11/jn&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 关闭权限检查--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.permissions.enable&lt;/name&gt;
+        &lt;value&gt;false&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- 访问代理类：client，mycluster，active配置失败自动切换实现方式--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.client.failover.proxy.provider.mycluster&lt;/name&gt;             
+        &lt;value&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!-- namenode存储目录，每个节点各不相同，目录结构已经在上文中创建--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.name.dir&lt;/name&gt;
+        &lt;value&gt;/var/share/ezfs/shareroot/hdfs/host11/name&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!--DateNode存储目录，没有则新建--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.data.dir&lt;/name&gt;
+        &lt;value&gt;/var/share/ezfs/shareroot/hdfs/host11/data&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;!--文件在HDFS系统中的副本数--&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.replication&lt;/name&gt;
+        &lt;value&gt;3&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+        &lt;name&gt;hadoop.http.staticuser.user&lt;/name&gt;
+        &lt;value&gt;root&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property&gt;
+        &lt;name&gt;dfs.ha.automatic-failover.enabled&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/configuration&gt;
+ 
+</code></pre>
+<h4 id="7-3-xiu-gai-qi-ting-pei-zhi">7.3、修改启停配置</h4>
+<p>修改启动的配置文件：<a target="_blank" rel="noopener" href="http://start-dfs.sh">start-dfs.sh</a></p>
+<pre><code class="language-shell">vim /usr/local/hadoop/sbin/start-dfs.sh
+# 添加如下配置
+HDFS_DATANODE_USER=root
+HADOOP_SECURE_USER=root
+HDFS_NAMENODE_USER=root
+HDFS_SECONDARYNAMENODE_USER=root
+HDFS_ZKFC_USER=root
+HDFS_JOURNALNODE_USER=root
+
+</code></pre>
+<p>修改停用的配置文件：<a target="_blank" rel="noopener" href="http://stop-dfs.sh">stop-dfs.sh</a></p>
+<pre><code class="language-shell">vim /usr/local/hadoop/sbin/stop-dfs.sh
+# 添加如下配置
+HDFS_DATANODE_USER=root
+HADOOP_SECURE_USER=root
+HDFS_NAMENODE_USER=root
+HDFS_SECONDARYNAMENODE_USER=root
+HDFS_ZKFC_USER=root
+HDFS_JOURNALNODE_USER=root
+ 
+</code></pre>
+<h4 id="7-4-workers-she-zhi">7.4、workers 设置</h4>
+<pre><code class="language-shell">vim /usr/local/hadoop/etc/hadoop/workers
+host11
+host12
+host13
+# 以实际机器的hostname为准
+ 
+</code></pre>
+<h4 id="7-5-hosts-she-zhi">7.5、hosts设置</h4>
+<p>服务器端host配置</p>
+<pre><code class="language-shell">vim /etc/hosts
+172.17.73.11 host11
+172.17.73.12 host12
+172.17.73.13 host13
+# 需要把127.0.1.1 注释掉，否则后面会出错。
+# 以实际机器的hostname为准
+
+</code></pre>
+<h4 id="7-6-chuang-jian-ruan-jian-lian-jie">7.6、创建软件链接</h4>
+<pre><code class="language-shell">onnode all ln -s /usr/share/elasticsearch/jdk/bin/jps /bin/jps
+ 
+</code></pre>
+<h2 id="si-zookeeper-bu-fen">四、zookeeper部分：</h2>
+<h3 id="1-jie-ya">1、解压</h3>
+<pre><code class="language-shell">tar -zxvf /home/btadmin/zookeeper.tar.gz -C /usr/local
+ 
+</code></pre>
+<h3 id="2-chuang-jian-wen-jian-jia">2、创建文件夹</h3>
+<pre><code class="language-shell">mkdir -p /usr/local/zookeeper/zkData
+ 
+</code></pre>
+<h3 id="3-xiu-gai-wen-jian-ming">3、修改文件名</h3>
+<pre><code class="language-shell">mv /usr/local/zookeeper/conf/zoo_sample.cfg /usr/local/zookeeper/conf/zoo.cfg
+</code></pre>
+<h3 id="4-xiu-gai-wen-jian-zoo-cfg">4、修改文件zoo.cfg</h3>
+<pre><code class="language-shell">vim /usr/local/zookeeper/conf/zoo.cfg
+
+#添加如下配置
+
+dataDir=/usr/local/zookeeper/zkData/
+server.1=host11:2888:3888
+server.2=host12:2888:3888
+server.3=host13:2888:3888
+ 
+admin.serverPort=8085
+ 
+</code></pre>
+<h3 id="5-xiu-gai-mu-lu-quan-xian-1">5、修改目录权限</h3>
+<p>用户名及用户组</p>
+<pre><code class="language-shell">chown -R root /usr/local/zookeeper
+chgrp -R root /usr/local/zookeeper
+</code></pre>
+<h3 id="6-xiu-gai-wen-jian-myid-wen-jian">6、修改文件myid文件</h3>
+<p>在多个节点上分别配置myid文件，序号依次增加</p>
+<p>在第一个节点值为1</p>
+<pre><code class="language-shell">vim /usr/local/zookeeper/zkData/myid
+1
+</code></pre>
+<p>在第二个节点值为2</p>
+<pre><code class="language-shell">vim /usr/local/zookeeper/zkData/myid
+2
+</code></pre>
+<p>在第三个节点值为3</p>
+<pre><code class="language-shell">vim /usr/local/zookeeper/zkData/myid
+3
+</code></pre>
+<h2 id="wu-qi-dong-ji-qun">五、启动集群</h2>
+<p>HDFS HA配置完成后，下面我们将集群启动</p>
+<h3 id="1-xian-qi-dong-zookeeper-ji-qun">1、先启动zookeeper集群</h3>
+<pre><code class="language-shell"># 在所有节点分别执行如下命令：
+/usr/local/zookeeper/bin/zkServer.sh start
+ 
+# 在第一个节点执行如下命令：
+hdfs zkfc -formatZK
+ 
+# 在所有节点执行如下命令：
+hdfs --daemon start zkfc
+</code></pre>
+<p>执行成功后可看：</p>
+<pre><code class="language-shell">root@host13:/home/btadmin# jps
+180491 Jps
+154684 DFSZKFailoverController
+ 
+# 看到DFSZKFailoverController表示启动成功
+</code></pre>
+<h3 id="2-qi-dong-hdfs">2、启动HDFS</h3>
+<p>删除各个节点的$HADOOP_HOME/tmp目录下的所有文件（如果是新建环境不需要此步）</p>
+<p>在各个节点分别执行下面命令，启动三台JournalNode ：</p>
+<pre><code class="language-shell">hdfs --daemon start journalnode
+</code></pre>
+<p>启动结果如下</p>
+<pre><code class="language-shell">root@host11:/usr/local/hadoop/sbin# jps
+494797 JournalNode
+ 
+# 表示JournalNode启动成功
+</code></pre>
+<h3 id="3-ge-shi-hua-namenode">3、格式化namenode</h3>
+<p>只在第一个节点上执行namenode格式化。</p>
+<p>注意：如果没有启动JournalNode，格式化将失败</p>
+<pre><code class="language-shell">hdfs namenode -format
+ 
+</code></pre>
+<p>出现如下输出代表格式化成功：</p>
+<pre><code class="language-shell">2023-04-21 13:51:54,909 INFO util.GSet: 0.25% max memory 1.7 GB = 4.4 MB
+2023-04-21 13:51:54,909 INFO util.GSet: capacity      = 2^19 = 524288 entries
+2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.window.num.buckets = 10
+2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.num.users = 10
+2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.windows.minutes = 1,5,25
+2023-04-21 13:51:54,932 INFO namenode.FSNamesystem: Retry cache on namenode is enabled
+2023-04-21 13:51:54,932 INFO namenode.FSNamesystem: Retry cache will use 0.03 of total heap and retry cache entry expiry time is 600000 millis
+2023-04-21 13:51:54,934 INFO util.GSet: Computing capacity for map NameNodeRetryCache
+2023-04-21 13:51:54,934 INFO util.GSet: VM type       = 64-bit
+2023-04-21 13:51:54,934 INFO util.GSet: 0.029999999329447746% max memory 1.7 GB = 538.1 KB
+2023-04-21 13:51:54,934 INFO util.GSet: capacity      = 2^16 = 65536 entries
+2023-04-21 13:51:56,366 INFO namenode.FSImage: Allocated new BlockPoolId: BP-1632620897-127.0.1.1-1682056316366
+2023-04-21 13:51:56,461 INFO common.Storage: Storage directory /var/share/ezfs/shareroot/hdfs/host11/name has been successfully formatted.
+2023-04-21 13:51:57,003 INFO namenode.FSImageFormatProtobuf: Saving image file /var/share/ezfs/shareroot/hdfs/host11/name/current/fsimage.ckpt_0000000000000000000 using no compression
+2023-04-21 13:51:57,139 INFO namenode.FSImageFormatProtobuf: Image file /var/share/ezfs/shareroot/hdfs/host11/name/current/fsimage.ckpt_0000000000000000000 of size 399 bytes saved in 0 seconds .
+2023-04-21 13:51:57,171 INFO namenode.NNStorageRetentionManager: Going to retain 1 images with txid &gt;= 0
+2023-04-21 13:51:57,230 INFO namenode.FSNamesystem: Stopping services started for active state
+2023-04-21 13:51:57,231 INFO namenode.FSNamesystem: Stopping services started for standby state
+2023-04-21 13:51:57,235 INFO namenode.FSImage: FSImageSaver clean checkpoint: txid=0 when meet shutdown.
+2023-04-21 13:51:57,235 INFO namenode.NameNode: SHUTDOWN_MSG: 
+/************************************************************
+SHUTDOWN_MSG: Shutting down NameNode at host11/127.0.0.1
+************************************************************
+</code></pre>
+<h3 id="4-qi-dong-di-yi-ge-jie-dian-de-namenode">4、启动第一个节点的namenode</h3>
+<p>注意：namenode在启动前必须执行格式化namenode操作，如果不执行，则启动namenode操作失败</p>
+<p>如果先启动namenode失败后，需要再格式化namenode的话，需要把name data jn文件夹下的内容全部删除，/tmp/下hadoop部分的内容删除后，格式化namenode才能成功</p>
+<p>在第一个节点启动namenode， 启动namenode后会生成images元数据</p>
+<pre><code class="language-shell">hdfs --daemon start namenode
+</code></pre>
+<h3 id="5-qi-dong-di-er-san-ge-jie-dian-de-bootstrap-standby">5、启动第二，三个节点的bootstrapStandby</h3>
+<p>在启动第二，三节点的namenode之前 ，需要先执行同步数据操作，将第一个节点上的NameNode元数据拷贝到第二个，第三个节点上。命令如下：</p>
+<pre><code class="language-shell">hdfs namenode -bootstrapStandby
+</code></pre>
+<p>输出以下信息代表拷贝成功：</p>
+<pre><code class="language-shell">18/03/15 14:28:01 INFO common.Storage: Storage directory /opt/modules/hadoop-2.7.1/tmp/dfs/name has been successfully formatted.
+</code></pre>
+<p>启动第二，三节点namenode，命令如下</p>
+<pre><code class="language-shell">hdfs --daemon start namenode
+</code></pre>
+<h3 id="6-qi-dong-suo-you-jie-dian-de-datanode">6、启动所有节点的datanode</h3>
+<p>在所有节点上启动datanode</p>
+<pre><code class="language-shell">hdfs --daemon start datanode
+</code></pre>
+<h3 id="7-qie-huan-nn-1-wei-namenode-active">7、切换nn1为namenode active</h3>
+<pre><code class="language-shell">hdfs haadmin -transitionToActive nn1
+</code></pre>
+<h3 id="8-que-ren-fu-wu-zhuang-tai">8、确认服务状态</h3>
+<pre><code class="language-shell">onnode all jps
+ 
+&gt;&gt; NODE: 10.10.10.11 &lt;&lt;
+439493 Jps
+416240 DataNode
+377026 DFSZKFailoverController
+380124 JournalNode
+368555 QuorumPeerMain
+421097 NameNode
+ 
+&gt;&gt; NODE: 10.10.10.12 &lt;&lt;
+218659 Jps
+163971 JournalNode
+213088 DataNode
+178596 NameNode
+161803 DFSZKFailoverController
+155512 QuorumPeerMain
+ 
+&gt;&gt; NODE: 10.10.10.13 &lt;&lt;
+206103 DataNode
+156919 JournalNode
+209579 NameNode
+148043 QuorumPeerMain
+154684 DFSZKFailoverController
+209885 Jps
+</code></pre>
+<p>至此，HDAP集群搭建完成</p>
+<h2 id="liu-ke-hu-duan-pei-zhi">六、客户端配置</h2>
+<p>修改客户端hosts配置文件：</p>
+<p>打开文件c:\Windows\System32\drivers\etc\hosts</p>
+<pre><code class="language-shell">172.17.73.11 host11
+172.17.73.12 host12
+172.17.73.13 host13
+</code></pre>
+<h2 id="qi-hdfs-shi-yong">七、HDFS使用</h2>
+<p>使用浏览器打开HDFS 客户端</p>
+<pre><code class="language-shell">http://172.17.73.11:50070/
+</code></pre>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-1.png" width="1200">
+<p>可以看到当前节点是NN1且处于active状态</p>
+<p>上传文件，打开如下界面</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-2.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-3.png" width="1200">
+<p>上传文件后如下：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-4.png" width="1200">
+<p>上传成功！</p>
+<h2 id="ba-yu-dao-wen-ti-ji-jie-jue-fang-fa">八、遇到问题及解决方法</h2>
+<p>问题1、第二或第三个节点执行BootstrapStandby 格式无法成功。 显示如下</p>
+<pre><code class="language-shell">2023-04-21 13:55:00,314 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 0 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:01,315 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 1 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:02,316 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 2 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:03,317 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 3 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:04,319 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 4 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:05,320 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 5 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:06,322 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 6 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:07,323 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 7 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:08,324 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 8 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:09,326 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 9 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
+2023-04-21 13:55:09,335 WARN ha.BootstrapStandby: Unable to fetch namespace information from remote NN at host11/172.17.73.11:9000: Call From host15/172.17.73.15 to host11:9000 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused
+2023-04-21 13:55:19,352 WARN ha.BootstrapStandby: Unable to fetch namespace information from remote NN at host16/172.17.73.16:9000: Call From host15/172.17.73.12 to host16:9000 failed on connection exception: java.net.ConnectException: Connection refused; For more details see:  http://wiki.apache.org/hadoop/ConnectionRefused
+2023-04-21 13:55:19,353 ERROR ha.BootstrapStandby: Unable to fetch namespace information from any remote NN. Possible NameNodes: [RemoteNameNodeInfo [nnId=nn1, ipcAddress=host11/172.17.73.11:9000, httpAddress=http://host11:50070], RemoteNameNodeInfo [nnId=nn3, ipcAddress=host16/172.17.73.16:9000, httpAddress=http://host16:50070]]
+2023-04-21 13:55:19,357 INFO util.ExitUtil: Exiting with status 2: ExitException
+2023-04-21 13:55:19,360 INFO namenode.NameNode: SHUTDOWN_MSG: 
+/************************************************************
+SHUTDOWN_MSG: Shutting down NameNode at host12/172.17.73.12
+************************************************************/
+
+</code></pre>
+<p>解决：</p>
+<p>查看端口的使用情况，发现请求的9000端口使用情况如下：</p>
+<pre><code class="language-shell">root@host11:/tmp# lsof -i:9000
+COMMAND    PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    498909 root  330u  IPv4 689923      0t0  TCP 127.0.1.1:9000 (LISTEN)
+端口的ip是127.0.1.1
+</code></pre>
+<p>进一步查原因，发现/etc/hosts里host11的ip是127.0.1.1，而请求的是172.17.13.11</p>
+<p>把/etc/hosts里127.0.1.1注释掉。重启node1</p>
+<p>然后按顺序重新启动journalnode. namenode</p>
+<p>再次查看</p>
+<pre><code class="language-shell">root@host11:/usr/local/hadoop/sbin# lsof -i:9000
+COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java 
+</code></pre>
+<p>结果正常</p>
+<p>问题二：无法上传文件，如下</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-5.png" width="1200">
+<p>解决方法：</p>
+<pre><code class="language-shell">root@host11:/usr/local/hadoop/sbin# hdfs haadmin -getServiceState nn2
+active
+ 
+</code></pre>
+<p>从UI上登录active节点即可</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-6.png" width="1200">
+<p>问题三：上传文件失败</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-7.png" width="1200">
+<p>解决方法：</p>
+<p>客户端没有配置host</p>
+<p>打开文件c:\Windows\System32\drivers\etc\hosts</p>
+<p>添加三个节点的host</p>
+<pre><code class="language-shell">172.17.73.11 host11
+172.17.73.12 host12
+172.17.73.13 host13
+</code></pre>
+<p>再次尝试</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-8.png" width="1200">
+<p>文件上传成功！</p>
+<p>问题四：启动zookeeper失败</p>
+<p>bug现象：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/HDFS-9.png" width="1200">
+<p>log：</p>
+<pre><code class="language-shell">2023-04-24 14:37:11,952 [myid:] - WARN  [main:ConstraintSecurityHandler@759] - ServletContext@o.e.j.s.ServletContextHandler@1b68ddbd{/,null,STARTING} has uncovered http methods for path: /*
+2023-04-24 14:37:11,961 [myid:] - INFO  [main:ContextHandler@915] - Started o.e.j.s.ServletContextHandler@1b68ddbd{/,null,AVAILABLE}
+2023-04-24 14:37:11,970 [myid:] - ERROR [main:ZooKeeperServerMain@86] - Unable to start AdminServer, exiting abnormally
+org.apache.zookeeper.server.admin.AdminServer$AdminServerException: Problem starting AdminServer on address 0.0.0.0, port 8080 and command URL /commands
+        at org.apache.zookeeper.server.admin.JettyAdminServer.start(JettyAdminServer.java:188)
+        at org.apache.zookeeper.server.ZooKeeperServerMain.runFromConfig(ZooKeeperServerMain.java:155)
+        at org.apache.zookeeper.server.ZooKeeperServerMain.initializeAndRun(ZooKeeperServerMain.java:113)
+        at org.apache.zookeeper.server.ZooKeeperServerMain.main(ZooKeeperServerMain.java:68)
+        at org.apache.zookeeper.server.quorum.QuorumPeerMain.initializeAndRun(QuorumPeerMain.java:141)
+        at org.apache.zookeeper.server.quorum.QuorumPeerMain.main(QuorumPeerMain.java:91)
+Caused by: java.io.IOException: Failed to bind to /0.0.0.0:8080
+        at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:349)
+        at org.eclipse.jetty.server.ServerConnector.open(ServerConnector.java:310)
+        at org.eclipse.jetty.server.AbstractNetworkConnector.doStart(AbstractNetworkConnector.java:80)
+        at org.eclipse.jetty.server.ServerConnector.doStart(ServerConnector.java:234)
+        at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73)
+        at org.eclipse.jetty.server.Server.doStart(Server.java:401)
+        at org.eclipse.jetty.util.component.AbstractLifeCycle.start(AbstractLifeCycle.java:73)
+        at org.apache.zookeeper.server.admin.JettyAdminServer.start(JettyAdminServer.java:179)
+        ... 5 more
+Caused by: java.net.BindException: Address already in use
+        at sun.nio.ch.Net.bind0(Native Method)
+        at sun.nio.ch.Net.bind(Net.java:461)
+        at sun.nio.ch.Net.bind(Net.java:453)
+        at sun.nio.ch.ServerSocketChannelImpl.bind(ServerSocketChannelImpl.java:222)
+        at sun.nio.ch.ServerSocketAdaptor.bind(ServerSocketAdaptor.java:85)
+        at org.eclipse.jetty.server.ServerConnector.openAcceptChannel(ServerConnector.java:344)
+        ... 12 more
+Unable to start AdminServer, exiting abnormally
+ 
+</code></pre>
+<p>原因：</p>
+<p>端口占用是8080…</p>
+<p>解决办法：</p>
+<p>在zoo.cfg中增加admin.serverPort=没有被占用的端口号</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2023/04/09/deploy_hdfs/">https://gavin-wang-note.github.io/2023/04/09/deploy_hdfs/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/HDFS/">
+                                    <span class="chip bg-color">HDFS</span>
+                                </a>
+                            
+                                <a href="/tags/HadoopFS/">
+                                    <span class="chip bg-color">HadoopFS</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+        <style>
+    .valine-card {
+        margin: 1.5rem auto;
+    }
+
+    .valine-card .card-content {
+        padding: 20px 20px 5px 20px;
+    }
+
+    #vcomments textarea {
+        box-sizing: border-box;
+        background: url("/medias/comment_bg.png") 100% 100% no-repeat;
+    }
+
+    #vcomments p {
+        margin: 2px 2px 10px;
+        font-size: 1.05rem;
+        line-height: 1.78rem;
+    }
+
+    #vcomments blockquote p {
+        text-indent: 0.2rem;
+    }
+
+    #vcomments a {
+        padding: 0 2px;
+        color: #4cbf30;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    #vcomments img {
+        max-width: 100%;
+        height: auto;
+        cursor: pointer;
+    }
+
+    #vcomments ol li {
+        list-style-type: decimal;
+    }
+
+    #vcomments ol,
+    ul {
+        display: block;
+        padding-left: 2em;
+        word-spacing: 0.05rem;
+    }
+
+    #vcomments ul li,
+    ol li {
+        display: list-item;
+        line-height: 1.8rem;
+        font-size: 1rem;
+    }
+
+    #vcomments ul li {
+        list-style-type: disc;
+    }
+
+    #vcomments ul ul li {
+        list-style-type: circle;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    #vcomments table, th, td {
+        border: 0;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments h1 {
+        font-size: 1.85rem;
+        font-weight: bold;
+        line-height: 2.2rem;
+    }
+
+    #vcomments h2 {
+        font-size: 1.65rem;
+        font-weight: bold;
+        line-height: 1.9rem;
+    }
+
+    #vcomments h3 {
+        font-size: 1.45rem;
+        font-weight: bold;
+        line-height: 1.7rem;
+    }
+
+    #vcomments h4 {
+        font-size: 1.25rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    #vcomments h5 {
+        font-size: 1.1rem;
+        font-weight: bold;
+        line-height: 1.4rem;
+    }
+
+    #vcomments h6 {
+        font-size: 1rem;
+        line-height: 1.3rem;
+    }
+
+    #vcomments p {
+        font-size: 1rem;
+        line-height: 1.5rem;
+    }
+
+    #vcomments hr {
+        margin: 12px 0;
+        border: 0;
+        border-top: 1px solid #ccc;
+    }
+
+    #vcomments blockquote {
+        margin: 15px 0;
+        border-left: 5px solid #42b983;
+        padding: 1rem 0.8rem 0.3rem 0.8rem;
+        color: #666;
+        background-color: rgba(66, 185, 131, .1);
+    }
+
+    #vcomments pre {
+        font-family: monospace, monospace;
+        padding: 1.2em;
+        margin: .5em 0;
+        background: #272822;
+        overflow: auto;
+        border-radius: 0.3em;
+        tab-size: 4;
+    }
+
+    #vcomments code {
+        font-family: monospace, monospace;
+        padding: 1px 3px;
+        font-size: 0.92rem;
+        color: #e96900;
+        background-color: #f8f8f8;
+        border-radius: 2px;
+    }
+
+    #vcomments pre code {
+        font-family: monospace, monospace;
+        padding: 0;
+        color: #e8eaf6;
+        background-color: #272822;
+    }
+
+    #vcomments pre[class*="language-"] {
+        padding: 1.2em;
+        margin: .5em 0;
+    }
+
+    #vcomments code[class*="language-"],
+    pre[class*="language-"] {
+        color: #e8eaf6;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+
+    #vcomments b,
+    strong {
+        font-weight: bold;
+    }
+
+    #vcomments dfn {
+        font-style: italic;
+    }
+
+    #vcomments small {
+        font-size: 85%;
+    }
+
+    #vcomments cite {
+        font-style: normal;
+    }
+
+    #vcomments mark {
+        background-color: #fcf8e3;
+        padding: .2em;
+    }
+
+    #vcomments table, th, td {
+        padding: 12px 13px;
+        border: 1px solid #dfe2e5;
+    }
+
+    table tr:nth-child(2n), thead {
+        background-color: #fafafa;
+    }
+
+    #vcomments table th {
+        background-color: #f2f2f2;
+        min-width: 80px;
+    }
+
+    #vcomments table td {
+        min-width: 80px;
+    }
+
+    #vcomments [type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+        position: inherit;
+        margin-left: -1.3rem;
+        margin-right: 0.4rem;
+        margin-top: -1px;
+        vertical-align: middle;
+        left: unset;
+        visibility: visible;
+    }
+</style>
+
+<div class="card valine-card" data-aos="fade-up">
+    <div class="comment_headling" style="font-size: 20px; font-weight: 700; position: relative; padding-left: 20px; top: 15px; padding-bottom: 5px;">
+        <i class="fas fa-comments fa-fw" aria-hidden="true"></i>
+        <span>评论</span>
+    </div>
+    <div id="vcomments" class="card-content" style="display: grid">
+    </div>
+</div>
+
+<script src="/libs/valine/av-min.js"></script>
+<script src="/libs/valine/Valine.min.js"></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        appId: 'KwdHYxl35AMSyYmRusfD4jAb-MdYXbMMI',
+        appKey: 'Fmya2ecU2tXuNNihFWGH9V0P',
+        serverURLs: 'https://kwdhyxl3.api.lncldglobal.com',
+        notify: 'false' === 'true',
+        verify: 'false' === 'true',
+        visitor: 'true' === 'true',
+        avatar: 'mm',
+        pageSize: '12',
+        lang: 'zh-cn',
+        placeholder: 'just go go'
+    });
+</script>
+
+<!--酷Q推送-->
+
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2023/04/13/jbod_write_cache/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/115.jpg" class="responsive-img" alt="查看JBOD Write Cache Policy">
+                        
+                        <span class="card-title">查看JBOD Write Cache Policy</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2023-04-13
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/JBOD/" class="post-category">
+                                    JBOD
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/JBOD/">
+                        <span class="chip bg-color">JBOD</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2023/03/31/assign_gw_to_vs/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/162.jpg" class="responsive-img" alt="Loop assign GWs to different VS">
+                        
+                        <span class="card-title">Loop assign GWs to different VS</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2023-03-31
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: 努力，奋进<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 15px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2013-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">495.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+                <span id="sitetime"> Loading ...</span>
+                <script>
+                    var calcSiteTime = function () {
+                        var seconds = 1000;
+                        var minutes = seconds * 60;
+                        var hours = minutes * 60;
+                        var days = hours * 24;
+                        var years = days * 365;
+                        var today = new Date();
+                        var startYear = "2013";
+                        var startMonth = "9";
+                        var startDate = "28";
+                        var startHour = "0";
+                        var startMinute = "0";
+                        var startSecond = "0";
+                        var todayYear = today.getFullYear();
+                        var todayMonth = today.getMonth() + 1;
+                        var todayDate = today.getDate();
+                        var todayHour = today.getHours();
+                        var todayMinute = today.getMinutes();
+                        var todaySecond = today.getSeconds();
+                        var t1 = Date.UTC(startYear, startMonth, startDate, startHour, startMinute, startSecond);
+                        var t2 = Date.UTC(todayYear, todayMonth, todayDate, todayHour, todayMinute, todaySecond);
+                        var diff = t2 - t1;
+                        var diffYears = Math.floor(diff / years);
+                        var diffDays = Math.floor((diff / days) - diffYears * 365);
+
+                        // 区分是否有年份.
+                        var language = 'zh-CN';
+                        if (startYear === String(todayYear)) {
+                            document.getElementById("year").innerHTML = todayYear;
+                            var daysTip = 'This site has been running for ' + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                daysTip = '本站已运行 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                daysTip = '本站已運行 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = daysTip;
+                        } else {
+                            document.getElementById("year").innerHTML = startYear + " - " + todayYear;
+                            var yearsAndDaysTip = 'This site has been running for ' + diffYears + ' years and '
+                                + diffDays + ' days';
+                            if (language === 'zh-CN') {
+                                yearsAndDaysTip = '本站已运行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            } else if (language === 'zh-HK') {
+                                yearsAndDaysTip = '本站已運行 ' + diffYears + ' 年 ' + diffDays + ' 天';
+                            }
+                            document.getElementById("sitetime").innerHTML = yearsAndDaysTip;
+                        }
+                    }
+
+                    calcSiteTime();
+                </script>
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/gavin-wang-note" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:wangyun_zeng@163.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
