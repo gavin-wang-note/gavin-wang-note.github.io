@@ -1,0 +1,1996 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="pytest+Appium+Allure测试框架设计, 软硬件测试">
+    <meta name="description" content="基于pytest+Appium设计APP GUI自动化测试框架">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>pytest+Appium+Allure测试框架设计 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/gavin-wang-note" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/gavin-wang-note" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/appium/appium7.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">pytest+Appium+Allure测试框架设计</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/Appium/">
+                                <span class="chip bg-color">Appium</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                            <a href="/categories/Appium/" class="post-category">
+                                Appium
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-04-20
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2024-04-20
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    5.1k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    23 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p>本文介绍pytest+Appium+Allure完成某APP的GUI自动化测试框架设计，此框架的设计基于PO设计模式。</p>
+<p>通过结合pytest的灵活性和Appium的移动测试专长，我们可以创建一个强大的自动化测试解决方案，它不仅能够提高测试效率，还能确保应用在不同设备和操作系统上的一致性和稳定性。</p>
+<p>此次间隔10年再次捡起Appium，借助pytest+appium实现了如下功能：</p>
+<ol>
+<li class="lvl-3">
+<p>Windows和Linux平台的支持</p>
+</li>
+<li class="lvl-3">
+<p>支持多设备上测试用例的执行，设备与设备之间用例执行、log记录和report等互相独立，互不干扰</p>
+</li>
+<li class="lvl-3">
+<p>任意一设备异常，不影响用例在其他设备上的正常运行</p>
+</li>
+<li class="lvl-3">
+<p>自动匹配设备数，自动生成不同设备的variables.json文件，借助pytest-variables插件实现配置文件独立性</p>
+</li>
+<li class="lvl-3">
+<p>基于PO设计模式，加上Allure漂亮的测试报告和pytest强大的fixture特性，实现用例分层，降低框架维护难度，让使用者有更多的时间focus on业务逻辑设计</p>
+</li>
+<li class="lvl-3">
+<p>异常用例自动截图并报错到指定目录</p>
+</li>
+</ol>
+<h1 id="appium-framework-jian-jie">Appium Framework简介</h1>
+<p>Appium测试框架，参考下图：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Architecture-of-the-Appium-Framework.jpg" width="800">
+<p>测试用例执行过程示意图：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/appium/appium8.jpg" width="400">
+<img class="shadow" src="/img/loading.gif" data-original="/img/appium/appium7.png" width="700">
+<h1 id="huan-jing-da-jian">环境搭建</h1>
+<p>需要安装&amp;配置的软件如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>安装JAVA，设置JAVA_HOME，JRK等相关环境变量</p>
+</li>
+<li class="lvl-2">
+<p>安装Android SDK组件</p>
+</li>
+<li class="lvl-2">
+<p>安装Node.js</p>
+</li>
+<li class="lvl-2">
+<p>安装Appium&amp;pytest以及pytest相关插件</p>
+</li>
+<li class="lvl-2">
+<p>安装Appium-Python-Client</p>
+</li>
+</ul>
+<p>其他python相关安装信息，参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework# cat requirements.txt 
+allure-pytest==2.13.2
+allure-python-commons==2.13.2
+Appium-Python-Client==4.0.0
+pytest==8.0.2
+PyYAML==6.0.1
+selenium==4.18.1
+root@Gavin:~/MobileAppTestFramework# 
+</code></pre>
+<p>具体的安装&amp;配置细节，非本文重点，就不写了，但在安装ANDROID SDK时需要科学上网。</p>
+<p>我的测试环境是Windows 11和 Ubuntu 23两套环境，使得一套代码能够分别在Windows和Linux下运行，做到windows和Linux的兼容。</p>
+<h1 id="ce-shi-kuang-jia-mu-lu-jie-gou">测试框架目录结构</h1>
+<p>测试框架目录结构参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework# tree
+.
+├── app
+│   └── com.xkw.client_3.1.1.1.apk  # apk必须要存在，且必须以英文名命名
+├── clear_pyc.py                    # 清理python cache目录和pyc文件
+├── common        # 存放基础核心功能
+│   ├── app_info.py   # 获取app的相关信息，诸如app_name,app_package_name,launchable_activity等
+│   ├── appium_server.py  # 启停appium相关动作
+│   ├── base_driver.py    # init driver
+│   ├── base_page.py      # 基于W3C WebDriver协议，封装APP通用操作，诸如滑动、点击、文本输入、拖拽等
+│   ├── __init__.py
+│   ├── locators.py       # 分类存放APP各页面element信息
+│   └── utils.py          # 通用函数的封装
+├── config
+│   ├── config.yml        # 一次配置，终生有效
+│   ├── __init__.py
+│   ├── variables_4f54ea68.json  # 根据当前机器连接的设备数自动生成，自动删除旧的（如果有）再生成新的
+│   └── variables_62b6aca8.json  # 根据当前机器连接的设备数自动生成，自动删除旧的（如果有）再生成新的
+├── conftest.py           # scope=package，记录当前正在执行的是哪个用例
+├── __init__.py
+├── pytest.ini            # 定义pytest默认携带的参数和日志格式
+├── README.md
+├── requirements.txt
+├── run.py                # 执行所有测试用例的入口，方便未来CI/CD使用
+├── testcase              # 分类存放APP所有功能的测试用例
+│   ├── 01_login
+│   │   ├── __init__.py
+│   │   └── test_login.py
+│   ├── 02_home_page
+│   │   ├── __init__.py
+│   │   └── test_switch_page.py
+│   ├── 03_exam_papers
+│   │   └── __init__.py
+│   ├── conftest.py
+│   └── __init__.py
+└── testcasebase          # 存放测试用例基类，基于PO设计模式，未来APP功能有变，只需修改此处下相关文件，而不是调整testcase下用例 
+    ├── __init__.py
+    ├── login_page.py     # 登录相关测试用例
+    └── switch_pages.py   # 页面切换、跳转相关测试用例
+
+9 directories, 29 files
+root@Gavin:~/MobileAppTestFramework#
+</code></pre>
+<p>整体设计思路是基于PO设计模式，<a target="_blank" rel="noopener" href="http://xn--pytestfixtureconftest-4707a191azkplr3b7nnt7dy90alu9klzra.py">借助pytest强大的fixture实现两层conftest.py</a>，做到日志清晰、用例分层、低可维护性和高兼容性。</p>
+<h1 id="report-mu-lu">report目录</h1>
+<p>目录结构如下：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework/report# tree -L 3
+.
+├── allure
+│&nbsp;&nbsp; ├── 4f54ea68
+│&nbsp;&nbsp; │&nbsp;&nbsp; ├── html
+│&nbsp;&nbsp; │&nbsp;&nbsp; └── json
+│&nbsp;&nbsp; └── 62b6aca8
+│&nbsp;&nbsp;     ├── html
+│&nbsp;&nbsp;     └── json
+├── log
+│&nbsp;&nbsp; ├── app_automation_4f54ea68_test.log
+│&nbsp;&nbsp; ├── app_automation_62b6aca8_test.log
+│&nbsp;&nbsp; ├── appium_4723.log
+│&nbsp;&nbsp; └── appium_4724.log
+└── screenshot
+</code></pre>
+<p>日志、报告和截图，都统一存放在report目录下，按子目录来存放。</p>
+<h2 id="allure-report">allure report</h2>
+<pre><code class="language-shell">├── allure
+│&nbsp;&nbsp; ├── 4f54ea68
+│&nbsp;&nbsp; └── 62b6aca8
+</code></pre>
+<p>这里表示allure下有两个设备产生的报告原始json文件，以及生成的html报告数据：</p>
+<pre><code class="language-shell">│&nbsp;&nbsp; └── 62b6aca8
+│&nbsp;&nbsp;     ├── html
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── app.js
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── data
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── export
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── favicon.ico
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── history
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── index.html
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── plugin
+│&nbsp;&nbsp;     │&nbsp;&nbsp; ├── styles.css
+│&nbsp;&nbsp;     │&nbsp;&nbsp; └── widgets
+│&nbsp;&nbsp;     └── json
+│&nbsp;&nbsp;         ├── 00dbf1fe-a6c4-4b2f-b52e-053461299c35-attachment.txt
+│&nbsp;&nbsp;         ├── 012a3a65-236a-4b81-aaec-3d8d4146232c-container.json
+│&nbsp;&nbsp;         ├── 04913ac1-b897-411e-8986-1df178f27212-attachment.txt
+│&nbsp;&nbsp;         ├── 05744b50-6d14-449f-8136-964d217df1ef-container.json
+│&nbsp;&nbsp;         ├── 059f4c43-b655-4c6b-a990-2022036a7e67-container.json
+│&nbsp;&nbsp;         ├── 05c7ed97-b369-4e3f-8d83-f0ad51a9b4a8-result.json
+</code></pre>
+<h2 id="log">log</h2>
+<pre><code class="language-shell">├── log
+│&nbsp;&nbsp; ├── app_automation_4f54ea68_test.log
+│&nbsp;&nbsp; ├── app_automation_62b6aca8_test.log
+│&nbsp;&nbsp; ├── appium_4723.log
+│&nbsp;&nbsp; └── appium_4724.log
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>app_automation_{deviceName}_test.log</code>文件记录对应<code>deviceName</code>上测试用例执行日志</p>
+</li>
+<li class="lvl-2">
+<p><code>appium_{serverPort}.log</code>文件记录对应端口的Appium Server日志信息</p>
+</li>
+</ul>
+<h2 id="screenshot">screenshot</h2>
+<p>此目录存放截图文件，只有当用例执行失败的时候才会截图，正常情况下不截图。</p>
+<h1 id="pei-zhi-wen-jian">配置文件</h1>
+<h2 id="config-config-yml">config/config.yml</h2>
+<pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/config# cat config.yml 
+platformName: Android
+newCommonTimeout: 36000
+skipServerInstallation: True
+automationName: UiAutomator2
+serverPort: 4723
+systemPort: 8200
+root@Gavin:~/MobileAppTestFramework/config# 
+</code></pre>
+<h2 id="variables-json">variables.json</h2>
+<p>借助pytest的pytest-variables插件，传递不同设备对应的variables.json文件到Appium，从而实现多设备的用例执行。</p>
+<p>如下json文件为自动生成，内容参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework/config# cat variables_4f54ea68.json 
+{
+    "server": {
+        "url": "http://127.0.0.1:4723"
+    },
+    "caps": {
+        "platformName": "Android",
+        "newCommonTimeout": 36000,
+        "skipServerInstallation": true,
+        "automationName": "UiAutomator2",
+        "serverPort": 4723,
+        "systemPort": 8200,
+        "deviceName": "4f54ea68",
+        "platformVersion": "10",
+        "appPackage": "com.xkw.client",
+        "appActivity": "com.zxxk.page.main.LauncherActivity",
+        "udid": "4f54ea68"
+    }
+}root@Gavin:~/MobileAppTestFramework/config# cat variables_62b6aca8.json 
+{
+    "server": {
+        "url": "http://127.0.0.1:4724"
+    },
+    "caps": {
+        "platformName": "Android",
+        "newCommonTimeout": 36000,
+        "skipServerInstallation": true,
+        "automationName": "UiAutomator2",
+        "serverPort": 4724,
+        "systemPort": 8201,
+        "deviceName": "62b6aca8",
+        "platformVersion": "10",
+        "appPackage": "com.xkw.client",
+        "appActivity": "com.zxxk.page.main.LauncherActivity",
+        "udid": "62b6aca8"
+    }
+}root@Gavin:~/MobileAppTestFramework/config#
+</code></pre>
+<p><strong>说明：</strong></p>
+<p>测试框架在设计之初就考虑了多设备、并发执行用例，实现了根据当前OS连接的手机终端设备数（USB或者WIFI连接），自动生成各个设备对应的variables.json文件，在run.py入口文件中并发传递各个variables.json文件，从而实现有多少台设备就能够启动多少个appium server和多少台设备上的测试用例执行，比如说computer连接有10台设备，有300条测试用例，则这10台设备是各自执行这300条测试用例，而且各个设备是<strong>并行执行</strong>的（不是设备1执行完300条用例，设备2再执行这300条用例哦），互不干扰。</p>
+<h1 id="dai-ma-shi-li">代码示例</h1>
+<h2 id="common-locators-py">common/locators.py</h2>
+<p>此文件记录APP的元素信息，内容参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework/common# cat locators.py 
+# -*- coding:UTF-8 -*-
+"""分类定义APP各个页面的元素、按钮等信息"""
+
+from appium.webdriver.common.appiumby import AppiumBy
+
+# 启动页同意
+agree_btn = (AppiumBy.ID, "com.xkw.client:id/agree_yes")
+
+# 登录页操作
+mine_btn = (AppiumBy.ID, "com.xkw.client:id/mine_text")
+login_btn = (AppiumBy.ID, "com.xkw.client:id/mine_username")
+password_login_btn = (AppiumBy.ID, "com.xkw.client:id/login_mobile_use_password")
+username_input = (AppiumBy.ID, "com.xkw.client:id/login_password_username")
+password_input = (AppiumBy.ID, "com.xkw.client:id/login_password_password")
+login_submit_btn = (AppiumBy.ID, "com.xkw.client:id/login_password_login")
+discover_search_box = (AppiumBy.ID, "com.xkw.client:id/discover_search_box")
+
+# 发现页面
+discovery_btn = (AppiumBy.ID, "com.xkw.client:id/discover_text")
+## 推荐页面
+recommend_btn = (AppiumBy.ID, "com.xkw.client:id/recommend_text")
+## 分类页面
+category_btn = (AppiumBy.ID, "com.xkw.client:id/category_text")
+course_synchronization_resources_btn = (AppiumBy.ID, "com.xkw.client:id/category_entrance_left")
+knowledge_point_resources_btn = (AppiumBy.ID, "com.xkw.client:id/category_entrance_right")
+## 我的页面，上面有定义过，mine_btn
+
+## 通用元素
+common_element = (AppiumBy.CLASS_NAME, "android.widget.TextView")
+</code></pre>
+<h2 id="common-utils-py">common/utils.py</h2>
+<p>此文件封装通用的函数，内容参考如下：</p>
+<pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/common# cat utils.py 
+#!/usr/bin/env python
+# -*- encoding:UTF-8 -*-
+"""通用函数的封装"""
+
+import os
+import glob
+import platform
+
+from pathlib import Path
+
+
+def os_type():
+    """获取操作系统类型，返回 'windows'、'linux' 之类的"""
+    return platform.system().lower()
+
+
+def exec_cmd(cmd):
+    """执行命令行并返回内容"""
+    result = os.popen(cmd).read()
+    return result
+
+
+# 定义和检查关键目录的路径
+def define_paths():
+    base_path = Path(__file__).resolve().parent.parent
+
+    paths = {
+        'app': base_path / 'app',
+        'config': base_path / 'config',
+        'log': base_path / 'report' / 'log',
+        'report': base_path / 'report' / 'allure',
+        'screenshot': base_path / 'report' / 'screenshot'
+    }
+
+    # 确保所有需要的目录都存在
+    for path in paths.values():
+        path.mkdir(parents=True, exist_ok=True)
+
+    return paths
+
+
+def find_files(pattern='config/variables*.json'):
+    """Find all files matching the given pattern."""
+    return glob.glob(pattern)
+
+
+def delete_files(pattern='config/variables*.json'):
+    """Delete all files matching the given pattern."""
+    print("\n删除陈旧的variables*.json文件")
+    files_to_delete = glob.glob(pattern)
+    for file_path in files_to_delete:
+        os.remove(file_path)
+        print(f"  Deleted file: {file_path}")
+
+# 可以直接在其他模块中调用 define_paths 获取路径信息
+paths = define_paths()
+os_type = os_type()
+</code></pre>
+<h2 id="common-appium-server-py">common/appium_server.py</h2>
+<p>此文件封装appium的启停动作，内容参考如下：</p>
+<pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/common# cat appium_server.py 
+#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+"""Appium启动、关闭、检查相关操作的封装"""
+
+import socket
+import logging
+import subprocess
+
+from .utils import paths, os_type, exec_cmd
+
+
+def open_appium(cmd, port):
+    """命令启动appium server"""
+    release_port(port)
+    logging.info(f"open_appium, cmd: {cmd}")
+    with subprocess.Popen(cmd, shell=True) as process:
+        process.wait()  # 等待命令执行完成
+
+def close_appium():
+    """关闭appium服务器"""
+    kill_cmd = {"windows": "taskkill /f /im node.exe", "linux": "pkill node"}
+    exec_cmd(kill_cmd[os_type])
+
+
+def is_port_available(host, port):
+    """检测端口是否可用"""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        if sock.connect_ex((host, port)) == 0:  # Port is open
+            return False
+    return True
+
+
+def release_port(port):
+    """释放给定的TCP端口"""
+    check_cmd = {"windows": f"netstat -ano| findstr {port}", "linux": f"netstat -anp| grep :{port}"}
+    result = exec_cmd(check_cmd[os_type])
+    if str(port) in result:
+        pid = result.strip().split(" ")[-1]
+        kill_cmd = {"windows": f"taskkill -f -pid {pid}", "linux": f"kill -9 {pid}"}
+        exec_cmd(kill_cmd[os_type])
+        return True
+    return True
+</code></pre>
+<h2 id="qi-ta-dai-ma-wen-jian-jie-shao">其他代码文件介绍</h2>
+<p>当然，比较核心的是：</p>
+<pre><code class="language-shell">-rw-r--r-- 1 root root 3779 Apr 20 14:20 base_driver.py
+-rw-r--r-- 1 root root 9634 Apr 20 11:28 base_page.py
+</code></pre>
+<p><code>base_driver.py</code>文件，根据传入的variables.json，解析其内容，组装desired_caps内容，并初始化driver，确保windows和linux两个平台都能兼容到，且是后台执行appium命令，并增加了容错校验机制，诸如driver init是否成功，以及如何避免appium server还没有初始化好就发起HTTP请求等容错功能。</p>
+<p><code>base_page.py</code>文件，封装了所有通用的动作，诸如元素点击、按钮点击、文本内容清除、文本内容输入、拖拽、滑动、缩放、模拟摇一摇等功能。</p>
+<p><strong>说明：</strong></p>
+<p>由于这两个文件code内容较长且复杂，限制于篇幅原因，就不贴具体的code了。</p>
+<h2 id="ce-shi-yong-li-ji-lei-shi-li">测试用例基类示例</h2>
+<p>如下文件，为模拟页面滑动操作，内容参考如下：</p>
+<pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/testcasebase# cat switch_pages.py 
+# -*- coding:UTF-8 -*-
+"""APP各个页面的切换操作的封装"""
+
+import allure
+
+from common import locators
+from common.base_page import BasePage
+
+
+class SwitchPage(BasePage):
+    """ APP页面切换操作 """
+    def enter_discovery(self):
+        """进入发现页面"""
+        with allure.step("点击切换到[发现]页面"):
+            self.click_element(*locators.discovery_btn, doc='发现')
+        with allure.step("检查[发现--首页] 页面元素信息"):
+            elements = self.find_elements(*locators.common_element, doc="首页")
+            self.check_element(elements, "试卷")
+            self.check_element(elements, "杏坛荟")
+
+        with allure.step("向左滑动，切换到[试卷]页面"):
+            self.swipe_to_left(doc="试卷")
+        with allure.step("检查[发现--试卷]页面元素信息"):
+            elements = self.find_elements(*locators.common_element, doc="试卷")
+            self.check_element(elements, "新卷上架")
+            self.check_element(elements, "套卷")
+
+        with allure.step("继续向左滑动，切换到[书城]页面"):
+            self.swipe_to_left(doc="书城")
+        with allure.step("检查[发现--书城]页面元素信息"):
+            elements = self.find_elements(*locators.common_element, doc="书城")
+            self.check_element(elements, "新书上架")
+            self.check_element(elements, "加入我们")
+
+        with allure.step("继续向左滑动，切换到[高考]页面"):
+            self.swipe_to_left(doc="高考")
+        with allure.step("检查[发现--高考]页面元素信息"):
+            elements = self.find_elements(*locators.common_element, doc="高考")
+            self.check_element(elements, "一轮复习")
+            self.check_element(elements, "高考动态")
+
+    def enter_recommend(self):
+        with allure.step("点击切换到[推荐]页面"):
+            self.click_element(*locators.recommend_btn, doc='推荐')
+        with allure.step("检查[推荐]页面元素信息"):
+            elements = self.find_elements(*locators.common_element, doc="今日")
+            self.check_element(elements, "附近")
+
+    def enter_category(self):
+        with allure.step("点击切换到[分类]页面"):
+            self.click_element(*locators.category_btn, doc='分类')
+        with allure.step("连续多次向左滑动，切换到[中职]页面"):
+            self.swipe_to_left(doc="小学")
+            self.swipe_to_left(doc="初中")
+            self.swipe_to_left(doc="高中")
+            self.swipe_to_left(doc="中职")
+        with allure.step("检查[中职]页面元素信息"):
+            course_exist = self.is_element_exist(*locators.course_synchronization_resources_btn,doc="课程同步资源")
+            assert course_exist == True, \
+            f"[中职]页面没有找到{locators.course_synchronization_resources_btn}元素信息"
+
+            kb_exist = self.is_element_exist(*locators.knowledge_point_resources_btn, doc="知识点资源")
+            assert kb_exist == True, \
+            f"[中职]页面没有找到{locators.knowledge_point_resources_btn}元素信息"
+</code></pre>
+<h2 id="ce-shi-yong-li-shi-li">测试用例示例</h2>
+<p>测试用例按功能分目录存放，如下示例为调用基类中操作，实现GUI页面滑动和切换动作，内容参考如下：</p>
+<pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/testcase/02_home_page# cat test_switch_page.py 
+# -*- coding:UTF-8 -*-
+"""APP页面切换测试用例"""
+
+import pytest
+import allure
+
+from testcasebase.switch_pages import SwitchPage
+
+
+@pytest.fixture(scope="module", autouse=True)
+def switch_page(appium_driver):
+    return SwitchPage(appium_driver)
+
+@allure.feature("页面切换")
+class TestSwitchpage:
+    """APP页面切换相关的测试用例"""
+    @allure.story("首页页面切换")
+    @allure.description("首页页面在首页的子页面之间滑动切换")  # 用例的描述
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_home_page_switch(self, switch_page):
+        switch_page.enter_discovery()
+
+    @allure.story("推荐页面")
+    @allure.description("推荐页面检查页面内容信息")  # 用例的描述
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_switch_to_recommend(self, switch_page):
+        switch_page.enter_recommend()
+
+    @allure.story("分类页面")
+    @allure.description("分类页面检查页面内容信息")  # 用例的描述
+    @allure.severity(allure.severity_level.NORMAL)
+    def test_switch_to_category(self, switch_page):
+        switch_page.enter_category()
+</code></pre>
+<h1 id="yong-li-yun-xing-xiao-guo">用例运行效果</h1>
+<h2 id="windows-xia">Windows下</h2>
+<p>连接两台安卓设备：</p>
+<pre><code class="language-shell">C:\Users\Wang&gt;adb devices
+List of devices attached
+4f54ea68        device
+62b6aca8        device
+
+
+C:\Users\Wang&gt;
+</code></pre>
+<p>运行效果（PyCharm）：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Windows_run_appium_testcase.png" width="800">
+<h2 id="linux-xia">Linux下</h2>
+<p>连接了两台手机，均为安卓：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework# adb devices
+List of devices attached
+4f54ea68	device
+62b6aca8	device
+
+root@Gavin:~/MobileAppTestFramework# 
+</code></pre>
+<p>运行效果：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Linux_run_appium_testcase.png" width="800">
+<h1 id="ri-zhi-pian-duan">日志片段</h1>
+<p>在Windows下测试框架运行时产生的日志，参考如下：</p>
+<pre><code class="language-shell">2024-04-20 14:22:29 [appium_server.py:15  ] [ INFO] open_appium, cmd: appium server -ka 36000 -a 127.0.0.1 -p 4723 --allow-cors --use-plugin relaxed-caps --use-drivers uiautomator2 --use-plugin execute-driver --log "/root/MobileAppTestFramework/report/log/appium_4723.log" --local-timezone &amp;
+2024-04-20 14:22:31 [base_driver.py:74  ] [ INFO] desired_caps: {'platformName': 'Android', 'newCommonTimeout': 36000, 'skipServerInstallation': True, 'automationName': 'UiAutomator2', 'serverPort': 4723, 'systemPort': 8200, 'deviceName': '4f54ea68', 'platformVersion': '10', 'appPackage': 'com.xkw.client', 'appActivity': 'com.zxxk.page.main.LauncherActivity', 'udid': '4f54ea68'}
+2024-04-20 14:22:37 [conftest.py:45  ] [ INFO] Creating common driver fixture
+2024-04-20 14:22:37 [conftest.py:8   ] [ INFO] ------------------------------------- Start to run test case ---------------------------------
+
+2024-04-20 14:22:37 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2024-04-20 14:22:37 [conftest.py:18  ] [ INFO] Current test case name : (test_swipe)
+2024-04-20 14:22:37 [base_page.py:26  ] [ INFO] (同意并进入)页面，开始查找元素(('id', 'com.xkw.client:id/agree_yes'))
+2024-04-20 14:22:40 [base_page.py:30  ] [ INFO] (同意并进入)页面，查找元素(('id', 'com.xkw.client:id/agree_yes'))成功！
+2024-04-20 14:22:40 [base_page.py:66  ] [ INFO] (同意并进入)页面，点击元素(('id', 'com.xkw.client:id/agree_yes'))
+2024-04-20 14:22:40 [base_page.py:68  ] [ INFO] (同意并进入)页面，点击元素(('id', 'com.xkw.client:id/agree_yes'))成功！
+2024-04-20 14:22:40 [base_page.py:109 ] [ INFO] (发现)页面，开始查找元素(('id', 'com.xkw.client:id/discover_search_box'))
+2024-04-20 14:22:46 [base_page.py:111 ] [ INFO] (发现)页面，查找元素(('id', 'com.xkw.client:id/discover_search_box'))成功！
+2024-04-20 14:22:46 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2024-04-20 14:22:46 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2024-04-20 14:22:46 [conftest.py:18  ] [ INFO] Current test case name : (test_home_page_switch)
+2024-04-20 14:22:46 [base_page.py:26  ] [ INFO] (发现)页面，开始查找元素(('id', 'com.xkw.client:id/discover_text'))
+2024-04-20 14:22:47 [base_page.py:30  ] [ INFO] (发现)页面，查找元素(('id', 'com.xkw.client:id/discover_text'))成功！
+2024-04-20 14:22:47 [base_page.py:66  ] [ INFO] (发现)页面，点击元素(('id', 'com.xkw.client:id/discover_text'))
+2024-04-20 14:22:47 [base_page.py:68  ] [ INFO] (发现)页面，点击元素(('id', 'com.xkw.client:id/discover_text'))成功！
+2024-04-20 14:22:47 [base_page.py:42  ] [ INFO] (首页)页面，开始查找一组元素(('class name', 'android.widget.TextView'))
+2024-04-20 14:22:48 [base_page.py:46  ] [ INFO] (首页)页面，查找元素(('class name', 'android.widget.TextView'))成功！
+2024-04-20 14:22:53 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:22:53 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:22:53 [base_page.py:150 ] [ INFO] (试卷)页面，开始进行左滑
+2024-04-20 14:22:54 [base_page.py:152 ] [ INFO] (试卷)页面，开始左滑完成。
+2024-04-20 14:22:55 [base_page.py:42  ] [ INFO] (试卷)页面，开始查找一组元素(('class name', 'android.widget.TextView'))
+2024-04-20 14:22:57 [base_page.py:46  ] [ INFO] (试卷)页面，查找元素(('class name', 'android.widget.TextView'))成功！
+2024-04-20 14:23:03 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:23:03 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:23:03 [base_page.py:150 ] [ INFO] (书城)页面，开始进行左滑
+2024-04-20 14:23:04 [base_page.py:152 ] [ INFO] (书城)页面，开始左滑完成。
+2024-04-20 14:23:04 [base_page.py:42  ] [ INFO] (书城)页面，开始查找一组元素(('class name', 'android.widget.TextView'))
+2024-04-20 14:23:06 [base_page.py:46  ] [ INFO] (书城)页面，查找元素(('class name', 'android.widget.TextView'))成功！
+2024-04-20 14:23:08 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:23:08 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:23:08 [base_page.py:150 ] [ INFO] (高考)页面，开始进行左滑
+2024-04-20 14:23:09 [base_page.py:152 ] [ INFO] (高考)页面，开始左滑完成。
+2024-04-20 14:23:10 [base_page.py:42  ] [ INFO] (高考)页面，开始查找一组元素(('class name', 'android.widget.TextView'))
+2024-04-20 14:23:12 [base_page.py:46  ] [ INFO] (高考)页面，查找元素(('class name', 'android.widget.TextView'))成功！
+2024-04-20 14:23:14 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2024-04-20 14:23:14 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2024-04-20 14:23:14 [conftest.py:18  ] [ INFO] Current test case name : (test_switch_to_recommend)
+2024-04-20 14:23:14 [base_page.py:26  ] [ INFO] (推荐)页面，开始查找元素(('id', 'com.xkw.client:id/recommend_text'))
+2024-04-20 14:23:14 [base_page.py:30  ] [ INFO] (推荐)页面，查找元素(('id', 'com.xkw.client:id/recommend_text'))成功！
+2024-04-20 14:23:14 [base_page.py:66  ] [ INFO] (推荐)页面，点击元素(('id', 'com.xkw.client:id/recommend_text'))
+2024-04-20 14:23:14 [base_page.py:68  ] [ INFO] (推荐)页面，点击元素(('id', 'com.xkw.client:id/recommend_text'))成功！
+2024-04-20 14:23:14 [base_page.py:42  ] [ INFO] (今日)页面，开始查找一组元素(('class name', 'android.widget.TextView'))
+2024-04-20 14:23:15 [base_page.py:46  ] [ INFO] (今日)页面，查找元素(('class name', 'android.widget.TextView'))成功！
+2024-04-20 14:23:17 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2024-04-20 14:23:17 [conftest.py:17  ] [ INFO] ----------------------------------- Begin ----------------------------------------
+2024-04-20 14:23:17 [conftest.py:18  ] [ INFO] Current test case name : (test_switch_to_category)
+2024-04-20 14:23:17 [base_page.py:26  ] [ INFO] (分类)页面，开始查找元素(('id', 'com.xkw.client:id/category_text'))
+2024-04-20 14:23:17 [base_page.py:30  ] [ INFO] (分类)页面，查找元素(('id', 'com.xkw.client:id/category_text'))成功！
+2024-04-20 14:23:17 [base_page.py:66  ] [ INFO] (分类)页面，点击元素(('id', 'com.xkw.client:id/category_text'))
+2024-04-20 14:23:17 [base_page.py:68  ] [ INFO] (分类)页面，点击元素(('id', 'com.xkw.client:id/category_text'))成功！
+2024-04-20 14:23:17 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:23:17 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:23:17 [base_page.py:150 ] [ INFO] (小学)页面，开始进行左滑
+2024-04-20 14:23:19 [base_page.py:152 ] [ INFO] (小学)页面，开始左滑完成。
+2024-04-20 14:23:19 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:23:19 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:23:19 [base_page.py:150 ] [ INFO] (初中)页面，开始进行左滑
+2024-04-20 14:23:21 [base_page.py:152 ] [ INFO] (初中)页面，开始左滑完成。
+2024-04-20 14:23:21 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:23:21 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:23:21 [base_page.py:150 ] [ INFO] (高中)页面，开始进行左滑
+2024-04-20 14:23:23 [base_page.py:152 ] [ INFO] (高中)页面，开始左滑完成。
+2024-04-20 14:23:23 [base_page.py:136 ] [ INFO] 开始获取设备屏幕大小。
+2024-04-20 14:23:23 [base_page.py:140 ] [ INFO] 获取设备屏幕大小完成。宽:(1080), 高(2280)
+2024-04-20 14:23:23 [base_page.py:150 ] [ INFO] (中职)页面，开始进行左滑
+2024-04-20 14:23:24 [base_page.py:152 ] [ INFO] (中职)页面，开始左滑完成。
+2024-04-20 14:23:25 [base_page.py:109 ] [ INFO] (课程同步资源)页面，开始查找元素(('id', 'com.xkw.client:id/category_entrance_left'))
+2024-04-20 14:23:25 [base_page.py:111 ] [ INFO] (课程同步资源)页面，查找元素(('id', 'com.xkw.client:id/category_entrance_left'))成功！
+2024-04-20 14:23:25 [base_page.py:109 ] [ INFO] (知识点资源)页面，开始查找元素(('id', 'com.xkw.client:id/category_entrance_right'))
+2024-04-20 14:23:25 [base_page.py:111 ] [ INFO] (知识点资源)页面，查找元素(('id', 'com.xkw.client:id/category_entrance_right'))成功！
+2024-04-20 14:23:25 [conftest.py:20  ] [ INFO] ----------------------------------- End ------------------------------------------
+
+2024-04-20 14:23:25 [conftest.py:10  ] [ INFO] ------------------------------------- End to run test case -----------------------------------
+2024-04-20 14:23:25 [conftest.py:39  ] [ INFO] Quitting the Appium driver
+</code></pre>
+<h1 id="jie-yu">结语</h1>
+<p>此框架未来改进点：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>微调一下，兼容iOS设备</p>
+</li>
+<li class="lvl-2">
+<p>可与Jenkins结合，使用pipeline实现CI/CD</p>
+</li>
+</ul>
+<h1 id="fu-lu">附录</h1>
+<p>附带一下我做的其他项目的CI/CD效果图：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pipeline_Process_rendering.png" width="1200">
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/jenkins_build_success.png" width="1200">
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/04/20/pytest_appium_allure_app_gui/">https://gavin-wang-note.github.io/2024/04/20/pytest_appium_allure_app_gui/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/Appium/">
+                                    <span class="chip bg-color">Appium</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
+            <div class="card">
+                <a href="/2024/04/20/pytest_appium_allure_app_gui/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/appium/appium7.png" class="responsive-img" alt="pytest+Appium+Allure测试框架设计">
+                        
+                        <span class="card-title">pytest+Appium+Allure测试框架设计</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            基于pytest+Appium设计APP GUI自动化测试框架
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-04-20
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            <a href="/categories/Appium/" class="post-category">
+                                    Appium
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/Appium/">
+                        <span class="chip bg-color">Appium</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/04/18/python_puzzles_about/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/172.jpg" class="responsive-img" alt="关于+=的谜题">
+                        
+                        <span class="card-title">关于+=的谜题</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            关于+=的谜题
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-04-18
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/python/" class="post-category">
+                                    python
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/python/">
+                        <span class="chip bg-color">python</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2009-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">532.1k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/gavin-wang-note" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
