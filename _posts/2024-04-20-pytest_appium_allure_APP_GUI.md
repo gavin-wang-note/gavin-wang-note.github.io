@@ -90,7 +90,7 @@ root@Gavin:~/MobileAppTestFramework# tree
 ├── app
 │   └── com.xkw.client_3.1.1.1.apk  # apk必须要存在，且必须以英文名命名
 ├── clear_pyc.py                    # 清理python cache目录和pyc文件
-├── common        # 存放基础核心功能
+├── common            # 存放基础核心功能
 │   ├── app_info.py   # 获取app的相关信息，诸如app_name,app_package_name,launchable_activity等
 │   ├── appium_server.py  # 启停appium相关动作
 │   ├── base_driver.py    # init driver
@@ -129,7 +129,7 @@ root@Gavin:~/MobileAppTestFramework# tree
 root@Gavin:~/MobileAppTestFramework#
 ```
 
-整体设计思路是基于PO设计模式，借助pytest强大的fixture实现两层conftest.py，做到日志清晰、用例分层、低可维护性和高兼容性。
+整体设计思路是基于PO设计模式，借助`pytest`强大的`fixture`实现两层`conftest.py`，做到driver fixture一处定义全局使用，且日志清晰、用例分层、低可维护性和高兼容性。
 
 
 # report目录
@@ -434,7 +434,7 @@ def release_port(port):
 
 
 
-## 其他代码文件介绍
+## 其他核心代码文件简述
 
 当然，比较核心的是：
 
@@ -447,7 +447,9 @@ def release_port(port):
 
 `base_page.py`文件，封装了所有通用的动作，诸如元素点击、按钮点击、文本内容清除、文本内容输入、拖拽、滑动、缩放、模拟摇一摇等功能。
 
+除此之外，还有顶层的`conftest.py`，`testcase`目录下的`conftest.py`，以及顶层目录下的`pytest.ini`，这三个文件也是重中之重。
 
+这5个文件组成了整个测试框架的核心。
 
 **说明：**
 
@@ -707,6 +709,8 @@ root@Gavin:~/MobileAppTestFramework#
 
 * 微调一下，兼容iOS设备
 * 可与Jenkins结合，使用pipeline实现CI/CD
+
+这只是框架的雏形，尚需填充业务逻辑和测试用例，需要时间逐步丰富此框框。
 
 # 附录
 
