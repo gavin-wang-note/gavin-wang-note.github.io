@@ -2,7 +2,7 @@
 layout:     post
 title:      "python assignment expression, :="
 subtitle:   "python assignment expression, :="
-date:       2024-04-19
+date:       2024-04-17
 author:     "Gavin Wang"
 catalog:    true
 img: "/medias/featureimages/173.jpg"
@@ -15,7 +15,7 @@ tags:
 
 # 概述
 
-最近在看《流畅的python》第二版，上册，第二章节有提及到`:=`，书中举例了一个list中某个值的访问，搜索一下相关资料，学习一下。果真此运算符比书中所提及的功能要丰富一些，故mark一下。
+最近在看《流畅的python》第二版，上册，第二章节有提及到`:=`，书中举例了一个list中某个值的访问，搜索一下相关资料，学习一下。果真此运算符比书中所提及的功能要丰富的多，故mark一下。
 
 # 前言
 
@@ -118,4 +118,4 @@ if (result := some_expensive_calculation_function()):
 总之，合理&慎重的使用它!
 
 PS: 
-写此文纯粹是无聊，更推荐传统写法。
+写此文纯粹是好奇，但更推荐传统写法。
