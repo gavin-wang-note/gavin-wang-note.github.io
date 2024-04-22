@@ -432,75 +432,12 @@
         </li>
         
         
-        <li><div class="divider"></div></li>
-        <li>
-            <a href="https://github.com/gavin-wang-note" class="waves-effect waves-light" target="_blank">
-                <i class="fab fa-github-square fa-fw"></i>Fork Me
-            </a>
-        </li>
-        
     </ul>
 </div>
 
 
         </div>
 
-        
-            <style>
-    .nav-transparent .github-corner {
-        display: none !important;
-    }
-
-    .github-corner {
-        position: absolute;
-        z-index: 10;
-        top: 0;
-        right: 0;
-        border: 0;
-        transform: scale(1.1);
-    }
-
-    .github-corner svg {
-        color: #0f9d58;
-        fill: #fff;
-        height: 64px;
-        width: 64px;
-    }
-
-    .github-corner:hover .octo-arm {
-        animation: a 0.56s ease-in-out;
-    }
-
-    .github-corner .octo-arm {
-        animation: none;
-    }
-
-    @keyframes a {
-        0%,
-        to {
-            transform: rotate(0);
-        }
-        20%,
-        60% {
-            transform: rotate(-25deg);
-        }
-        40%,
-        80% {
-            transform: rotate(10deg);
-        }
-    }
-</style>
-
-<a href="https://github.com/gavin-wang-note" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
-   data-tooltip="Fork Me" data-position="left" data-delay="50">
-    <svg viewBox="0 0 250 250" aria-hidden="true">
-        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
-        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
-              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
-        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
-              fill="currentColor" class="octo-body"></path>
-    </svg>
-</a>
         
     </nav>
 
@@ -589,14 +526,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    5.2k
+                    6.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    24 分
+                    28 分
                 </div>
                 
 
@@ -981,6 +918,195 @@ def release_port(port):
         exec_cmd(kill_cmd[os_type])
         return True
     return True
+</code></pre>
+<h2 id="common-app-info-py">common/app_info.py</h2>
+<p>此文件用户安装、卸载APP和APP信息的获取，以及生成variables.json文件，代码片段信息参考如下：</p>
+<pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/common# cat app_info.py
+#!/usr/bin/env python
+# -*- encoding:UTF-8 -*-
+"""Get APP info"""
+
+import os
+import json
+import yaml
+import logging
+import subprocess
+
+from pathlib import Path
+
+from .utils import paths, exec_cmd, os_type
+
+app_path = paths['app']
+
+
+def get_udid() -&gt; str:
+    """获取iOS设备的udid信息"""
+    cmd = "idevice_id -l"
+    try:
+        # 尝试运行命令并获取输出
+        result = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT).decode("utf-8")
+        udid = result.strip()
+        if udid:  # 检查结果是否为空
+            return udid
+        else:
+            raise ValueError("No UDID found. Please ensure the device is connected and trusted.")
+    except subprocess.CalledProcessError as err:
+        # CalledProcessError 将会捕获非零返回码的命令
+        print(f"An error occurred while trying to get the UDID: {err.output.decode('utf-8')}")
+    except FileNotFoundError as err:
+        # FileNotFoundError 表明 idevice_id 命令不在系统路径中
+        print("idevice_id command not found. Please install libimobiledevice.")
+    except Exception as err:
+        # 其他所有异常的通用处理
+        print(f"An unexpected error occurred: {str(err)}")
+
+    return None  # 如果有任何错误发生，返回 None
+
+
+def get_app_name(app_path: Path) -&gt; str:
+    """根据apk获取APP name"""
+    # 搜索目录下所有的apk和ipa文件
+    app_files = list(app_path.glob('*.apk')) + list(app_path.glob('*.ipa'))
+    
+    # 检查是否仅找到一个应用包文件
+    if len(app_files) == 1:
+        return app_files[0].name
+    elif len(app_files) &gt; 1:
+        raise FileNotFoundError(f"{app_path}目录下存在多个测试包，请确保只有一个")
+    else:
+        raise FileNotFoundError(f"{app_path}目录下没有找到测试包")
+
+
+def get_app_package_name() -&gt; str:
+    """通过aapt命令获取APP package name"""
+    app_name = os.path.join(app_path, get_app_name(app_path))
+    base_cmd = f"aapt dump badging {app_name}"
+    aapt_cmd = {"windows": f"{base_cmd} | findstr package", "linux": f"{base_cmd} | grep package"}
+
+    result = exec_cmd(aapt_cmd[os_type])
+    if "package" in result:
+        package_name = result.strip().split(" ")[1].split('=')[1].replace("'", "")
+        return package_name
+    raise NameError("未获取到package name")
+
+
+def get_app_launchable_activity() -&gt; str:
+    """获取APP的launchable activity"""
+    app_name = os.path.join(app_path, get_app_name(app_path))
+    base_cmd = f"aapt dump badging {app_name}"
+    aapt_cmd = {"windows": f"{base_cmd} | findstr launchable", "linux": f"{base_cmd} | grep launchable"}
+    result = exec_cmd(aapt_cmd[os_type])
+    if "launchable" in result:
+        launchable_activity = result.strip().replace("'", "").split()[1].split('=')[-1]
+        return launchable_activity
+    raise NameError("未获取到launchable activity")
+
+
+def get_devices_version(device: str) -&gt; str:
+    """获取device version信息"""
+    if not isinstance(device, str):
+        raise TypeError("device type is should string")
+    result = exec_cmd(f"adb -s {device} shell getprop ro.build.version.release")
+    result = result.strip()
+    if "error" not in result:
+        return result
+    raise AssertionError("获取设备系统版本失败，无法进行正常测试")
+
+
+def get_all_devices() -&gt; list:
+    """获取到所有的可用device信息"""
+    result = exec_cmd('adb devices')
+    result = result.strip().split(" ")[3].replace("\n", '').replace("\t", ''). \
+        replace("attached", '').split('device')
+
+
+    result.remove('')
+    if len(result) == 0:
+        raise AssertionError("电脑未连接设备信息，无法进行正常测试")
+
+    return result
+
+
+def get_device_infos() -&gt; list:
+    """构造所有device的platform_version, port, device信息"""
+    device_infos = []
+    devices = get_all_devices()
+
+    # 从配置文件读取端口信息
+    with open(f"{paths['config']}/config.yml", 'r', encoding='utf-8') as file_handle:
+        config = yaml.load(file_handle, Loader=yaml.FullLoader)
+    server_port = config['serverPort']
+    system_port = config['systemPort']
+    for index, device in enumerate(devices):
+        device_dict = {
+            "platform_version": get_devices_version(device),
+            "server_port": server_port + index,
+            "system_port": system_port + index,
+            "device": device
+        }
+        device_infos.append(device_dict)
+
+    if len(device_infos) &lt; 1:
+        raise AssertionError("当前电脑未连接到设备")
+
+    return device_infos
+
+
+def install_apk(apk_path: str) -&gt; None:
+    """安装 APK 文件."""
+    try:
+        subprocess.run(["adb", "install", apk_path], check=True)
+        print("APK 安装成功")
+    except subprocess.CalledProcessError:
+        print("APK 安装失败")
+        raise
+
+
+def install_ipa(ipa_path: str) -&gt; None:
+    """安装 IPA 文件."""
+    try:
+        subprocess.run(["ideviceinstaller", "-i", ipa_path], check=True)
+        print("IPA 安装成功")
+    except subprocess.CalledProcessError:
+        print("IPA 安装失败")
+        raise
+
+
+def install_apk_ipa(apk_ipa_path: str) -&gt; None:
+    """
+    安装apk或者ipa文件
+    安卓是apk文件，iOS是ipa文件
+    """
+    if not os.path.exists(apk_ipa_path):
+        raise FileNotFoundError('文件路径不存在')
+    
+    _, ext = os.path.splitext(apk_ipa_path)
+    if ext == '.apk':
+        install_apk(apk_ipa_path)
+    elif ext == '.ipa':
+        install_ipa(apk_ipa_path)
+    else:
+        raise ValueError('不支持的文件类型')
+
+
+def uninstall_app(device_list: list) -&gt; None:
+    """卸载APP"""
+    if not isinstance(device_list, list):
+        raise TypeError("device_list is not a list!")
+
+    for device_info in device_list:
+        _device = device_info.get("device").split(':')[-1]
+        _app_name = str(get_app_package_name()).replace("'", '')
+        uninstall_cmd = f'adb -s 127.0.0.1:{_device} uninstall "{_app_name}"'
+        logging.info("开始卸载设备上的应用，卸载命令：(%s)", uninstall_cmd)
+        exec_cmd(uninstall_cmd)
+
+
+def generate_variables(device_info: dict) -&gt; None:
+    # 忽略不写
+    # 读取配置文件
+    # 增加device信息
+    pass
 </code></pre>
 <h2 id="qi-ta-he-xin-dai-ma-wen-jian-jian-shu">其他核心代码文件简述</h2>
 <p>当然，比较核心的是：</p>
@@ -1662,7 +1788,7 @@ root@Gavin:~/MobileAppTestFramework#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">532.2k</span>
+                        class="white-color">533.1k</span>
             
             
             
@@ -1688,10 +1814,6 @@ root@Gavin:~/MobileAppTestFramework#
             
         </div>
         <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/gavin-wang-note" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
 
 
     <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
