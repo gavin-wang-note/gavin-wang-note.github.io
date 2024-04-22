@@ -432,7 +432,192 @@ def release_port(port):
     return True
 ```
 
+## common/app_info.py
 
+此文件用户安装、卸载APP和APP信息的获取，以及生成variables.json文件，代码片段信息参考如下：
+
+```python
+root@Gavin:~/MobileAppTestFramework/common# cat app_info.py
+#!/usr/bin/env python
+# -*- encoding:UTF-8 -*-
+"""Get APP info"""
+
+import os
+import json
+import yaml
+import logging
+import subprocess
+
+from pathlib import Path
+
+from .utils import paths, exec_cmd, os_type
+
+app_path = paths['app']
+
+
+def get_udid() -> str:
+    """获取iOS设备的udid信息"""
+    cmd = "idevice_id -l"
+    try:
+        # 尝试运行命令并获取输出
+        result = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT).decode("utf-8")
+        udid = result.strip()
+        if udid:  # 检查结果是否为空
+            return udid
+        else:
+            raise ValueError("No UDID found. Please ensure the device is connected and trusted.")
+    except subprocess.CalledProcessError as err:
+        # CalledProcessError 将会捕获非零返回码的命令
+        print(f"An error occurred while trying to get the UDID: {err.output.decode('utf-8')}")
+    except FileNotFoundError as err:
+        # FileNotFoundError 表明 idevice_id 命令不在系统路径中
+        print("idevice_id command not found. Please install libimobiledevice.")
+    except Exception as err:
+        # 其他所有异常的通用处理
+        print(f"An unexpected error occurred: {str(err)}")
+
+    return None  # 如果有任何错误发生，返回 None
+
+
+def get_app_name(app_path: Path) -> str:
+    """根据apk获取APP name"""
+    apk_files = list(app_path.glob('*.apk'))
+    if len(apk_files) == 1:
+        return apk_files[0].name
+    raise FileNotFoundError(f"{app_path}目录下没有测试包或者存在多个测试包")
+
+
+def get_app_package_name() -> str:
+    """通过aapt命令获取APP package name"""
+    app_name = os.path.join(app_path, get_app_name(app_path))
+    base_cmd = f"aapt dump badging {app_name}"
+    aapt_cmd = {"windows": f"{base_cmd} | findstr package", "linux": f"{base_cmd} | grep package"}
+
+    result = exec_cmd(aapt_cmd[os_type])
+    if "package" in result:
+        package_name = result.strip().split(" ")[1].split('=')[1].replace("'", "")
+        return package_name
+    raise NameError("未获取到package name")
+
+
+def get_app_launchable_activity() -> str:
+    """获取APP的launchable activity"""
+    app_name = os.path.join(app_path, get_app_name(app_path))
+    base_cmd = f"aapt dump badging {app_name}"
+    aapt_cmd = {"windows": f"{base_cmd} | findstr launchable", "linux": f"{base_cmd} | grep launchable"}
+    result = exec_cmd(aapt_cmd[os_type])
+    if "launchable" in result:
+        launchable_activity = result.strip().replace("'", "").split()[1].split('=')[-1]
+        return launchable_activity
+    raise NameError("未获取到launchable activity")
+
+
+def get_devices_version(device: str) -> str:
+    """获取device version信息"""
+    if not isinstance(device, str):
+        raise TypeError("device type is should string")
+    result = exec_cmd(f"adb -s {device} shell getprop ro.build.version.release")
+    result = result.strip()
+    if "error" not in result:
+        return result
+    raise AssertionError("获取设备系统版本失败，无法进行正常测试")
+
+
+def get_all_devices() -> list:
+    """获取到所有的可用device信息"""
+    result = exec_cmd('adb devices')
+    result = result.strip().split(" ")[3].replace("\n", '').replace("\t", ''). \
+        replace("attached", '').split('device')
+
+
+    result.remove('')
+    if len(result) == 0:
+        raise AssertionError("电脑未连接设备信息，无法进行正常测试")
+
+    return result
+
+
+def get_device_infos() -> list:
+    """构造所有device的platform_version, port, device信息"""
+    device_infos = []
+    devices = get_all_devices()
+
+    # 从配置文件读取端口信息
+    with open(f"{paths['config']}/config.yml", 'r', encoding='utf-8') as file_handle:
+        config = yaml.load(file_handle, Loader=yaml.FullLoader)
+    server_port = config['serverPort']
+    system_port = config['systemPort']
+    for index, device in enumerate(devices):
+        device_dict = {
+            "platform_version": get_devices_version(device),
+            "server_port": server_port + index,
+            "system_port": system_port + index,
+            "device": device
+        }
+        device_infos.append(device_dict)
+
+    if len(device_infos) < 1:
+        raise AssertionError("当前电脑未连接到设备")
+
+    return device_infos
+
+
+def install_apk(apk_path: str) -> None:
+    """安装 APK 文件."""
+    try:
+        subprocess.run(["adb", "install", apk_path], check=True)
+        print("APK 安装成功")
+    except subprocess.CalledProcessError:
+        print("APK 安装失败")
+        raise
+
+
+def install_ipa(ipa_path: str) -> None:
+    """安装 IPA 文件."""
+    try:
+        subprocess.run(["ideviceinstaller", "-i", ipa_path], check=True)
+        print("IPA 安装成功")
+    except subprocess.CalledProcessError:
+        print("IPA 安装失败")
+        raise
+
+
+def install_apk_ipa(apk_ipa_path: str) -> None:
+    """
+    安装apk或者ipa文件
+    安卓是apk文件，iOS是ipa文件
+    """
+    if not os.path.exists(apk_ipa_path):
+        raise FileNotFoundError('文件路径不存在')
+
+    _, ext = os.path.splitext(apk_ipa_path)
+    if ext == '.apk':
+        install_apk(apk_ipa_path)
+    elif ext == '.ipa':
+        install_ipa(apk_ipa_path)
+    else:
+        raise ValueError('不支持的文件类型')
+
+
+def uninstall_app(device_list: list) -> None:
+    """卸载APP"""
+    if not isinstance(device_list, list):
+        raise TypeError("device_list is not a list!")
+
+    for device_info in device_list:
+        _device = device_info.get("device").split(':')[-1]
+        _app_name = str(get_app_package_name()).replace("'", '')
+        uninstall_cmd = f'adb -s 127.0.0.1:{_device} uninstall "{_app_name}"'
+        logging.info("开始卸载设备上的应用，卸载命令：(%s)", uninstall_cmd)
+        exec_cmd(uninstall_cmd)
+
+
+def generate_variables(device_info: dict) -> None:
+    # 忽略不写
+    # 读取配置文件
+    # 增加device信息
+    pass
+```
 
 ## 其他核心代码文件简述
 
