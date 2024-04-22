@@ -2,10 +2,10 @@
 title: 《pytest测试指南》-- 章节1-2 pytest测试用例执行 
 date: 2024-02-17 22:10:51
 author: Gavin Wang
-img: "/img/pytest/pytest-3.png"
+img: "/img/pytest/pytest-2.png"
 top: false
 hide: false
-cover: true
+cover: false
 coverImg:
 password: Huawei123!
 theme: flip

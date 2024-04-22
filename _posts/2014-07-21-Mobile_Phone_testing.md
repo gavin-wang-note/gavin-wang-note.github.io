@@ -5,7 +5,7 @@ author: Gavin Wang
 img: 
 top: false
 hide: false
-cover: true
+cover: false
 coverImg:
 password:
 toc: true
