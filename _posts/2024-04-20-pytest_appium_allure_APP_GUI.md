@@ -1,5 +1,5 @@
 ---
-title: pytest+Appium+Allure测试框架设计
+title: pytest+Appium+Allure实现APP GUI自动化测试框架设计
 date: 2024-04-20 17:12:37
 author: Gavin Wang
 img: "/img/appium/appium7.png"
@@ -34,7 +34,7 @@ tags:
 3. 任意一设备异常，不影响用例在其他设备上的正常运行
 4. 自动匹配设备数，自动生成不同设备的variables.json文件，借助pytest-variables插件实现配置文件独立性
 5. 基于PO设计模式，加上Allure漂亮的测试报告和pytest强大的fixture特性，实现用例分层，降低框架维护难度，让使用者有更多的时间focus on业务逻辑设计
-6. 异常用例自动截图并报错到指定目录
+6. 异常用例自动截图并保存到指定目录下
 
 
 
@@ -449,11 +449,11 @@ def release_port(port):
 
 除此之外，还有顶层的`conftest.py`，`testcase`目录下的`conftest.py`，以及顶层目录下的`pytest.ini`，这三个文件也是重中之重。
 
-这5个文件组成了整个测试框架的核心。
+这5个文件共同组成了整个测试框架的核心。
 
 **说明：**
 
-由于这两个文件code内容较长且复杂，限制于篇幅原因，就不贴具体的code了。
+由于这几个文件的code内容较长且复杂，限制于篇幅原因，就不贴具体的code了。
 
 
 
@@ -615,7 +615,7 @@ root@Gavin:~/MobileAppTestFramework#
 
 # 日志片段
 
-在Windows下测试框架运行时产生的日志，参考如下：
+在Linux下测试框架运行时产生的日志，参考如下：
 
 ```shell
 2024-04-20 14:22:29 [appium_server.py:15  ] [ INFO] open_appium, cmd: appium server -ka 36000 -a 127.0.0.1 -p 4723 --allow-cors --use-plugin relaxed-caps --use-drivers uiautomator2 --use-plugin execute-driver --log "/root/MobileAppTestFramework/report/log/appium_4723.log" --local-timezone &

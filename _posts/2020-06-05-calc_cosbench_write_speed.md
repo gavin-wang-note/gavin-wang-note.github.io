@@ -299,7 +299,7 @@ if __name__ == "__main__":
 
 (2020-06-28)在使用过程中，碰到两个问题：
 
-由于cosnbench controller log level默认是INFO，导致运行cosbench这台机器根分区空间满，引发cosbench任务卡住，不得不清理空间，三处了mission log信息，引发archive中run-history.csv文件内容有缺失，即少了某个/某些任务，导致统计脚本异常，没法继续统计后续存在的任务了
+由于cosnbench controller log level默认是INFO，导致运行cosbench这台机器根分区空间满，引发cosbench任务卡住，不得不清理空间，删除了mission log信息，引发archive中run-history.csv文件内容有缺失，即少了某个/某些任务，导致统计脚本异常，没法继续统计后续存在的任务了
 
 修改后的脚本内容如下：
 
