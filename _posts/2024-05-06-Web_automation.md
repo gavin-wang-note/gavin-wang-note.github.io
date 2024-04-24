@@ -75,6 +75,10 @@ root@Gavin:~/OrangeHRM_Web_Test_Framework#
 
 # Code介绍
 
+**说明：**
+
+部分代码未释出.
+
 ## utils/path_util.py
 
 ```python
