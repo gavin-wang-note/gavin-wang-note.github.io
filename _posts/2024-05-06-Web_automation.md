@@ -448,7 +448,6 @@ console_output_style = count
 ## tests/conftest.py
 
 ```python
-tests/conftest.py
 import pytest
 
 from pages.login_page import LoginPage
@@ -466,7 +465,7 @@ def login():
 ## 登录基类示例
 
 ```python
-pages/login_page.py
+# content of pages/login_page.py
 # -*- coding:UTF-8 -*-
 import logging
 
@@ -665,6 +664,9 @@ import pytest
 if __name__ == '__main__':
     pytest.main()
 ```
+
+此入口文件内容简易，可根据实际情况增加内容，与Jenkins完成CI/CD构建工作，诸如增加被测产品是否可达检测、测试环境是否具备测试执行条件（相关安装包，如果没安装自动安装等）、是否有相关权限创建报告目录等信息，具体问题具体分析。
+
 
 ## 执行过程与效果
 

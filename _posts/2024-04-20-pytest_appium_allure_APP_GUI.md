@@ -51,6 +51,15 @@ Appium测试框架，参考下图：
 <img class="shadow" src="/img/appium/appium7.png" width="700">
 
 
+<img class="shadow" src="/img/appium/appium9.png" width="700">
+
+上图以安卓和默认端口示例说明：
+
+* Client端发送操作指令给Appium Server
+* Appium Server通过appium-uiautomator2-driver发送JWP协议的请求到Android的appium-uiautomator2-server
+* appium-uiautomator2-server调用Android系统的 Google UIAutomator2 去以执行自动化具体的操作
+* 操作完成后返回结果对象AppiumResponse给appium-uiautomator2-driver，AppiumServer再返回给Client端，Client端得到最终执行操作的结果
+
 # 环境搭建
 
 需要安装&配置的软件如下：
@@ -78,6 +87,88 @@ root@Gavin:~/MobileAppTestFramework#
 
 我的测试环境是Windows 11和 Ubuntu 23两套环境，使得一套代码能够分别在Windows和Linux下运行，做到windows和Linux的兼容。
 
+# 测试框架设计思路概图
+
+上周有在docker下搭建excalidraw，此次使用excalidraw绘制一张此测试框架设计思路概图，参考如下：
+
+<img class="shadow" src="/img/in-post/Appium自动化设计思路.png" width="800">
+
+简单介绍一下运行运行过程：
+
+* 测试环境检查
+
+直接以代码片段示例，下同：
+
+```python
+def check_platform_and_exit():
+    """检查是否为Windows或者linux系统，如果不是，则退出执行。"""
+    print("\n检查操作系统类型是否为Windows或者linux")
+    if os_type not in ['windows', 'linux']:
+        print(f"\n[ERROR]  不支持当前的系统:{os_type}\n")
+        sys.exit(1)
+```
+
+* adb检查
+
+```python
+    @staticmethod
+    def android_home_exists():
+        """检查ANDROID_HOME环境变量是否设置"""
+        return "ANDROID_HOME" in os.environ
+
+    @staticmethod
+    def adb_command(os_type):
+        """检查adb命令是否存在"""
+        root_dir = os.path.join(os.environ["ANDROID_HOME"], "platform-tools")
+        adb_name = "adb.exe" if os_type == 'windows' else "adb"
+
+        for path, _, files in os.walk(root_dir):
+            if adb_name in files:
+                return os.path.join(path, adb_name)
+        return None
+```
+
+* 连接的终端设备检查
+
+```python
+def check_device_list():
+    device_lists = get_device_infos()
+    if len(device_lists) < 0:
+        print("\n[ERRIR]  Not find any device, exit!!!\n")
+        sys.exit(2)
+
+    return device_lists
+```
+
+
+* 为每个device生成vairables_{device}.json文件
+
+```python
+    # 先删除所有的variables开头,json结尾的文件
+    delete_files()
+
+    # 再生成variable_{device}.json文件
+    print(f"\n生成全新的variables*.json文件")
+    for device_info in device_lists:
+        device_name = device_info['device']
+        variable_path = f"{paths['config']}/variables_{device_name}.json"
+        print(f"  生成新文件: {variable_path}")
+        generate_variables(device_info)
+
+    # 查找所有的variables json文件
+    variable_files_list = find_files()
+```
+
+* 运行测试用例
+
+```python
+    with Pool(len(device_lists)) as pool:
+        pool.map(run_testcases, variable_files_list)
+        pool.close()
+        pool.join()
+```
+
+多个设备是户型并行、独立运行的，互不干扰。
 
 
 # 测试框架目录结构
@@ -481,10 +572,16 @@ def get_udid() -> str:
 
 def get_app_name(app_path: Path) -> str:
     """根据apk获取APP name"""
-    apk_files = list(app_path.glob('*.apk'))
-    if len(apk_files) == 1:
-        return apk_files[0].name
-    raise FileNotFoundError(f"{app_path}目录下没有测试包或者存在多个测试包")
+    # 搜索目录下所有的apk和ipa文件
+    app_files = list(app_path.glob('*.apk')) + list(app_path.glob('*.ipa'))
+    
+    # 检查是否仅找到一个应用包文件
+    if len(app_files) == 1:
+        return app_files[0].name
+    elif len(app_files) > 1:
+        raise FileNotFoundError(f"{app_path}目录下存在多个测试包，请确保只有一个")
+    else:
+        raise FileNotFoundError(f"{app_path}目录下没有找到测试包")
 
 
 def get_app_package_name() -> str:
@@ -589,7 +686,7 @@ def install_apk_ipa(apk_ipa_path: str) -> None:
     """
     if not os.path.exists(apk_ipa_path):
         raise FileNotFoundError('文件路径不存在')
-
+    
     _, ext = os.path.splitext(apk_ipa_path)
     if ext == '.apk':
         install_apk(apk_ipa_path)
@@ -638,8 +735,7 @@ def generate_variables(device_info: dict) -> None:
 
 **说明：**
 
-由于这几个文件的code内容较长且复杂，限制于篇幅原因，就不贴具体的code了。
-
+这几个文件就不贴具体的code了......
 
 
 ## 测试用例基类示例
