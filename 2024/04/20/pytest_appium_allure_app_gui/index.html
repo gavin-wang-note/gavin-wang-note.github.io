@@ -526,14 +526,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    6.2k
+                    6.5k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    29 分
+                    30 分
                 </div>
                 
 
@@ -633,6 +633,87 @@ root@Gavin:~/MobileAppTestFramework#
 </code></pre>
 <p>具体的安装&amp;配置细节，非本文重点，就不写了，但在安装ANDROID SDK时需要科学上网。</p>
 <p>我的测试环境是Windows 11和 Ubuntu 23两套环境，使得一套代码能够分别在Windows和Linux下运行，做到windows和Linux的兼容。</p>
+<h1 id="ce-shi-kuang-jia-she-ji-si-lu-gai-tu">测试框架设计思路概图</h1>
+<p>上周有在docker下搭建excalidraw，此次使用excalidraw绘制一张此测试框架设计思路概图，参考如下：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/Appium自动化设计思路.png" width="800">
+<p>简单介绍一下运行运行过程：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>测试环境检查</p>
+</li>
+</ul>
+<p>直接以代码片段示例，下同：</p>
+<pre><code class="language-python">def check_platform_and_exit():
+    """检查是否为Windows或者linux系统，如果不是，则退出执行。"""
+    print("\n检查操作系统类型是否为Windows或者linux")
+    if os_type not in ['windows', 'linux']:
+        print(f"\n[ERROR]  不支持当前的系统:{os_type}\n")
+        sys.exit(1)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>adb检查</p>
+</li>
+</ul>
+<pre><code class="language-python">    @staticmethod
+    def android_home_exists():
+        """检查ANDROID_HOME环境变量是否设置"""
+        return "ANDROID_HOME" in os.environ
+
+    @staticmethod
+    def adb_command(os_type):
+        """检查adb命令是否存在"""
+        root_dir = os.path.join(os.environ["ANDROID_HOME"], "platform-tools")
+        adb_name = "adb.exe" if os_type == 'windows' else "adb"
+
+        for path, _, files in os.walk(root_dir):
+            if adb_name in files:
+                return os.path.join(path, adb_name)
+        return None
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>连接的终端设备检查</p>
+</li>
+</ul>
+<pre><code class="language-python">def check_device_list():
+    device_lists = get_device_infos()
+    if len(device_lists) &lt; 0:
+        print("\n[ERRIR]  Not find any device, exit!!!\n")
+        sys.exit(2)
+
+    return device_lists
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>为每个device生成vairables_{device}.json文件</p>
+</li>
+</ul>
+<pre><code class="language-python">    # 先删除所有的variables开头,json结尾的文件
+    delete_files()
+
+    # 再生成variable_{device}.json文件
+    print(f"\n生成全新的variables*.json文件")
+    for device_info in device_lists:
+        device_name = device_info['device']
+        variable_path = f"{paths['config']}/variables_{device_name}.json"
+        print(f"  生成新文件: {variable_path}")
+        generate_variables(device_info)
+
+    # 查找所有的variables json文件
+    variable_files_list = find_files()
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>运行测试用例</p>
+</li>
+</ul>
+<pre><code class="language-python">    with Pool(len(device_lists)) as pool:
+        pool.map(run_testcases, variable_files_list)
+        pool.close()
+        pool.join()
+</code></pre>
+<p>多个设备是户型并行、独立运行的，互不干扰。</p>
 <h1 id="ce-shi-kuang-jia-mu-lu-jie-gou">测试框架目录结构</h1>
 <p>测试框架目录结构参考如下：</p>
 <pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework# tree
@@ -1134,7 +1215,7 @@ def generate_variables(device_info: dict) -&gt; None:
 <p>除此之外，还有顶层的<code>conftest.py</code>，<code>testcase</code>目录下的<code>conftest.py</code>，以及顶层目录下的<code>pytest.ini</code>，这三个文件也是重中之重。</p>
 <p>这5个文件共同组成了整个测试框架的核心。</p>
 <p><strong>说明：</strong></p>
-<p>由于这几个文件的code内容较长且复杂，限制于篇幅原因，就不贴具体的code了。</p>
+<p>这几个文件就不贴具体的code了…</p>
 <h2 id="ce-shi-yong-li-ji-lei-shi-li">测试用例基类示例</h2>
 <p>如下文件，为模拟页面滑动操作，内容参考如下：</p>
 <pre><code class="language-python">root@Gavin:~/MobileAppTestFramework/testcasebase# cat switch_pages.py 
@@ -1795,7 +1876,7 @@ root@Gavin:~/MobileAppTestFramework#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">548k</span>
+                        class="white-color">548.4k</span>
             
             
             
