@@ -17,6 +17,7 @@ categories:
     - [Automation]
 tags:
     - pytest
+    - Automation
 ---
 
 ## 3.2.3 Reporting 相关参数
