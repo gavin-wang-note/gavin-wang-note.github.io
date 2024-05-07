@@ -1,6 +1,6 @@
 ---
 title: 《pytest测试指南》-- 章节1-3 pytest参数详解PART2
-date: 2024-05-12 21:09:15
+date: 2024-06-12 21:09:15
 author: Gavin Wang
 img: "/img/pytest/pytest-5.png"
 top: false
