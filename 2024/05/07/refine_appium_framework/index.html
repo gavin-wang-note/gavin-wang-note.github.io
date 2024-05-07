@@ -4,8 +4,8 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="借助pytest hook获取用例执行结果信息汇总, 软硬件测试">
-    <meta name="description" content="hook获取用例执行状态和概要信息">
+    <meta name="keywords" content="多手机终端设备下测试用例名称区分, 软硬件测试">
+    <meta name="description" content="多手机终端设备下，pytest测试用例名称区分">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <meta name="renderer" content="webkit|ie-stand|ie-comp">
@@ -28,7 +28,7 @@
 </script>
 
 
-    <title>借助pytest hook获取用例执行结果信息汇总 | Transcendent</title>
+    <title>多手机终端设备下测试用例名称区分 | Transcendent</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -447,12 +447,12 @@
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-10.png')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-11.png')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">借助pytest hook获取用例执行结果信息汇总</h1>
+                    <h1 class="description center-align post-title">多手机终端设备下测试用例名称区分</h1>
                 </div>
             </div>
         </div>
@@ -480,6 +480,10 @@
                                 <span class="chip bg-color">Automation</span>
                             </a>
                         
+                            <a href="/tags/Appium/">
+                                <span class="chip bg-color">Appium</span>
+                            </a>
+                        
                             <a href="/tags/pytest/">
                                 <span class="chip bg-color">pytest</span>
                             </a>
@@ -500,6 +504,10 @@
                                 pytest
                             </a>
                         
+                            <a href="/categories/Appium/" class="post-category">
+                                Appium
+                            </a>
+                        
                     </div>
                     
                 </div>
@@ -509,7 +517,7 @@
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2024-05-24
+                    2024-05-07
                 </div>
                 
 
@@ -518,14 +526,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    1.1k
+                    2.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    5 分
+                    10 分
                 </div>
                 
 
@@ -549,236 +557,204 @@
         <div class="card-content article-card-content">
             <div id="articleContent">
                 <h1 id="gai-shu">概述</h1>
-<p>pytest hook功能很强大，本文简要概述如何借助pytest的<code>pytest_runtest_makereport</code>&amp;<code>pytest_sessionstart</code>这两个hook，实现用例执行结果的汇总。</p>
-<p>至于pytest hook知识点，非本文介绍内容，请读者另行查阅资料。</p>
-<h1 id="yu-qi-xiao-guo">预期效果</h1>
-<p>预期达到的效果如下：</p>
+<p>上个月基于pytest+appium+allure写了一个APP的<a href="https://gavin-wang-note.github.io/2024/04/20/pytest_appium_allure_app_gui/">GUI自动化基础测试框架</a>，不过还有不足之处，此次做了一些调整，使得日志的输出和测试用例的展示（包括allure报告中展示）与对应手机终端设备id绑定，方便区分是哪部手机在执行哪个测试用例，以及allure报告清晰区分对应手机终端设备。</p>
+<h1 id="gai-zao-fang-xiang">改造方向</h1>
+<p>增加内容如下：</p>
+<ol>
+<li class="lvl-3">
+<p>日志名称中增加手机设备id信息</p>
+</li>
+<li class="lvl-3">
+<p>测试用例在收集和执行时，以及生成的allure报告，增加手机设备id和手机系统版本信息</p>
+</li>
+</ol>
+<h1 id="diao-zheng-guo-cheng">调整过程</h1>
+<p>要将设备ID信息从<code>run_testcases</code>函数传递到<code>conftest.py</code>文件中的<code>pytest_itemcollected</code>钩子方法中，你可以利用<code>pytest</code>的强大<code>fixture</code>机制和配置（<code>conftest.py</code>）来实现跨文件共享数据。一种常见的做法是使用<code>pytest</code>的内置<code>config</code>对象来存储设备信息，然后在需要的地方检索该信息。</p>
 <ul class="lvl-0">
 <li class="lvl-2">
-<p>1.结果写入文件</p>
-</li>
-<li class="lvl-2">
-<p>2.预期内容参考如下：</p>
+<p>步骤 1: 修改<code>run_testcases</code>函数以便将设备ID信息存储在pytest的配置中</p>
 </li>
 </ul>
-<pre><code class="language-shell">---------summary----------
-passed: 1
-failed: 2
-skipped: 1
-error: 1
-xfailed: 0
-xpassed: 1
----------details----------
-[failed]
-dir1/test_case_name01
-dir1/test_case_name02
-dir1/test_case_name03
-dir2/test_case_name01
-
-[skipped]
-test_case_name
-
-[error]
-test_case_name
-
-[xfailed]
-test_case_name
-# 如果没有，则显示为  --
-
-[xpassed]
-  --
+<p>在调用<code>pytest.main</code>之前设置全局变量或使用 <code>pytest</code> 的 <code>addoption</code> 或 <code>pytest_configure</code> 钩子来实现，这里我选择的是<code>addoption</code>。</p>
+<p>首先，在项目根目录下的<code>conftest.py</code>中设置一个自定义的配置选项来存储设备信息：</p>
+<pre><code class="language-python"># conftest.py
+def pytest_addoption(parser):
+    parser.addoption("--device_id", action="store", default="default_device_id",
+                     help="Device ID for mobile device tests")
+    parser.addoption("--brand_name", action="store", default="default_brand_name",
+                     help="Brand name for mobile device tests")
+    parser.addoption("--platform_version", action="store", default="default_platform_version",
+                     help="Phone device's plantform version for mobile device tests")
 </code></pre>
-<h1 id="code">Code</h1>
-<h2 id="code-conftest-py-code"><code>conftest.py</code></h2>
-<pre><code class="language-python">import pytest
-from collections import defaultdict
+<p>然后，在<code>run_testcases</code>函数中，在调用<code>pytest.main</code>时传递这个手机设备ID信息作为命令行参数：</p>
+<pre><code class="language-python"># run.py
+def run_testcases(variables_file):
+    """运行测试用例"""
+    env = os.environ.copy()
+    if 'linux' in os_type:
+        allure_path = '/usr/lib/allure-2.27.0/bin'  # 根据实际情况修改
+        env['PATH'] = f'{allure_path}:' + env['PATH']
 
-# 初始化一个字典，用于保存各种测试状态的数量和测试名称列表
-test_results_summary = defaultdict(lambda: {"count": 0, "cases": []})
+    device = variables_file.split('_')[-1].split('.')[0]
+    report_base_path = f"{paths['report']}/{device}"
+    log_file = f"{paths['log']}/app_automation_{device}_test.log"
 
-def pytest_sessionstart(session):
-    session.results_summary = test_results_summary
+    # 在这里构建你的 pytest 命令并包含设备 ID，手机版本和品牌信息
+    with open(f"{paths['config']}/{device}.json", 'r', encoding='utf-8') as file_handle:
+        brand_version = yaml.load(file_handle, Loader=yaml.FullLoader)
+    brand_name = brand_version['brand_name'].split('\n')[0]
+    platform_version = brand_version['platform_version']
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    outcome = yield
-    report = outcome.get_result()
-    global test_results_summary
+    pytest_args = ["--alluredir", f"{report_base_path}/json", "--variables", f"{variables_file}",
+                   "--log-file", f"{log_file}", f"--device_id={device}", f"--brand_name={brand_name}",
+                   f"--platform_version={platform_version}"]
+    pytest.main(pytest_args)
+    # 运行 allure 命令和剩余的代码不变
+</code></pre>
+<p>步骤 2: 在<code>testcase/conftest.py</code>中利用<code>pytest_configurehook</code>函数来捕获和传递设备ID信息到测试用例</p>
+<pre><code class="language-python"># testcase/conftest.py
+def pytest_configure(config):
+    config.device_id = config.getoption("--device_id")
+    config.brand_name = config.getoption("--brand_name")
+    config.platform_version = config.getoption("--platform_version")
+</code></pre>
+<p>步骤 3: 在需要的地方(<code>testcase/conftest.py</code>)，例如<code>pytest_itemcollected</code>钩子函数，使用存储的设备ID信息</p>
+<pre><code class="language-python"># testcase/conftest.py
+def pytest_itemcollected(item):
+    device_id = item.config.device_id  # get phone's device id info
+    brand_name = item.config.brand_name # get phone's brand info
+    platform_version = item.config.platform_version # get phone's platformVersion info
+    item.name = f"[{brand_name}_{platform_version}_{device_id}]" + '_' + item.name
+
+    print(f"Test case name was modified to: {item.name}")
+</code></pre>
+<p>这样，就可以在测试运行时将设备ID传递给<code>run_testcases</code>函数，并且该设备ID将在整个<code>pytest</code>会话中可用，包括<code>conftest.py</code>钩子方法中。</p>
+<p>这是大致思路，除此之外还有一些细节点需要调整，比如如何获取<code>brand_name</code>和<code>platform_version</code>，参考如下(部分)：</p>
+<pre><code class="language-python"># common/app_info.py
+def get_brand(device_id: str) -&gt; str:
+    """获取手机品牌"""
+    cmd = f"adb -s {device_id} shell getprop ro.product.brand"
+    result = exec_cmd(cmd)
+    if result:
+        return result
+    else:
+        raise NameError("未获取到手机品牌信息，请确认设备已连接并开启ADB调试模式。")
+
+def generate_device_json(device_id: str) -&gt; None:
+    """生成对应device的json文件，内含platform version和brand信息"""
+    json_file = f"{paths['config']}/{device_id}.json"
+    with open(json_file, 'w') as file_handle:
+        brand_name = get_brand(device_id)
+        platform_version = get_devices_version(device_id)
+        brand_version = {'brand_name': brand_name, 'platform_version': platform_version}
+        json.dump(brand_version, file_handle, indent=4, ensure_ascii=False)
     
-    # 处理测试过程中的结果
-    if report.when == 'call':
-        if report.failed:
-            if "xfail" in item.keywords:
-                test_results_summary["xfailed"]["count"] += 1
-                test_results_summary["xfailed"]["cases"].append(item.nodeid)
-            else:
-                test_results_summary["failed"]["count"] += 1
-                test_results_summary["failed"]["cases"].append(item.nodeid)
-        elif report.skipped:
-            test_results_summary["skipped"]["count"] += 1
-            test_results_summary["skipped"]["cases"].append(item.nodeid)
-        elif "xfail" in item.keywords:
-            test_results_summary["xpassed"]["count"] += 1
-            test_results_summary["xpassed"]["cases"].append(item.nodeid)
-        else:
-            test_results_summary["passed"]["count"] += 1
-    elif report.failed:
-        test_results_summary["error"]["count"] += 1
-        test_results_summary["error"]["cases"].append(item.nodeid)
-
-def pytest_sessionfinish(session, exitstatus):
-    with open('test_results_summary.txt', 'w') as f:
-        f.write("---------summary----------\n")
-        for key, value in session.results_summary.items():
-            f.write(f"{key}: {value['count']}\n")
-        
-        f.write("---------details----------\n")
-        for key, value in session.results_summary.items():
-            if value["cases"]:
-                f.write(f"[{key}]\n" + "\n".join(value["cases"]) + "\n")
-            else:
-                f.write(f"[{key}]\n  --\n")
+    logging.info("Generated %s.json success, path:(%s)", json_file)
 </code></pre>
-<h1 id="xiao-guo-jian-yan">效果检验</h1>
-<p>先写一段测试代码<code>test_various_statuses.py</code>，涵盖各种用例执行状态：</p>
-<pre><code class="language-python"># content of test_various_statuses.py
-# -*- coding:UTF-8 -*-
-
-
-import pytest
-
-
-# 这个测试会通过
-def test_passed():
-    assert True
-
-
-# 这个测试会失败
-def test_failed():
-     assert False
-
-
-# 这个测试主动抛异常会失败
-def test_failed_raise():
-    raise Exception("An unexpected error occurred")
-
-
-# 这个测试会被标记为预期失败，但如果通过了，它将被标记为XPASS
-@pytest.mark.xfail
-def test_xpass():
-   assert True
-
-
-# 这个测试被标记为预期失败，并且它确实失败了，因此它将被标记为XFAIL
-@pytest.mark.xfail
-def test_xfailed():
-    assert False
-
-
-# 这个测试会被跳过
-@pytest.mark.skip(reason="This test is skipped for demonstration purposes")
-def test_skipped():
-    assert True
-
-
-# 使用一个会发生错误的fixture
-@pytest.fixture
-def error_fixture():
-    raise Exception("Error in fixture")
-
-
-# 这个测试使用了一个错误的fixture，即使测试代码本身是正常的
-def test_with_error_fixture(error_fixture):
-    assert True
+<p>在<code>run.py</code>中使用yaml解析这里生成的<code>{device_id}.json</code>文件，从而形成手机终端设备与<code>log</code>文件的匹配关系：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework/config# ll
+total 28
+drwxr-xr-x 2 root root 4096 May  7 15:03 ./
+drwxr-xr-x 9 root root 4096 May  7 16:18 ../
+-rw-r--r-- 1 root root   62 May  7 15:03 4f54ea68.json
+-rw-r--r-- 1 root root   62 May  7 15:03 62b6aca8.json
+-rw-r--r-- 1 root root  167 May  7 10:09 config.yml
+-rw-r--r-- 1 root root    0 Apr 20 11:28 __init__.py
+-rw-r--r-- 1 root root  522 May  7 15:03 variables_4f54ea68.json
+-rw-r--r-- 1 root root  522 May  7 15:03 variables_62b6aca8.json
+root@Gavin:~/MobileAppTestFramework/config#
 </code></pre>
-<p>执行测试用例：</p>
-<pre><code class="language-shell">root@Gavin:~/test_result_summary# ll
-total 16
-drwxr-xr-x  2 root root 4096 May 24 11:50 ./
-drwx------ 43 root root 4096 May 24 11:48 ../
--rw-r--r--  1 root root 1977 May 24 11:41 conftest.py
--rw-r--r--  1 root root 1009 May 24 11:32 test_various_statuses.py
-root@Gavin:~/test_result_summary# pytest -s test_various_statuses.py 
+<p>log文件名称信息：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework/report/log# ll
+total 2112
+drwxr-xr-x 2 root root   4096 May  7 15:03 ./
+drwxr-xr-x 5 root root   4096 May  7 15:08 ../
+-rw-r--r-- 1 root root 464248 May  7 15:04 app_automation_4f54ea68_test.log
+-rw-r--r-- 1 root root 486771 May  7 15:04 app_automation_62b6aca8_test.log
+-rw-r--r-- 1 root root 586507 May  7 15:04 appium_4723_4f54ea68.log
+-rw-r--r-- 1 root root 608036 May  7 15:04 appium_4724_62b6aca8.log
+root@Gavin:~/MobileAppTestFramework/report/log#
+</code></pre>
+<h1 id="zui-zhong-de-xiao-guo">最终的效果</h1>
+<p>多手机终端设备并行执行用例效果：</p>
+<pre><code class="language-shell">root@Gavin:~/MobileAppTestFramework# python3 run.py 
+------------------------------------- 准备工作 -------------------------------------
+
+检查操作系统类型是否为Windows或者linux
+
+删除陈旧的variables*.json文件
+  Deleted file: config/variables_4f54ea68.json
+  Deleted file: config/variables_62b6aca8.json
+
+生成全新的variables*.json文件
+  生成新文件: /root/MobileAppTestFramework/config/variables_4f54ea68.json
+  生成新文件: /root/MobileAppTestFramework/config/variables_62b6aca8.json
+
+删除所有的device.json文件
+  删除文件 config/4f54ea68.json
+
+删除陈旧的variables*.json文件
+  Deleted file: config/4f54ea68.json
+  生成新文件 config/4f54ea68.json
+  删除文件 config/62b6aca8.json
+
+删除陈旧的variables*.json文件
+  Deleted file: config/62b6aca8.json
+  生成新文件 config/62b6aca8.json
+
+接下来将执行测试用例
 ================================================================================================================== test session starts ===================================================================================================================
-platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.4.0
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
 Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
 sensitiveurl: .*
-rootdir: /root/test_result_summary
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-28-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/MobileAppTestFramework
+configfile: pytest.ini
 plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, timeout-2.2.0
 asyncio: mode=Mode.STRICT
-collected 7 items                                                                                                                                                                                                                                        
+collecting ... cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-28-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/MobileAppTestFramework
+configfile: pytest.ini
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collecting ... Test case name was modified to: [Xiaomi_10_4f54ea68]_test_swipe
+Test case name was modified to: [xiaomi_10_62b6aca8]_test_swipe
+Test case name was modified to: [Xiaomi_10_4f54ea68]_test_home_page_switch
+Test case name was modified to: [Xiaomi_10_4f54ea68]_test_switch_to_recommend
+Test case name was modified to: [Xiaomi_10_4f54ea68]_test_switch_to_category
+Test case name was modified to: [xiaomi_10_62b6aca8]_test_home_page_switch
+Test case name was modified to: [xiaomi_10_62b6aca8]_test_switch_to_recommend
+Test case name was modified to: [xiaomi_10_62b6aca8]_test_switch_to_category
+collected 4 items                                                                                                                                                                                                                                        
 
-test_various_statuses.py .FFXxsE
+collected 4 items                                                                                                                                                                                                                                        
 
-========================================================================================================================= ERRORS =========================================================================================================================
-_______________________________________________________________________________________________________ ERROR at setup of test_with_error_fixture ________________________________________________________________________________________________________
+testcase/01_login/test_login.py::TestLogin::test_swipe PASSED                                                                                                                                                                                      [ 25%]
+testcase/02_home_page/test_switch_page.py::TestSwitchpage::test_home_page_switch PASSED                                                                                                                                                                                      [ 25%]
+testcase/02_home_page/test_switch_page.py::TestSwitchpage::test_home_page_switch PASSED                                                                                                                                                            [ 50%]
+testcase/02_home_page/test_switch_page.py::TestSwitchpage::test_switch_to_recommend PASSED                                                                                                                                                         [ 75%]
+testcase/02_home_page/test_switch_page.py::TestSwitchpage::test_switch_to_category PASSED                                                                                                                                                          [100%]
 
-    @pytest.fixture
-    def error_fixture():
-&gt;       raise Exception("Error in fixture")
-E       Exception: Error in fixture
+=================================================================================================================== 4 passed in 49.30s ===================================================================================================================
+PASSED                                                                                                                                                            [ 50%]
+testcase/02_home_page/test_switch_page.py::TestSwitchpage::test_switch_to_recommend PASSED                                                                                                                                                         [ 75%]
+testcase/02_home_page/test_switch_page.py::TestSwitchpage::test_switch_to_category PASSED                                                                                                                                                          [100%]
 
-test_various_statuses.py:44: Exception
-======================================================================================================================== FAILURES ========================================================================================================================
-______________________________________________________________________________________________________________________ test_failed _______________________________________________________________________________________________________________________
-
-    def test_failed():
-&gt;        assert False
-E        assert False
-
-test_various_statuses.py:15: AssertionError
-___________________________________________________________________________________________________________________ test_failed_raise ____________________________________________________________________________________________________________________
-
-    def test_failed_raise():
-&gt;       raise Exception("An unexpected error occurred")
-E       Exception: An unexpected error occurred
-
-test_various_statuses.py:20: Exception
-================================================================================================================ short test summary info =================================================================================================================
-FAILED test_various_statuses.py::test_failed - assert False
-FAILED test_various_statuses.py::test_failed_raise - Exception: An unexpected error occurred
-ERROR test_various_statuses.py::test_with_error_fixture - Exception: Error in fixture
-========================================================================================= 2 failed, 1 passed, 1 skipped, 1 xfailed, 1 xpassed, 1 error in 0.11s ==========================================================================================
-root@Gavin:~/test_result_summary#
+============================================================================================================== 4 passed in 64.77s (0:01:04) ==============================================================================================================
+root@Gavin:~/MobileAppTestFramework#
 </code></pre>
-<p>用例执行结束后，会产生文件<code>test_results_summary.txt</code>:</p>
-<pre><code class="language-shell">root@Gavin:~/test_result_summary# ll
-total 28
-drwxr-xr-x  4 root root 4096 May 24 11:50 ./
-drwx------ 43 root root 4096 May 24 11:48 ../
--rw-r--r--  1 root root 1977 May 24 11:41 conftest.py
-drwxr-xr-x  2 root root 4096 May 24 11:50 __pycache__/
-drwxr-xr-x  3 root root 4096 May 24 11:50 .pytest_cache/
--rw-r--r--  1 root root  364 May 24 11:50 test_results_summary.txt
--rw-r--r--  1 root root 1009 May 24 11:32 test_various_statuses.py
-root@Gavin:~/test_result_summary#
-</code></pre>
-<p>其内容参考如下：</p>
-<pre><code class="language-shell">root@Gavin:~/test_result_summary# cat test_results_summary.txt 
----------summary----------
-passed: 1
-failed: 2
-xpassed: 1
-skipped: 1
-error: 1
----------details----------
-[passed]
-  --
-[failed]
-test_various_statuses.py::test_failed
-test_various_statuses.py::test_failed_raise
-[xpassed]
-test_various_statuses.py::test_xpass
-[skipped]
-test_various_statuses.py::test_xfailed
-[error]
-test_various_statuses.py::test_with_error_fixture
-root@Gavin:~/test_result_summary#
-</code></pre>
-<p>符合预期要求。</p>
-<h1 id="jie-yu">结语</h1>
-<p>上述代码仅是个示例，抛砖引玉，在具体自动化Project中，可按自己的需求调整此文件位置、名称、内容展示等信息。</p>
-<p>也可以将此文件的部分内容（如担心非passed状态用例数太多，引发文档内容过多）作为邮箱附件发送CI/CD构建通知。</p>
+<p>单个手机终端设备运行用例：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/修改用例名称-单设备.png" width="800">
+<p>两个手机终端运行测试用例：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/修改用例名称-多设备.png" width="800">
+<p>Allure报告中展示的效果：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/allure_report_test_case_name.png" width="800">
 
                 
             </div>
@@ -805,7 +781,7 @@ root@Gavin:~/test_result_summary#
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://gavin-wang-note.github.io/2024/05/24/pytest_cases_result_summary/">https://gavin-wang-note.github.io/2024/05/24/pytest_cases_result_summary/</a>
+                    <a href="https://gavin-wang-note.github.io/2024/05/07/refine_appium_framework/">https://gavin-wang-note.github.io/2024/05/07/refine_appium_framework/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -845,6 +821,10 @@ root@Gavin:~/test_result_summary#
                             
                                 <a href="/tags/Automation/">
                                     <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/Appium/">
+                                    <span class="chip bg-color">Appium</span>
                                 </a>
                             
                                 <a href="/tags/pytest/">
@@ -927,29 +907,28 @@ root@Gavin:~/test_result_summary#
 <article id="prenext-posts" class="prev-next articles">
     <div class="row article-row">
         
-        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+        <div class="article col s12 m6" data-aos="fade-up">
             <div class="article-badge left-badge text-color">
-                <i class="far fa-dot-circle"></i>&nbsp;本篇
-            </div>
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2024/05/24/pytest_cases_result_summary/">
+                <a href="/2024/06/12/pytest_test_guide_part1_chapter1_3_2_pytest_params/">
                     <div class="card-image">
                         
-                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-10.png" class="responsive-img" alt="借助pytest hook获取用例执行结果信息汇总">
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-5.png" class="responsive-img" alt="《pytest测试指南》-- 章节1-3 pytest参数详解PART2">
                         
-                        <span class="card-title">借助pytest hook获取用例执行结果信息汇总</span>
+                        <span class="card-title">《pytest测试指南》-- 章节1-3 pytest参数详解PART2</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            hook获取用例执行状态和概要信息
+                            《pytest测试指南》一书 章节1-3 pytest参数详解PART2
                         
                     </div>
                     <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2024-05-24
-                            </span>
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-06-12
+                        </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -966,7 +945,6 @@ root@Gavin:~/test_result_summary#
                         </span>
                     </div>
                 </div>
-
                 
                 <div class="card-action article-tags">
                     
@@ -989,23 +967,23 @@ root@Gavin:~/test_result_summary#
                 下一篇&nbsp;<i class="fas fa-chevron-right"></i>
             </div>
             <div class="card">
-                <a href="/2024/05/12/pytest_test_guide_part1_chapter1_3_2_pytest_params/">
+                <a href="/2024/05/06/web_automation/">
                     <div class="card-image">
                         
-                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-5.png" class="responsive-img" alt="《pytest测试指南》-- 章节1-3 pytest参数详解PART2">
+                        <img src="/img/loading.gif" data-original="/img/in-post/selenium/selenium1.jpg" class="responsive-img" alt="pytest+Selenium+Allure Web自动化测试框架设计">
                         
-                        <span class="card-title">《pytest测试指南》-- 章节1-3 pytest参数详解PART2</span>
+                        <span class="card-title">pytest+Selenium+Allure Web自动化测试框架设计</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            《pytest测试指南》一书 章节1-3 pytest参数详解PART2
+                            Selenium Web自动化测试框架设计
                         
                     </div>
                     <div class="publish-info">
                             <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2024-05-12
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-05-06
                             </span>
                         <span class="publish-author">
                             
@@ -1017,6 +995,10 @@ root@Gavin:~/test_result_summary#
                             
                             <a href="/categories/pytest/" class="post-category">
                                     pytest
+                                </a>
+                            
+                            <a href="/categories/Selenium/" class="post-category">
+                                    Selenium
                                 </a>
                             
                             
@@ -1032,6 +1014,10 @@ root@Gavin:~/test_result_summary#
                     
                     <a href="/tags/pytest/">
                         <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                    <a href="/tags/Selenium/">
+                        <span class="chip bg-color">Selenium</span>
                     </a>
                     
                 </div>
@@ -1214,7 +1200,7 @@ root@Gavin:~/test_result_summary#
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">564k</span>
+                        class="white-color">566k</span>
             
             
             
