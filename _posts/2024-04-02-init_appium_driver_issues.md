@@ -2,7 +2,7 @@
 title: 使用Appium初始化driver碰到的问题记录
 date: 2024-04-02 21:52:39
 author: Gavin Wang
-img:
+img: "/img/appium/appium1.jpg"
 top: false
 hide: false
 cover: false
@@ -339,3 +339,30 @@ adb start-server
 命令面板运行：`adb reconnect`
 
 运行后再次点击连接即可。
+
+## 问题11：启动APP提示 timed out after 20000ms
+
+如下文所示：
+
+```shell
+2024-05-07 09:52:38 [connectionpool.py:247 ] [DEBUG] Starting new HTTP connection (1): 127.0.0.1:4723
+2024-05-07 09:53:04 [connectionpool.py:475 ] [DEBUG] http://127.0.0.1:4723 "POST /session HTTP/1.1" 500 1520
+2024-05-07 09:53:04 [remote_connection.py:330 ] [DEBUG] Remote response: status=500 | data={"value":{"error":"unknown error","message":"An unknown server-side error occurred while processing the command. Original error: Cannot start the 'com.xkw.client' application. Consider checking the driver's troubleshooting documentation. Original error: Error executing adbExec. Original error: 'Command '/usr/lib/android-sdk/platform-tools/adb -P 5037 -s 4f54ea68 shell am start -W -n com.xkw.client/com.zxxk.page.main.LauncherActivity -S -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000' timed out after 20000ms'. Try to increase the 20000ms adb execution timeout represented by 'adbExecTimeout' capability","stacktrace":"UnknownError: An unknown server-side error occurred while processing the command. Original error: Cannot start the 'com.xkw.client' application. Consider checking the driver's troubleshooting documentation. Original error: Error executing adbExec. Original error: 'Command '/usr/lib/android-sdk/platform-tools/adb -P 5037 -s 4f54ea68 shell am start -W -n com.xkw.client/com.zxxk.page.main.LauncherActivity -S -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000' timed out after 20000ms'. Try to increase the 20000ms adb execution timeout represented by 'adbExecTimeout' capability\n    at getResponseForW3CError (/usr/local/lib/node_modules/appium/node_modules/@appium/base-driver/lib/protocol/errors.js:1118:9)\n    at asyncHandler (/usr/local/lib/node_modules/appium/node_modules/@appium/base-driver/lib/protocol/protocol.js:491:57)"}} | headers=HTTPHeaderDict({'X-Powered-By': 'Express', 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS, DELETE', 'Access-Control-Allow-Headers': 'Cache-Control, Pragma, Origin, X-Requested-With, Content-Type, Accept, User-Agent', 'Vary': 'X-HTTP-Method-Override', 'Content-Type': 'application/json; charset=utf-8', 'Content-Length': '1520', 'ETag': 'W/"5f0-IiEabyylohJg+jhKWefTlek3w78"', 'Date': 'Tue, 07 May 2024 01:53:04 GMT', 'Connection': 'keep-alive', 'Keep-Alive': 'timeout=36000'})
+2024-05-07 09:53:04 [remote_connection.py:357 ] [DEBUG] Finished Request
+2024-05-07 09:53:04 [base_driver.py:85  ] [ERROR] Exception when initializing Appium driver: (Message: An unknown server-side error occurred while processing the command. Original error: Cannot start the 'com.xkw.client' application. Consider checking the driver's troubleshooting documentation. Original error: Error executing adbExec. Original error: 'Command '/usr/lib/android-sdk/platform-tools/adb -P 5037 -s 4f54ea68 shell am start -W -n com.xkw.client/com.zxxk.page.main.LauncherActivity -S -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000' timed out after 20000ms'. Try to increase the 20000ms adb execution timeout represented by 'adbExecTimeout' capability
+Stacktrace:
+UnknownError: An unknown server-side error occurred while processing the command. Original error: Cannot start the 'com.xkw.client' application. Consider checking the driver's troubleshooting documentation. Original error: Error executing adbExec. Original error: 'Command '/usr/lib/android-sdk/platform-tools/adb -P 5037 -s 4f54ea68 shell am start -W -n com.xkw.client/com.zxxk.page.main.LauncherActivity -S -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -f 0x10200000' timed out after 20000ms'. Try to increase the 20000ms adb execution timeout represented by 'adbExecTimeout' capability
+    at getResponseForW3CError (/usr/local/lib/node_modules/appium/node_modules/@appium/base-driver/lib/protocol/errors.js:1118:9)
+    at asyncHandler (/usr/local/lib/node_modules/appium/node_modules/@appium/base-driver/lib/protocol/protocol.js:491:57))
+2024-05-07 09:53:04 [conftest.py:34  ] [ERROR] Driver is None - Appium driver failed to initialize.
+```
+
+{% note success %}
+解决方法：
+{% endnote %}
+
+desired_caps 中增加 `adbExecTimeout`， 如：
+
+```shell
+adbExecTimeout: 60000
+```

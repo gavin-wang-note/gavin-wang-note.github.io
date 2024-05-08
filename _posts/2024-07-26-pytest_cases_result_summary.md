@@ -4,7 +4,7 @@ date: 2024-07-24 16:59:18
 author: Gavin Wang
 img: "/img/pytest/pytest-10.png"
 top: false
-hide: false
+hide: true
 cover: false
 coverImg:
 password:
@@ -179,10 +179,10 @@ def test_with_error_fixture(error_fixture):
 ```shell
 root@Gavin:~/test_result_summary# ll
 total 16
-drwxr-xr-x  2 root root 4096 May 24 11:50 ./
-drwx------ 43 root root 4096 May 24 11:48 ../
--rw-r--r--  1 root root 1977 May 24 11:41 conftest.py
--rw-r--r--  1 root root 1009 May 24 11:32 test_various_statuses.py
+drwxr-xr-x  2 root root 4096 July 24 11:50 ./
+drwx------ 43 root root 4096 July 24 11:48 ../
+-rw-r--r--  1 root root 1977 July 24 11:41 conftest.py
+-rw-r--r--  1 root root 1009 July 24 11:32 test_various_statuses.py
 root@Gavin:~/test_result_summary# pytest -s test_various_statuses.py 
 ================================================================================================================== test session starts ===================================================================================================================
 platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.4.0
@@ -232,13 +232,13 @@ root@Gavin:~/test_result_summary#
 ```shell
 root@Gavin:~/test_result_summary# ll
 total 28
-drwxr-xr-x  4 root root 4096 May 24 11:50 ./
-drwx------ 43 root root 4096 May 24 11:48 ../
--rw-r--r--  1 root root 1977 May 24 11:41 conftest.py
-drwxr-xr-x  2 root root 4096 May 24 11:50 __pycache__/
-drwxr-xr-x  3 root root 4096 May 24 11:50 .pytest_cache/
--rw-r--r--  1 root root  364 May 24 11:50 test_results_summary.txt
--rw-r--r--  1 root root 1009 May 24 11:32 test_various_statuses.py
+drwxr-xr-x  4 root root 4096 July 24 11:50 ./
+drwx------ 43 root root 4096 July 24 11:48 ../
+-rw-r--r--  1 root root 1977 July 24 11:41 conftest.py
+drwxr-xr-x  2 root root 4096 July 24 11:50 __pycache__/
+drwxr-xr-x  3 root root 4096 July 24 11:50 .pytest_cache/
+-rw-r--r--  1 root root  364 July 24 11:50 test_results_summary.txt
+-rw-r--r--  1 root root 1009 July 24 11:32 test_various_statuses.py
 root@Gavin:~/test_result_summary#
 ```
 其内容参考如下：
