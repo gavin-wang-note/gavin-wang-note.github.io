@@ -3,8 +3,11 @@ layout:     post
 title:      "消除pylint warn/error"
 subtitle:   "Fix pylint warn/error"
 date:       2019-08-23
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [pylint]
 tags:
     - pylint
     - Automation
@@ -31,7 +34,7 @@ tags:
 
 在对应出现error/warn的代码行后面，增加disable具体的error/warn即可：
 
-```
+```shell
 md_dev = md.get_md_dev(md_info, _host=src_gw) # pylint: disable=unexpected-keyword-arg
 ```
 

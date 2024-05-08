@@ -3,16 +3,21 @@ layout:     post
 title:      "网络时延--Linux模拟复杂网络环境下的传输（netem和tc）"
 subtitle:   "Network Lagency -- By netem and tc to limit Linux network"
 date:       2018-07-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [netem]
 tags:
-    - network
+    - netem
+    - tc
 ---
 
 # 概述
 
 在进行网络服务的测试时，有时需要模拟一些异常的网络情况，例如网络延时长、丢包、网络地址连接不通等。
 在Linux下，可以通过tc工具来模拟各种网络情况；通过iptables禁止访问某个网络地址。
+
 
 
 # netem与tc介绍
@@ -26,30 +31,31 @@ tc 是 Linux 系统中的一个工具，全名为traffic control（流量控制�
 tc控制的是发包动作，不能控制收包动作。它直接对物理接口生效，如果控制了物理的eth0，那么逻辑网卡（比如eth0:1）也会受到影响，反之则不行，控制逻辑网卡是无效的。
 
 
+
 # 模拟延迟传输
 
 将 eth0 网卡的传输设置为延迟100毫秒发送
 
-```
+```shell
 $ tc  qdisc  add  dev  eth0  root  netem  delay  100ms  
 ```
 
 如果设置出现：
 
-```
+```shell
 root@auto-70-2:~#  tc qdisc add dev bond0 root netem
 RTNETLINK answers: File exists
 ```
 
 说明之前设置过，解决方法：
 
-```
+```shell
 ip addr flush dev bond0
 ```
 
 真实的情况下，延迟值不会这么精确，会有一定的波动，下面命令模拟带有波动性的延迟值：
 
-```
+```shell
  $ tc  qdisc  add  dev  eth0  root  netem  delay  100ms  10ms
 ```
 
@@ -60,7 +66,7 @@ ip addr flush dev bond0
 
 还可以更进一步加强这种波动的随机性，将 eth0 网卡的传输设置为 100ms ，同时，大约有30%的包会延迟 ± 10ms 发送：
 
-```
+```shell
  $ tc  qdisc  add  dev  eth0  root  netem  delay  100ms  10ms  30%
 ```
 
@@ -68,13 +74,13 @@ ip addr flush dev bond0
 
 将 eth0 网卡的传输设置为随机丢掉 1% 的数据包。
 
-```
+```shell
  $ tc  qdisc  add  dev  eth0  root  netem  loss  1%  
 ```
 
 也可以设置丢包的成功率，将 eth0 网卡的传输设置为随机丢掉 1% 的数据包，成功率为30% ：
 
-```
+```shell
  $ tc  qdisc  add  dev  eth0  root  netem  loss  1%  30%
 ```
 
@@ -82,7 +88,7 @@ ip addr flush dev bond0
 
 将 eth0 网卡的传输设置为随机产生 1% 的重复数据包。
 
-```
+```shell
  $ tc  qdisc  add  dev  eth0  root  netem  duplicate 1% 
 ```
 
@@ -90,7 +96,7 @@ ip addr flush dev bond0
 
 将 eth0 网卡的传输设置为随机产生 0.2% 的损坏的数据包。 (内核版本需在2.6.16以上）
 
-```
+```shell
  $ tc  qdisc  add  dev  eth0  root  netem  corrupt  0.2% 
 ```
 
@@ -98,39 +104,51 @@ ip addr flush dev bond0
 
 将 eth0 网卡的传输设置为:有25%的数据包（50%相关）会被立即发送，其他的延迟10秒。
 
-```
+```shell
  $ tc  qdisc  change  dev  eth0  root  netem  delay  10ms   reorder  25%  50%
 ```
 
-# 实例
+# 示例
 
 step1：使用ifconfig命令查看你的网卡信息，如:eth0
 
 step2：将网卡加入监控列表 
 
-       ```$ sudo tc qdisc add dev eth0 root netem```
+```shell
+$ sudo tc qdisc add dev eth0 root netem
+```
 step3：
-       设置丢包率 
+   设置丢包率 
 
-       ```$ sudo tc qdisc change dev eth0 root netem loss 0.5% ```
+```shell
+$ sudo tc qdisc change dev eth0 root netem loss 0.5%
+```
 
-       设置重发
+   设置重发
 
-       ```$ sudo tc qdisc change dev eth0 root netem duplicate 1% ```
+```shell
+$ sudo tc qdisc change dev eth0 root netem duplicate 1%
+```
 
-      设置发乱序包
+  设置发乱序包
 
-       ```$ sudo tc qdisc change dev eth0 root netem gap 5 delay 10ms```
+```shell
+$ sudo tc qdisc change dev eth0 root netem gap 5 delay 10ms
+```
 
 
 如果想让网络恢复正常，只需要删除监控，或将设置的值相应归0即可。
 
 例如，设置延时
-```$ sudo tc qdisc add dev eth0 root netem delay 4s```
+```shell
+$ sudo tc qdisc add dev eth0 root netem delay 4s
+```
 
 取消延时
 
-```$ sudo tc qdisc del dev eth0 root netem delay 4s```
+```shell
+$ sudo tc qdisc del dev eth0 root netem delay 4s
+```
 
 
 # 禁止访问一个IP
@@ -140,14 +158,14 @@ step3：
 1、禁止访问10.237.0.1
 
 
-```
+```shell
 $ iptables -A OUTPUT -d 10.237.0.1 -j REJECT
 ```
 
 
 2、查看规则
 
-```
+```shell
 $ iptables -L OUTPUT -n
 Chain OUTPUT (policy ACCEPT)
 target     prot opt source               destination         
@@ -156,7 +174,7 @@ REJECT     all  --  0.0.0.0/0            10.237.0.1        reject-with icmp-port
 
 3、查看规则号
 
-```
+```shell
 $ iptables -L OUTPUT -n --line-numbers
 Chain OUTPUT (policy ACCEPT)
 num  target     prot opt source               destination         
@@ -165,7 +183,7 @@ num  target     prot opt source               destination
 
 4、删除规则
 
-```
+```shell
 $ iptables -D OUTPUT 1
 ```
 
