@@ -4,14 +4,14 @@
 
 <head>
     <meta charset="utf-8">
-    <meta name="keywords" content="vim无法黏贴, 软硬件测试">
-    <meta name="description" content="概述
-有时候会碰到OS的默认设置，禁止vim中选择文本、复制文本。本文介绍如何规避之。
-脚本
-vim ~/.vimrc，添加如下内容：
-set mouse=c
-syntax on
+    <meta name="keywords" content="消除pylint W0102 警告, 软硬件测试">
+    <meta name="description" content="Overview
+最近在搭建自动化基础测试框架，访问MySQL DB，封装了相关动作，碰到pylint W0102 警告，学习一下原理和消除操作。
+Code
+原始代码参考如下：
+import logging
 
+import pymysql
 ">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -35,7 +35,7 @@ syntax on
 </script>
 
 
-    <title>vim无法黏贴 | Transcendent</title>
+    <title>消除pylint W0102 警告 | Transcendent</title>
     <link rel="icon" type="image/png" href="/favicon.png">
     
 
@@ -454,12 +454,12 @@ syntax on
 
 
 
-<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/157.jpg')">
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/43.jpg')">
     <div class="container" style="right: 0px;left: 0px;">
         <div class="row">
             <div class="col s12 m12 l12">
                 <div class="brand">
-                    <h1 class="description center-align post-title">vim无法黏贴</h1>
+                    <h1 class="description center-align post-title">消除pylint W0102 警告</h1>
                 </div>
             </div>
         </div>
@@ -483,8 +483,8 @@ syntax on
                     
                     <div class="article-tag">
                         
-                            <a href="/tags/Linux/">
-                                <span class="chip bg-color">Linux</span>
+                            <a href="/tags/pylint/">
+                                <span class="chip bg-color">pylint</span>
                             </a>
                         
                     </div>
@@ -495,8 +495,8 @@ syntax on
                     <div class="post-cate">
                         <i class="fas fa-bookmark fa-fw icon-category"></i>
                         
-                            <a href="/categories/Linux/" class="post-category">
-                                Linux
+                            <a href="/categories/pylint/" class="post-category">
+                                pylint
                             </a>
                         
                     </div>
@@ -508,7 +508,7 @@ syntax on
                 
                 <div class="post-date info-break-policy">
                     <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
-                    2018-08-15
+                    2024-07-07
                 </div>
                 
 
@@ -517,14 +517,14 @@ syntax on
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    50
+                    2.1k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    1 分
+                    8 分
                 </div>
                 
 
@@ -547,13 +547,250 @@ syntax on
 
         <div class="card-content article-card-content">
             <div id="articleContent">
-                <h1 id="gai-shu">概述</h1>
-<p>有时候会碰到OS的默认设置，禁止vim中选择文本、复制文本。本文介绍如何规避之。</p>
-<h1 id="jiao-ben">脚本</h1>
-<p>vim ~/.vimrc，添加如下内容：</p>
-<pre><code class="language-shell">set mouse=c
-syntax on
+                <h1 id="overview">Overview</h1>
+<p>最近在搭建自动化基础测试框架，访问MySQL DB，封装了相关动作，碰到pylint W0102 警告，学习一下原理和消除操作。</p>
+<h1 id="code">Code</h1>
+<p>原始代码参考如下：</p>
+<pre><code class="language-python">import logging
+
+import pymysql
+
+from .utils import paths, load_config
+
+config_file_path = f"{paths['config']}/config.yml"
+conf_data = load_config(config_file_path)["mysql"]
+
+DB_CONF = {
+    "host": conf_data["mysql_host"],
+    "port": int(conf_data["mysql_port"]),
+    "user": conf_data["mysql_user"],
+    "password": conf_data["mysql_passwd"],
+    "db": conf_data["mysql_db"]
+}
+
+
+
+class MySQLDB():
+    """MySQL 数据库操作封装"""
+    def __init__(self, db_conf=DB_CONF):
+        """DB建联与创建游标对象"""
+        # 通过字典拆包传递配置信息，建立数据库连接
+        self.conn = pymysql.connect(**db_conf, autocommit=True)
+        # 通过 cursor() 创建游标对象，并让查询结果以字典格式输出
+        self.cur = self.conn.cursor(cursor=pymysql.cursors.DictCursor)
+
+    def __del__(self):
+        """对象资源被释放时触发，在对象即将被删除时的最后操作"""
+        # 关闭游标
+        self.cur.close()
+        # 关闭数据库连接
+        self.conn.close()
+
+    def select_db(self, sql):
+        """查询"""
+        # 检查连接是否断开，如果断开就进行重连
+        self.conn.ping(reconnect=True)
+        # 使用 execute() 执行sql
+        self.cur.execute(sql)
+        # 使用 fetchall() 获取查询结果
+        data = self.cur.fetchall()
+        return data
+
+    def execute_db(self, sql):
+        """更新/新增/删除"""
+        try:
+            # 检查连接是否断开，如果断开就进行重连
+            self.conn.ping(reconnect=True)
+            # 使用 execute() 执行sql
+            self.cur.execute(sql)
+            # 提交事务
+            self.conn.commit()
+        except Exception as err: # pylint: disable=W0718
+            logging.info("操作MySQL出现错误，错误原因：(%s)", str(err))
+            # 回滚所有更改
+            self.conn.rollback()
+
+
+db = MySQLDB(DB_CONF)
 </code></pre>
+<p>pylint warn信息如下：</p>
+<pre><code class="language-shell">W0102: Dangerous default value DB_CONF (builtins.dict) as argument (dangerous-default-value)
+</code></pre>
+<h1 id="fen-xi">分析</h1>
+<p>pylint 分析这段代码时发出了一个警告 (W0102)，提醒这个默认值可能是危险的，因为它是一个可变类型的字典。</p>
+<p>假如有一个名为 db_func 的函数，像这样：</p>
+<pre><code class="language-python">def db_func(default_db=DB_CONF):
+    # 函数实现...
+
+</code></pre>
+<p>pylint 的感受就像这样：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果你在函数定义时，或者在函数的上下文中更改了 <code>DB_CONF</code>（比如添加或删除字段），那么同样的更改会对所有后续使用此 <code>default_db</code> 参数的调用产生影响。</p>
+</li>
+<li class="lvl-2">
+<p>更危险的情况可能是，如果 <code>default_db</code> 代表的是一个数据库配置，而且函数修改了这个字典，比如添加或删除键值对。这样的修改会被保留并影响到下一个调用。</p>
+</li>
+</ul>
+<h1 id="xiu-fu">修复</h1>
+<p>解决这个问题的方法是：</p>
+<p>方法1：立即初始化字典：不要依赖默认参数的缓存行为，而是在函数内部创建一个新的字典实例：</p>
+<pre><code class="language-python">def db_func():
+    default_db = {
+        "host": conf_data["mysql_host"],
+        "port": int(conf_data["mysql_port"]),
+        "user": conf_data["mysql_user"],
+        "password": conf_data["mysql_passwd"],
+        "db": conf_data["mysql_db"]
+    }
+    # 函数实现...
+</code></pre>
+<p>方法2：使用不可变类型：如果可能，使用不可变类型作为默认值。不过，在你的例子中，应用程序需要一个完整的配置字典。</p>
+<p>方法3：显式指定：如果你希望提供字典的默认值，请确保它在每次函数调用中复核为新的，避免共享状态的潜在问题：</p>
+<pre><code class="language-python">def db_func(default_db=None):
+    if default_db is None:
+        default_db = {
+            "host": conf_data["mysql_host"],
+            "port": int(conf_data["mysql_port"]),
+            "user": conf_data["mysql_user"],
+            "password": conf_data["mysql_passwd"],
+            "db": conf_data["mysql_db"]
+        }
+    # 函数实现...
+</code></pre>
+<p>这种方法在 <code>default_db</code> 被传递为 <code>None</code> 时，会立即创建一个新的字典，避免使用函数外部的 <code>DB_CONF</code> 变量。</p>
+<p>最终效果：</p>
+<pre><code class="language-python">#!/usr/bin/env python
+# -*- coding:UTF-8 -*-
+
+"""MySQL操作封装"""
+
+import logging
+
+import pymysql
+
+from .utils import paths, load_config
+
+config_file_path = f"{paths['config']}/config.yml"
+conf_data = load_config(config_file_path)["mysql"]
+
+
+class MySQLDB():
+    """MySQL 数据库操作封装"""
+    def __init__(self, db_conf=None):
+        """DB建联与创建游标对象"""
+        if db_conf is None:
+            db_conf = {
+                "host": conf_data["mysql_host"],
+                "port": int(conf_data["mysql_port"]),
+                "user": conf_data["mysql_user"],
+                "password": conf_data["mysql_passwd"],
+                "db": conf_data["mysql_db"]
+            }
+        # 通过字典拆包传递配置信息，建立数据库连接
+        self.conn = pymysql.connect(**db_conf, autocommit=True)
+        # 通过 cursor() 创建游标对象，并让查询结果以字典格式输出
+        self.cur = self.conn.cursor(cursor=pymysql.cursors.DictCursor)
+
+    def __del__(self):
+        """对象资源被释放时触发，在对象即将被删除时的最后操作"""
+        # 关闭游标
+        self.cur.close()
+        # 关闭数据库连接
+        self.conn.close()
+
+    def select_db(self, sql):
+        """查询"""
+        # 检查连接是否断开，如果断开就进行重连
+        self.conn.ping(reconnect=True)
+        # 使用 execute() 执行sql
+        self.cur.execute(sql)
+        # 使用 fetchall() 获取查询结果
+        data = self.cur.fetchall()
+        return data
+
+    def execute_db(self, sql):
+        """更新/新增/删除"""
+        try:
+            # 检查连接是否断开，如果断开就进行重连
+            self.conn.ping(reconnect=True)
+            # 使用 execute() 执行sql
+            self.cur.execute(sql)
+            # 提交事务
+            self.conn.commit()
+        except Exception as err: # pylint: disable=W0718
+            logging.info("操作MySQL出现错误，错误原因：(%s)", str(err))
+            # 回滚所有更改
+            self.conn.rollback()
+
+
+db = MySQLDB()
+</code></pre>
+<h1 id="tuo-zhan">拓展</h1>
+<p>上文示例的重点是：不要使用可变类型作为参数的默认值。</p>
+<p>可选参数可以有默认值，这是Python函数定义的一个很棒的特性，这样我们的API在演进的同时能够保证向后兼容。然而，应该避免使用可变的对象作为参数的默认值。</p>
+<p>《流畅的python》第二版中给出了解释说明，我摘录一下(拍的书，上册的第六章接，展示比较丑，建议买本书看看，第二版蛮值得品鉴)：</p>
+<p>下 面 在 示 例 6-12 中 说 明 这 个 问 题。 我 们 以 示 例 6-8 中 的 Bus 类 为 基 础 定 义 一 个 新 类, HauntedBus ,然后修改<code> __init__</code> 方法。这一次, passengers 的默认值不是 None ,而是 [] ,</p>
+<p>这样就不用像之前那样使用 if 判断了。这个“聪明的举动”会让我们陷入麻烦。</p>
+<p>示例 6-12 一个简单的类,说明可变默认值的危险</p>
+<pre><code class="language-python">class HauntedBus:
+"""备受幽灵乘客折磨的校车"""
+   def __init__(self, passengers=[]): #
+        self.passengers = passengers #
+   def pick(self, name):
+        self.passengers.append(name)
+   def drop(self, name):
+        self.passengers.remove(name)
+</code></pre>
+<p>如果没传入 passengers 参数,使用默认绑定的列表对象,一开始是空列表。</p>
+<p>这个赋值语句把 self.passengers 变成 passengers 的别名,而没有传入 passengers 参数时,后者又是默认列表的别名。</p>
+<p>在 self.passengers 上调用 .remove() 和 .append() 方法时,修改的其实是默认列表,它是函数对象的一个属性。</p>
+<p>HauntedBus 的诡异行为如示例 6-13 所示。</p>
+<p>示例 6-13 备受幽灵乘客折磨的校车</p>
+<pre><code class="language-python">    &gt;&gt;&gt; bus1 = HauntedBus(['Alice', 'Bill'])
+    &gt;&gt;&gt; bus1.passengers
+    ['Alice', 'Bill']
+    &gt;&gt;&gt; bus1.pick('Charlie')
+    &gt;&gt;&gt; bus1.drop('Alice')
+    &gt;&gt;&gt; bus1.passengers 
+    ['Bill', 'Charlie']
+    &gt;&gt;&gt; bus2 = HauntedBus() 
+    &gt;&gt;&gt; bus2.pick('Carrie')
+    &gt;&gt;&gt; bus2.passengers
+    ['Carrie']
+    &gt;&gt;&gt; bus3 = HauntedBus() 
+    &gt;&gt;&gt; bus3.passengers 
+    ['Carrie']
+    &gt;&gt;&gt; bus3.pick('Dave')
+    &gt;&gt;&gt; bus2.passengers 
+    ['Carrie', 'Dave']
+    &gt;&gt;&gt; bus2.passengers is bus3.passengers 
+    True
+    &gt;&gt;&gt; bus1.passengers 
+    ['Bill', 'Charlie']
+</code></pre>
+<p>目前没什么问题, bus1 没有出现异常。</p>
+<p>一开始, bus2 是空的,因此把默认的空列表赋值给self.passengers 。</p>
+<p>bus3 一开始也是空的,因此还是赋值默认的列表。</p>
+<p>但是默认列表不为空!</p>
+<p>登上 bus3 的 Dave 出现在 bus2 中。</p>
+<p>问题是, bus2.passengers 和 bus3.passengers 指代同一个列表。</p>
+<p>但 bus1.passengers 是不同的列表。</p>
+<p>问题在于,没有指定初始乘客的 HauntedBus 实例会共享同一个乘客列表。</p>
+<p>这种问题很难发现。如示例6-13所示,实例化HauntedBus时,如果传入乘客,会按预期运作。但是不为HauntedBus指定乘客的话,奇怪的事就发生了,这是因为self.passengers变成了passengers参数默认值的别名。出现这个问题的根源是,默认值在定义</p>
+<p>函数时计算(通常在加载模块时),因此默认值变成了函数对象的属性。因此,如果默认值是可变对象,而且修改了它的值,那么后续的函数调用都会受到影响。</p>
+<p>运行示例6-13中的代码之后,可以审查<code>HauntedBus.__init__</code>对象,看看它的<code>__defaults__</code> 属性中的那些幽灵学生:</p>
+<pre><code class="language-python">    &gt;&gt;&gt; dir(HauntedBus.__init__) # doctest: +ELLIPSIS
+    ['__annotations__', '__call__', ..., '__defaults__', ...]
+    &gt;&gt;&gt; HauntedBus.__init__.__defaults__
+    (['Carrie', 'Dave'],)
+</code></pre>
+<p>最后,我们可以验证bus2.passengers是一个别名,它绑定到<code>HauntedBus.__init__.__defaults__</code> 属性的第一个元素上:</p>
+<pre><code class="language-python">    &gt;&gt;&gt; HauntedBus.__init__.__defaults__[0] is bus2.passengers
+    True
+</code></pre>
+<p>可变默认值导致的这个问题说明了为什么通常使用 None 作为接收可变值的参数的默认值。</p>
+<p>在示例 6-8 中, <code>__init__</code> 方法检查 passengers 参数的值是不是 None ,如果是就把一个新的空列表赋值给 self.passengers；如果 passengers 不是 None ,正确的实现会把 passengers 的副本赋值给 self.passengers。</p>
 
                 
             </div>
@@ -580,7 +817,7 @@ syntax on
                     </i>
                 </span>
                 <span class="reprint-info">
-                    <a href="https://gavin-wang-note.github.io/2018/08/15/vim_copy/">https://gavin-wang-note.github.io/2018/08/15/vim_copy/</a>
+                    <a href="https://gavin-wang-note.github.io/2024/07/07/pylint_w0102_warning/">https://gavin-wang-note.github.io/2024/07/07/pylint_w0102_warning/</a>
                 </span>
             </div>
             <div class="reprint__notice">
@@ -618,8 +855,8 @@ syntax on
                     
                         <div class="article-tag">
                             
-                                <a href="/tags/Linux/">
-                                    <span class="chip bg-color">Linux</span>
+                                <a href="/tags/pylint/">
+                                    <span class="chip bg-color">pylint</span>
                                 </a>
                             
                         </div>
@@ -702,25 +939,81 @@ syntax on
             <div class="article-badge left-badge text-color">
                 <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
             <div class="card">
-                <a href="/2018/08/19/ssd_performance_with_different_fs/">
+                <a href="/2024/07/24/pytest_cases_result_summary/">
                     <div class="card-image">
                         
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-10.png" class="responsive-img" alt="借助pytest hook获取用例执行结果信息汇总">
                         
-                        <img src="/img/loading.gif" data-original="/medias/featureimages/84.jpg" class="responsive-img" alt="SSD在不同控制器下不同文件系统类型性能">
-                        
-                        <span class="card-title">SSD在不同控制器下不同文件系统类型性能</span>
+                        <span class="card-title">借助pytest hook获取用例执行结果信息汇总</span>
                     </div>
                 </a>
                 <div class="card-content article-content">
                     <div class="summary block-with-text">
                         
-                            
+                            hook获取用例执行状态和概要信息
                         
                     </div>
                     <div class="publish-info">
                         <span class="publish-date">
-                            <i class="far fa-clock fa-fw icon-date"></i>2018-08-19
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-07-24
                         </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/06/17/run_pnpm_raise_node_no_such_file_or_directory/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/96.jpg" class="responsive-img" alt="解决CentOS下cron job 执行pnpm命令报 node 不存在问题">
+                        
+                        <span class="card-title">解决CentOS下cron job 执行pnpm命令报 node 不存在问题</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            解决CentOS下cron job 执行pnpm命令报 node No such file or directory
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-06-17
+                            </span>
                         <span class="publish-author">
                             
                             <i class="fas fa-bookmark fa-fw icon-category"></i>
@@ -738,59 +1031,6 @@ syntax on
                     
                     <a href="/tags/Linux/">
                         <span class="chip bg-color">Linux</span>
-                    </a>
-                    
-                    <a href="/tags/SSD/">
-                        <span class="chip bg-color">SSD</span>
-                    </a>
-                    
-                </div>
-                
-            </div>
-        </div>
-        
-        
-        <div class="article col s12 m6" data-aos="fade-up">
-            <div class="article-badge right-badge text-color">
-                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
-            </div>
-            <div class="card">
-                <a href="/2018/07/10/bond_package_lost/">
-                    <div class="card-image">
-                        
-                        
-                        <img src="/img/loading.gif" data-original="/medias/featureimages/67.jpg" class="responsive-img" alt="网络时延--Linux模拟复杂网络环境下的传输（netem和tc）">
-                        
-                        <span class="card-title">网络时延--Linux模拟复杂网络环境下的传输（netem和tc）</span>
-                    </div>
-                </a>
-                <div class="card-content article-content">
-                    <div class="summary block-with-text">
-                        
-                            
-                        
-                    </div>
-                    <div class="publish-info">
-                            <span class="publish-date">
-                                <i class="far fa-clock fa-fw icon-date"></i>2018-07-10
-                            </span>
-                        <span class="publish-author">
-                            
-                            <i class="fas fa-bookmark fa-fw icon-category"></i>
-                            
-                            <a href="/categories/Linux/" class="post-category">
-                                    Linux
-                                </a>
-                            
-                            
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="card-action article-tags">
-                    
-                    <a href="/tags/network/">
-                        <span class="chip bg-color">network</span>
                     </a>
                     
                 </div>
@@ -973,7 +1213,7 @@ syntax on
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">566k</span>
+                        class="white-color">570k</span>
             
             
             
