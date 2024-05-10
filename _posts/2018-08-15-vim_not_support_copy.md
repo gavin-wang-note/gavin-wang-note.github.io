@@ -3,8 +3,10 @@ layout:     post
 title:      "vim无法黏贴"
 subtitle:   "Set copy content for vim"
 date:       2018-08-15
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -17,7 +19,7 @@ tags:
 
 vim ~/.vimrc，添加如下内容：
 
-```
+```shell
 set mouse=c
 syntax on
 ```
