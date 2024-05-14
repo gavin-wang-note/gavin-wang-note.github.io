@@ -20,6 +20,8 @@ tags:
     - Automation
 ---
 
+[续上文](http://gavin-wang-note.github.io/2024/03/03/pytest_test_guide_part1_chapter1_3_1_pytest_params/)
+
 ## 3.2.3 Reporting 相关参数
 
 ### 3.2.3.1 参数  `--durations=N`

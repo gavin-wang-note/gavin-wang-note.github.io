@@ -82,6 +82,11 @@ apt-get install ncdu
 ```bash
 ncdu
 ```
+会先扫码，然后展示空间使用信息，如下图所示：
+
+<img class="shadow" src="/img/in-post/ncdu_scan.png" width="800">
+
+<img class="shadow" src="/img/in-post/ncdu_console.png" width="800">
 
 如果你提供了特定的目录作为参数，它将分析那个目录：
 

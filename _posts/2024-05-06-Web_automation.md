@@ -417,7 +417,7 @@ class BasePage:
             raise err
 
 
-    ####  由于代码内容较多，中间部分省略，请查看源码获取完整文件  ####
+    ####  由于代码内容较多，中间部分省略   ####
 
     def refresh_page(self):
         """
