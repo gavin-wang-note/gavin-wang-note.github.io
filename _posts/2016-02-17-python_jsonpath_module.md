@@ -10,7 +10,7 @@ coverImg:
 password:
 toc: true
 mathjax: false
-summary: 使用 JSONPath 进行 JSON 数据查询和解析
+summary: 使用 JSONPath 进行 JSON 数据查询和解析(多层级读取key的value)
 categories:
     - [python]
 tags:
