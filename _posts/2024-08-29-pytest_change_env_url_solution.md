@@ -234,13 +234,21 @@ pytest --target_url=test
 3、在测试用例中，使用读取的配置进行测试。
 
 **说明：**:
- 请事先安装dotenv，安装命令： `pip install pytest-dotenv`
+
+1、请事先安装dotenv，安装命令： `pip install pytest-dotenv`
+2、`dotenv`工作的核心是一个名为`.env`的文件。在这个文件中，你可以定义环境变量的键值对，`dotenv`将会读取这些信息并将其加载到Python环境中。这样，当你的应用运行时，这些环境变量就像是被设置在操作系统环境中一样。`.env`内容示例参考如下：
+
+```shell
+DB_HOST=localhost
+DB_USER=root
+DB_PASS=s1mpl3
+```
 
 ## 示例代码
 
 ### 创建环境文件
 
-touch如下.env.xxx文件(项目根目录下)，并写入相关内容：
+`touch`如下`.env.xxx`文件(项目根目录下)，并写入相关内容：
 
 `.env.dev`:
 
@@ -299,6 +307,11 @@ pytest --env=dev
 ```
 
 这种方法可以很方便地在不同运行时环境之间切换配置，同时也避免了在代码内部硬编码环境配置信息。
+
+
+**注意**:
+
+关于dotenv使用上的一些坑，[参考链接](https://zhuanlan.zhihu.com/p/656008764)
 
 
 # 方案四：使用环境变量TEST_ENV

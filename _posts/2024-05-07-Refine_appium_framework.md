@@ -43,6 +43,8 @@ tags:
 
 首先，在项目根目录下的`conftest.py`中设置一个自定义的配置选项来存储设备信息：
 
+`pytest_addoption`是一个特殊的钩子方法，它接收一个名为parser的参数。这个参数是一个命令行参数解析器对象，我们可以调用它的addoption方法来添加自定义选项：
+
 ```python
 # conftest.py
 def pytest_addoption(parser):
