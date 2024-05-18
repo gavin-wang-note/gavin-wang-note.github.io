@@ -2,7 +2,7 @@
 title: 透过adb获取Andriod APP CRASH 时日志信息
 date: 2024-05-01 17:12:37
 author: Gavin Wang
-img: ""
+img: "/img/Linux/android.jpg"
 top: false
 hide: false
 cover: false

@@ -2,7 +2,7 @@
 title: Linux下解决vim内容黏贴缩进异常问题
 date: 2024-05-27 23:11:37
 author: Gavin Wang
-img: ""
+img: "/img/Linux/vim2.jpg"
 top: false
 hide: false
 cover: false

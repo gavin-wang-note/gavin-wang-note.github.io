@@ -2,7 +2,7 @@
 title: 解决CentOS下cron job 执行pnpm命令报 node 不存在问题
 date: 2024-06-17 16:59:18
 author: Gavin Wang
-img:
+img: "/img/Linux/centos.jpg"
 top: false
 hide: false
 cover: false
