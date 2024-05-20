@@ -2,8 +2,8 @@
 title: 《pytest测试指南》-- 第一章节 前言 PREFACE
 date: 2023-12-18 19:35:11
 author: Gavin Wang
-img: "/img/pytest/pytest-10.png"
-top: true
+img: "/img/pytest/pytest-2.png"
+top: false
 hide: false
 cover: true
 coverImg: 

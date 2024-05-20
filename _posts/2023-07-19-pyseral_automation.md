@@ -1,10 +1,18 @@
 ---
 layout:     post
-title:      "Windows下pyserial嵌入式自动化测试框架"
+title:      "Windows下使用pyserial实现嵌入式产品串口自动化测试框架设计与开发"
 subtitle:   "pyserial Embedded Automation Test Framework for Windows"
 date:       2023-07-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: true
+img: "/img/pytest/pytest-8.png"
+summary: pytest基于pyserial模块做嵌入式产品串口功能自动化
+password: Huawei123!
+theme: flip
+categories:
+    - [Automation]
+    - [pytest]
 tags:
     - Automation
     - python
@@ -47,7 +55,7 @@ windows下安装python2.x系列，由于python lib有相互依赖关系，本文
 
 ## pytest相关基础包
 
-```
+```shell
 allure-pytest-2.8.11
 allure-python-commons-2.8.11
 allure-commandline-2.13.2
@@ -65,7 +73,7 @@ pytest-ordering-develop
 
 安装成功后，显示如下信息，表明安装成功：
 
-```
+```shell
 E:\automation\src>pytest --version
 This is pytest version 4.6.11, imported from C:\Python27\lib\site-packages\pytest.pyc
 setuptools registered plugins:
@@ -83,7 +91,7 @@ E:\automation\src>
 
 ## java相关安装包
 
-```
+```shell
 jdk-8u171-windows-x64
 ```
 
@@ -100,7 +108,7 @@ jdk-8u171-windows-x64
 ## 整体目录结构介绍
 
 
-```
+```shell
  E:\automation 的目录
 
 2023/07/19  10:31    <DIR>          .
@@ -125,7 +133,7 @@ E:\automation>
 
 ## report目录介绍
 
-```
+```shell
 E:\automation\report>dir
  驱动器 E 中的卷没有标签。
  卷的序列号是 EE05-33CD
@@ -162,7 +170,7 @@ E:\automation\report>
 
 
 
-```
+```shell
 E:\automation\src>dir
  驱动器 E 中的卷没有标签。
  卷的序列号是 EE05-33CD
@@ -252,11 +260,11 @@ E:\automation\src>
 
 说明：
 
-* common 目录，存放公用基类
-* config 目录，存放配置信息，诸如设置的串口信息，波特率等
-* run.py 是程序主入口，支持根据传参执行全部用例与部分用例
-* testcase 目录存放具体的测试用例
-* testcasebase 目录存放各个功能的基类
+* `common` 目录，存放公用基类
+* `config` 目录，存放配置信息，诸如设置的串口信息，波特率等
+* `run.py` 是程序主入口，支持根据传参执行全部用例与部分用例
+* `testcase` 目录存放具体的测试用例
+* `testcasebase` 目录存放各个功能的基类
 
 
 
@@ -267,10 +275,10 @@ E:\automation\src>
 
 
 
-适配产品的 python serial 部分代码如下：
+适配产品的 python serial 部分代码如下(最新的代码未放出，这里只抛砖引玉)：
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: GBK -*-
 
@@ -603,7 +611,7 @@ MESSAGE_TYPE 有如下几种：
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: GBK -*-
 
@@ -665,7 +673,7 @@ class TestElectronicDiskTest(ElectronicDiskTest):
 src 目录下，执行 ```python run.py```, 如下所示：
 
 
-```
+```shell
 E:\automation\src>python run.py
 --------------------------------------------------------------------------------
 [Step 1]  [Check]    Check if the report directory is deleted
@@ -718,7 +726,7 @@ Coverage XML written to file ../report/coverage.xml
 
 执行 ```python run.py -t xxx yyy zzz```， 其中xxx yyy zzz表示不同的用例文件
 
-```
+```shell
 E:\automation\src>python run.py -t testcase/test_01_comprehensive_test.py testcase/test_02_watch_dog.py
 ```
 
@@ -743,7 +751,7 @@ python run.py -t testcase/test_01_comprehensive_test.py::TestComprehensiveTest::
 
 e.g:
 
-```
+```shell
 pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive
 ```
 
@@ -766,7 +774,7 @@ pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc
 
 
 
-```
+```shell
 E:\automation\src>pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01_comprehensive_test.py::TestComprehensiveTest::test_comprehensive --count=10
 ```
 
@@ -781,7 +789,7 @@ E:\automation\src>pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-
 
 
 
-```
+```shell
 E:\automation\src>pytest --cov-report xml:../report/coverage.xml --cov=./ --cov-config .coveragerc --alluredir ../report/json testcase/test_01.py --count=10
 ```
 
@@ -802,7 +810,7 @@ run.py运行结束后，会在report目录下生成json目录与文件，执行a
 
 
 
-```
+```shell
 E:\automation>cd report
 E:\automation\report>allure generate json -o html --clean
 Report successfully generated to html
@@ -823,7 +831,7 @@ Server started at <http://192.168.56.1:11111/>. Press <Ctrl+C> to exit
 
 
 
-```
+```shell
 E:\automation\report>allure open html
 Starting web server...
 2023-07-19 15:00:17.760:INFO::main: Logging initialized @180ms to org.eclipse.jetty.util.log.StdErrLog

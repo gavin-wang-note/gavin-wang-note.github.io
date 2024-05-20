@@ -1,11 +1,19 @@
 ---
 layout:     post
-title:      "pytest+request+allure自动化指南"
-subtitle:   "Use guide of pytest+request+allure"
+title:      "pytest+requests+allure接口级自动化指南"
+subtitle:   "User guide of pytest+requests+allure"
 date:       2020-03-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: true
+img: "/img/pytest/pytest-8.png"
+cover: true
+summary: 详细介绍pytest+requests+allure的安装与使用，并结合产品，给出具体示例
+categories:
+    - [pytest]
+    - [Automation]
 tags:
+    - pytest
     - Automation
 ---
 
@@ -14,7 +22,7 @@ tags:
 
 之前一直用nose完成了产品的1000多个自动化用例，再来学习一下pytest。
 
-本文基于Ubuntu16.04，介绍pytest+request+allure的安装与使用，并结合产品，给出具体示例。
+本文基于Ubuntu16.04，介绍pytest+requests+allure的安装与使用，并结合产品，给出具体示例。
 
 
 
@@ -24,13 +32,13 @@ tags:
 
 升级python-pip
 
-```
+```shell
 pip install --upgrade pip
 ```
 
 需要先升级python-pip，否则安装pytest可能会报：
 
-```
+```shell
 root@ubuntu16:~# pip install -U pytest
 Collecting pytest
   Downloading https://files.pythonhosted.org/packages/f0/5f/41376614e41f7cdee02d22d1aec1ea028301b4c6c4523a5f7ef8e960fe0b/pytest-5.3.5.tar.gz (990kB)
@@ -69,7 +77,7 @@ root@ubuntu16:~#
 
 成功升级python-pip后，安装pytest
 
-```
+```shell
 root@ubuntu16:~# pip install -U pytest
 WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.
 Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.
@@ -124,7 +132,7 @@ root@ubuntu16:~#
 
 确认pytest版本
 
-```
+```shell
 root@ubuntu16:~# pytest --version
 This is pytest version 4.6.9, imported from /usr/local/lib/python2.7/dist-packages/pytest.pyc
 setuptools registered plugins:
@@ -134,7 +142,7 @@ root@ubuntu16:~#
 
 ## 安装pytest-progress
 
-```
+```shell
 root@ubuntu16:~# pip install pytest-progress
 ```
 
@@ -143,7 +151,7 @@ root@ubuntu16:~# pip install pytest-progress
 
 ## 安装 pytest-sugar
 
-```
+```shell
 root@ubuntu16:~# pip install pytest-sugar
 ```
 
@@ -152,23 +160,23 @@ root@ubuntu16:~# pip install pytest-sugar
 
 注意，pytest-allure 与 pytest-allure-adaptor 互相冲突（https://blog.csdn.net/sinat_40831240/article/details/89711263），且pytest-allure-apaptor已经不维护了，建议安装pytest-allure。
 
-```
+```shell
 root@ubuntu16:~# pip install allure-pytest
 ```
 
 
 ## 安装测试所需的模块
 
-比如发起HTTP请求的request模块之类的，具体根据所需安装。
+比如发起HTTP请求的requests模块之类的，具体根据所需安装。
 
 
 # 使用过程中碰到的问题
 
-## request InsecureRequestWarning告警
+## requests InsecureRequestWarning告警
 
 用例执行时，出现如下文所示的告警内容：
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/src# python -m pytest testcase/case_2_Accounts/test_common_account_settings.py
 Test session starts (platform: linux2, Python 2.7.12, pytest 4.6.9, pytest-sugar 0.9.2)
 rootdir: /home/pytest_framework/src
@@ -188,11 +196,11 @@ testcase/case_2_Accounts/test_common_account_settings.py:14
 Results (2.97s):
 ```
 
-这里有两个告警，一个是request的，一个是测试用例的 \__init__ constructor，
+这里有两个告警，一个是requests的，一个是测试用例的 \__init__ constructor，
 
-对于request
+对于requests
 
-```
+```shell
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -201,7 +209,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 对于测试用例，在执行用例时，可以增加```-W ignore::pytest.PytestCollectionWarning```进行屏蔽
 示例如下：
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/src# python -m pytest testcase/case_2_Accounts/test_common_account_settings.py -W ignore::pytest.PytestCollectionWarning
 Test session starts (platform: linux2, Python 2.7.12, pytest 4.6.9, pytest-sugar 0.9.2)
 rootdir: /home/pytest_framework/src
@@ -222,13 +230,13 @@ pytest会跳过类中定义__init__()的用例
 
 参考：
 
-```
+```shell
 https://stackoverflow.com/questions/21430900/py-test-skips-test-class-if-constructor-is-defined
 ```
 
 文中有这么一段：
 
-```
+```shell
 py.test purposely skips classes which have a constructor. The reason for this is that classes are only used for structural reasons in py.test and do not have any inherent behaviour, while when actually writing code it is the opposite and much rarer to not have an .__init__() method for a class.
 ```
 
@@ -237,7 +245,7 @@ py.test purposely skips classes which have a constructor. The reason for this is
 
 ## 生成allure测试报告时，找不到allure
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/src# allure serve allure-results/
 allure: command not found
 root@ubuntu16:/home/pytest_framework/src# 
@@ -247,7 +255,7 @@ root@ubuntu16:/home/pytest_framework/src#
 
 ### 在线安装
 
-```
+```shell
 apt-add-repository ppa:qameta/allure
 apt-get update 
 apt-get install allure
@@ -279,7 +287,7 @@ Step3. Source一下~/.bashrc
 
 至此，后面就可以直接使用allure命令了
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework# allure generate ./allure-results/ -o ./report/ --clean
 Report successfully generated to ./report
 root@ubuntu16:/home/pytest_framework# 
@@ -295,7 +303,7 @@ root@ubuntu16:/home/pytest_framework#
 
 ## 使用allure生成报告时候，提示没有JAVA_HOME
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/src# allure generate ../report/ -o ./allure-reports/
 Could not find java implementation: try to set JAVA_HOME, JRE_HOME or add java to PATH
 root@ubuntu16:/home/pytest_framework/src# 
@@ -310,13 +318,13 @@ Step1、下载jdk相应版本，放入 /opt并解压
 
 Step2、配置环境变量
 
-```
+```shell
 vi /etc/profile
 ```
 
 在最后加入(修改为自己的存放目录)
 
-```
+```shell
 export JAVA_HOME=/opt/jdk1.8.0_161
 export JRE_HOME=$JAVA_HOME/jre
 export CLASSPATH=.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib:$CLASSPATH
@@ -327,7 +335,7 @@ Step3、保存后source一下profile文件
 
 执行 java –version显示如下即成功：
 
-```
+```shell
 root@ubuntu16:~# source /etc/profile
 root@ubuntu16:~# java -version
 java version "1.8.0_161"
@@ -359,7 +367,7 @@ allure使用了两种方式来渲染页面。分别是allure open 和 allure ser
 
 对于Ubuntu来说，则是执行如下操作：
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/report# allure generate json/ -o html --clean
 Report successfully generated to html
 root@ubuntu16:/home/pytest_framework/report# allure open html/
@@ -379,7 +387,7 @@ Server started at <http://127.0.1.1:44307/>. Press <Ctrl+C> to exit
 
 在allure html report生成前，在对应的json目录下增加environment.properties ：
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/report/json# cat environment.properties 
 Product=Scaler 7.0-889 (202002280200~2b00e3b44)
 HostIP=172.17.75.97
@@ -406,7 +414,7 @@ root@ubuntu16:/home/pytest_framework/report/json#
 
 在pytest.ini文件中，增加了log_format && log_data_format
 
-```
+```shell
 log_format = %(asctime)s [%(filename)s:%(lineno)-4s] [%(levelname)5s] %(message)s
 log_date_format=%Y-%m-%d %H:%M:%S
 ```
@@ -427,7 +435,7 @@ log_date_format=%Y-%m-%d %H:%M:%S
 
 查看了pytest的help信息，有这么一项：
 
-```
+```shell
 --color=color         color terminal output (yes/no/auto).
 ```
 
@@ -445,7 +453,7 @@ log_date_format=%Y-%m-%d %H:%M:%S
 
 ## 代码目录结构
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework# ll
 total 56
 drwxr-xr-x 8 root root  4096 Mar  7 11:56 ./
@@ -506,7 +514,7 @@ root@ubuntu16:/home/pytest_framework/src/common#
 
 ### conftest.py
 
-```
+```python
 import pytest
 import logging
 
@@ -531,7 +539,7 @@ logging.info('----------------------------------- End --------------------------
 
 ### pytest.ini
 
-```
+```ini
 root@ubuntu16:/home/pytest_framework/src# cat pytest.ini 
 [pytest]
 log_cli = false
@@ -550,7 +558,7 @@ root@ubuntu16:/home/pytest_framework/src#
 
 ## api.py部分内容
 
-```
+```python
 root@ubuntu16:/home/pytest_framework/src/common# cat api.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -573,7 +581,7 @@ login_interface = config.host + '/cgi/login?'
 ## 测试用例基类示例
 
 
-```
+```python
 root@ubuntu16:/home/pytest_framework/src/testcasebase/Account# cat account.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -713,7 +721,7 @@ class AccountManager(object):
             ctdb_nodes.append(line)
 
         for each_node in ctdb_nodes:
-            {% raw %}cmd = "cat {} | grep {} | awk -F ':' '{{print $1}}'".format(each_node, ETC_PASSWD, user_id) {% endraw %}
+            cmd = "cat {} | grep {} | awk -F ':' '{{print $1}}'".format(each_node, ETC_PASSWD, user_id)
             res_status, etc_passwd = ssh_session().run_cmd(cmd)
             logging.info("[Check]    [Add user]  Check user in : /etc/passwd on node : (%s)", each_node)
             err_msg = 'Found account : ({}) in /etc/passwd on node : ({})'.format(user_id, each_node)
@@ -819,7 +827,7 @@ root@ubuntu16:/home/pytest_framework/src/testcasebase/Account#
 ## 测试用例示例
 
 
-```
+```python
 root@ubuntu16:/home/pytest_framework/src/testcase/case_2_Accounts# cat test_common_account_settings.py 
 #!/usr/bin/env python
 
@@ -851,7 +859,7 @@ def test_add_user_success(self):
 
 示例如下：
 
-```
+```shell
 root@ubuntu16:/home/pytest_framework/src# python clear_pyc.py; clear; PYTHONPATH=. py.test -v --cache-clear --alluredir ../report/json testcase/case_2_Accounts/test_common_account_settings.py 
 ```
 
@@ -861,7 +869,7 @@ root@ubuntu16:/home/pytest_framework/src# python clear_pyc.py; clear; PYTHONPATH
 
 运行环境是Ubuntu14.04，经过多次摸索，确定只能使用pytest-4.6.9，脚本具体内容如下：
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -1425,8 +1433,8 @@ def run_node_check():
             print "         [Success]  Check public and storage interface success " \
                   "from config/autotest.config and ceph.conf"
 
-        {% raw %}scope_pub_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(pub_ifce) {% endraw %}
-        {% raw %}scope_sto_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(sto_ifce) {% endraw %}
+        scope_pub_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(pub_ifce)
+        scope_sto_cmd = "ip a | grep 'scope global {}' | awk '{{print $2}}'".format(sto_ifce)
         local_pub_ip_info = do_cmd(scope_pub_cmd, 15).strip()
         local_sto_ip_info = do_cmd(scope_sto_cmd, 15).strip()
         local_pub_ip = local_pub_ip_info.split('/')[0]
@@ -1441,7 +1449,7 @@ def run_node_check():
             sys.exit(0)
     else:
         local_ip = []
-        {% raw %}local_ip_info = do_cmd("ip a | grep 'scope global' | awk '{{print $2}}'", 30).strip() {% endraw%}
+        local_ip_info = do_cmd("ip a | grep 'scope global' | awk '{{print $2}}'", 30).strip()
 
         for each_ip in local_ip_info.split("\n"):
             local_ip.append(each_ip.split('/')[0])
@@ -1483,7 +1491,7 @@ def run_node_check():
         # If client is a cluster of Virtual Storage node, which reset-node or create cluster for many
         # times(not refresh install OS), will has many old ssh key in /root/.ssh/authorized_keys
         expect_pub_files_list = ['/root/.ssh/id_dsa.pub', '/root/.ssh/id_ecdsa.pub', '/root/.ssh/id_rsa.pub']
-        {% raw %}ls_pub_files = "ls -l /root/.ssh/id*.pub | awk '{{print $NF}}'" {% endraw %}
+        ls_pub_files = "ls -l /root/.ssh/id*.pub | awk '{{print $NF}}'"
         cat_auth_keys_file = "cat /root/.ssh/authorized_keys"
         client_ls_pub_files = "sshpass -p {} ssh -p {} -l root {} '{}'".format(client_ip_passwd, port,
                                                                                client_ip, ls_pub_files)
@@ -1532,7 +1540,7 @@ def run_node_check():
                           "pub_list : ({})\n".format(expect_pub_files_list, pub_list)
                 else:
                     # Check content of /root/.ssh/authorized_keys, if has many same host name, should change it
-                    {% raw %}cat_auth_keys_cmd = "cat /root/.ssh/authorized_keys | awk '{{print $NF}}'" {% endraw %}
+                    cat_auth_keys_cmd = "cat /root/.ssh/authorized_keys | awk '{{print $NF}}'"
                     get_content_cmd = "sshpass -p {} ssh -p {} -l root {} '{}'".format(client_ip_passwd, port,
                                                                                        client_ip, cat_auth_keys_cmd)
                     auth_keys_res = do_cmd(get_content_cmd, 30).strip()
@@ -1647,7 +1655,7 @@ def unlink_unavailable_scsi_session():
     do_cmd(remote_rm_tgt_cmd, 60, True).strip()
 
     # Delete all of folder which name include pytest, then rm unavailable link file in send_targets
-    {% raw %}ls_session_cmd = "iscsiadm -m session | grep pytest | sed 's/,1//g' | awk '{{print $3, $NF}}'" {% endraw %}
+    ls_session_cmd = "iscsiadm -m session | grep pytest | sed 's/,1//g' | awk '{{print $3, $NF}}'"
     rm_iqn_cmd = "rm -rf /etc/iscsi/nodes/iqn*pytest*"
     rm_tgt_cmd = "for f in $(find /etc/iscsi/send_targets/ -type l); do [ ! -e $f ] && rm -rf $f; done"
 
@@ -2080,8 +2088,8 @@ def modify_apache_conf():
     apache_conf = "/etc/apache2/apache2.conf"
 
     for each_node in all_nodes:
-        {% raw %}res = do_cmd("ssh {} cat {} | grep -w KeepAlive | grep -v '#' | "
-                     "awk '{{print $2}}'".format(each_node, apache_conf), 30).strip() {% endraw %}
+        res = do_cmd("ssh {} cat {} | grep -w KeepAlive | grep -v '#' | "
+                     "awk '{{print $2}}'".format(each_node, apache_conf), 30).strip()
         if res == "On":
             print "        [Action]   Start to modify ({}) on node ({}) to " \
                   "change KeepAlive to Off".format(apache_conf, each_node)
@@ -2101,8 +2109,8 @@ def modify_webpy_session():
     else:
         all_nodes = ClusterManager().list_nodes()
         for each_node in all_nodes:
-            {% raw %}res = do_cmd("ssh {} cat {} | grep web.config.session_parameters | "
-                         " grep timeout | awk '{{print $NF}}'".format(each_node, index_py), 30).strip() {% endraw %}
+            res = do_cmd("ssh {} cat {} | grep web.config.session_parameters | "
+                         " grep timeout | awk '{{print $NF}}'".format(each_node, index_py), 30).strip()
             if res == '1800':
                 print "        [Action]   Start to modify ({}) on node ({}) to " \
                   "change session from 1800 to 86400".format(index_py, each_node)
@@ -2388,7 +2396,7 @@ if __name__ == "__main__":
 
 此脚本放在jenkins账号的email-templates目录下:
 
-```
+```shell
 jenkins@ubuntu-16:~/email-templates$ pwd
 /var/lib/jenkins/email-templates
 jenkins@ubuntu-16:~/email-templates$ ls -l
@@ -2400,7 +2408,7 @@ jenkins@ubuntu-16:~/email-templates$
 
 allure-report.groovy文件内容如下：
 
-```
+```shell
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <style type="text/css">
 /*base css*/

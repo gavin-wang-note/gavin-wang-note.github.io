@@ -3,7 +3,7 @@ title: 《pytest测试指南》-- 章节1-1 初识pytest
 date: 2024-01-21 22:06:17
 author: Gavin Wang
 img: "/img/pytest/pytest-2.png"
-top: true
+top: false
 hide: false
 cover: true
 coverImg: 
