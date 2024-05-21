@@ -5,6 +5,15 @@ subtitle:   "Fix pylint W0102 警告"
 date:       2024-07-07
 author:     "Gavin Wang"
 catalog:    true
+img: "/img/python/pylint1.png"
+top: false
+hide: false
+cover: false
+coverImg:
+password:
+theme: flip
+toc: true
+mathjax: false
 categories:
     - [pylint]
 tags:

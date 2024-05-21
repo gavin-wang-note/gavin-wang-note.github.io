@@ -1,5 +1,5 @@
 ---
-title: pytest+Appium+Allure实现APP GUI自动化测试框架设计
+title: pytest+Appium2.5.1+Allure实现APP GUI自动化测试框架设计
 date: 2024-04-20 17:12:37
 author: Gavin Wang
 img: "/img/appium/appium7.png"
