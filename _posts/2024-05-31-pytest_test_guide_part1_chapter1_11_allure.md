@@ -2,7 +2,7 @@
 title: 《pytest测试指南》-- 章节1-11 pytest与Allure结合生成测试报告
 date: 2024-05-31 23:00:00
 author: Gavin Wang
-img: "/img/pytest/pytest-11.png"
+img: "/img/pytest/pytest-2.png"
 top: false
 hide: false
 cover: false

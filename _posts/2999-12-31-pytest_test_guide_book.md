@@ -54,7 +54,7 @@ tags:
 
 ## 第二部分 接口自动化实践
 
-[《pytest测试指南》-- 第二章 前言](https://gavin-wang-note.github.io/2024/06/01/pytest_test_guide_part1_chapter2_preface/)
+[《pytest测试指南》-- 第二章 前言](https://gavin-wang-note.github.io/2024/06/01/pytest_test_guide_part2_chapter2_preface/)
 
 [《pytest测试指南》-- 第二章 2-1 API与requests模块介绍](https://gavin-wang-note.github.io/2024/06/02/pytest_test_guide_part2_chapter2_1_api_and_requests_module/)
 

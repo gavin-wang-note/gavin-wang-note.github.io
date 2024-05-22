@@ -14,6 +14,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
+summary: 碰到pylint W0102 警告，本文介绍如何消除它
 categories:
     - [pylint]
 tags:
