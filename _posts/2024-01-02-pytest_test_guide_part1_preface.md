@@ -5,7 +5,7 @@ author: Gavin Wang
 img: "/img/pytest/pytest-2.png"
 top: false
 hide: false
-cover: true
+cover: false
 coverImg: 
 password: 
 toc: true

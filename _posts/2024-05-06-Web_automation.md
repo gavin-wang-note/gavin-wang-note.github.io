@@ -1,12 +1,12 @@
 ---
-title: pytest+Selenium+Allure Web自动化测试框架设计
+title: pytest+Selenium4.0+Allure Web自动化测试框架设计
 date: 2024-05-06 22:50:37
 author: Gavin Wang
 # img: "/img/in-post/selenium/Selenium-Xpath-In-Details.png"
 img: "/img/in-post/selenium/selenium1.jpg"
-top: false
+top: true
 hide: false
-cover: false
+cover: true
 coverImg:
 password:
 theme: flip

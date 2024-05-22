@@ -1,10 +1,16 @@
 ---
 layout:     post
-title:      "基于Nose Framework做产品自动化"
-subtitle:   "Nose automation documentation"
+title:      "基于Nose Framework做分布式存储产品自动化"
+subtitle:   "Nose automation documentation for Bigtera Virtual Storage"
 date:       2019-12-31
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+cover:      true
+summary: 基于Nose Framework做分布式存储产品接口级自动化
+top: true
+categories:
+    - [Automation]
+    - [nose]
 tags:
     - Automation
     - nose
@@ -30,7 +36,7 @@ tags:
 
 需要安装 multipath-tools， fio，openssh-server（支持 ssh 指令）， open-iscsi（支持 iscsiadm指令）， NFS  和 CIFS。 上述软件安装指令如下：
 
-```
+```shell
 apt-get install open-iscsi
 apt-get install openssh-server apt-get install multipath-tools apt-get install fio
 apt-get install cifs-utils
@@ -39,7 +45,7 @@ apt-get install nfs-kernel-server
 
 如果客户端是官方的Ubuntu，那肯定是没有安装 NFS 和 CIFS 的，mount NFS/CIFS 会出问题：
 
-```
+```shell
 root@nose-ubuntu:/mnt# mount -t nfs 10.16.172.246:/vol/nose_nas /mnt/test mount: wrong fs type, bad option, bad superblock on 10.16.172.246:/vol/nose_nas,
 missing codepage or helper program, or other error (for several filesystems (e.g. nfs, cifs) you might need a /sbin/mount.<type> helper program)
 
@@ -63,7 +69,7 @@ root@nose-ubuntu:/mnt# dmesg | tail
 
 所以需要进行安装，成功安装后，内容如下：
 
-```
+```shell
 root@nose:~# dpkg -l | grep nfs
 ii  libnfs4:amd64                        1.10.0-7.0+854+6b837f908                   amd64        NFS client library (shared library)
 ii  libnfsidmap2:amd64                   0.25-5                                     amd64        NFS idmapping library
@@ -76,13 +82,13 @@ ii  nfs-kernel-server                    1:1.2.8-6ubuntu1.2                     
 
 ## 2、安装python-pip
 
-```
+```shell
 apt-get install python-pip
 ```
 
 ## 3、升级requests模块
 
-```
+```shell
 pip install --upgrade --ignore-installed requests --index-url=https://pypi.python.org/simple
 
 root@44:/var/cache/apt/archives# pip install --upgrade --ignore-installed requests --index-url=https://pypi.python.org/simple
@@ -146,7 +152,7 @@ Cleaning up...
 
 ## 4、安装configobj模块
 
-```
+```shell
 pip install configobj
 ```
 
@@ -156,7 +162,7 @@ pip install configobj
 
 安装命令：
 
-```
+```shell
 pip install nose-html-reporting
 ```
 
@@ -177,7 +183,7 @@ pip install nose-html-reporting
 修改 ```/usr/local/lib/python2.7/dist-packages/nose_html_reporting-0.2.3-py2.7.egg/nose_html_reporting目录下__init__.py，```
 将203行 ```lstrip_blocks=True ```注释掉，并删除掉产生的pyc文件。
 
-```
+```shell
 root@44:/home/nose_test/src# cd /usr/local/lib/python2.7/dist-packages/nose_html_reporting/
 root@44:/usr/local/lib/python2.7/dist-packages/nose_html_reporting# rm __init__.pyc
 ```
@@ -187,7 +193,7 @@ root@44:/usr/local/lib/python2.7/dist-packages/nose_html_reporting# rm __init__.
 
 ## 8、安装nose-testconfig
 
-```
+```shell
 pip install nose-testconfig --index-url=https://pypi.python.org/simple
 ```
 
@@ -197,14 +203,14 @@ pip install nose-testconfig --index-url=https://pypi.python.org/simple
 
 参考资料
 
-```
+```shell
 https://gitee.com/walkingnine/colorunit
 https://pypi.org/project/colorama/#files
 ```
 
 需要安装如下这个包：
 
-```
+```shell
 colorama-0.3.9.tar.gz
 walkingnine-colorunit.gz
 ```
@@ -215,7 +221,7 @@ walkingnine-colorunit.gz
 特别说明：
 * 测试用例中不需要添加下列步骤中内容，只要在nosetests执行用例的时候，使用--with-colorunit参数即可。
 
-```
+```shell
 import nose; 
 from colorunit import ColorUnit
   和：
@@ -227,7 +233,7 @@ if __name__ == '__main__':
 
 参考资料
 
-```
+```shell
 https://github.com/erikrose/blessings
 https://github.com/erikrose/nose-progressive
 ```
@@ -244,7 +250,7 @@ https://github.com/erikrose/nose-progressive
 
 进入nose_framework/python_3rd_lib/，解压pylint-1.7.6.tar.gz，进入解压缩目录，重新进行pylint的安装：
 
-```
+```shell
 cd pylint-1.7.6
 python setup.py install
 ```
@@ -253,7 +259,7 @@ python setup.py install
 
 ## 1、常用参数介绍
 
-```
+```shell
 -v : debug模式，看到具体执行情况，推荐大家执行时用这个选项。
 -s : nose会捕获标准输出，调试的print代码默认不会打印。
    nosetest -s 可打开output输出，否则全部通过时不打印stdout。
@@ -281,7 +287,7 @@ python setup.py install
 
 打标签的好处是，可以执行带有某些特定tag的用例，这里用tag，是借用了RF的概念，示例如下：
 
-```
+```shell
 from nose.plugins.attrib import attr
 @attr('slow')
 def test_big_download():
@@ -306,7 +312,7 @@ def test_big_download():
 
 ### 断言
 
-```
+```shell
 >>> from nose import tools
 >>> dir(tools)
 ['TimeExpired', '__all__', '__builtins__', '__doc__', '__file__', '__name__', '__package__', '__path__', 'assert_almost_equal', 'assert_almost_equals', 'assert_dict_contains_subset', 'assert_dict_equal', 'assert_equal', 'assert_equals', 'assert_false', 'assert_greater', 'assert_greater_equal', 'assert_in', 'assert_is', 'assert_is_instance', 'assert_is_none', 'assert_is_not', 'assert_is_not_none', 'assert_items_equal', 'assert_less', 'assert_less_equal', 'assert_list_equal', 'assert_multi_line_equal', 'assert_not_almost_equal', 'assert_not_almost_equals', 'assert_not_equal', 'assert_not_equals', 'assert_not_in', 'assert_not_is_instance', 'assert_not_regexp_matches', 'assert_raises', 'assert_raises_regexp', 'assert_regexp_matches', 'assert_sequence_equal', 'assert_set_equal', 'assert_true', 'assert_tuple_equal', 'eq_', 'istest', 'make_decorator', 'nontrivial', 'nontrivial_all', 'nottest', 'ok_', 'raises', 'set_trace', 'timed', 'trivial', 'trivial_all', 'with_setup']
@@ -321,7 +327,7 @@ nose里面有多种可用的setup和teardown
 
 写在init.py文件里包装
 
-```
+```python
 def setup_package():
     pass
 
@@ -331,19 +337,19 @@ def teardown_package():
 
 ## 2、Module级别的
 
-```
+```python
 def setup_module():
     pass
 
 def teardown_module():
     pass
 ```
-	
+
 ## 3、Class级别的
 
 包装class,所以只执行一次
 
-```
+```python
 root@Scaler03:~# cat class_method.py
 class TestClass():
     @classmethod
@@ -372,7 +378,7 @@ root@Scaler03:~#
 
 在nose中，不需要写类，只写函数可能就足够了，所以直接在一个文件中写:
 
-```
+```python
 root@Scaler03:~# cat nose_method_setup.py
 def setup():
     print "setup"
@@ -397,7 +403,7 @@ root@Scaler03:~#
 
 包装每一个test方法，所以每一个test函数的前后都会执行。
 
-```
+```python
 root@node97:/home/nose_framework/src/testcase/Function_Test/case_2_Accounts# cat ../../../testcasebase/Account/wyz.py
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -454,7 +460,7 @@ class TestNose(WYZManager):
 
 示例：
 
-```
+```python
 root@Scaler03:~# cat fun_nose_setup.py
 from nose.tools import with_setup
 
@@ -480,7 +486,7 @@ root@Scaler03:~#
 ```
 
 执行结果
- 
+
 <img class="shadow" src="/img/in-post/nose_eg04.png" width="1200">
 
 # 用例编写规则要求
@@ -490,7 +496,7 @@ root@Scaler03:~#
 2、测试用例的名称，建议携带上用例的编号
 
 例如：
- 
+
 <img class="shadow" src="/img/in-post/test_link_case_no.png" width="400">
 
 test_9143_same_daemon_different_signal， 对应TestLink的用例为：```Sc-9143:Same daemon, different signal core file ```
@@ -568,7 +574,7 @@ MESSAGE_TYPE 有如下几种：
 10、避免在 class 与 setup_class 之间做比较重的动作
 
 比如下文中的 RRS 用例 test_remote_replication_tasks.py（下文代码是一个不可取的代码， 这里仅做示例用）
- 
+
 <img class="shadow" src="/img/in-post/bad_eg.png" width="1200">
 
 在class TestReplicationTask 与setup_class 之间，启用了RRS 服务、创建了S3 账号并创建bucket， 最后上传了一些 object 到 bucket 中。正常情况下，这部分动作应该是在用例被执行之前要做的，然后会立刻执行 setup_class 中的动作，接着执行用例，最后 teardown。实际上，在run.py  去执行所有测试用例的时候， 在 init 完所有的 class 之后（即创建完 session 后），会 先执行所有 test_xx.py 中定义在 class  与 setup_class 之间的所有动作， 这也无可厚非，但是，由于约束了用例的执行顺序，case_2_Accounts 会优先于 case_5_Remote_DR 被执行， 而 case_2_Accounts 里将其他 pool 设置为 S3 pool 的动作，这势必会清理掉在执行 run.py init 结束后所创建的所有 bucket 与 bucket 下的 object，到 case_5_Remote_DR 被执行时，曾经创建的 bucket 与 bucket 下的 object 早已不复存在，自然 case_5_Remote_DR 下面的相关用例就会失败。
@@ -602,7 +608,7 @@ MESSAGE_TYPE 有如下几种：
 可以通过 ```pip install nose-randomly ```
 
 进行安装，成功安装后：
- 
+
 <img class="shadow" src="/img/in-post/nose_plug01.png" width="1200">
 
 默认是按时间来做为随机种子来打乱用例顺序的，也可以自己定义种子。
@@ -617,7 +623,7 @@ MESSAGE_TYPE 有如下几种：
 
 ！！！ 这个文件的内容，需要根据被测环境进行实际修改 ！！！
 
-```
+```shell
 [CLUSTER]	
 root_pass = "p@ssw0rd"	# 被测集群 root 密码，务必要正确
 ssh_port = 22
@@ -738,7 +744,7 @@ stop_keepalived = "/etc/init.d/keepalived stop"
 
 ！！！ 这个文件的内容，无需更改 ！！！
 
-```
+```shell
 #logger.conf
 ###############################################
 [loggers]
@@ -780,14 +786,18 @@ logging-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(m
 
 ## 1、执行某个test suite
 
-```nosetests -v -x testcase/test_account.py:ManagerAccount --with-html --html-report=../report/nose.html --html-report-template=/usr/local/lib/python2.7/dist-packages/nose_html_reporting/templates/report2.jinja2 ```
+```shell
+nosetests -v -x testcase/test_account.py:ManagerAccount --with-html --html-report=../report/nose.html --html-report-template=/usr/local/lib/python2.7/dist-packages/nose_html_reporting/templates/report2.jinja2
+```
 
 说明：
 * 这里的ManagerAccount， 是test_account.py的一个class。
 
 ## 2、执行指定测试用例
 
-```nosetests -v -x testcase/test_account.py:TestManagerAccount.test_add_user_success --with-html --html-report=../report/nose.html ```
+```shell
+nosetests -v -x testcase/test_account.py:TestManagerAccount.test_add_user_success --with-html --html-report=../report/nose.html
+```
 
 说明：
 * 这里的test_add_user_success， 是具体的测试用例，表明这个用例是test_account.py文件中TestManagerAccount类下的用例
@@ -797,8 +807,10 @@ logging-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(m
 如果是执行不同测试集合中的不同用例，示例如下：
 
 
-```nosetests -v --with-progressive --with-html --html-report=../report/test.html testcase/Function_Test/case_4_Virtual_Storages/NAS/test_NAS_general_management.py:TestN ASGeneral.test_434_create_nfs_cifs_folder testcase/Function_Test/case_7_Statistics_Logs/test_query_export_log.py:TestLogs.test_74
-5_4_query_log_by_category_node_management ```
+```shell
+nosetests -v --with-progressive --with-html --html-report=../report/test.html testcase/Function_Test/case_4_Virtual_Storages/NAS/test_NAS_general_management.py:TestN ASGeneral.test_434_create_nfs_cifs_folder testcase/Function_Test/case_7_Statistics_Logs/test_query_export_log.py:TestLogs.test_74
+5_4_query_log_by_category_node_management
+```
 
 ## 4、多进程并发测试
 
@@ -808,29 +820,39 @@ logging-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(m
 
 示例如下：
 
-```nosetests -v -x --tc=runs:3 --process-restartworker --process-timeout=100000 --processes=5 testcase/Function_Test/case_4_Virtual_Storages/NAS/test_samba_account.py ```
+```shell
+nosetests -v -x --tc=runs:3 --process-restartworker --process-timeout=100000 --processes=5 testcase/Function_Test/case_4_Virtual_Storages/NAS/test_samba_account.py
+```
 
 ## 5、dry-run
 
 只列出要执行哪些用例
 
-```nosetests --collect-only  -v ```
+```shell
+nosetests --collect-only  -v 
+```
 
 ## 6、运行不同模块下不同用例
 
-```nosetests -v -x --tests=testcase/test_account.py:ManagerAccount,testcase/test_mds.py:restart_mds --with-html --html-report=../report/nose.html ```
+```shell
+nosetests -v -x --tests=testcase/test_account.py:ManagerAccount,testcase/test_mds.py:restart_mds --with-html --html-report=../report/nose.html 
+```
 
 
 ## 7、用例执行时关键字高亮
 
 使用前面安装的colurunit plugin，用例执行时带上参数--with-colorunit
 
-```nosetests --with-colorunit -s -x -v --with-html --html-report=../report/nose_all_cases.html ```
+```shell
+nosetests --with-colorunit -s -x -v --with-html --html-report=../report/nose_all_cases.html
+```
 
 
 ## 8、用例执行显示进度
 
-```nosetests --with-progressive --with-colorunit -s -x -v --with-html --html-report=../report/nose_all_cases.html ```
+```shell
+nosetests --with-progressive --with-colorunit -s -x -v --with-html --html-report=../report/nose_all_cases.html
+```
 
 输出示例：
 
@@ -842,7 +864,9 @@ logging-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(m
 
 携带runs参数，并制定循环执行的次数，如果不携带该参数，默认不循序，即只运行一次（特殊用例除外，比如账号中只创建、删除，不做检查，最后做一轮检查的场景）。
 
-```nosetests -s -x -v --with-progressive --with-colorunit --with-html --html-report=../report/sds.html testcase/Function_Test/case_4_Virtual_Storages/NAS/test_samba_account.py:TestSambaAccount.test_add_delete_samab_user_no_check --tc=runs:50 ```
+```shell
+nosetests -s -x -v --with-progressive --with-colorunit --with-html --html-report=../report/sds.html testcase/Function_Test/case_4_Virtual_Storages/NAS/test_samba_account.py:TestSambaAccount.test_add_delete_samab_user_no_check --tc=runs:50
+```
 
 说明:
 * 如果不指定runs，默认不循环，即只执行用例一次（Code写死）。
@@ -852,7 +876,7 @@ logging-format=%(asctime)s %(filename)-8s[line:%(lineno)-4s] %(levelname)-6s %(m
 ## 1、用例无法生成 html report
 
 Jenkins 或者手动执行用例无法生成 html report
- 
+
 <img class="shadow" src="/img/in-post/nose_report_error.png" width="1200"> 
 
 原因：
@@ -870,11 +894,11 @@ Jenkins 或者手动执行用例无法生成 html report
 <img class="shadow" src="/img/in-post/nose_report_error2.png" width="1200">
 
 这个原因，往往是测试用例编写上出了问题，可以通过增加 log 或执行 pylint 来检查一下。
- 
+
 ## 3、用例文件权限问题
 
 如下图所示，测试用例文件的权限不能是 755，建议统一设置为 644，否则用例无法被nosetest 查找到，也就不会被执行到（nose 默认情况下并不测试那些拥有可执行权限的文件）。
- 
+
 <img class="shadow" src="/img/in-post/nose_primession01.png" width="1200">
 
 如果要执行可以加上 --exe, 如 nosetests --exe, 或者去掉可执行属性chmod 644 xxx.py
@@ -885,11 +909,13 @@ Jenkins 或者手动执行用例无法生成 html report
 
 下面的示例指令：
 
-```nosetests -v --tc=runs:1 --with-xunit --traverse-namespace --process-restartworker
+```shell
+nosetests -v --tc=runs:1 --with-xunit --traverse-namespace --process-restartworker
 --process-timeout=432000 --processes=10 --with-coverage
 --cover-package=/home/nose_framework/src/ --cover-inclusive --with-progressive
 --with-colorunit --with-html --html-report=/home/nose_framework/src/../report/rrs.html -c config/log.config
-/home/nose_framework/src/testcase/Function_Test/case_5_Remote_DR/test_remote_replication_tasks.py ```
+/home/nose_framework/src/testcase/Function_Test/case_5_Remote_DR/test_remote_replication_tasks.py 
+```
 
 是完整的调测某一个suite 下的所有 case 指令， 第一遍整体调试没有问题后，将--tc=runs:1 调整成 --tc=runs:2， 再次执行用例，确保所有用例都是成功的，而且 html report 也成功生成 ， 方 可 提 交 测 试 代 码 ， ！ ！ ！ 请 务 必 这 样 做 ！ ！ ！ （ 参 考test_9339_reupload_onject_to_bucket_after_new_s3_pool）。
 
@@ -897,7 +923,7 @@ Jenkins 或者手动执行用例无法生成 html report
 ## 5、用例执行期间，VM 被重启
 
 下图为用例执行卡在了凌晨 01:28:32
- 
+
 <img class="shadow" src="/img/in-post/nose_vm_boot01.png" width="600">
 
 查看对应时间点的 node：
@@ -905,7 +931,7 @@ Jenkins 或者手动执行用例无法生成 html report
 <img class="shadow" src="/img/in-post/nose_vm_boot02.png" width="600">
 
 VM 的确被重启了，所有执行用例的进程都不在了：
- 
+
 <img class="shadow" src="/img/in-post/nose_vm_boot03.png" width="500">
 
 因 VM 使用 converger 提供的 LUN， converger 环境在那个时间点前后并没有异常；对应 ESXi
@@ -919,7 +945,7 @@ VM 的确被重启了，所有执行用例的进程都不在了：
 
 <img class="shadow" src="/img/in-post/nose_vm_boot05.png" width="600">
 <img class="shadow" src="/img/in-post/nose_vm_boot06.png" width="600">
- 
+
 根 据 VMWare KB 的 解 释 ： ```https://kb.vmware.com/s/article/2000542 kern panic ```，导致虚机被重启。
 
 目前尚无有效解决方法，先放大内存看看（从 4G 调整为 6G）
@@ -968,7 +994,7 @@ apache2 进程全部退出
 
 鉴于之前的修复，问题再次发生，现在 http_session.py 增加如下内容：
 
-```
+```shell
 requests.adapters.DEFAULT_RETRIES = 5 # 增加重连次数
 self.session.keep_alive = False # 关闭多余连接
 ```
@@ -984,7 +1010,7 @@ self.session.keep_alive = False # 关闭多余连接
 <img class="shadow" src="/img/in-post/backend_return_500.png" width="600">
 
 在00:17 前后，会发生Logrotate，其中有一步apache reload，假如此刻恰巧有发送HTTP request，此时 apache  服务状态异常，后台返回 500 错误码。 为了规避这个问题，自动化做了特殊处理，即在发送 HTTP 请求时，hard code 去判断此刻是否是 00:16，如果是，等待150 秒进行规避。
- 
+
 <img class="shadow" src="/img/in-post/skip_logrotate.png" width="600">
 
 ## 9、规避client mount SAN device 出现 already mounted or busy
@@ -1003,7 +1029,7 @@ self.session.keep_alive = False # 关闭多余连接
 * （2）	当 mount SAN device 出现 device already mounted or busy，重启一次 Client
 
 对于 VM，通过 ssh 跳转到 ESXi 执行，所以 ESXi 需要开启 SSH 服务
- 
+
 ```vim-cmd vmsvc/power.off {vm_id}&& vim-cmd vmsvc/power.on {vm_id} ```
 
 对于物理机，通过执行 ipmitool 命令还 power reset 一下，达到重启机器的目的：
@@ -1018,7 +1044,7 @@ self.session.keep_alive = False # 关闭多余连接
 
 经验证，如果设置成 128G， 则 sda4 是 6G， 设置成 256， sda4 是 134G
 
-``` 
+```shell
 sda	8:0	0	256G 0 disk
 ├─sda1	8:1		0	7M	0 part
 ├─sda2	8:2		0	95.4G 0 part /
@@ -1045,7 +1071,7 @@ sde	8:64	0		32G	0 disk
 white_list_ip 这台机器所在的/root/.ssh/目录下，需要存在 id_dsa.pub 这个文件：
 
 <img class="shadow" src="/img/in-post/key_2.png" width="300">
- 
+
 如果不存在，需要执行下来命令来产生：
 
 ```ssh-keygen -t dsa ```
@@ -1058,7 +1084,7 @@ white_list_ip 这台机器所在的/root/.ssh/目录下，需要存在 id_dsa.pu
 ## 4、客户端启用 multi-path
 
 如果默认没有启用，在确保安装了 multipath-tool 的情况下，将下列命令写入/etc/rc.local
-```/etc/init.d/multipath-tools start ```
+​```/etc/init.d/multipath-tools start ```
 
 上述命令，需要书写在exit 0 前面。
 
@@ -1071,7 +1097,7 @@ white_list_ip 这台机器所在的/root/.ssh/目录下，需要存在 id_dsa.pu
 ！！！此条适用于所有 nose automation 的 client，无论是物理机还是 VM ！！！
 
 <img class="shadow" src="/img/in-post/dm_device1.png" width="1200"> 
- 
+
 对于上图，除了 27d7e5983bd6f7dc5 对应的 dm 设备是有效的，其他的 dm 设备都是无效的，一旦这个 client login 一个 iSCSI LUN 后，如果 map 到了上面一个已经存在的 dm 设备， mkfs 的时候会报类似如下的错误：
 
 ```/dev/dm-2 is apparently in use by the system; will not make a filesystem here! ```
@@ -1090,7 +1116,7 @@ white_list_ip 这台机器所在的/root/.ssh/目录下，需要存在 id_dsa.pu
 
 如果客户端是物理机，可忽略重启操作。设置脚本：
 
-```
+```shell
 root@NoseClient:/usr/local/bin# cat /usr/local/bin/reboot_machine.sh #!/bin/bash
 
 reboot -f root@NoseClient:/usr/local/bin#
@@ -1098,7 +1124,7 @@ reboot -f root@NoseClient:/usr/local/bin#
 
 每天凌晨3 点（Jenkins 是每天3:20 执行用例，因为这个时刻ISO 正好从台北同步到南京LAB， 当然也可自由设定执行时间）进行 VM 的重启动作：
 
-```
+```shell
 root@NoseClient:/usr/local/bin# cat /etc/cron.d/reboot_machine PATH=/bin:/usr/bin:/sbin
 
 1 3 * * * root bash /usr/local/bin/reboot_machine.sh >/dev/null 2>&1 root@NoseClient:/usr/local/bin#
@@ -1117,7 +1143,7 @@ skip 示例请参考如下链接：
 
 ```http://swordstyle.com/func_test_tutorial/part_one/extra_skip_test.html ```
 
-```
+```python
 class TestFolderQuota(ShareFolderManager): @loop_run()
 def test_1090_folder_quota_less_than_pool_quota(self):
 """ Sc-1090:Folder quota < Pool Quota [limited by folder quota] """ raise SkipTest
@@ -1140,7 +1166,7 @@ nose 运行用例的时候，根据正则匹配测试用例，会匹配到含有
 <img class="shadow" src="/img/in-post/hard_code1.png" width="600">
 
 在 NAS migration 用例里，涉及到 Windows Server 提供的 folder，目前写在 config 中：
- 
+
 <img class="shadow" src="/img/in-post/hard_code2.png" width="300"> 
 
 ## 10、ESXi 开启 SSH 服务
@@ -1156,7 +1182,9 @@ nose 运行用例的时候，根据正则匹配测试用例，会匹配到含有
 
 示例：
 
-```root@node98:/home/nose_framework/src# nosetests -s -x -v --processes=10  --with-progressive --with-colorunit --with-html --html-report=../report/sds.html testcase/Function_Test/case_2_Accounts/test_SDS_admin_account_settings.py ```
+```shell
+root@node98:/home/nose_framework/src# nosetests -s -x -v --processes=10  --with-progressive --with-colorunit --with-html --html-report=../report/sds.html testcase/Function_Test/case_2_Accounts/test_SDS_admin_account_settings.py
+```
 
 <img class="shadow" src="/img/in-post/display_01.png" width="600">
 -------------------------------------------------------  中间内容省略  -----------------------------------------------
@@ -1165,7 +1193,7 @@ nose 运行用例的时候，根据正则匹配测试用例，会匹配到含有
 ## 2、自动化产生的日志文件
 
 日志文件路径：report/ nose_autotest.log，内容示例如下：
- 
+
 <img class="shadow" src="/img/in-post/nose_log_file.png" width="600">
 
 ## 3、HTML测试报告
@@ -1194,7 +1222,7 @@ html 测试报告默认路径为：report/ all_test_cases.html，示例如下：
 ## 2、nose crash
 
 此问题在2019-12-19 00:52:31 左右发生，直接导致nose崩溃，终止用例的执行。
- 
+
 <img class="shadow" src="/img/in-post/nose_crash01.png" width="600">
 <img class="shadow" src="/img/in-post/nose_crash02.png" width="600">
 <img class="shadow" src="/img/in-post/nose_crash03.png" width="600">
@@ -1220,7 +1248,7 @@ Jenkins拥有丰富的第三方插件，可以用来帮助我们完成各种各�
 下文以 nose-7.0 project为示例。
 
 ### 1）创建Credentials
- 
+
 <img class="shadow" src="/img/in-post/nose_jenkins1.png" width="600">
 
 <img class="shadow" src="/img/in-post/nose_jenkins2.png" width="600">
@@ -1240,7 +1268,7 @@ Jenkins拥有丰富的第三方插件，可以用来帮助我们完成各种各�
 ### General
 
 进入nose-7.0 project，设置如下：
- 
+
 <img class="shadow" src="/img/in-post/nose_jenkins5.png" width="600">
 
 ### 源码管理
@@ -1259,7 +1287,7 @@ Jenkins拥有丰富的第三方插件，可以用来帮助我们完成各种各�
 
 需要执行的脚本命令如下：
 
-```
+```shell
 # delete report on 234
 cd /var/lib/jenkins/jobs/nose_7.0/workspace;
 rm -rf report;
@@ -1280,7 +1308,7 @@ ssh-keygen -f "/var/lib/jenkins/.ssh/known_hosts" -R 172.17.75.98;
 
 相关命令如下：
 
-```
+```shell
 cd /work/automation-test/nose_7.0/nose_framework/jenkins; 
 ./rsync_report.sh 172.17.75.98 root p@ssw0rd;
 ./jenkins_build_properties.sh
@@ -1289,7 +1317,7 @@ cd /work/automation-test/nose_7.0/nose_framework/jenkins;
 外部变量的使用：
 
 <img class="shadow" src="/img/in-post/nose_jenkins10.png" width="600">
- 
+
 路径设置为：
 
 ```/work/automation-test/nose_7.0/nose_framework/build.properties ```
@@ -1300,12 +1328,12 @@ cd /work/automation-test/nose_7.0/nose_framework/jenkins;
 ### 构建后操作
 
 发送邮件:
- 
+
 <img class="shadow" src="/img/in-post/nose_jenkins11.png" width="600">
 
 HTML内容如下：
 
-```
+```shell
 <html>
     <head>
         <title></title>
@@ -1455,24 +1483,26 @@ HTML内容如下：
 
 在Attachment处，填写如下附件路径信息：
 
-```report/create_cluster.html,report/setup_cluster.html,report/all_test_cases.html,report/nose_autotest.log ```
+```shell
+report/create_cluster.html,report/setup_cluster.html,report/all_test_cases.html,report/nose_autotest.log
+```
 
 
 设置Publish JUnit test result report
- 
+
 <img class="shadow" src="/img/in-post/nose_jenkins13.png" width="1200">
 
 设置Publish Cobertura coverage report
 
 <img class="shadow" src="/img/in-post/nose_jenkins14.png" width="1200">
- 
+
 
 设置 Report Violation
- 
+
 <img class="shadow" src="/img/in-post/nose_jenkins15.png" width="1200">
 
 在pylint处，录入report/pylint
- 
+
 <img class="shadow" src="/img/in-post/nose_jenkins16.png" width="1200">
 
 ### 4）部分命令记录
@@ -1481,15 +1511,19 @@ HTML内容如下：
 
 #### 生成nosetests.xml
 
-```nosetests --tc=runs:1 --with-xunit --traverse-namespace --with-coverage --cover-package=/home/nose_framework/src --cover-inclusive --with-progressive --with-colorunit --with-html --html-report=../report/all_case.html ```
+```shell
+nosetests --tc=runs:1 --with-xunit --traverse-namespace --with-coverage --cover-package=/home/nose_framework/src --cover-inclusive --with-progressive --with-colorunit --with-html --html-report=../report/all_case.html
+```
 
 #### 生成coverage.xml
 
-```python -m coverage xml --include=/home/nose_framework/src* ```
+```shell
+python -m coverage xml --include=/home/nose_framework/src*
+```
 
 #### pylint
 
-```
+```shell
 cd /home/nose_framework/src
 
 pylint --rcfile=.pylintrc -f parseable -d I0011,R0801 * | tee pylint.out
@@ -1550,4 +1584,3 @@ Jenkins 有 一 个 插 件 AnsiColor， 详 请 参 考 ： ```https://www.jian
 效果图：
 
 <img class="shadow" src="/img/in-post/nose_jenkins24.png" width="800">
-
