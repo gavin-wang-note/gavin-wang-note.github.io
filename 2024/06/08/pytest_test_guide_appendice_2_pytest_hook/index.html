@@ -1,0 +1,2580 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="《pytest测试指南》-- 附录2 pytest hook介绍, 软硬件测试">
+    <meta name="description" content="《pytest测试指南》一书 附录2 pytest hook介绍">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>《pytest测试指南》-- 附录2 pytest hook介绍 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-2.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">《pytest测试指南》-- 附录2 pytest hook介绍</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-06-08
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    11.8k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    47 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest</code> 钩子（hook）函数是 <code>pytest</code> 提供的一个强大功能，它允许你在测试生命周期的特定点插入自定义代码。这样，你可以改变 <code>pytest</code> 的默认行为、增加额外的日志、生成测试报告或者实现其他复杂的测试设定。</p>
+<p><code>pytest</code>插件就是用一个或者多个<code>hook</code>函数，也就是钩子函数构成的。如果想要编写新的插件，或者改进现有的插件，都必须通过这个<code>hook</code>函数进行。所以想掌握<code>pytest</code>插件二次开发，必须搞定<code>hook</code>函数。</p>
+<p>如下图所示，在<code>pytest</code>用例执行过程中，每个过程都有钩子函数的参与：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pytest用例执行顺序-uml.png" width="600">
+<h1 id="2-1-pytest-hook-fen-lei">2.1 pytest hook分类</h1>
+<p>pytest中的钩子函数按功能一共分为6类：引导钩子，初始化钩子、用例收集钩子、用例执行钩子、报告钩子、调试钩子。</p>
+<h2 id="2-1-1-bootstrapping-hooks-yin-dao-gou-zi">2.1.1 Bootstrapping hooks 引导钩子</h2>
+<p>引导钩子要求尽早注册插件（内部插件和 setuptools 插件）。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_load_initial_conftests(early_config,parser,args): 在命令行选项解析之前实现初始conftest文件的加载。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_load_initial_conftests(early_config, parser, args):在处理命令行参数之前，加载初始的 conftest 文件。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_cmdline_parse(pluginmanager,args): 返回一个初始化的配置对象,解析指定的args。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_cmdline_main(config): 要求执行主命令行动作。默认实现将调用configure hooks和runtest_mainloop。</p>
+</li>
+</ul>
+<h2 id="2-1-2-initialization-hooks-chu-shi-hua-gou-zi">2.1.2 Initialization hooks 初始化钩子</h2>
+<p>初始化钩子调用插件和conftest.py文件。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_addoption(parser): 注册argparse样式的选项和ini样式的配置值，这些值在测试运行开始时被调用一次。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_addhooks(pluginmanager): 在插件注册时调用，以允许通过调用来添加新的挂钩</p>
+</li>
+<li class="lvl-2">
+<p>pytest_configure(config): 允许插件和conftest文件执行初始配置。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_unconfigure(config): 在退出测试过程之前调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_sessionstart(session): 在Session创建对象之后，执行收集并进入运行测试循环之前调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_sessionfinish(session,exitstatus): 在整个测试运行完成后调用，就在将退出状态返回系统之前。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_plugin_registered(plugin,manager):一个新的pytest插件已注册。</p>
+</li>
+</ul>
+<h2 id="2-1-3-collection-hooks-ce-shi-yong-li-shou-ji-gou-zi">2.1.3 Collection hooks 测试用例收集钩子</h2>
+<p>pytest调用以下钩子函数来收集测试文件及目录。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_collection(session): 执行给定会话的收集协议。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collect_directory(path, parent): 在遍历目录以获取集合文件之前调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collect_file(path, parent) 为给定的路径创建一个收集器，如果不相关，则创建“无”。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_pycollect_makemodule(path: py._path.local.LocalPath, parent) 返回给定路径的模块收集器或无。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_pycollect_makeitem(collector: PyCollector, name: str, obj: object) 返回模块中Python对象的自定义项目/收集器，或者返回None。在第一个非无结果处停止</p>
+</li>
+<li class="lvl-2">
+<p>pytest_generate_tests(metafunc: Metafunc) 生成（多个）对测试函数的参数化调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_make_parametrize_id(config: Config, val: object, argname: str) 返回val 将由@ pytest.mark.parametrize调用使用的给定用户友好的字符串表示形式，如果挂钩不知道，则返回None val。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collection_modifyitems(session: Session, config: Config, items: List[Item]) 在执行收集后调用。可能会就地过滤或重新排序项目。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collection_finish(session: Session) 在执行并修改收集后调用。</p>
+</li>
+</ul>
+<h2 id="2-1-4-test-running-runtest-hooks-ce-shi-yun-xing-gou-zi">2.1.4 Test running (runtest) hooks 测试运行钩子</h2>
+<p>运行测试相关的钩子，接收一个pytest.Item对象。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_runtestloop(session: Session) 执行主运行测试循环（收集完成后）。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_protocol(item: Item, nextitem: Optional[Item]) 对单个测试项目执行运行测试协议。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_logstart(nodeid: str, location: Tuple[str, Optional[int], str]) 在运行单个项目的运行测试协议开始时调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_logfinish(nodeid: str, location: Tuple[str, Optional[int], str])在为单个项目运行测试协议结束时调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_setup(item: Item) 调用以执行测试项目的设置阶段。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_call(item: Item) 调用以运行测试项目的测试（调用阶段）。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_teardown(item: Item, nextitem: Optional[Item]) 调用以执行测试项目的拆卸阶段。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_makereport(item: Item, call: CallInfo[None]) 被称为为_pytest.reports.TestReport测试项目的每个设置，调用和拆卸运行测试阶段创建一个。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_pyfunc_call(pyfuncitem: Function) 调用基础测试功能。</p>
+</li>
+</ul>
+<h2 id="2-1-5-reporting-hooks-ce-shi-bao-gao-gou-zi">2.1.5 Reporting hooks 测试报告钩子</h2>
+<p>与会话相关，断言相关的测试报告钩子。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_collectstart(collector: Collector) 收集器开始收集。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_make_collect_report(collector: Collector) 执行collector.collect()并返回一个CollectReport。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_itemcollected(item: Item) 我们刚刚收集了一个测试项目。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collectreport(report: CollectReport) 收集器完成收集。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_deselected(items: Sequence[Item]) 要求取消选择的测试项目，例如按关键字。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_header(config: Config, startdir: py._path.local.LocalPath) 返回要显示为标题信息的字符串或字符串列表，以进行终端报告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_collectionfinish(config: Config, startdir: py._path.local.LocalPath, items: Sequence[Item]) 返回成功完成收集后将显示的字符串或字符串列表。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_teststatus(report: Union[CollectReport, TestReport], config: Config) 返回结果类别，简写形式和详细词以进行状态报告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_terminal_summary(terminalreporter: TerminalReporter, exitstatus: ExitCode, config: Config) 在终端摘要报告中添加一个部分。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_fixture_setup(fixturedef: FixtureDef[Any], request: SubRequest) 执行夹具设置执行。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_fixture_post_finalizer(fixturedef: FixtureDef[Any], request: SubRequest) 在夹具拆除之后但在清除缓存之前调用，因此夹具结果fixturedef.cached_result仍然可用（不是 None）</p>
+</li>
+<li class="lvl-2">
+<p>pytest_warning_captured(warning_message: warnings.WarningMessage, when: Literal[‘config’, ‘collect’, ‘runtest’], item: Optional[Item], location: Optional[Tuple[str, int, str]]) （已弃用）处理内部pytest警告插件捕获的警告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_warning_recorded(warning_message: warnings.WarningMessage, when: Literal[‘config’, ‘collect’, ‘runtest’], nodeid: str, location: Optional[Tuple[str, int, str]]) 处理内部pytest警告插件捕获的警告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_logreport(report: TestReport) 处理项目的_pytest.reports.TestReport每个设置，调用和拆卸运行测试阶段产生的结果。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_assertrepr_compare(config: Config, op: str, left: object, right: object) 返回失败断言表达式中的比较的说明。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_assertion_pass(item: Item, lineno: int, orig: str, expl: str) （实验性的）在断言通过时调用。</p>
+</li>
+</ul>
+<h2 id="2-1-6-debugging-interaction-hooks-diao-shi-jiao-hu-gou-zi">2.1.6 Debugging/Interaction hooks 调试/交互钩子</h2>
+<p>有几个钩子可以用于特殊报告或与异常交互。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_internalerror(excrepr: ExceptionRepr, excinfo: ExceptionInfo[BaseException]) 要求内部错误。返回True以禁止对将INTERNALERROR消息直接打印到sys.stderr的回退处理。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_keyboard_interrupt(excinfo: ExceptionInfo[Union[KeyboardInterrupt, Exit]]) 要求键盘中断。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_exception_interact(node: Union[Item, Collector], call: CallInfo[Any], report: Union[CollectReport, TestReport]) 在引发可能可以交互处理的异常时调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_enter_pdb(config: Config, pdb: pdb.Pdb) 调用了pdb.set_trace()。</p>
+</li>
+</ul>
+<h1 id="2-2-chang-yong-hook-han-shu-jie-shao">2.2 常用hook函数介绍</h1>
+<h2 id="2-2-1-pytest-addoption">2.2.1 pytest_addoption</h2>
+<p><code>pytest_addoption</code>用于向<code>pytest</code>添加自定义的命令行选项，必须在 <code>conftest.py</code> 文件或 <code>pytest</code> 插件中才能生效。这个钩子在命令行选项解析之前被调用，它允许你通过命令行参数来配置和控制测试的行为。</p>
+<h3 id="2-2-1-1-shi-yong-chang-jing">2.2.1.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在运行测试时，提供额外的配置选项，例如指定测试环境、设置日志级别、指定测试数据文件等。</p>
+</li>
+<li class="lvl-2">
+<p>根据需要动态配置和控制测试的行为，例如启用/禁用特定的测试功能、设置超时时间、指定测试报告的输出路径等。</p>
+</li>
+<li class="lvl-2">
+<p>你打算运行一组特定的测试用例，需要一些特殊的环境设置。</p>
+</li>
+<li class="lvl-2">
+<p>你希望通过命令行选项指定一些测试所需要的参数，例如数据文件的路径、服务器的地址等。</p>
+</li>
+<li class="lvl-2">
+<p>基于命令行参数来动态生成配置，比如数据库连接，服务接口地址等。</p>
+</li>
+<li class="lvl-2">
+<p>控制 debug 模式的开启和关闭</p>
+</li>
+<li class="lvl-2">
+<p>控制是否生成详细的测试报告</p>
+</li>
+<li class="lvl-2">
+<p>根据命令行参数执行不同的测试用例</p>
+</li>
+<li class="lvl-2">
+<p>等等</p>
+</li>
+</ul>
+<h3 id="2-2-1-2-yong-fa-yu-shi-li">2.2.1.2 用法与示例</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在您的<code>conftest.py</code>文件中定义<code>pytest_addoption</code>函数，并使用<code>parser</code>参数来添加自定义的命令行选项。</p>
+</li>
+<li class="lvl-2">
+<p>使用<code>addoption</code>方法添加命令行选项，并指定选项的名称、帮助文本、默认值等。</p>
+</li>
+</ul>
+<p>如下所示：</p>
+<pre><code class="language-python"># content of conftest.py
+
+def pytest_addoption(parser):
+    parser.addoption("--environment", action="store", default="dev", help="Specify the test environment")
+</code></pre>
+<pre><code class="language-python"># content of test_addoption.py
+def test_example(request):
+    # 使用request.config.getoption获取命令行选项的值
+    environment = request.config.getoption("--environment")
+    print(f"Running test in {environment} environment")
+    # 测试逻辑...
+</code></pre>
+<p>上述用例，如不指定<code>--environment</code>参数，默认携带<code>dev</code>值；如果携带，则使用指定值。通过这种方式，指定相关测试环境，完成相同用例在不同环境下的运行。示例用例运行结果参考如下：</p>
+<pre><code class="language-shell"># 不携带参数--environment，使用默认值'dev'
+root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_addoption.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+collected 1 item
+
+Running test in dev environment
+
+ Appendix/appendix-2/test_addoption.py::test_example ✓         100% ██████████
+
+Results (0.02s):
+       1 passed
+root@Gavin:~/code/Appendix/appendix-2# 
+# 携带参数--environment，使用携带值'prod'
+root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_addoption.py --environment prod
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+
+Running test in prod environment
+
+ Appendix/appendix-2/test_addoption.py::test_example ✓        100% ██████████
+Results (0.02s):
+       1 passed
+root@Gavin:~/code/Appendix/appendix-2#
+</code></pre>
+<p>再比如用例适配不同的数据库，参考代码如下：</p>
+<pre><code class="language-python"># content of conftest.py
+def pytest_addoption(parser):
+    parser.addoption("--use-db", action="store_true", default=False,
+                     help="Use real database for tests")
+
+# test_module.py
+def test_database(pytestconfig):
+    if pytestconfig.getoption("use_db"):
+        # 连接到真实的数据库
+        db = RealDatabase()
+    else:
+        # 使用模拟的数据库
+        db = FakeDatabase()
+
+    # 执行数据库相关的测试...
+</code></pre>
+<h3 id="2-2-1-3-zhu-yi-shi-xiang">2.2.1.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>命名规范化</strong>：命令行选项的名称应该使用双横线作为前缀，以避免与其他参数或选项冲突。如果配合<code>pytest_generate_tests</code>使用，尤其需要注意避免参数冲突。</p>
+</li>
+<li class="lvl-2">
+<p><strong>注释与说明</strong>：确保命令行选项的名称和帮助文本清晰明确，以便其他人理解和使用。</p>
+</li>
+</ul>
+<h2 id="2-2-2-pytest-load-initial-conftests">2.2.2 pytest_load_initial_conftests</h2>
+<p><code>pytest_load_initial_conftests(early_config, parser, args)</code> hook 允许插件或者测试集合的作者在 module 分发阶段之前动态加载配置文件，这个 hook 会被 <code>pytest</code> 自动调用，参数含义如下：</p>
+<p><code>pytest_load_initial_conftests(config, conftestpath)</code> 这个 <code>hook</code> 会被 <code>pytest</code> 自动调用。其中 <code>config</code> 是一个配置对象，而 <code>conftestpath</code> 是用来定位配置文件的文件路径。</p>
+<p>如果 <code>conftestpath</code> 没有按照常规方式被解析，那么 <code>pytest</code> 会调用 <code>pytest_addhooks</code> hook 将配置文件中定义的其他 hooks 转为合法的插件。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>early_config</code> 是一个配置对象，用于控制 <code>pytest</code> 的行为。</p>
+</li>
+<li class="lvl-2">
+<p><code>parser</code> 是一个 <code>argparse.ArgumentParser</code> 实例，用于解析命令行参数。</p>
+</li>
+<li class="lvl-2">
+<p><code>args</code> 是命令行参数列表。</p>
+</li>
+</ul>
+<p>典型的使用场景是一个插件需要在调用测试前动态加载特定的配置文件，以为会话或测试集合进行全局配置。该 <code>hook</code> 的另一个用途是允许在基于文件系统的 test discovery 过程中正确解析不能直接加载的配置文件。</p>
+<h3 id="2-2-2-1-shi-yong-chang-jing">2.2.2.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>加载配置或插件</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">根据不同的命令行参数加载不同的配置。</li>
+<li class="lvl-4">根据环境变量或者其他外部条件动态加载配置。</li>
+<li class="lvl-4">在你没有直接控制的环境中加载特定的插件或设置。</li>
+<li class="lvl-4">当你需要在测试运行之前注册一个插件，而这个插件是通过命令行参数、环境变量或某些外部条件动态决定的。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>自定义设置</strong>： 当你希望在测试会话开始前修改一些配置设置。</p>
+</li>
+</ul>
+<h3 id="2-2-2-2-yong-fa-yu-shi-li">2.2.2.2 用法与示例</h3>
+<p>下面是一个简单的示例，它展示了如何使用 <code>pytest_load_initial_conftests</code> 动态加载不同的<code>conftest.py</code>配置文件。</p>
+<pre><code class="language-python"># content of pytest my_plugin.py
+
+import os
+import pytest
+import importlib.util
+
+def pytest_addoption(parser):
+    # 添加一个命令行选项 --env，用来指明需要哪个环境的配置
+    parser.addoption("--env", action="store", default="dev", help="Environment to run tests against")
+
+def pytest_load_initial_conftests(early_config, parser, args):
+    # 获取当前路径
+    dirname = os.path.dirname(os.path.abspath(__file__))
+
+    # 解析传入的命令行参数
+    options = parser.parse_known_args(args)
+
+    # 根据 --env 参数确定配置文件
+    # 注意：要访问 --env 参数需要使用 options.env
+    env = options.env
+    if env == 'dev':
+        config_file_path = 'conftest_dev.py'
+    elif env == 'prod':
+        config_file_path = 'conftest_prod.py'
+    else:
+        # 如无有效环境参数，不加载任何额外配置
+        raise ValueError(f"Invalid environment option --env={env}, expected 'dev' or 'prod'")
+
+    # 生成配置文件的绝对路径
+    conftest_path = os.path.join(dirname, config_file_path)
+    
+    # 动态加载 conftest 模块
+    spec = importlib.util.spec_from_file_location("conftest_module", conftest_path)
+    conftest_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(conftest_module)
+
+    # 使用 pluginmanager 注册 conftest 模块
+    print(f'使用 pluginmanager 注册 conftest 模块: {config_file_path}')
+    early_config.pluginmanager.register(conftest_module, name=config_file_path)
+</code></pre>
+<p>上面的示例在 <code>my_plugin.py</code> 中定义了一些 <code>pytest</code> 配置，指定加载的 <code>conftest.py</code> 和添加自定义命令行选项。然后在 <code>pytest_load_initial_conftests</code> 中动态加载 <code>conftest.py</code>，以确保在运行测试时它已经被正确加载和解析。这种方式，你就可以在测试运行之前对测试全局进行自定义配置：</p>
+<pre><code class="language-python"># content of conftest_dev.py
+
+import pytest
+
+def pytest_sessionstart(session):
+    print("\ndev 会话开始：这是一条来自 pytest_sessionstart 钩子的信息")
+
+def pytest_sessionfinish(session, exitstatus):
+    print("\ndev 会话结束：这是一条来自 pytest_sessionfinish 钩子的信息")
+</code></pre>
+<pre><code class="language-python"># content of conftest_prod.py
+
+import pytest
+
+def pytest_sessionstart(session):
+    print("\nprod 会话开始：这是一条来自 pytest_sessionstart 钩子的信息")
+
+def pytest_sessionfinish(session, exitstatus):
+    print("\nprod 会话结束：这是一条来自 pytest_sessionfinish 钩子的信息")
+</code></pre>
+<p>这样，在设置了这样的配置后，你就可以在测试中访问不同<code>conftest.py</code>中的 fixture 了，也可以通过 <code>--env</code>在测试期间输出更多的信息。</p>
+<p>我们来看一下用例的执行效果：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# PYTHONPATH=. pytest -s -v -p my_plugin --env=prod test_sample2.py
+使用 pluginmanager 注册 conftest 模块: conftest_prod.py
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+
+prod 会话开始：这是一条来自 pytest_sessionstart 钩子的信息
+collected 6 items
+
+ Appendix/appendix-2/test_sample2.py::test_str_methods ✓        17% █▋        
+ Appendix/appendix-2/test_sample2.py::test_list_append ✓        33% ███▍      
+ Appendix/appendix-2/test_sample2.py::test_list_pop ✓           50% █████     
+ Appendix/appendix-2/test_sample2.py::test_tuple_length ✓       67% ██████▋   
+ Appendix/appendix-2/test_sample2.py::test_set_length ✓         83% ████████▍ 
+ Appendix/appendix-2/test_sample2.py::test_dict_items ✓        100% ██████████
+prod 会话结束：这是一条来自 pytest_sessionfinish 钩子的信息
+
+Results (0.03s):
+       6 passed
+root@Gavin:~/code/Appendix/appendix-2# PYTHONPATH=. pytest -s -v -p my_plugin --env=dev test_sample2.py
+使用 pluginmanager 注册 conftest 模块: conftest_dev.py
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+
+dev 会话开始：这是一条来自 pytest_sessionstart 钩子的信息
+collected 6 items
+
+ Appendix/appendix-2/test_sample2.py::test_str_methods ✓        17% █▋        
+ Appendix/appendix-2/test_sample2.py::test_list_append ✓        33% ███▍      
+ Appendix/appendix-2/test_sample2.py::test_list_pop ✓           50% █████     
+ Appendix/appendix-2/test_sample2.py::test_tuple_length ✓       67% ██████▋   
+ Appendix/appendix-2/test_sample2.py::test_set_length ✓         83% ████████▍ 
+ Appendix/appendix-2/test_sample2.py::test_dict_items ✓        100% ██████████
+dev 会话结束：这是一条来自 pytest_sessionfinish 钩子的信息
+
+Results (0.03s):
+       6 passed
+root@Gavin:~/code/Appendix/appendix-2# 
+</code></pre>
+<p>可以看出，通过指定参数<code>--env</code>携带不同的参数值，使用不同的<code>conftest.py</code>文件，以期达到测试用例设计效果。</p>
+<h3 id="2-2-2-3-zhu-yi-shi-xiang">2.2.2.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>测试和验证</strong>：当使用这个钩子时，确保彻底测试其行为，保证它按照预期注册插件且不造成副作用。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数解析</strong>：确保你的参数解析与 <code>pytest</code> 保持一致，并且不会干扰到后面的配置或者插件加载。</p>
+</li>
+<li class="lvl-2">
+<p><strong>安全性</strong>：使用 <code>exec</code> 执行外部文件时要非常小心，确保文件来源可靠，防止代码注入攻击。</p>
+</li>
+<li class="lvl-2">
+<p><strong>名称空间</strong>：适当地管理名称空间，确保加载的配置不会无意中覆盖已有的设置或变量。</p>
+</li>
+<li class="lvl-2">
+<p><strong>文件路径</strong>：验证配置文件路径的正确性，并确保在任何环境中其都是可访问的。</p>
+</li>
+<li class="lvl-2">
+<p><strong>测试要严格</strong>：变更测试配置是一个风险较高的操作，确保对每个环境进行详尽的测试，验证配置的有效性。</p>
+</li>
+<li class="lvl-2">
+<p><strong>回退机制</strong>：提供一个默认配置作为回退，以防某些环境没有专门的配置文件。</p>
+</li>
+<li class="lvl-2">
+<p><strong>文档记录</strong>：清晰记录这种动态配置机制的细节，以便项目的其他成员能理解和正确使用它。</p>
+</li>
+<li class="lvl-2">
+<p><strong>只用于特殊情况</strong>：通常你不需要在常规的测试中使用这个钩子。只有在你确实需要控制测试前的插件加载或配置时，才会用到。</p>
+</li>
+<li class="lvl-2">
+<p><strong>兼容性维护</strong>：如果你的插件或 <code>conftest.py</code> 依赖于这个钩子，确保与 <code>pytest</code> 版本的兼容性，防止因升级导致的问题。</p>
+</li>
+</ul>
+<h2 id="2-2-3-pytest-runtest-logstart">2.2.3 pytest_runtest_logstart</h2>
+<p><code>pytest_runtest_logstart</code> 钩子专门用于测试执行期间的日志生成，当测试开始执行时，就会调用它。</p>
+<h3 id="2-2-3-1-shi-yong-chang-jing">2.2.3.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>日志记录</strong>：自定义日志记录，比如在测试开始时记录更多上下文信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能监测</strong>：用于在测试开始时记录时间戳，从而监控测试执行时间。</p>
+</li>
+<li class="lvl-2">
+<p><strong>资源准备</strong>：在测试开始前确保重要资源，例如测试服务器或数据库，是在线并可访问的。</p>
+</li>
+<li class="lvl-2">
+<p><strong>通知发送</strong>：发送通知到其他系统，比如开始执行测试用例的通知。</p>
+</li>
+</ul>
+<h3 id="2-2-3-2-yong-fa-yu-shi-li">2.2.3.2 用法与示例</h3>
+<p>这个钩子通常定义在 <code>conftest.py</code> 文件中，这是一个特殊的文件，<code>pytest</code>会自动集成其中的钩子和<code>fixtures</code>：</p>
+<pre><code class="language-python"># conftest.py
+
+def pytest_runtest_logstart(nodeid, location):
+    # 自定义的日志记录或测试前操作
+    print(f"开始执行测试: {nodeid}，位置: {location}")
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>nodeid</code>: 是测试的唯一标识，通常包括文件名、类名和测试函数名或参数化标识符。</p>
+</li>
+<li class="lvl-2">
+<p><code>location</code>: 是一个三元组，包含测试文件的名称、测试所在文件的行号以及测试节点的名称。</p>
+</li>
+</ul>
+<p>假设你想要在每个测试开始前记录当前时间和测试的标识符，可以这样做：</p>
+<pre><code class="language-python"># content of conftest.py
+
+import pytest
+from datetime import datetime
+
+def pytest_runtest_logstart(nodeid, location):
+    """
+    Hook for logging test start information.
+    
+    :param nodeid: Unique id of the test.
+    :param location: Location of the test (file, line, domain).
+    """
+    start_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(f"{start_time} - Starting test: {nodeid}")
+</code></pre>
+<p>每当一个测试用例开始执行时，都会在控制台打印出类似的日志信息，类似如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest  test_sample2.py  | grep Starting
+test_sample2.py 2024-01-16 12:34:31 - Starting test: Appendix/appendix-2/test_sample2.py::test_str_methods
+.2024-01-16 12:34:31 - Starting test: Appendix/appendix-2/test_sample2.py::test_list_append
+.2024-01-16 12:34:31 - Starting test: Appendix/appendix-2/test_sample2.py::test_list_pop
+.2024-01-16 12:34:31 - Starting test: Appendix/appendix-2/test_sample2.py::test_tuple_length
+.2024-01-16 12:34:31 - Starting test: Appendix/appendix-2/test_sample2.py::test_set_length
+.2024-01-16 12:34:31 - Starting test: Appendix/appendix-2/test_sample2.py::test_dict_items
+root@Gavin:~/code/Appendix/appendix-2#
+</code></pre>
+<h3 id="2-2-3-3-zhu-yi-shi-xiang">2.2.3.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这个钩子不应该用于执行测试用例所需的正常设置，为此目的，应使用 fixtures。</p>
+</li>
+<li class="lvl-2">
+<p>在这个钩子中改变的状态不会影响测试用例本身，即：它仅适合于日志和类似非功能性的任务。</p>
+</li>
+<li class="lvl-2">
+<p>信息打印须适用于所配置的<code>pytest</code>的日志系统，要确保信息被适当地记录而不是丢失。</p>
+</li>
+<li class="lvl-2">
+<p>如果有多个插件或<code>conftest.py</code>文件实现了这个钩子，需要注意它们会按照<code>pytest</code>的插件管理规则进行调用，可能会出现预期之外的情况。</p>
+</li>
+<li class="lvl-2">
+<p>当在 CI/CD 系统中使用时，要确保任何输出都符合系统抓取和解析日志的要求。</p>
+</li>
+</ul>
+<h2 id="2-2-4-pytest-generate-tests">2.2.4 pytest_generate_tests</h2>
+<p><code>pytest_generate_tests</code> 允许你定义自己的参数化逻辑或自动生成测试用例参数的集合。这个功能特别适用于当你想要在运行时动态地决定参数集合或实现更复杂的参数化规则时。</p>
+<h3 id="2-2-4-1-shi-yong-chang-jing">2.2.4.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>动态参数化</strong>：根据测试环境的不同条件，允许在测试运行时动态地决定测试参数。</p>
+</li>
+<li class="lvl-2">
+<p><strong>复杂的参数逻辑</strong>：在进行跨多个参数的组合测试，且参数组合逻辑比较复杂时；或者当<code>@pytest.mark.parametrize</code>不够用时，可以使用<code>pytest_generate_tests</code>来处理更复杂的参数化需求；或者实现自定义参数化逻辑，比如压缩测试用例范围、随机生成测试数据等。</p>
+</li>
+<li class="lvl-2">
+<p><strong>条件参数化</strong>：基于某些条件，诸如用户输入、配置文件或者从外部数据源（如文件、数据库、API等）载入测试数据。</p>
+</li>
+<li class="lvl-2">
+<p><strong>跨多个测试目录或文件</strong>：可以在<code>conftest.py</code>文件中使用该钩子，从而对整个目录或项目范围内的测试进行参数化。</p>
+</li>
+</ul>
+<h3 id="2-2-4-2-yong-fa-yu-shi-li">2.2.4.2 用法与示例</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 <code>conftest.py</code> 文件或测试模块中定义 <code>pytest_generate_tests</code> 函数。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>metafunc.parametrize</code> 方法来将参数值和id传入测试函数。</p>
+</li>
+</ul>
+<p>假设你有一个测试函数，它需要根据一组输入进行测试：</p>
+<pre><code class="language-python">def test_example(parameter):
+    # 测试代码
+    assert parameter &lt; 4
+</code></pre>
+<p>你可以使用 <code>pytest_generate_tests</code> 来动态地为这个测试生成参数：</p>
+<pre><code class="language-python"># content of test_generate_tests1.py
+
+def pytest_generate_tests(metafunc):
+    if "parameter" in metafunc.fixturenames:
+        metafunc.parametrize("parameter", [1, 2, 3], scope="function")
+
+def test_example(parameter):
+    assert parameter &lt; 4
+</code></pre>
+<p>在上述例子中，如果测试函数请求了一个名叫 <code>parameter</code> 的fixture参数，该钩子将会使用值列表 <code>[1, 2, 3]</code> 参数化 <code>parameter</code>。输出结果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_generate_tests1.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+collected 3 items
+
+ Appendix/appendix-2/test_generate_tests1.py::test_example[1] ✓       33% ███▍      
+ Appendix/appendix-2/test_generate_tests1.py::test_example[2] ✓       67% ██████▋   
+ Appendix/appendix-2/test_generate_tests1.py::test_example[3] ✓      100% ██████████
+
+Results (0.02s):
+       3 passed
+root@Gavin:~/code/Appendix/appendix-2# 
+</code></pre>
+<p>也可以写在<code>conftest.py</code>文件中，如下面的示例：</p>
+<p>假设你想基于不同的输入数据测试一个函数，而这些数据来源于一个外部文件。</p>
+<pre><code class="language-shell"># content of data.json
+[
+    {"input": 1, "expected": 2},
+    {"input": 2, "expected": 4},
+    {"input": 3, "expected": 6}
+]
+</code></pre>
+<pre><code class="language-python"># content of conftest.py
+import json
+
+def pytest_generate_tests(metafunc):
+    # 假设所有测试都需要 "input_data" 参数
+    if 'input_data' in metafunc.fixturenames:
+        # 加载测试数据，这里以从文件加载为例
+        with open('data.json', 'r') as f:
+            data = json.load(f)
+        # parametrize 可以接受一个参数列表和一个id列表
+        metafunc.parametrize("input_data", data, ids=[str(d) for d in data])
+</code></pre>
+<pre><code class="language-python"># content of test_generate_tests2.py
+def test_my_func(input_data):
+    # 这里将根据上面生成的每个输入数据进行测试
+    result = my_func(input_data)
+    assert result # 或一些有意义的断言
+</code></pre>
+<p>执行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_generate_tests2.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+collected 3 items
+
+ Appendix/appendix-2/test_generate_tests2.py::test_my_func[{'input': 1, 'expected': 2}] ✓        33% ███▍      
+ Appendix/appendix-2/test_generate_tests2.py::test_my_func[{'input': 2, 'expected': 4}] ✓        67% ██████▋   
+ Appendix/appendix-2/test_generate_tests2.py::test_my_func[{'input': 3, 'expected': 6}] ✓       100% ██████████
+
+Results (0.02s):
+       3 passed
+root@Gavin:~/code/Appendix/appendix-2#
+</code></pre>
+<h3 id="2-2-4-3-zhu-yi-shi-xiang">2.2.4.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>确保使用 <code>pytest_generate_tests</code> 时，其应用的范围与你预期一致。如果你将其放在<code>conftest.py</code>，它会对整个目录下的测试应用；如果只是在特定的模块中，它仅对那个模块应用。</p>
+</li>
+<li class="lvl-2">
+<p>注意性能问题：如果你生成了大量的测试参数组合，测试执行时间可能会大幅增加。</p>
+</li>
+<li class="lvl-2">
+<p>确保生成的参数与你的测试函数期望的参数匹配，意即如果<code>metafunc.parametrize</code>的参数名不在测试函数的参数列表中，则测试将无法运行。</p>
+</li>
+<li class="lvl-2">
+<p>使用复杂数字数据作为参数时，考虑为参数设置ID，使测试结果更易于理解。</p>
+</li>
+<li class="lvl-2">
+<p>确保 <code>pytest_generate_tests</code> 不会与其他参数化方法（如直接在装饰器中参数化）冲突。</p>
+</li>
+<li class="lvl-2">
+<p>牢记 <code>pytest_generate_tests</code> 是按照模块作用域运行的，如果在同一模块中有多个测试函数需要参数化，<code>pytest_generate_tests</code> 需要能够处理每个测试函数的参数化。</p>
+</li>
+<li class="lvl-2">
+<p>由于 <code>pytest_generate_tests</code> 在收集阶段就会被调用，你不能在测试函数或fixture内部使用它。</p>
+</li>
+</ul>
+<h2 id="2-2-5-pytest-runtest-protocol">2.2.5 pytest_runtest_protocol</h2>
+<p><code>pytest_runtest_protocol</code> 允许插件和用户自定义的代码在测试执行期间介入，改变或扩展<code>pytest</code>的标准测试执行流程。使用这个钩子，可以控制测试的运行方式、测试报告的生成以及许多其他方面的自定义行为（如自定义测试的执行流程。控制测试报告的生成。根据需要实现特殊的测试逻辑，如条件跳过、重试失败的测试等）。</p>
+<h3 id="2-2-5-1-shi-yong-chang-jing">2.2.5.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>自定义测试执行流程</strong>：当你需要某些测试遵循不同于默认执行流程的顺序或逻辑时，如实现失败重试机制。</p>
+</li>
+<li class="lvl-2">
+<p><strong>集成外部服务</strong>：比如，测试开始前需要从外部服务获取一些数据或者状态，并在测试结束后更新外部服务的状态。</p>
+</li>
+<li class="lvl-2">
+<p><strong>增强测试报告</strong>：记录更多信息到测试报告中，例如附加日志信息、屏幕截图等。</p>
+</li>
+</ul>
+<h3 id="2-2-5-2-yong-fa-yu-shi-li">2.2.5.2 用法与示例</h3>
+<p>首先，你需要创建一个<code>pytest_runtest_protocol</code>函数，在测试项目执行时，这个函数将被调用。函数需要接收两个参数：<code>item</code>和<code>nextitem</code>。<code>item</code>是当前正在运行的测试项目，而<code>nextitem</code>是队列中的下一个测试项目。</p>
+<p>在<code>pytest</code>的插件中或是你的测试代码中，你可以定义一个带有<code>pytest_runtest_protocol</code> 名称的函数。其基本模板如下：</p>
+<pre><code class="language-python"># conftest.py 或 pytest 插件中
+def pytest_runtest_protocol(item, nextitem):
+    # 自定义的准备工作
+    # ...
+
+    # 执行测试并捕获结果
+    outcomes = runtestprotocol(item, nextitem=nextitem, log=True)
+    
+    # 自定义的清理工作或额外的报告
+    # ...
+
+    # 返回True来阻止其他的hook执行
+    return True
+</code></pre>
+<p>下面是一个简单的示例，这个示例通过<code>pytest_runtest_protocol</code> 钩子实现一个简单的测试重试逻辑：</p>
+<pre><code class="language-python"># content of conftest.py
+import pytest
+from _pytest.runner import runtestprotocol
+
+def pytest_addoption(parser):
+    """
+    添加一个命令行选项 --retry，用于设置重试次数。
+    """
+    parser.addoption(
+        "--retry", action="store", default=0, type=int,
+        help="Number of times to retry a test if it fails."
+    )
+
+def pytest_runtest_protocol(item, nextitem):
+    """
+    重写默认的Pytest测试协议以添加重试功能。
+    """
+    # 获取命令行参数中的重试次数
+    retry_count = item.config.getoption("--retry")
+    # 为了记录测试重试的次数
+    retries = 0
+
+    while True:
+        # 统计重试的次数，如果大于零则为重试。
+        if retries &gt; 0:
+            print(f"Retrying {item.nodeid} ({retries}/{retry_count})")
+        
+        # 执行测试并捕获结果
+        outcomes = runtestprotocol(item, nextitem=nextitem, log=True)
+        # 查找测试执行阶段（call）的报告
+        call_reports = [outcome for outcome in outcomes if outcome.when == "call"]
+        
+        # 如果没有发生失败，或者重试次数已用完，则退出循环
+        if not any(call_report.failed for call_report in call_reports) or retries &gt;= retry_count:
+            break
+        
+        # 如果测试失败了，则增加重试次数，并再次执行循环
+        retries += 1
+        
+    # 返回True以阻止Pytest进一步处理剩余的测试协议
+    return True
+</code></pre>
+<p>对应测试用例：</p>
+<pre><code class="language-python"># content of test_retry.py
+def test_case01():
+    assert 1== 1
+
+
+def test_case02():
+    assert True == False
+</code></pre>
+<p>测试用例<code>test_case02</code>故意断言失败，看看是否会按照要求进行重试，执行效果如下（重试2次）：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_retry.py --retry=2
+root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_retry.py --retry=2
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+collected 2 items
+
+ Appendix/appendix-2/test_retry.py::test_case01 ✓       50% █████     
+―――――――――――――――――――――――――――――― test_case02 ―――――――――――――――――――――――――――――――
+    def test_case02():
+&gt;       assert True == False
+E       assert True == False
+
+test_retry.py:6: AssertionError
+
+ Appendix/appendix-2/test_retry.py::test_case02 ⨯      100% ██████████
+ Retrying Appendix/appendix-2/test_retry.py::test_case02 (1/2)
+―――――――――――――――――――――――――――――― test_case02 ―――――――――――――――――――――――――――――――
+    def test_case02():
+&gt;       assert True == False
+E       assert True == False
+
+test_retry.py:6: AssertionError
+
+ Appendix/appendix-2/test_retry.py::test_case02 ⨯      150% ███████████████
+ Retrying Appendix/appendix-2/test_retry.py::test_case02 (2/2)
+―――――――――――――――――――――――――――――― test_case02 ――――――――――――――――――――――――――――――
+    def test_case02():
+&gt;       assert True == False
+E       assert True == False
+
+test_retry.py:6: AssertionError
+
+ Appendix/appendix-2/test_retry.py::test_case02 ⨯      200% ████████████████████
+======================== short test summary info =========================
+FAILED test_retry.py::test_case02 - assert True == False
+FAILED test_retry.py::test_case02 - assert True == False
+FAILED test_retry.py::test_case02 - assert True == False
+
+Results (0.06s):
+       1 passed
+       3 failed
+         - Appendix/appendix-2/test_retry.py:5 test_case02
+         - Appendix/appendix-2/test_retry.py:5 test_case02
+         - Appendix/appendix-2/test_retry.py:5 test_case02
+root@Gavin:~/code/Appendix/appendix-2#
+</code></pre>
+<p>执行第一次失败后，又重试了两次，总计三次，都以失败而结束，但这造成了展示进度百分比的异常。</p>
+<h3 id="2-2-5-3-zhu-yi-shi-xiang">2.2.5.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>确保兼容性</strong>：如果你覆盖了<code>pytest_runtest_protocol</code>，确保你的实现与<code>pytest</code>的其他插件兼容，比如测试执行的基础工作流程不被打断，除非你有特别的原因完整重写它。</p>
+</li>
+<li class="lvl-2">
+<p><strong>保留测试流程</strong>：你可能要调用默认的<code>pytest_runtest_protocol</code>来保留标准的测试流程，除非你有充分的理由全部重新实现它。</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：当你的<code>pytest_runtest_protocol</code>实现返回True时，会阻止后续同名钩子的执行。这意味着你应该小心这么做，以避免不小心禁用了其它插件可能依赖的功能。</p>
+</li>
+<li class="lvl-2">
+<p><strong>理解执行顺序</strong>：钩子的执行顺序与它们在<code>conftest.py</code>文件或插件中的注册顺序有关。深入理解这一点对于确保钩子正确执行非常重要。</p>
+</li>
+<li class="lvl-2">
+<p><strong>防止无限循环</strong>：在重试逻辑中，确保有基础案例来停止测试，防止出现无限重试的情况。</p>
+</li>
+</ul>
+<p>使用这个钩子可以大幅度地提高测试的灵活性和控制力，但也需谨慎使用以避免引入复杂性和不可预见的行为。如有可能，应当避免使用这个钩子来实现简单的任务，因为过度使用钩子可能会增加测试套件的复杂度，并使得问题更难调试。</p>
+<h3 id="2-2-5-4-yu-code-pytest-runtest-logstart-code-dui-bi">2.2.5.4 与<code>pytest_runtest_logstart</code>对比</h3>
+<p>以下是一个简单表格，对比<code>pytest_runtest_logstart</code>和<code>pytest_runtest_protocol</code>这两个<code>pytest</code>钩子函数的差异：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>pytest_runtest_logstart</code></th>
+<th><code>pytest_runtest_protocol</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>钩子类型</td>
+<td>日志钩子</td>
+<td>测试执行钩子</td>
+</tr>
+<tr>
+<td>作用</td>
+<td>当测试用例开始时调用，用于日志记录</td>
+<td>覆盖pytest默认的测试执行协议</td>
+</tr>
+<tr>
+<td>接口参数</td>
+<td><code>nodeid</code>，<code>location</code>: 表示测试项的详细信息</td>
+<td><code>item</code>，<code>nextitem</code>: 当前正在运行的测试项和下一个测试项的钩子函数</td>
+</tr>
+<tr>
+<td>返回值</td>
+<td>无</td>
+<td>可返回True或None。如果返回True，则阻止后续的测试执行钩子继续处理当前测试项。</td>
+</tr>
+<tr>
+<td>调用时机</td>
+<td>在测试用例执行的开始，且在任何fixture和测试用例之前</td>
+<td>在测试项运行时调用，并处理整个测试执行阶段，包括调用<code>pytest_runtest_setup</code>、<code>pytest_runtest_call</code><br>和<code>pytest_runtest_teardown</code></td>
+</tr>
+<tr>
+<td>用例</td>
+<td>可以用来输出测试开始的合适日志顺序，比如在并行测试时保持日志清晰</td>
+<td>可用于实现自定义的测试执行逻辑，例如根据特定条件跳过测试或更改测试执行的方式</td>
+</tr>
+<tr>
+<td>扩展性</td>
+<td>主要用于日志目的，不涉及更改测试执行策略</td>
+<td>提供强大的自定义能力，可极大地更改测试执行方式</td>
+</tr>
+<tr>
+<td>对测试结果的影响</td>
+<td>无</td>
+<td>有;可以控制整个测试协议，包括结果记录和报告</td>
+</tr>
+<tr>
+<td>可以中断测试执行流程吗？</td>
+<td>不能，它主要用于日志记录和其他插件机制。</td>
+<td>可以，因为它控制了测试用例的完整生命周期。</td>
+</tr>
+</tbody>
+</table>
+<p>此表格反映的是两个钩子的核心差异。<code>pytest_runtest_logstart</code>主要用于记录测试开始的信息，而<code>pytest_runtest_protocol</code>则是用于控制测试的执行流程。开发者可以通过实现这些钩子来扩展<code>pytest</code>的测试运行机制并将其与其他测试工具或流程进行集成。</p>
+<h2 id="2-2-6-pytest-collection-modifyitems">2.2.6 pytest_collection_modifyitems</h2>
+<p><code>pytest_collection_modifyitems</code> 允许你在测试用例被搜集后，执行测试之前对这些测试项进行修改或筛选。你可以使用这个钩子来添加标记、添加附加信息、修改测试用例的顺序或者根据某些条件跳过某些测试用例。它有如下几个常用属性：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>item.nodeid</code>: 返回一个字符串，表示测试用例的唯一标识符。</p>
+</li>
+<li class="lvl-2">
+<p><code>item.name</code>: 返回一个字符串，表示测试用例的名称。</p>
+</li>
+<li class="lvl-2">
+<p><code>item.parent</code>: 返回一个节点对象，表示测试用例所属的父级节点（模块、类或测试集合）。</p>
+</li>
+<li class="lvl-2">
+<p><code>item.function</code>: 返回一个函数对象，表示测试用例的实际执行函数。</p>
+</li>
+<li class="lvl-2">
+<p><code>item.originalname</code>: 返回一个字符串，表示测试用例的原始名称。</p>
+</li>
+<li class="lvl-2">
+<p><code>item.location</code>: 返回一个元组，包含测试用例所在文件的路径和行号。</p>
+</li>
+<li class="lvl-2">
+<p><code>item.keywords</code>:返回一个包含字符串关键字的集合</p>
+</li>
+</ul>
+<h3 id="2-2-6-1-shi-yong-chang-jing">2.2.6.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>重新排序测试用例</strong>：改变测试用例的执行顺序，或对测试用例进行排序，例如按照测试用例名称进行字母顺序排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>筛选测试用例</strong>：对测试用例进行过滤，例如根据标签或表达式筛选出特定的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><strong>添加或修改标记</strong>：动态地给测试用例添加pytest标记和附加信息，例如为测试用例添加自定义标记或附加说明。</p>
+</li>
+<li class="lvl-2">
+<p><strong>条件化跳过测试</strong>：在运行测试前根据条件跳过某些测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>实现自定义逻辑</strong>：实现复杂的条件逻辑，这些逻辑不能通过静态标记或者命令行参数轻易完成，但任何需要的测试收集后逻辑处理都可以在此实现。</p>
+</li>
+</ul>
+<h3 id="2-2-6-2-yong-fa-yu-shi-li">2.2.6.2 用法与示例</h3>
+<p>要使用这个钩子函数，你需要在你的<code>conftest.py</code>文件或者自定义的插件中定义一个<code>pytest_collection_modifyitems</code>函数，并在该函数中修改<code>items</code>列表，这个列表包含了所有搜集到的测试项：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>conftest.py</code>文件中定义<code>pytest_collection_modifyitems</code>函数，并使用<code>config</code>参数来修改测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>使用<code>item.nodeid</code>属性来获取测试用例的标识符，并对测试用例进行操作。</p>
+</li>
+</ul>
+<p>同时，创建一个名称为<code>test_collection_modifyitems_v1.py</code>的文件，测试用例代码如下：</p>
+<pre><code class="language-python">import pytest
+
+def test_b():
+    assert True
+
+def test_a():
+    assert True
+
+def test_c():
+    assert True
+
+def test_slow():
+    assert True
+
+@pytest.mark.slow('Slow Tag test case')
+def test_d():
+    assert True
+
+@pytest.mark.smoke('smoke test case')
+def test_e():
+    assert True
+</code></pre>
+<h4 id="2-2-6-2-1-yong-li-pai-xu">2.2.6.2.1 用例排序</h4>
+<pre><code class="language-python"># content of conftest.py
+def pytest_collection_modifyitems(config, items):
+    # 对测试用例按照名称进行排序
+    items.sort(key=lambda item: item.nodeid)
+</code></pre>
+<h4 id="2-2-6-2-2-guo-lu-yong-li">2.2.6.2.2 过滤用例</h4>
+<p>过滤含有特定标记的测试用例：</p>
+<pre><code class="language-python"># content of conftest.py
+def pytest_collection_modifyitems(config, items):
+    # 对测试用例进行过滤，只保留包含"smoke"标记的测试用例
+    items[:] = [item for item in items if 'smoke' in item.keywords]
+</code></pre>
+<p>跳过用例名称含有指定关键字的用例：</p>
+<pre><code class="language-python"># 下面的例子演示了如何在conftest.py文件中使用这个钩子
+# 跳过所有名字包含'slow'的测试用例
+import pytest
+
+def pytest_collection_modifyitems(config, items):
+    for item in items.copy():
+        if 'slow' in item.name: # item.name指的是测试用例函数名
+            # 也可以使用pytest.mark.skip装饰器来跳过
+            item.add_marker(pytest.mark.skip(reason="Skipping slow test"))
+</code></pre>
+<h4 id="2-2-6-2-3-tian-jia-biao-ji">2.2.6.2.3 添加标记</h4>
+<p>下面这个代码示例将会在所有的测试用例上添加一个名为<code>smoke</code>的标记：</p>
+<pre><code class="language-python"># content of conftest.py
+import pytest
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        item.add_marker(pytest.mark.smoke)
+</code></pre>
+<p>或者下面这种，增加多个标记：</p>
+<pre><code class="language-python">import pytest
+
+def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        # 为所有未标记为"slow"的测试添加一个"fast"标记
+        if "slow" not in item.keywords:
+            item.add_marker(pytest.mark.fast)
+        
+        # 示例：如果测试的名称包含 "special"，给测试添加一个"special"标记
+        if "special" in item.name:
+            item.add_marker(pytest.mark.special)
+</code></pre>
+<p>在这个例子中，<code>conftest.py</code> 文件中的<code>pytest_collection_modifyitems</code>函数会检查所有收集到的测试项 (<code>items</code>) 并在运行测试前做出如下修改：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果一个测试项没有被标记为“slow”，那么将会自动添加一个名为“fast”的标记。</p>
+</li>
+<li class="lvl-2">
+<p>如果一个测试项的名称包含“special”，那么将会添加一个名为“special”的标记。</p>
+</li>
+</ul>
+<h4 id="2-2-6-2-4-wan-zheng-shi-li">2.2.6.2.4 完整示例</h4>
+<p>我们来看一个完整的、可以工作的 <code>pytest_collection_modifyitems</code> 钩子实现，它按照一个假设的标记 <code>priority</code> 来排序测试，让标记为高优先级的测试先运行，如果测试没有标记 <code>priority</code>，则按照其在模块中的顺序运行。</p>
+<p>下面的示例展示了一个完整的、可以工作的 <code>pytest_collection_modifyitems</code> 钩子实现，它按照一个假设的标记 <code>priority</code> 来排序测试，让标记为高优先级的测试先运行，如果测试没有标记 <code>priority</code>，则按照其在模块中的顺序运行。</p>
+<p>首先，创建一个名为 <code>conftest.py</code> 的文件（如果它还不存在的话），它应该位于测试集的根目录或所需的子目录中，然后添加以下内容：</p>
+<pre><code class="language-python"># content of conftest.py
+
+def pytest_collection_modifyitems(session, config, items):
+    # 编写代码来重新排序 items
+    def get_priority(item):
+        marker = item.get_closest_marker("priority")
+        if marker:
+            # 如果测试被标记了 'priority'，则返回其数值
+            return marker.args[0]
+        else:
+            # 如果没有标记 'priority'，我们返回一个预设的高数字保证它们在后面运行
+            return float('inf')
+
+    # 对 items 按照 'priority' 标记的值进行排序
+    items.sort(key=get_priority)
+</code></pre>
+<p>然后，你可以在测试函数中使用 <code>@pytest.mark.priority</code> 标记来为特定的测试设置优先级：</p>
+<pre><code class="language-python"># content of test_collection_modifyitems_v2.py
+
+import pytest
+
+def test_no_priority():
+    # 这个函数没有显式优先级，将最后运行
+    assert True
+
+@pytest.mark.priority(10)
+def test_lower_priority():
+    # 这个函数的运行优先级低
+    assert True
+
+@pytest.mark.priority(1)
+def test_high_priority():
+    # 这个函数运行优先级最高
+    assert True
+</code></pre>
+<p>在上面的代码示例中，<code>test_high_priority</code> 由于优先级为 1，将首先运行；而 <code>test_lower_priority</code> 优先级为 10，将在 <code>test_high_priority</code> 后面运行；最后运行的是没有任何 <code>priority</code> 标记的 <code>test_no_priority</code>。运行结果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_collection_modifyitems.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+collected 3 items
+
+ Appendix/appendix-2/test_collection_modifyitems.py::test_high_priority ✓ 33% ███▍     
+ Appendix/appendix-2/test_collection_modifyitems.py::test_lower_priority ✓67% ██████▋   
+ Appendix/appendix-2/test_collection_modifyitems.py::test_no_priority ✓  100% ██████████
+
+Results (0.02s):
+       3 passed
+root@Gavin:~/code/Appendix/appendix-2# 
+</code></pre>
+<h3 id="2-2-6-3-zhu-yi-shi-xiang">2.2.6.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>全局影响性</strong>：此钩子函数应用于整个测试集合，包括子目录中的测试文件，需确保逻辑对所有环境都是通用的，或者根据调用的配置设置进行条件检查。</p>
+</li>
+<li class="lvl-2">
+<p><strong>测试独立性</strong>: 确保重新排序后的测试用例依然保持独立性，避免因为执行顺序变化而引发的测试不稳定情况。</p>
+</li>
+<li class="lvl-2">
+<p><strong>复杂逻辑</strong>: 如果有复杂的排序逻辑，最好有相应的注释或文档描述。</p>
+</li>
+<li class="lvl-2">
+<p><strong>需求变化</strong>: 当项目需求发生变化时，及时更新排序逻辑和优先级标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>标记误用</strong>: 注意避免错误使用标记，比如赋予不恰当的优先级值或在非相关测试上使用该标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>避免冲突</strong>：在有些情况下，此钩子可能不会按预期执行，例如当使用某些插件或配置时。如果遇到问题，请确保你的钩子函数是否正确定义，并验证是否与其他钩子函数或配置产生了冲突。</p>
+</li>
+</ul>
+<h2 id="2-2-7-pytest-terminal-summary">2.2.7 pytest_terminal_summary</h2>
+<p><code>pytest_terminal_summary</code> 钩子允许用户和插件在执行特定的测试运行阶段插入自己的逻辑，在测试结果汇总信息被打印到终端之后调用。这使得用户或插件开发人员可以添加额外的汇总信息，或者对已有的测试结果进行进一步的处理。</p>
+<h3 id="2-2-7-1-shi-yong-chang-jing">2.2.7.1 使用场景</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>自定义测试报告</strong>：在测试报告的末尾添加额外信息，如特定的统计数据或测试运行摘要。</p>
+</li>
+<li class="lvl-2">
+<p><strong>分析测试结果</strong>：在所有测试执行完成后，对结果进行进一步的分析或处理，例如计算测试覆盖率或其他指标。</p>
+</li>
+<li class="lvl-2">
+<p><strong>集成其他系统</strong>：将测试结果发送到外部监控系统或测试管理工具。</p>
+</li>
+<li class="lvl-2">
+<p><strong>提供反馈</strong>：向测试者显示额外的反馈信息，例如性能数据或者特定的警告信息。</p>
+</li>
+</ul>
+<h3 id="2-2-7-2-yong-fa-yu-shi-li">2.2.7.2 用法与示例</h3>
+<p>比如给测试报告增加自定义的头部信息，可以使用 <code>pytest_terminal_summary</code> 钩子函数来修改<code>terminal</code>中的输出，这个钩子函数允许我们在测试报告的末尾添加额外的内容。如果你想要在报告开头添加内容，可以结合 <code>pytest_report_header</code> 钩子。</p>
+<p>以下是一个简单的 <code>conftest.py</code> 文件示例，它演示了如何使用这些钩子函数来向<code>pytest</code>报告中添加<code>header</code>内容：</p>
+<pre><code class="language-python"># content of conftest.py
+import pytest
+
+# 插入定制的头部信息
+def pytest_report_header(config):
+    return "项目名称: 你的项目名称\n测试环境: 你的开发环境"
+
+# 可以选择在报告总结中添加额外信息
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    terminalreporter.ensure_newline()
+    terminalreporter.section("定制报告", sep='-', bold=True)
+    terminalreporter.line("额外信息可以放在这里")
+
+    if 'my_marker' in config.option.markexpr:
+        total = sum(1 for t in terminalreporter.stats.get('passed', []) if 'my_marker' in t.keywords)
+        terminalreporter.write('\n')
+        terminalreporter.write(f'带有标记 "my_marker" 的测试通过数量：{total}\n')
+
+    # 可以访问 terminalreporter 统计信息
+    passed = list(terminalreporter.stats.get('passed', []))  
+    failed = list(terminalreporter.stats.get('failed', []))
+
+    terminalreporter.section('Custom Summary')
+    # terminalreporter passed 的 when 属性有三状态setup,when,teardown的passed
+    passed_no = int(len(passed)/3)
+    terminalreporter.line(f'Total passed tests: {passed_no}')
+    terminalreporter.line(f'Total failed tests: {len(failed)}')
+
+    if exitstatus == 0:
+        terminalreporter.line('All tests passed! Great job! :)', green=True)
+</code></pre>
+<p>在上述示例中：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>pytest_report_header</code> 钩子函数返回一个字符串或者一个由字符串组成的列表，这些字符串会被添加到测试报告的头部。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_terminal_summary</code> 钩子函数用于在测试报告的结尾增加定制的终端输出。在这个函数中使用了 <code>terminalreporter</code> 的 <code>section</code> 和 <code>line</code> 方法来管理输出的格式。</p>
+</li>
+</ul>
+<p>在运行pytest时，这些钩子函数会自动被调用，并将内容插入到测试报告中相应的位置。通过自定义这些钩子，你可以让测试报告包含所有必要的信息，提供对测试结果更全面的描述。上述用例执行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_sample1.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+项目名称: 你的项目名称
+测试环境: 你的开发环境
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+collected 10 items
+
+ Appendix/appendix-2/test_sample1.py::test_addition ✓       10% █         
+ Appendix/appendix-2/test_sample1.py::test_subtraction ✓    20% ██        
+ Appendix/appendix-2/test_sample1.py::test_multiplication ✓ 30% ███       
+ Appendix/appendix-2/test_sample1.py::test_division ✓       40% ████      
+ Appendix/appendix-2/test_sample1.py::test_modulus ✓        50% █████     
+ Appendix/appendix-2/test_sample1.py::test_power ✓          60% ██████    
+ Appendix/appendix-2/test_sample1.py::test_square_root ✓    70% ███████   
+ Appendix/appendix-2/test_sample1.py::test_negative ✓       80% ████████  
+ Appendix/appendix-2/test_sample1.py::test_positive ✓       90% █████████ 
+ Appendix/appendix-2/test_sample1.py::test_zero ✓          100% ██████████
+--------------------------------- 定制报告 -------------------------------
+额外信息可以放在这里
+============================== Custom Summary ===========================
+Total passed tests: 10
+Total failed tests: 0
+All tests passed! Great job! :)
+
+Results (0.03s):
+      10 passed
+
+root@Gavin:~/code/Appendix/appendix-2#
+</code></pre>
+<h3 id="2-2-7-3-zhu-yi-shi-xiang">2.2.7.3 注意事项</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>适当使用接口</strong>：使用 <code>terminalreporter</code> 的方法（例如 <code>write</code>, <code>line</code>, 或者 <code>section</code>）来添加内容到终端报告中。避免直接使用 <code>print</code> 函数，因为这样可能会干扰 <code>pytest</code> 的输出格式。</p>
+</li>
+<li class="lvl-2">
+<p><strong>响应状态</strong>：<code>exitstatus</code> 参数含有关于测试执行结果的信息（例如，是否有测试失败），你可以使用这个信息来决定是否需要额外的输出或者动作。</p>
+</li>
+<li class="lvl-2">
+<p><strong>影响因素</strong>：意识到你的新增输出可能会影响到如何解读测试结果，所以要保持清晰和简洁。在添加自定义的汇总信息时可以加上提示或者装饰，以便于区分 <code>pytest</code> 的标准输出。</p>
+</li>
+<li class="lvl-2">
+<p><strong>避免干扰</strong>：你的钩子函数不应该覆盖或者干预原有的汇总信息，除非这是你明确的目的。</p>
+</li>
+</ul>
+<h1 id="2-3-shi-yong-gou-zi-han-shu">2.3 使用钩子函数</h1>
+<p><code>pytest</code> 提供了多个钩子函数，用于不同的测试阶段和目的。我们来看一个综合示例：</p>
+<pre><code class="language-python"># content of conftest.py
+import pytest
+from collections import Counter
+
+# 钩子函数：自定义测试报告头部
+def pytest_report_header(config):
+    return "项目名称: 示例项目\n测试环境: 开发"
+
+# 钩子函数：每个测试用例执行前调用
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    # 执行前的准备操作
+    print(f"开始执行测试: {item.name}")
+
+# 钩子函数：每个测试用例执行后调用
+@pytest.hookimpl(trylast=True)
+def pytest_runtest_teardown(item, nextitem):
+    # 执行后的清理操作
+    print(f"完成测试: {item.name}")
+
+
+# 在 pytest_configure 钩子中初始化我们的计数器
+def pytest_configure(config):
+    # 使用 Pytest 配置对象注册额外的数据字段
+    config.test_function_count = Counter()
+
+# 使用 pytest_collection_modifyitems 钩子函数来统计每个模块的测试函数数
+def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        # 提取测试模块的名字作为统计的键
+        module_name = item.module.__name__
+        # 计数每个模块的测试函数数量
+        config.test_function_count[module_name] += 1
+
+# 在所有测试执行完成后，使用 pytest_terminal_summary 输出总结信息
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    # 在 terminal 中打印统计报告
+    terminalreporter.section('Test Case Distribution')
+    for module, count in config.test_function_count.items():
+        terminalreporter.write(f"{module}: {count} test functions\n")
+</code></pre>
+<p>执行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/Appendix/appendix-2# pytest -s -v test_sample*.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 7.4.0, pytest-sugar 0.9.7)
+cachedir: .pytest_cache
+项目名称: 示例项目
+测试环境: 开发
+rootdir: /root/code
+configfile: pytest.ini
+plugins: sugar-0.9.7, random-order-1.1.0, freezegun-0.4.2, pylint-0.21.0
+collected 26 items
+
+开始执行测试: test_addition
+完成测试: test_addition
+ Appendix/appendix-2/test_sample1.py::test_addition ✓            4% ▍         
+开始执行测试: test_subtraction
+
+完成测试: test_subtraction
+ Appendix/appendix-2/test_sample1.py::test_subtraction ✓         8% ▊
+开始执行测试: test_multiplication
+
+完成测试: test_multiplication
+ Appendix/appendix-2/test_sample1.py::test_multiplication ✓      12% █▎
+ 开始执行测试: test_division
+................................... 中间内容省略 .................
+
+开始执行测试: test_not_empty_set
+
+完成测试: test_not_empty_set
+ Appendix/appendix-2/test_sample3.py::test_not_empty_set ✓       96% █████████▋
+ 开始执行测试: test_not_empty_tuple
+
+完成测试: test_not_empty_tuple
+ Appendix/appendix-2/test_sample3.py::test_not_empty_tuple ✓    100% ██████████▋
+=========================== Test Case Distribution ===========================
+test_sample1: 10 test functions
+test_sample2: 6 test functions
+test_sample3: 10 test functions
+
+Results (0.04s):
+      26 passed
+root@Gavin:~/code/Appendix/appendix-2# 
+</code></pre>
+<h1 id="2-4-ben-zhang-xiao-jie">2.4 本章小结</h1>
+<p>在本章中，我们探讨了 <code>pytest</code> 框架中的钩子（hooks）机制，它是 <code>pytest</code> 的一个重要功能，允许我们自定义和扩展测试的不同阶段。我们了解了钩子的作用，包括它们是如何使我们能够在测试收集、运行、报告等步骤中注入自定义逻辑的。我们学习了在不同的测试阶段可以使用的一些常用钩子，如何在 <code>conftest.py</code> 中实现它们，以及如何根据项目的需求调节它们的行为。我们讨论了钩子的用法、使用场景以及一些示例，同时指出在构建和使用钩子时需要考虑的注意事项。</p>
+<p>正如我们见到的，通过有效使用钩子，可以实现诸如如下功能：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>控制测试执行顺序和筛选</p>
+</li>
+<li class="lvl-2">
+<p>添加标记或分类以执行特定的测试子集</p>
+</li>
+<li class="lvl-2">
+<p>响应测试事件，如设置和拆解操作</p>
+</li>
+<li class="lvl-2">
+<p>修改和增强测试报告的输出</p>
+</li>
+<li class="lvl-2">
+<p>执行全局资源管理和状态检查</p>
+</li>
+</ul>
+<p>不得不感叹<code>pytest</code>的强大，可以用来优化测试流程和结果的呈现，使之更加适合我们的测试需求和环境。无论你是在探究单元测试的细节，还是在构建一个复杂的端到端测试套件，理解和正确应用 <code>pytest</code> 钩子都是一个提高测试质量和效率的关键。随着对这些概念的深入掌握，我们可以构建更强大、更灵活的测试套件，并确保我们的测试结果既准确又有洞察力。</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/06/08/pytest_test_guide_appendice_2_pytest_hook/">https://gavin-wang-note.github.io/2024/06/08/pytest_test_guide_appendice_2_pytest_hook/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2024/06/17/run_pnpm_raise_node_no_such_file_or_directory/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/Linux/centos.jpg" class="responsive-img" alt="解决CentOS下cron job 执行pnpm命令报 node 不存在问题">
+                        
+                        <span class="card-title">解决CentOS下cron job 执行pnpm命令报 node 不存在问题</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            解决CentOS下cron job 执行pnpm命令报 node No such file or directory
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-06-17
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/06/07/pytest_test_guide_appendice_1_debug/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="《pytest测试指南》-- 附录1 pytest如何debug">
+                        
+                        <span class="card-title">《pytest测试指南》-- 附录1 pytest如何debug</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            《pytest测试指南》一书 附录1 pytest debug的几种手法
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-06-07
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2009-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">811.4k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

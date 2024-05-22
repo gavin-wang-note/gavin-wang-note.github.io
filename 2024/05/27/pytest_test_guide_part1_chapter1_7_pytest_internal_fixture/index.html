@@ -1,0 +1,3811 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="《pytest测试指南》-- 章节1-7 pytest内置fixture, 软硬件测试">
+    <meta name="description" content="《pytest测试指南》一书 章节1-7 pytest内置fixture详细介绍与示例说明">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>《pytest测试指南》-- 章节1-7 pytest内置fixture | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-2.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">《pytest测试指南》-- 章节1-7 pytest内置fixture</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-05-27
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    21.3k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    93 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="di-7-zhang-pytest-nei-zhi-fixture">第7章 pytest内置fixture</h1>
+<p>上一章节中我们介绍了<code>pytest fixture</code>，<code>fixture</code> 提供了一种优雅的方式来设置代码执行前的预置条件（如数据库连接、测试数据创建等），以及执行后的清理动作（比如断开网络连接、删除临时文件等）。最关键的是，它们让测试代码变得更简洁、可读，并大幅提高测试的可复用性。接下来介绍<code>pytest</code>内置fixture。<code>pytest</code> 之所以在开发者和测试工程师中广受欢迎，不仅在于它的易用性和强大的插件生态，更在于它的一个核心功能——内置的 fixtures 系统。<code>pytest</code> 通过一套内置的 fixtures 为开发者们带来了极致的灵活性和便捷性，无论是要为测试用例制造复杂的场景，还是要捕获和断言代码行为，抑或是要在测试周期内保持某些状态或配置——<code>pytest</code> 的内置 <code>fixture</code> 都能够帮助你轻松实现。在本文中，我们将深入探索 <code>pytest</code> 内置 <code>fixture</code> 的强大功能，带你深入了解 <code>pytest</code> 内置 <code>fixture</code> 的世界。我们将探讨它们如何简化测试设置过程，如何让我们能够编写更模块化和可维护的测试代码，以及如何利用这些强大的工具来提高测试效率和质量。无论你是刚开始接触 <code>pytest</code>，还是已经是一个经验丰富的用户，了解这些内置 <code>fixture</code> 的细节都将对你的测试实践大有裨益。</p>
+<h1 id="7-1-pytest-nei-zhi-fixture-an-gong-neng-fen-lei">7.1 pytest 内置 fixture 按功能分类</h1>
+<p><code>pytest</code> 提供了多种内置的 fixtures 以帮助我们设置测试环境、参数化测试数据、测试执行控制以及记录测试过程等，可通过<code>pytest --fixtures  -v</code>命令查看全部的fixture，包括内置与用户自定义或安装的第三方fixture信息。</p>
+<p>在 <code>pytest</code> 中，内置的 fixtures 按照功能划分可分为如下几个主要类别：</p>
+<h2 id="7-1-1-ji-chu-ce-shi-she-zhi-yu-qing-li">7.1.1 基础测试设置与清理</h2>
+<table>
+<thead>
+<tr>
+<th>Fixture</th>
+<th>作用域</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>cache</code></strong></td>
+<td>session</td>
+<td>提供存储和获取测试会话间数据的功能。</td>
+</tr>
+<tr>
+<td><strong><code>capsys</code></strong></td>
+<td>function</td>
+<td>捕获系统的输出和错误输出，并允许你在测试中访问它们。</td>
+</tr>
+<tr>
+<td><strong><code>capsysbinary</code></strong></td>
+<td>function</td>
+<td>与 <code>capsys</code> 类似，但捕获的是二进制输出。</td>
+</tr>
+<tr>
+<td><strong><code>capfd</code></strong></td>
+<td>function</td>
+<td>与 <code>capfd</code> 类似，但捕获的是二进制输出。</td>
+</tr>
+<tr>
+<td><strong><code>monkeypatch</code></strong></td>
+<td>function</td>
+<td>临时修改类或模块、字典条目以及环境变量。</td>
+</tr>
+<tr>
+<td><strong><code>testdir</code></strong></td>
+<td>function</td>
+<td>提供一个临时的测试目录来运行接收 <code>pytest</code> 测试用例的测试，废弃中，推荐使用<code>tmpdir</code>。</td>
+</tr>
+<tr>
+<td><strong><code>tmpdir</code></strong></td>
+<td>function,session</td>
+<td>成一个临时目录用于测试中的文件操作。</td>
+</tr>
+<tr>
+<td><strong><code>tmpdir_factory</code></strong></td>
+<td>function,session</td>
+<td>用于多个测试，跨测试函数、类、模块或整个会话创建临时目录。</td>
+</tr>
+<tr>
+<td><strong><code>tmp_path</code></strong></td>
+<td>function,session</td>
+<td>类似 <code>tmpdir</code>，但提供一个 <code>pathlib.Path</code> 对象。</td>
+</tr>
+<tr>
+<td><strong><code>tmp_path_factory</code></strong></td>
+<td>function,session</td>
+<td>用于生成临时文件和目录，使用的是 <code>py.path.local</code> 对象。</td>
+</tr>
+<tr>
+<td><strong><code>caplog</code></strong></td>
+<td>function</td>
+<td>用于捕获和检查日志输出。</td>
+</tr>
+<tr>
+<td><strong><code>pytester</code></strong></td>
+<td>function</td>
+<td>用于编写对 <code>pytest</code> 本身的测试。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-1-2-ji-lu-ce-shi-tao-jian-shu-xing">7.1.2 记录测试套件属性</h2>
+<table>
+<thead>
+<tr>
+<th>Fixture</th>
+<th>作用域</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>record_property</code></strong></td>
+<td>function</td>
+<td>在测试报告中为测试用例添加额外的属性。</td>
+</tr>
+<tr>
+<td><strong><code>record_testsuite_property</code></strong></td>
+<td>session</td>
+<td>在测试套件级别记录额外的属性信息到报告中。</td>
+</tr>
+<tr>
+<td><strong><code>request</code></strong></td>
+<td>session, module, class, function</td>
+<td>访问请求特定的 <code>pytest</code> 固件。</td>
+</tr>
+<tr>
+<td><strong><code>fixture</code></strong></td>
+<td>session, module, class, function</td>
+<td>请求使用 fixtures 的列表。（<code>@pytest.fixture</code>是一个特殊的fixture哦）</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-1-3-pei-zhi-he-ce-shi-gong-neng">7.1.3 配置和测试功能</h2>
+<table>
+<thead>
+<tr>
+<th>Fixture</th>
+<th>作用域</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>pytestconfig</code></strong></td>
+<td>session</td>
+<td>访问 <code>pytest</code> 配置信息。</td>
+</tr>
+<tr>
+<td><strong><code>recwarn</code></strong></td>
+<td>function</td>
+<td>记录测试过程中出现的警告。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-1-4-gao-ji-ce-shi-zhi-xing-kong-zhi">7.1.4 高级测试执行控制</h2>
+<table>
+<thead>
+<tr>
+<th>Fixture</th>
+<th>作用域</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>doctest_namespace</code></strong></td>
+<td>session</td>
+<td>提供一个命名空间，使得 <code>doctest</code> 可以访问外部定义的变量和函数。</td>
+</tr>
+</tbody>
+</table>
+<h1 id="7-2-nei-zhi-fixture-xiang-jie">7.2 内置fixture详解</h1>
+<h2 id="7-2-1-ji-chu-ce-shi-she-zhi-yu-qing-li">7.2.1 基础测试设置与清理</h2>
+<h3 id="7-2-1-1-capfd-capsys">7.2.1.1 capfd/capsys</h3>
+<p><code>pytest</code> 提供了 <code>capfd</code> 和 <code>capsys</code> 这两个内置的fixture用于捕获标准输出(<code>stdout</code>)和标准错误输出(<code>stderr</code>)，这对于测试期望输出的函数非常有用。尽管它们的功能非常相似，但它们之间存在一些关键的区别。</p>
+<h4 id="7-2-1-1-1-capsys">7.2.1.1.1 capsys</h4>
+<p><code>capsys</code> fixture 捕获由 <code>sys.stdout</code> 和 <code>sys.stderr</code> 生成的输出，主要是Python代码内部使用 <code>print()</code> 等函数产生的输出。</p>
+<h5 id="7-2-1-1-1-1-shi-yong-chang-jing">7.2.1.1.1.1使用场景</h5>
+<p>捕获由纯Python代码生成的输出，通常用于测试标准输出和错误输出是否如预期产生：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>测试函数是否从标准输入读取输入</p>
+</li>
+<li class="lvl-2">
+<p>测试函数是否通过标准输出打印输出</p>
+</li>
+<li class="lvl-2">
+<p>测试函数是否通过标准错误流打印错误信息</p>
+</li>
+</ul>
+<h5 id="7-2-1-1-1-2-dai-ma-shi-li">7.2.1.1.1.2 代码示例</h5>
+<pre><code class="language-python"># content of test_capsys.py
+import sys
+import pytest
+
+
+def test_read_input(capsys):
+    input("Enter your name: ")
+    captured = capsys.readouterr()
+    assert captured.out == "Enter your name: "
+
+
+def test_print_output(capsys):
+    print("hello world")
+    captured = capsys.readouterr()
+    assert captured.out == "hello world\n"
+
+
+def test_print_error(capsys):
+    print("An error occurred", file=sys.stderr)
+    captured = capsys.readouterr()
+    assert captured.err == "An error occurred\n"
+
+
+def test_print_both(capsys):
+    print("hello world")
+    print("An error occurred", file=sys.stderr)
+    captured = capsys.readouterr()
+    assert captured.out == "hello world\n"
+    assert captured.err == "An error occurred\n"
+</code></pre>
+<p>输出结果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_capsys.py 
+=============================== test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code/chapter1-7
+plugins: check-2.2.2, metadata-3.0.0
+collected 4 items
+
+test_capsys.py::test_read_input Hello Gavin
+PASSED
+test_capsys.py::test_print_output PASSED
+test_capsys.py::test_print_error PASSED
+test_capsys.py::test_print_both PASSED
+
+=============================== 4 passed in 3.69s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>注意，这里执行<code>pytest</code>命令时，需要携带上参数’-s’，表示‘reading from stdin while output is captured’，因为测试用例中使用了input方法。</p>
+<h4 id="7-2-1-1-2-capfd">7.2.1.1.2 capfd</h4>
+<p><code>capfd</code> fixture 捕获所有到文件描述符 1（标准输出）和 2（标准错误）的输出，这包括系统级别的输出，甚至是Python代码之外的输出。</p>
+<p>关于文件描述符(fd)，本文不做介绍，请另行查阅资料。</p>
+<h5 id="7-2-1-1-2-1-shi-yong-chang-jing">7.2.1.1.2.1 使用场景</h5>
+<p>捕获系统调用、子进程或C语言扩展模块生成的输出。</p>
+<ul class="lvl-0">
+<li class="lvl-4">
+<p>测试函数是否打印输出</p>
+</li>
+<li class="lvl-4">
+<p>测试函数是否打印错误信息</p>
+</li>
+</ul>
+<h5 id="7-2-1-1-2-2-dai-ma-shi-li">7.2.1.1.2.2 代码示例</h5>
+<pre><code class="language-python"># content of test_capfd.py
+import pytest
+
+def test_print_output(capfd):
+    print("hello world")
+    out, err = capfd.readouterr()
+    assert out == "hello world\n"
+
+
+def test_print_error(capfd):
+    print("An error occurred", file=sys.stderr)
+    out, err = capfd.readouterr()
+    assert err == "An error occurred\n"
+
+
+def test_print_both(capfd):
+    print("hello world")
+    print("An error occurred", file=sys.stderr)
+    out, err = capfd.readouterr()
+    assert out == "hello world\n"
+    assert err == "An error occurred\n"
+</code></pre>
+<p>上述例子中，分别校验了标准输出，标准错误，用例可全部执行通过，运行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_capfd.py
+=============================== test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code/chapter1-7
+plugins: check-2.2.2, metadata-3.0.0
+collected 3 items
+
+test_capfd.py::test_print_output PASSED
+test_capfd.py::test_print_error PASSED
+test_capfd.py::test_print_both PASSED
+
+================================== 3 passed in 0.01s ===========================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<h4 id="7-2-1-1-3-capsys-yu-capfd-de-qu-bie">7.2.1.1.3 capsys与capfd的区别</h4>
+<p><code>capsys</code> 和 <code>capfd</code> 的主要差异如下：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>capsys</th>
+<th>capfd</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>捕获层级</td>
+<td>Python层（例如 <code>sys.stdout</code> 和 <code>sys.stderr</code>）</td>
+<td>系统层（文件描述符，包括Python层）</td>
+</tr>
+<tr>
+<td>使用场景</td>
+<td>测试纯Python打印输出</td>
+<td>测试包含系统调用或子进程的打印输出</td>
+</tr>
+<tr>
+<td>捕获子进程输出</td>
+<td>不能捕获</td>
+<td>能捕获</td>
+</tr>
+<tr>
+<td>相互干扰可能性</td>
+<td>较低</td>
+<td>较高，因为可能捕获到其他非测试代码输出</td>
+</tr>
+<tr>
+<td>推荐使用</td>
+<td>当你仅需要捕获由 <code>print()</code> 等Python内部函数产生的输出时</td>
+<td>当你需要捕获包括子进程在内的所有输出时</td>
+</tr>
+</tbody>
+</table>
+<p>选择使用 <code>capsys</code> 还是 <code>capfd</code> 主要取决于你的具体测试需求。如果测试的功能仅涉及Python代码产生的输出，<code>capsys</code> 是足够的，并且测试结果不太可能受到不相关输出的干扰。相反，如果测试的代码将运行子进程或其他可能直接写入文件描述符的功能，则 <code>capfd</code> 更合适。</p>
+<h3 id="7-2-1-2-capfdbinary-capsysbinary">7.2.1.2 capfdbinary/capsysbinary</h3>
+<h4 id="7-2-1-2-1-capfdbinary">7.2.1.2.1 capfdbinary</h4>
+<p><code>capfdbinary</code> 与 <code>capfd</code> 类似，它允许你捕获在测试过程中向文件描述符 1（标准输出）和 2（标准错误）写入的二进制输出。不同之处在于，<code>capfdbinary</code> 保留了输出的二进制形式，而不是将其解码成字符串形式。</p>
+<p>如果你的测试需要捕获并检查二进制数据的精确内容，比如来自二进制可执行程序或产生非文本输出的系统调用，那么使用 <code>capfdbinary</code> 将非常有用。</p>
+<h5 id="7-2-1-2-1-1-shi-yong-chang-jing">7.2.1.2.1.1 使用场景</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>检查生成图像、音频或其他非文本文件的程序的输出。</p>
+</li>
+<li class="lvl-2">
+<p>测试可能产生或处理二进制数据的程序，如数据压缩或加密程序。</p>
+</li>
+<li class="lvl-2">
+<p>捕获来自不产生标准文本输出的外部工具或子进程的输出。</p>
+</li>
+</ul>
+<h5 id="7-2-1-2-1-2-dai-ma-shi-li">7.2.1.2.1.2 代码示例</h5>
+<p>假设我们有一个程序或脚本，它输出特定的二进制数据到 <code>stdout</code>，我们可以使用 <code>capfdbinary</code> 来捕获这些数据，进行测试。</p>
+<pre><code class="language-python"># test_capfdbinary.py
+
+def test_capfdbinary(capfdbinary):
+    # 假设我们有如下函数，它打印二进制内容到 stdout
+    def print_header():
+        print('89PNG\r\n\x1a\n', end='')
+
+    print_header()
+    # 使用 capfdbinary 捕获输出
+    captured = capfdbinary.readouterr()
+    
+    # 断言是否捕获到了正确的二进制
+    assert captured.out == b'89PNG\r\n\x1a\n'
+    assert captured.err == b''  # 确认 stderr 没有数据
+</code></pre>
+<p>在上面的例子中，我们可以看到一个捕获二进制输出并进行断言的简单例子。需要注意的是，断言时比较的是二进制数据（如：用 <code>b''</code> 表示的字节字符串）。</p>
+<h4 id="7-2-1-2-2-capsysbinary">7.2.1.2.2 capsysbinary</h4>
+<p>在 <code>pytest</code> 中，<code>capsysbinary</code> 的作用类似于 <code>capfdbinary</code> 和 <code>capsys</code>，但专门用于捕获二进制形式的系统捕获（系统输出<code>stdout</code>和错误<code>stderr</code>）。这可以非常有用，当你需要测试的代码产生了二进制输出，比如写一个文件下载的功能测试，或者你的代码直接向 <code>sys.stdout.buffer</code> 或 <code>sys.stderr.buffer</code> 写入二进制数据。</p>
+<p><strong>主要特征：</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>二进制数据捕获</strong>：<code>capsysbinary</code> 捕获标准输出和标准错误的二进制形式。</p>
+</li>
+<li class="lvl-2">
+<p><strong>测试期间的数据检查</strong>：允许你在测试中检查和断言在<code> stdout</code>或 <code>stderr</code> 中输出的二进制数据。</p>
+</li>
+<li class="lvl-2">
+<p><strong>清理及隔离输出</strong>：每个测试结束后，captured output/output 将会被清除，保证测试间的隔离。</p>
+</li>
+</ul>
+<h5 id="7-2-1-2-2-1-shi-yong-chang-jing">7.2.1.2.2.1 使用场景</h5>
+<p>为了使用 <code>capsysbinary</code>，你需要在测试函数中作为参数包含它。<code>pytest</code> 将自动处理 fixture，并且在测试结束后，处理捕获的数据。</p>
+<pre><code class="language-python"># content of test_capsysbinary.py
+import sys
+
+def test_output_binary_data(capsysbinary):
+    sys.stdout.buffer.write(b'This is binary stdout data')
+    sys.stderr.buffer.write(b'This is binary stderr data')
+    
+    # 获取捕获到的输出
+    captured = capsysbinary.readouterr()
+
+    # 现在你可以断言这两个数据
+    assert captured.out == b'This is binary stdout data'
+    assert captured.err == b'This is binary stderr data'
+</code></pre>
+<p>在上述示例中：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>sys.stdout.buffer.write</code> 和 <code>sys.stderr.buffer.write</code> 用于直接写二进制数据到标准输出和标准错误。</p>
+</li>
+<li class="lvl-2">
+<p><code>capsysbinary.readouterr()</code> 调用返回一个包含两个属性的对象：<code>out</code> 和 <code>err</code>，其中包含了到目前为止的捕获数据。这让你可以断言这些输出是否与预期一致。</p>
+</li>
+</ul>
+<p>请注意，这异于 <code>capsys</code>，后者捕获的是文本（编码为字符串）数据，而 <code>capsysbinary</code> 专门处理二进制数据。</p>
+<h5 id="7-2-1-2-2-2-dai-ma-shi-li">7.2.1.2.2.2 代码示例</h5>
+<p>下面是如何在一个测试中使用 <code>capsysbinary</code> 的示例：</p>
+<pre><code class="language-python"># content of test_capsysbinary.py
+import sys
+
+def test_binary_output(capsysbinary):
+    # 假设你有一个函数，它产生二进制数据到 stdout 和 stderr
+    def output_binary_data():
+        sys.stdout.buffer.write(b'\x89PNG\r\n\x1a\n')  # 比如二进制的PNG文件头
+        sys.stderr.buffer.write(b'\x00\x01\x02\x03\x04')  # 随便一些二进制错误
+    
+    output_binary_data()
+    captured = capsysbinary.readouterr()
+    
+    # 测试 stdout 上的二进制输出
+    assert captured.out == b'\x89PNG\r\n\x1a\n'
+    
+    # 测试 stderr 上的二进制输出
+    assert captured.err == b'\x00\x01\x02\x03\x04'
+</code></pre>
+<p>在这个测试中，<code>output_binary_data</code> 函数模拟了生成二进制数据的代码。<code>capsysbinary.readouterr()</code> 捕获了这些输出，允许你在断言中检查这些二进制数据。通过这种方式，你可以保证你的代码按预期产生了正确的二进制数据。</p>
+<p>两个示例执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_capsysbinary.py 
+=============================== test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code/chapter1-7
+plugins: check-2.2.2, metadata-3.0.0
+collected 2 items
+
+test_capsysbinary.py::test_output_binary_data PASSED
+test_capsysbinary.py::test_binary_output PASSED
+
+================================ 2 passed in 0.00s ============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<h4 id="7-2-1-2-3-capfdbinary-capsysbinary-de-qu-bie">7.2.1.2.3 capfdbinary/capsysbinary的区别</h4>
+<p><code>pytest</code> 提供的两种捕获测试中二进制输出的方法，<code>capfdbinary</code> 和 <code>capsysbinary</code>，这两个 fixtures 主要区别在于它们捕获输出的层级：</p>
+<table>
+<thead>
+<tr>
+<th>功能</th>
+<th><code>capfdbinary</code></th>
+<th><code>capsysbinary</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>描述</strong></td>
+<td>捕获系统层面的二进制输出至文件描述符。</td>
+<td>捕获Python标准库中的 <code>sys.stdout</code> 和 <code>sys.stderr</code> 输出的二进制流。</td>
+</tr>
+<tr>
+<td><strong>捕获范围</strong></td>
+<td>更底层，可以捕获到直接写入到操作系统文件描述符的输出（<code>stdout/stderr</code>），包括由子进程生成的输出。</td>
+<td>仅捕获到由当前Python进程自己的代码直接写入到 <code>sys.stdout</code> 或 <code>sys.stderr</code> 的输出。</td>
+</tr>
+<tr>
+<td><strong>捕获对象</strong></td>
+<td>包括由非 Python 代码（如C扩展）写入的输出。</td>
+<td>限于由 Python 代码产生的输出。</td>
+</tr>
+<tr>
+<td><strong>捕获输出的形式</strong></td>
+<td>二进制形式。</td>
+<td>二进制形式。</td>
+</tr>
+<tr>
+<td><strong>适合场景</strong></td>
+<td>当涉及底层或跨语言的输出操作时，如使用 <code>ctypes</code> 调用 C 函数时的输出。</td>
+<td>当测试的对象仅为 Python 代码时，更加常用。</td>
+</tr>
+<tr>
+<td><strong>测试代码示例</strong></td>
+<td><code>out, err = capfdbinary.readouterr()</code></td>
+<td><code>out, err = capsysbinary.readouterr()</code></td>
+</tr>
+<tr>
+<td><strong>适用输出</strong></td>
+<td>标准输出(<code>stdout</code>)或标准错误(<code>stderr</code>)</td>
+<td>标准输出(<code>stdout</code>)或标准错误(<code>stderr</code>)</td>
+</tr>
+<tr>
+<td><strong>返回值类型</strong></td>
+<td>返回捕获到的输出和错误为二进制形式</td>
+<td>返回捕获到的输出和错误为二进制形式</td>
+</tr>
+<tr>
+<td><strong>与<code>capfd/capsys</code>的关系</strong></td>
+<td><code>capfdbinary</code>是<code>capfd</code>的二进制版本，专用于捕获二进制数据的场景</td>
+<td><code>capsysbinary</code>是<code>capsys</code>的二进制版本，专用于捕获二进制数据的场景</td>
+</tr>
+</tbody>
+</table>
+<h3 id="7-2-1-3-caplog">7.2.1.3 caplog</h3>
+<p>在 <code>pytest</code> 中，<code>caplog</code> 用于捕获和检查日志输出。<code>caplog</code> 在 <code>pytest</code> 中扮演着“记录器（logger）”的角色，与内置的记录器相比，<code>caplog</code> 可以轻松地存储和查询日志消息，它允许测试者验证代码中的日志调用是否按预期执行，还可以用来确保日志消息的内容、级别和其他属性是否正确。</p>
+<p><code>caplog</code> 最常见的使用场景是在需要临时重新配置记录器的过滤器或处理程序的情况下，因为这可以保护正在测试的代码免受其他日志消息的影响。</p>
+<h4 id="7-2-1-3-1-zhu-yao-te-xing">7.2.1.3.1 主要特性</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>捕获日志记录</strong>：<code>caplog</code> 可以捕获在测试运行期间产生的日志输出。</p>
+</li>
+<li class="lvl-2">
+<p><strong>配置日志级别</strong>：可以在测试中动态设置捕获的日志级别，例如只捕获警告以上的日志。</p>
+</li>
+<li class="lvl-2">
+<p><strong>检查日志记录</strong>：提供方便的接口来检查日志消息的内容和属性。</p>
+</li>
+</ul>
+<h4 id="7-2-1-3-2-shi-yong-fang-fa-chang-jing">7.2.1.3.2 使用方法/场景</h4>
+<p>要使用 <code>caplog</code> fixture，你只需要在你的测试函数中作为参数引入它，<code>pytest</code> 会自动识别并传入 <code>caplog</code> 对象。</p>
+<p>常用方法如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>caplog.clear()</code>： 清除所有已捕获的日志消息。</p>
+</li>
+<li class="lvl-2">
+<p><code>caplog.record_tuples()</code>: 返回捕获的所有日志消息的元组。每个元组包含日志记录级别、消息和日志函数名称。</p>
+</li>
+<li class="lvl-2">
+<p><code>caplog.records</code>：一个记录（<code>logging.LogRecord</code> 对象）的列表，提供对每个日志消息的访问。</p>
+</li>
+<li class="lvl-2">
+<p><code>caplog.set_level(level, logger=None)</code>: 为给定的记录器设置日志级别。</p>
+</li>
+<li class="lvl-2">
+<p><code>caplog.text()</code>: 返回捕获的所有日志消息的文本，一个字符串，包含测试期间所有捕获的日志输出。</p>
+</li>
+</ul>
+<p><code>caplog</code> 常被用于如下场景：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>测试日志输出是否正确。</p>
+</li>
+<li class="lvl-2">
+<p>测试日志记录级别是否正确。</p>
+</li>
+<li class="lvl-2">
+<p>测试日志记录器是否正确配置。</p>
+</li>
+</ul>
+<h4 id="7-2-1-3-3-dai-ma-shi-li">7.2.1.3.3 代码示例</h4>
+<p>以下是如何使用 <code>caplog</code> fixture 的一个简单示例：</p>
+<pre><code class="language-python"># content of test_caplog.py
+import logging
+
+def function_that_logs():
+    logging.info("Info level log message")
+    logging.warning("Warning level log message")
+
+def test_logging(caplog):
+    function_that_logs()
+    # 使用 caplog 来进行断言
+    assert "Info level log message" in caplog.text
+    assert "Warning level log message" in caplog.text
+    # 检查特定级别的日志
+    for record in caplog.records:
+        assert record.levelname != "ERROR"  # 确保没有错误级别的日志记录
+</code></pre>
+<p>在上述代码中：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>function_that_logs</code> 是一个简单的函数，它会产生不同级别的日志消息。</p>
+</li>
+<li class="lvl-2">
+<p><code>test_logging</code> 是测试函数，它使用 <code>caplog</code> fixture 来检查 <code>function_that_logs</code> 函数产生的日志消息。</p>
+</li>
+</ul>
+<p>上述代码执行过程报错，因为<code>caplog</code>默认只捕获和检查WARNING级别及以上的log，如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_caplog.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code/chapter1-7
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_caplog.py::test_logging FAILED
+
+================================ FAILURES =====================================
+________________________________ test_logging _________________________________
+
+caplog = &lt;_pytest.logging.LogCaptureFixture object at 0x7f4bd18e8150&gt;
+
+    def test_logging(caplog):
+        # caplog.set_level(logging.INFO)
+        function_that_logs()
+        # 使用 caplog 来进行断言
+&gt;       assert "Info level log message" in caplog.text
+E       AssertionError: assert 'Info level log message' in 'WARNING  root:test_caplog.py:5 Warning level log message\n'
+E        +  where 'WARNING  root:test_caplog.py:5 Warning level log message\n' = &lt;_pytest.logging.LogCaptureFixture object at 0x7f4bd18e8150&gt;.text
+
+test_caplog.py:11: AssertionError
+----------------------- Captured log call ------------------------------------
+WARNING  root:test_caplog.py:5 Warning level log message
+======================== short test summary info ==============================
+FAILED test_caplog.py::test_logging - AssertionError: assert 'Info evel log message' in 'WARNING  root:test_caplog.py:5 Warning level log message\n'
+=============================== 1 failed in 0.03s ==============================
+root@Gavin:~/code/chapter1-7
+</code></pre>
+<p>如何解决呢？我们接下来讲如何设置日志级别。</p>
+<p><strong>设置日志级别：</strong></p>
+<p>在测试开始前，你可以设置 <code>caplog</code> 的日志级别来决定捕获哪些级别的日志消息：</p>
+<pre><code class="language-python">def test_logging_with_specific_level(caplog):
+    caplog.set_level(logging.WARNING)  # 只捕获警告和警告以上级别的日志
+    function_that_logs()
+    assert "Warning level log message" in caplog.text
+    assert "Info level log message" not in caplog.text
+</code></pre>
+<p>在这个示例中，通过调用 <code>caplog.set_level()</code> 并传入 <code>logging.WARNING</code>，测试将只会捕获警告及以上级别的日志消息。这意味着 <code>caplog.text</code> 不应该包含信息级别（INFO）的日志消息。</p>
+<h3 id="7-2-1-4-config-cache">7.2.1.4 config.cache</h3>
+<p><code>pytest</code> 的 <code>config.cache</code> 是一个与 <code>pytest</code> 配置对象（通常标识为 <code>config</code>）相关联的缓存对象，它允许在连续的测试运行之间存储和读取数据。这样，你可以在一次测试中缓存某些数据，然后在后续的测试中重新使用这些数据。</p>
+<p>缓存功能可以在多个测试运行之间保留数据，这对于保存不经常变化或计算成本高昂的结果非常有用。默认情况下缓存将保存到<code>.pytest_cache</code>目录中的一个特殊文件中，除非你指定了<code>config.cache</code>的<code>mkdir</code>参数，创建了其他目录/路径。</p>
+<h4 id="7-2-1-4-1-shi-yong-chang-jing">7.2.1.4.1 使用场景</h4>
+<p>要使用缓存，需要导入 <code>cache</code> fixture 并在测试函数中使用它。例如，你可能希望在测试期间缓存一些配置参数或一个复杂计算的结果。</p>
+<h4 id="7-2-1-4-2-dai-ma-shi-li">7.2.1.4.2 代码示例</h4>
+<p>下面是如何使用 <code>config.cache</code> 的一个示例：</p>
+<pre><code class="language-python"># content of test_config_cache.py
+import pytest
+
+def costly_computation():
+    print("Performing costly computation...")
+    return 42
+
+def test_expensive_computation(pytestconfig):
+    # 尝试从缓存中获取先前的运算结果
+    if 'expensive_result' in pytestconfig.cache:
+        result = pytestconfig.cache.get('expensive_result', None)
+    else:
+        # 运算结果不在缓存中，执行高成本计算
+        result = costly_computation()
+        # 将结果存入缓存，以备未来使用
+        pytestconfig.cache.set('expensive_result', result)
+
+    assert result == 42
+</code></pre>
+<p>在上述代码中：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>test_expensive_computation</code> 使用 <code>pytestconfig</code> fixture 来引入配置和缓存对象。</p>
+</li>
+<li class="lvl-2">
+<p>函数会首先尝试从缓存中读取 <code>'expensive_result'</code> 键关联的值。</p>
+</li>
+<li class="lvl-2">
+<p>如果缓存中不存在这个值（例如，在第一次运行时），则会执行一个"昂贵"的计算，并保存它的结果到缓存中。</p>
+</li>
+<li class="lvl-2">
+<p>这样，在再次运行测试时，就可以直接从缓存中读取计算结果，而避免重新进行计算。</p>
+</li>
+</ul>
+<p>第一次运行，你会看到打印信息<code>Performing costly computation...</code>：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -q test_config_cache.py 
+================================ test session starts ==========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+collected 1 item
+
+test_config_cache.py::test_expensive_computation FAILED                 [100%]
+
+================================= FAILURES =====================================
+_________________________________ test_expensive_computation ___________________
+
+mydata = 23
+
+    def test_expensive_computation(mydata):
+&gt;       assert mydata == 42
+E       assert 23 == 42
+
+test_config_cache.py:21: AssertionError
+------------------------------- Captured stdout setup ---------------------------
+Performing costly computation...
+================================== 1 failed in 0.04s ============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>第二次运行，所有数据会从cache中读取，不再有打印信息<code>Performing costly computation...</code>：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -q test_config_cache.py 
+================================= test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+collected 1 item
+
+test_config_cache.py::test_expensive_computation FAILED                  [100%]
+
+================================== FAILURES =====================================
+______________________________ test_expensive_computation _______________________
+
+mydata = 23
+
+    def test_expensive_computation(mydata):
+&gt;       assert mydata == 42
+E       assert 23 == 42
+
+test_config_cache.py:21: AssertionError
+================================= 1 failed in 0.04s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<h4 id="7-2-1-4-3-jian-cha-huan-cun-nei-rong">7.2.1.4.3 检查缓存内容</h4>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest --cache-show
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+cachedir: /root/code/.pytest_cache
+----------------------------- cache values for '*' ----------------------------
+cache/lastfailed contains:
+  {'chapter1-7/test_config_cache.py::test_expensive_computation': True}
+cache/nodeids contains:
+  ['chapter1-7/test_config_cache.py::test_expensive_computation']
+cache/stepwise contains:
+  []
+expensive_result contains:
+  23
+
+============================== no tests ran in 0.00s ===========================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p><code>--cache-show</code>包含一个可选参数，用于指定用于过滤的glob模式：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest --cache-show test_cap*
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+cachedir: /root/code/.pytest_cache
+-------------------- cache values for 'test_capfdbinary.py' --------------------
+
+=========================== no tests ran in 0.00s ==============================
+root@Gavin:~/code/chapter1-7# 
+</code></pre>
+<h4 id="7-2-1-4-4-qing-li-huan-cun">7.2.1.4.4 清理缓存</h4>
+<p>缓存可以在终端使用 <code>pytest --cache-clear</code> 来清除。这个命令将删除 <code>.pytest_cache</code> 目录及其内容。</p>
+<p>在实践中，缓存不应该用于共享测试状态或者测试期间的数据，因为这将违背独立测试的原则。但是，它非常适合在连续的测试运行中保存一些不常变化的环境配置或者重用之前的计算结果等。</p>
+<p>这里会借助<code>--lf</code>和<code>--ff</code>，从cache中读取失败用例历史记录，再次执行。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>--lf</code>, <code>--last-failed</code> - to only re-run the failures.</p>
+</li>
+</ul>
+<ul class="lvl-0">
+<li class="lvl-3">
+<p>–last-failed --last-failed-no-failures all      # runs the full test suite (default behavior)</p>
+</li>
+<li class="lvl-4">
+<p>–last-failed --last-failed-no-failures none   # runs no tests and exits successfully</p>
+</li>
+</ul>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>--ff</code>, <code>--failed-first</code> - to run the failures first and then the rest of the tests.</p>
+</li>
+</ul>
+<h4 id="7-2-1-4-5-guan-yu-zhu-bu-zhi-xing-stepwise">7.2.1.4.5 关于逐步执行(stepwise)</h4>
+<p>作为 <code>--lf -x</code> 的替代方案，尤其是在预计大部分测试套件都会失败的情况下，<code>--sw</code>、<code>--stepwise</code> 可以让你一次解决一个问题。测试套件将运行到第一次失败，然后停止，在下一次调用时，测试将从上一次失败的测试开始，一直运行到下一次失败的测试。你可以使用 <code>--stepwise-skip</code> 选项忽略一个失败的测试，而在第二个失败的测试中停止测试执行。如果卡在一个失败的测试上，只想稍后再忽略它，这个选项就很有用。提供 <code>--stepwise-skip</code> 也会隐式启用 <code>--stepwise</code> 选项。</p>
+<h3 id="7-2-1-5-monkeypatch">7.2.1.5 monkeypatch</h3>
+<p><code>pytest</code> 的 <code>monkeypatch</code> fixture 提供了一个方便的方式来动态地修改类或模块等在测试期间的行为。这通常用于“打补丁”来覆盖某些不便于测试的全局设置或行为。例如，你可以使用 <code>monkeypatch</code> 来更改环境变量、修改类或对象的属性、替换函数或方法以及操纵模块的导入。</p>
+<h4 id="7-2-1-5-1-zhu-yao-gong-neng">7.2.1.5.1 主要功能</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>设置、删除和恢复环境变量</strong>。</p>
+</li>
+<li class="lvl-2">
+<p><strong>修改对象、类或模块的属性</strong>。</p>
+</li>
+<li class="lvl-2">
+<p><strong>替换（patch）函数或方法为 mock 对象</strong>。</p>
+</li>
+</ul>
+<h4 id="7-2-1-5-2-shi-yong-fang-fa">7.2.1.5.2 使用方法</h4>
+<p>在测试中使用 <code>monkeypatch</code> fixture 时，只需在测试函数的参数中包含 <code>monkeypatch</code>，<code>pytest</code> 会自动传入这个 fixture。</p>
+<h4 id="7-2-1-5-3-dai-ma-shi-li">7.2.1.5.3 代码示例</h4>
+<p>修改环境变量：</p>
+<pre><code class="language-python"># content of test_monkeypath.py
+import os
+
+
+def test_modify_env(monkeypatch):
+    # 假设我们依赖于环境变量HOME
+    monkeypatch.setenv('HOME', '/new/path')
+    assert os.environ['HOME'] == '/new/path'
+</code></pre>
+<p>修改对象的属性：</p>
+<pre><code class="language-python"># content of test_monkeypath.py
+class MyClass:
+    class_var = 'original value'
+
+def test_change_class_var(monkeypatch):
+    # 使用 monkeypatch 来更改 MyClass 中的 class_var 值
+    monkeypatch.setattr(MyClass, 'class_var', 'modified value')
+    
+    instance = MyClass()
+    assert instance.class_var == 'modified value'
+</code></pre>
+<p>替换函数或方法：</p>
+<pre><code class="language-python"># content of test_monkeypath.py
+import some_module
+
+def fake_func(*args, **kwargs):
+    return 'fake value'
+
+def test_replace_function(monkeypatch):
+    # 替换 some_module.some_function 为 fake_func
+    monkeypatch.setattr(some_module, 'some_function', fake_func)
+
+    result = some_module.some_function()
+    assert result == 'fake value'
+</code></pre>
+<p>上面这个示例中<code>some_module</code>，在实际调试是需要替换为具体存在的模块，上文只是伪码示例，比如下面的调测：</p>
+<pre><code class="language-python"># content of test_monkeypath.py
+def fake_func(*args, **kwargs):
+    return 'fake value'
+
+def test_replace_function(monkeypatch):
+    # 替换 some_module.some_function 为 fake_func
+    # monkeypatch.setattr(some_module, 'some_function', fake_func)
+    monkeypatch.setattr(os, 'uname', fake_func)
+
+    # result = some_module.some_function()
+    result = os.uname()
+    assert result == 'fake valu
+</code></pre>
+<p>如上用例，执行结果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_monkeypath.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code/chapter1-7
+plugins: check-2.2.2, metadata-3.0.0
+collected 3 items
+
+test_monkeypath.py::test_modify_env PASSED
+test_monkeypath.py::test_change_class_var PASSED
+test_monkeypath.py::test_replace_function PASSED
+
+=============================== 3 passed in 0.01s ===============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>monkeypatch还有许多有用的方法可以用来修改代码的行为，下面是一些常用的方法：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>setattr(obj, attr, value)</code>：将obj的attr属性的值设置为value。</p>
+</li>
+<li class="lvl-2">
+<p><code>getattr(obj, attr)</code>：获取obj的attr属性的值。</p>
+</li>
+<li class="lvl-2">
+<p><code>delattr(obj, attr)</code>：删除obj的attr属性。</p>
+</li>
+<li class="lvl-2">
+<p><code>setenv(name, value)</code>：设置环境变量。</p>
+</li>
+<li class="lvl-2">
+<p><code>delenv(name, raising=True)</code>：删除环境变量</p>
+</li>
+<li class="lvl-2">
+<p><code>monkeypatch.syspath_prepend(path)</code>：临时把路径添加到 <code>sys.path</code>。</p>
+</li>
+<li class="lvl-2">
+<p><code>unsetenv(name)</code>：删除环境变量。</p>
+</li>
+<li class="lvl-2">
+<p><code>chdir(path)</code>：更改当前工作目录。</p>
+</li>
+<li class="lvl-2">
+<p><code>isfile(path)</code>：检查文件是否存在。</p>
+</li>
+<li class="lvl-2">
+<p><code>isdir(path)</code>：检查目录是否存在。</p>
+</li>
+<li class="lvl-2">
+<p><code>join(path, *paths)</code>：连接路径。</p>
+</li>
+<li class="lvl-2">
+<p><code>copy(src, dst)</code>：复制文件。</p>
+</li>
+<li class="lvl-2">
+<p><code>delete(path)</code>：删除文件或目录。</p>
+</li>
+<li class="lvl-2">
+<p><code>mkdir(path)</code>：创建目录。</p>
+</li>
+<li class="lvl-2">
+<p><code>makedirs(path)</code>：创建多级目录。</p>
+</li>
+<li class="lvl-2">
+<p><code>rmtree(path)</code>：删除目录及其子目录。</p>
+</li>
+</ul>
+<h4 id="7-2-1-5-4-zui-jia-shi-jian">7.2.1.5.4 最佳实践</h4>
+<p>使用 <code>monkeypatch</code> 可以帮助创建更可控的测试环境，减少测试与外部因素的依赖，从而提高测试的可靠性和独立性。<code>monkeypatch</code> 提供的所有修改，在测试方法结束时都会被恢复，这意味着对系统不会有永久性的影响，保证了测试的隔离性。因此，测试开发者可以放心地使用 <code>monkeypatch</code>，无需担心需要手动撤销他们的修改。</p>
+<p>以下是使用<code>monkeypatch</code>的一些最佳实践：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>尽可能使用内置的<code>monkeypatch</code>方法，而不是使用直接修改代码的方式。</p>
+</li>
+<li class="lvl-2">
+<p>在测试用例中只使用<code>monkeypatch</code>来修改必需的代码。</p>
+</li>
+<li class="lvl-2">
+<p>在测试用例的最后，使用<code>monkeypatch.undo()</code>来撤销所有修改。</p>
+</li>
+<li class="lvl-2">
+<p>避免使用<code>monkeypatch</code>来测试代码的实现细节。</p>
+</li>
+<li class="lvl-2">
+<p>使用<code>monkeypatch</code>来测试依赖外部资源的代码的集成行为。</p>
+</li>
+</ul>
+<h3 id="7-2-1-6-pytester">7.2.1.6 pytester</h3>
+<p><code>pytester</code> 用于编写对 <code>pytest</code> 本身的测试，这种测试称为端到端（end-to-end）测试或集成测试，通常用于确保 <code>pytest</code> 插件和功能按预期工作。它为测试提供了一个模拟的 <code>pytest</code> 测试环境，允许你运行 <code>pytest</code> 测试和检查结果。</p>
+<p>通过 <code>pytester</code>，你可以创建文件、编写测试代码、运行子测试、并检查运行结果，这是 <code>pytest</code> 插件开发者经常使用的工具：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>pytester</code> fixture是通过调用<code>request.getfixturevalue("testdir")</code>获得的，其中<code>testdir</code>是<code>pytest</code>内置的另一个fixture，用于创建临时目录，并在临时目录中运行测试代码。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytester</code> fixture提供了许多有用的方法，例如<code>makefile()</code>, <code>path()</code>, <code>runpytest()</code>等，可以用来测试文件系统、命令行。</p>
+</li>
+</ul>
+<p>这些方法都是很直观的，比如：</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>makefile("filename", "content")</code>函数可以创建一个指定的文件名和内容的文件</p>
+</li>
+<li class="lvl-5">
+<p><code>path(".filename")</code>方法可以返回一个<code>pathlib.Path</code>对象，该对象可以用来对文件进行各种操作，如读取、写入、删除等。</p>
+</li>
+<li class="lvl-5">
+<p><code>runpytest</code>方法可以运行<code>pytest</code>命令，并返回一个<code>Result</code>对象，该对象包含了命令的返回码、标准输出和标准错误等信息。</p>
+</li>
+</ul>
+<p>使用<code>pytester</code> fixture可以大大简化对文件系统、命令行和网络交互的测试，使测试代码更加简洁和可维护。</p>
+<h4 id="7-2-1-6-1-zhu-yao-gong-neng">7.2.1.6.1 主要功能</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建临时的测试目录</p>
+</li>
+<li class="lvl-2">
+<p>生成测试文件和配置文件</p>
+</li>
+<li class="lvl-2">
+<p>运行测试并收集结果</p>
+</li>
+<li class="lvl-2">
+<p>提供一个简易的方式来分析和断言测试输出和结果</p>
+</li>
+</ul>
+<h4 id="7-2-1-6-2-shi-yong-chang-jing">7.2.1.6.2 使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>插件开发：当开发新的 <code>pytest</code> 插件时，使用 <code>pytester</code> 可以帮助插件开发者编写集成测试，确保插件按预期运行。</p>
+</li>
+<li class="lvl-2">
+<p>高级测试场景：当需要对 <code>pytest</code> 测试过程本身进行测试或者需要复杂的测试场景时，<code>pytester</code> 提供的辅助工具非常有用。</p>
+</li>
+</ul>
+<h4 id="7-2-1-6-3-dai-ma-shi-li">7.2.1.6.3 代码示例</h4>
+<p>要使用它，需要事先在<code>conftest.py</code>文件中添加如下记录：</p>
+<pre><code class="language-python"># content of conftest.py
+pytest_plugins = "pytester"
+</code></pre>
+<p>下面的示例展示了如何使用 <code>pytester</code> 来写一个简单的集成测试：</p>
+<pre><code class="language-python"># content of test_pytester.py
+def test_pytester_example(pytester):
+    # 创建一个临时的 Python 测试文件
+    pytester.makepyfile("""
+        def test_pass():
+            assert 1 == 1
+
+        def test_fail():
+            assert 1 == 2
+    """)
+
+    # 运行 pytest 在当前的 pytester 环境中
+    result = pytester.runpytest()
+
+    # 检查测试结果
+    result.assert_outcomes(passed=1, failed=1)
+
+    # result.ret 返回一个整数，表示测试是否通过
+    # 一般来说，0 表示测试通过，1 表示测试失败
+    assert result.ret == 1
+
+    # result.stdout 和 result.stderr 可以让你访问测试的输出
+    # 这里我们检查输出中是否包含特定的字符串
+    assert result.stdout.str().find('100%') != -1 # 检查成功率100%
+    assert 'test_fail' in result.stdout.str()    # 检查失败的测试是否出现
+
+    # 您可以使用 'result.stdout.lines' 获取输出的行列表
+    for line in result.stdout.lines:
+        print(line) # 这里可以打印每一行的内容，或者进行额外的处理和断言
+</code></pre>
+<p>在这个示例中，我们首先使用 <code>pytester</code> 执行以下步骤：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建测试文件：<code>makepyfile</code> 方法是 <code>pytester</code> 提供的，用于创建一个临时的 Python 测试文件。这个文件包含两个测试函数：一个会通过，另一个会失败。</p>
+</li>
+<li class="lvl-2">
+<p>运行测试：<code>runpytest</code> 方法启动 <code>pytest</code>，就像在命令行中运行一样。这将运行所有在 <code>pytester</code> 环境中创建的测试。</p>
+</li>
+<li class="lvl-2">
+<p>检查结果：<code>assert_outcomes</code> 方法用于验证测试结果。在这个案例中，我们预期有一个测试通过（<code>passed=1</code>）和一个测试失败（<code>failed=1</code>）。</p>
+</li>
+</ul>
+<p>执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytester.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: html-4.1.1, metadata-3.0.0
+collected 1 item
+
+test_pytester.py::test_pytester_example 
+============================= test session starts =============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0
+rootdir: /tmp/pytest-of-root/pytest-11/test_pytester_example0
+plugins: html-4.1.1, metadata-3.0.0
+collected 2 items
+
+test_pytester_example.py .F                                      [100%]
+
+=================================== FAILURES ==================================
+___________________________________ test_fail _________________________________
+
+    def test_fail():
+&gt;       assert 1 == 2
+E       assert 1 == 2
+
+test_pytester_example.py:5: AssertionError
+=========================== short test summary info ===========================
+FAILED test_pytester_example.py::test_fail - assert 1 == 2
+=========================== 1 failed, 1 passed in 0.03s =======================
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0
+rootdir: /tmp/pytest-of-root/pytest-11/test_pytester_example0
+plugins: html-4.1.1, metadata-3.0.0
+collected 2 items
+
+test_pytester_example.py .F                                       [100%]
+
+================================= FAILURES ====================================
+___________________________________ test_fail _________________________________
+
+    def test_fail():
+&gt;       assert 1 == 2
+E       assert 1 == 2
+
+test_pytester_example.py:5: AssertionError
+========================== short test summary info ============================
+FAILED test_pytester_example.py::test_fail - assert 1 == 2
+========================== 1 failed, 1 passed in 0.03s ========================
+PASSED
+
+=============================== 1 passed in 0.10s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p><code>pytester</code> 提供了多种方法来辅助测试，如下：</p>
+<pre><code class="language-shell">['CLOSE_STDIN', 'TimeoutExpired', 'chdir', 'collect_by_name', 'copy_example', 'genitems', 'getinicfg', 'getitem', 'getitems', 'getmodulecol', 'getnode', 'getpathnode', 'inline_genitems', 'inline_run', 'inline_runsource', 'make_hook_recorder', 'makeconftest', 'makefile', 'makeini', 'makepyfile', 'makepyprojecttoml', 'maketxtfile', 'mkdir', 'mkpydir', 'parseconfig', 'parseconfigure', 'path', 'plugins', 'popen', 'run', 'runitem', 'runpytest', 'runpytest_inprocess', 'runpytest_subprocess', 'runpython', 'runpython_c', 'spawn', 'spawn_pytest', 'syspathinsert']
+</code></pre>
+<p>此外，<code>runpytest</code> 返回的对象提供了诸多方法和属性，用于分析测试运行结果，如 <code>stdout</code>、<code>stderr</code>、<code>parseoutcomes</code> 等。</p>
+<p>使用 <code>pytester</code> 时需要注意，因为这些测试运行真实的 <code>pytest</code> 会话，它们通常会比单元测试运行得更慢。因此，在编写大量使用 <code>pytester</code> 的测试时，要特别考虑测试的速度和效率。</p>
+<h2 id="7-2-2-gao-ji-ce-shi-zhi-xing-kong-zhi">7.2.2 高级测试执行控制</h2>
+<h3 id="7-2-2-1-doctest-namespace">7.2.2.1 doctest_namespace</h3>
+<p><code>doctest_namespace</code> 在 <code>pytest</code> 中用于为 <code>doctest</code> 测试扩展全局命名空间。<code>doctest</code> 是一种编写简单的交互式 Python 会话的测试，通常写在文档字符串（<code>docstrings</code>）中。<code>pytest</code> 通过集成 <code>doctest</code>，能够执行包含在文档字符串中的这些交互式会话测试。</p>
+<p>基本上，<code>doctest_namespace</code> fixture 允许你向 <code>doctests</code> 的命名空间添加条目（变量、函数等），这样就可以在 <code>doctest</code> 中使用它们而无需明确的导入。这在当你想在多个 <code>doctests</code> 中共享一些预定义的帮助函数或数据时非常有用。</p>
+<p>以下是一个使用 <code>doctest_namespace</code> 的例子：</p>
+<p>假设你有如下的函数：</p>
+<pre><code class="language-python"># content of test_doctest_namespace.py
+
+def square(x):
+    """Return the square of a number.
+
+    Examples
+    --------
+    &gt;&gt;&gt; square(4)
+    16
+    """
+    return x * x
+</code></pre>
+<p>你可以在 <code>conftest.py</code> 中添加以下内容来扩展 <code>doctest</code> 的全局命名空间：</p>
+<pre><code class="language-python">import pytest
+
+# conftest.py
+
+@pytest.fixture(autouse=True)
+def add_square_to_doctest_namespace(doctest_namespace):
+    doctest_namespace['square'] = lambda x: x * x
+</code></pre>
+<p>在这个 <code>conftest.py</code> 中，我们使用 <code>@pytest.fixture</code> 创建了一个自动使用的 fixture （<code>autouse=True</code>）, 它会接受 <code>doctest_namespace</code> 作为参数，并向它添加了 <code>square</code> 函数。现在，任何 <code>doctest</code> 都可以直接使用 <code>square</code> 函数而无需显式的导入。其执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v --doctest-modules test_doctest_namespace.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code/chapter1-7
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_doctest_namespace1.py::test_doctest_namespace.square PASSED
+
+=============================== 1 passed in 0.01s ==============================
+root@Gavin:~/code/chapter1-7# 
+</code></pre>
+<p>当你运行 <code>pytest</code> 时，它会执行 <code>square</code> 函数的 <code>doctest</code> 并使用 <code>conftest.py</code> 中的 fixture 扩展的 <code>square</code> 来完成测试。</p>
+<p>使用 <code>doctest_namespace</code> fixture 的优点是它为 <code>doctest</code> 提供了更大的灵活性和可重用性。不过，你应该谨慎使用这个特性，因为它可能使得 <code>doctest</code> 在它们自己的文档字符串之外的环境中表现不同，这可能导致一些混淆。</p>
+<h2 id="7-2-3-pei-zhi-he-ce-shi-gong-neng">7.2.3 配置和测试功能</h2>
+<h3 id="7-2-3-1-pytestconfig">7.2.3.1 pytestconfig</h3>
+<p><code>pytestconfig</code> 提供了对 <code>pytest</code> 配置值的访问能力，这允许测试代码获取关于当前测试运行配置的信息，包括命令行参数、选项、配置文件、插件、运行目录以及其他配置项。</p>
+<p><code>pytestconfig</code>是<code>request.config</code>的快捷方式，它在<code>pytest</code>文档里有时候被称为“pytest配置对象”。</p>
+<h4 id="7-2-3-1-1-pytestconfig-yuan-ma-fen-xi">7.2.3.1.1 pytestconfig 源码分析</h4>
+<p>如下内容来自<code>pytest-main/src/_pytest/fixtures.py</code>，参考如下：</p>
+<pre><code class="language-python">@fixture(scope="session")
+def pytestconfig(request: FixtureRequest) -&gt; Config:
+    """Session-scoped fixture that returns the session's :class:`pytest.Config`
+    object. 
+
+    Example::
+
+        def test_foo(pytestconfig):
+            if pytestconfig.getoption("verbose") &gt; 0:
+                ...
+
+    """
+    return request.config
+</code></pre>
+<p>从上面的源码看出，实际返回的就是 <code>request.config</code>，所以<code>pytestconfig</code> 的作用跟 <code>request.config</code> 是一样的，都是获取配置对象。<code>request.config</code> 则是 <code>FixtureRequest</code> 中的属性，返回 <code>_pytest.config.Config</code> (<code>pytest</code> 配置对象)，如下所示：</p>
+<pre><code class="language-python">class FixtureRequest(abc.ABC):
+    """The type of the ``request`` fixture.
+        
+    A request object gives access to the requesting test context and has a
+    ``param`` attribute in case the fixture is parametrized.
+    """ 
+    ...
+
+    @property       
+    def config(self) -&gt; Config:
+        """The pytest config object associated with this request."""
+        return self._pyfuncitem.config  # type: ignore[no-any-return]
+</code></pre>
+<h4 id="7-2-3-1-2-zhu-yao-gong-neng">7.2.3.1.2 主要功能</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>获取命令行参数</strong>：可以检索传递给 <code>pytest</code> 命令行的参数值。</p>
+</li>
+<li class="lvl-2">
+<p><strong>获取ini配置值</strong>：可以访问位于 <code>pytest.ini</code>、<code>tox.ini</code> 或 <code>setup.cfg</code> 文件中指定的配置值。</p>
+</li>
+<li class="lvl-2">
+<p><strong>获取插件配置</strong>：可以访问通过插件或勾子（hook）设置的配置值。</p>
+</li>
+<li class="lvl-2">
+<p><strong>获取测试根目录</strong>：可以获取测试运行时的根目录路径（通常是项目的顶层目录）。</p>
+</li>
+<li class="lvl-2">
+<p><strong>获取自定义配置项</strong>：如果你为 <code>pytest</code> 定义了自己的命令行参数或配置，也可以通过 <code>pytestconfig</code> 获取到这些值。</p>
+</li>
+</ul>
+<h4 id="7-2-3-1-3-shi-yong-fang-fa">7.2.3.1.3 使用方法</h4>
+<h5 id="7-2-3-1-3-1-huo-qu-ming-ling-xing-can-shu">7.2.3.1.3.1 获取命令行参数</h5>
+<pre><code class="language-python"># content of test_pytestconfig.py
+def test_get_option_from_command(pytestconfig):
+    # 访问命令行参数
+    verbose = pytestconfig.getoption("verbose")
+    print(f"Verbose level: {verbose}")
+
+    # 验证和断言使用，通常在实际测试函数中
+    assert verbose == 1  # 假设你期待的是 -v 选项
+</code></pre>
+<p>从命令行参数获取verbose，并断言是不是携带了一个’-v’选项，执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py::test_get_option_from_command
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_pytestconfig.py::test_get_option_from_command Verbose level: 1
+PASSED
+
+=============================== 1 passed in 0.00s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>如果在pytest.ini文件中做例如下配置：</p>
+<pre><code class="language-shell">[pytest]
+addopts =-vrs -p no:warnings
+</code></pre>
+<p>再次执行上述用例，执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py::test_get_option_from_command
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_pytestconfig.py::test_get_option_from_command Verbose level: 2
+FAILED
+
+============================== FAILURES ======================================
+______________________________ test_get_option_from_command __________________
+
+pytestconfig = &lt;_pytest.config.Config object at 0x7f40a5212110&gt;
+
+    def test_get_option_from_command(pytestconfig):
+        # 访问命令行参数
+        verbose = pytestconfig.getoption("verbose")
+        print(f"Verbose level: {verbose}")
+    
+        # 验证和断言使用，通常在实际测试函数中
+&gt;       assert verbose == 1  # 假设你期待的是 -v 选项
+E       assert 2 == 1
+
+test_pytestconfig.py:11: AssertionError
+================================ 1 failed in 0.03s ============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>这是因为<code>pytest.ini</code>中携带了一个<code>-v</code>参数，命令行也携带了一个<code>-v</code>参数，就存在两个<code>-v</code>参数了，断言处失败。</p>
+<h5 id="7-2-3-1-3-2-cong-pei-zhi-wen-jian-huo-qu-can-shu">7.2.3.1.3.2 从配置文件获取参数</h5>
+<p>在项目的根目录一般会放一个 <code>pytest.ini</code> 写一些配置参数：</p>
+<pre><code class="language-shell">[pytest]
+log_cli = True
+addopts =-vrs -p no:warnings
+markers =
+    slow: slow test case
+    fast: fast test case
+</code></pre>
+<p>想读取 <code>pytest.ini</code> 里面的配置信息，可以用 <code>pytestconfig.getini()</code> 来获取，示例代码如下：</p>
+<pre><code class="language-python"># content of test_pytestconfig.py
+def test_get_from_config(pytestconfig):
+    # 获取测试配置
+    print(pytestconfig.getini("markers"))
+    
+    # 访问ini配置文件中的值,需要事先配置pytest.ini文件中的addopts
+    addopts = pytestconfig.getini("addopts")
+    print(f"addopts option value from ini: {addopts}")
+</code></pre>
+<p>从<code>pytest.ini</code>文件中获取<code>markers</code> 和 <code>addopts</code> 配置信息，运行结果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py::test_get_from_config
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_pytestconfig.py::test_get_from_config ['slow: slow test case', 'fast: fast test case', 'skip(reason=None): skip the given test function with an optional reason. Example: skip(reason="no way of currently testing this") skips the test.', "skipif(condition, ..., *, reason=...): skip the given test function if any of the conditions evaluate to True. Example: skipif(sys.platform == 'win32') skips the test if we are on the win32 platform. See https://docs.pytest.org/en/stable/reference/reference.html#pytest-mark-skipif", "xfail(condition, ..., *, reason=..., run=True, raises=None, strict=xfail_strict): mark the test function as an expected failure if any of the conditions evaluate to True. Optionally specify a reason for better reporting and run=False if you don't even want to execute the test function. If only specific exception(s) are expected, you can list them in raises, and if the test fails in other ways, it will be reported as a true failure. See https://docs.pytest.org/en/stable/reference/reference.html#pytest-mark-xfail", "parametrize(argnames, argvalues): call a test function multiple times passing in different arguments in turn. argvalues generally needs to be a list of values if argnames specifies only one name or a list of tuples of values if argnames specifies multiple names. Example: @parametrize('arg1', [1,2]) would lead to two calls of the decorated test function, one with arg1=1 and another with arg1=2.see https://docs.pytest.org/en/stable/how-to/parametrize.html for more info and examples.", 'usefixtures(fixturename1, fixturename2, ...): mark tests as needing all of the specified fixtures. see https://docs.pytest.org/en/stable/explanation/fixtures.html#usefixtures ', 'tryfirst: mark a hook implementation function such that the plugin machinery will try to call it first/as early as possible. DEPRECATED, use @pytest.hookimpl(tryfirst=True) instead.', 'trylast: mark a hook implementation function such that the plugin machinery will try to call it last/as late as possible. DEPRECATED, use @pytest.hookimpl(trylast=True) instead.']
+addopts option value from ini: ['-vrs', '-p', 'no:warnings']
+PASSED
+
+================================ 1 passed in 0.00s ==============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<h5 id="7-2-3-1-3-3-huo-qu-cha-jian-pei-zhi">7.2.3.1.3.3 获取插件配置</h5>
+<p>在 <code>pytest</code> 中，要获取插件的配置，我们通常是在插件自身或 <code>conftest.py</code> 文件中定义一些可配置的选项，然后通过 <code>pytestconfig</code> fixture 来访问它们（通常通过 <code>pytest_addoption</code> 钩子函数实现）。下面会展示如何在一个 <code>pytest</code> 插件中定义配置项，以及如何在测试代码中使用 <code>pytestconfig</code> 获取这些配置值。主要用到两个方法：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用 <code>pytestconfig.getoption</code> 来获取命令行参数。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>pytestconfig.getini</code> 来获取 <code>ini</code> 文件中的配置项。</p>
+</li>
+</ul>
+<p>定义插件配置项</p>
+<p>首先，你要在插件定义中使用 <code>pytest_addoption</code> 钩子函数来添加命令行参数或 <code>ini</code> 配置选项。</p>
+<p>下面是一个示例，在 <code>conftest.py</code> 文件或独立的插件中添加配置选项：</p>
+<pre><code class="language-python"># contents of conftest.py 或者 plugin file
+def pytest_addoption(parser):
+    parser.addoption('--myoption', action='store', default='default', help='Custom option for my plugin')
+    parser.addini('myconfig', 'My custom configuration option', type='linelist', default=[])
+</code></pre>
+<p>在这个例子中，我们添加了一个名为 <code>--myoption</code> 的命令行参数以及一个 <code>ini</code> 文件配置项 <code>myconfig</code>。</p>
+<p>然后，在你的测试函数中，可以将 <code>pytestconfig</code> 作为参数，来访问你的插件配置：</p>
+<pre><code class="language-python"># test_myplugin.py
+def test_plugin_option(pytestconfig):
+    myoption_value = pytestconfig.getoption('myoption')
+    print('The value of the command-line option --myoption:', myoption_value)
+
+    myconfig_value = pytestconfig.getini('myconfig')
+    print('The value of the ini file option myconfig:', myconfig_value)
+</code></pre>
+<p>通过这个测试函数，我们使用 <code>pytestconfig.getoption</code> 和 <code>pytestconfig.getini</code> 访问了我们之前定义的插件配置项。<code>getoption</code> 方法用于获取命令行参数，而 <code>getini</code> 用于获取 <code>ini</code> 配置。</p>
+<p>运行带有插件配置选项的 <code>pytest</code></p>
+<p>当你执行 <code>pytest</code> 测试时，可以直接传递 <code>--myoption</code> 参数，并在 <code>pytest.ini</code> 文件中设置 <code>myconfig</code>：</p>
+<pre><code class="language-ini"># contents of pytest.ini
+[pytest]
+myconfig = 
+    value1
+    value2
+    value3
+</code></pre>
+<p>命令行执行示例：</p>
+<pre><code class="language-bash">pytest --myoption some_value
+</code></pre>
+<p>在这个例子中，<code>test_plugin_option</code> 函数将输出 <code>some_value</code> 作为 <code>--myoption</code> 的值，同时从 <code>pytest.ini</code> 文件中读取 <code>myconfig</code> 配置项的值，输出应该是一个列表包含 “value1”, “value2” 和 “value3”，执行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v --myoption value1 test_myplugin.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_myplugin.py::test_plugin_option The value of the command-line option --myoption: value1
+The value of the ini file option myconfig: ['value1', 'value2', 'value3']
+PASSED
+
+=============================== 1 passed in 0.00s =============================
+root@Gavin:~/code/chapter1-7# pytest -s -v --myoption value2 test_myplugin.py 
+=============================== test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_myplugin.py::test_plugin_option The value of the command-line option --myoption: value2
+The value of the ini file option myconfig: ['value1', 'value2', 'value3']
+PASSED
+
+================================ 1 passed in 0.00s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>这就是如何在 <code>pytest</code> 中定义插件配置，并使用 <code>pytestconfig</code> 在测试中获取这些配置的方法。这样做可以增加测试的灵活性，允许它们根据不同的配置和环境进行不同的逻辑处理。</p>
+<p>接下来我们看另外两个示例，用于获取某个插件或全部插件信息，代码示例如下：</p>
+<pre><code class="language-python"># content of test_pytestconfig.py
+def test_get_plugin(pytestconfig):
+    myplugin = pytestconfig.pluginmanager.get_plugin('check')
+    print(f"myplugin : {myplugin}")
+
+
+def test_list_all_of_plugins(pytestconfig):
+    # 获取pytest的插件列表
+    plugins = pytestconfig.pluginmanager.list_plugin_distinfo()
+    print(f"All of plugins : {plugins}")
+</code></pre>
+<p>两个测试用例，<code>test_get_plugin</code>获取<code>pytest_check</code>的插件信息，<code>test_list_all_of_plugins</code>则获取当前<code>pytest</code>下的所有插件信息，运行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py::test_get_plugin test_pytestconfig.py::test_list_all_of_plugins
+=============================== test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 2 items
+
+test_pytestconfig.py::test_get_plugin myplugin : &lt;module 'pytest_check.plugin' from '/usr/local/lib/python3.11/dist-packages/pytest_check/plugin.py'&gt;
+PASSED
+test_pytestconfig.py::test_list_all_of_plugins All of plugins : [(&lt;module 'pytest_check.plugin' from '/usr/local/lib/python3.11/dist-packages/pytest_check/plugin.py'&gt;, &lt;pluggy._manager.DistFacade object at 0x7f8039e79b10&gt;), (&lt;module 'pytest_metadata.plugin' from '/usr/local/lib/python3.11/dist-packages/pytest_metadata/plugin.py'&gt;, &lt;pluggy._manager.DistFacade object at 0x7f8039e94210&gt;)]
+PASSED
+
+================================= 2 passed in 0.00s ============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<h5 id="7-2-3-1-3-4-huo-qu-zi-ding-yi-pei-zhi-xiang">7.2.3.1.3.4 获取自定义配置项</h5>
+<p><code>pytestconfig.getoption</code> 获取命令行参数（对应的参数值），不但可以获取<code>pytest</code>框架中自带的命令行参数值，也可以获取用户注册的自定义参数值。</p>
+<p>要理解<code>pytestconfig</code>如何工作，可以添加一个自定义的命令行选项，然后在测试中读取该选项。</p>
+<pre><code class="language-python"># content of conftes.tpy
+import pytest
+
+def pytest_addoption(parser):
+    """  Add a command line option  """
+    parser.addoption(
+        "--env", default="test", choices=["dev", "test", "pre"], help="enviroment parameter")
+
+@pytest.fixture
+def get_option(pytestconfig):
+    return pytestconfig.getoption("--env")
+</code></pre>
+<p>以 <code>pytest_addoption</code> 添加的命令行选项必须通过插件来实现，或者在项目顶层目录的<code>conftest.py</code>文件中完成。它所在的<code>conftest.py</code>不能处于测试子目录下。</p>
+<p>上述是一个传入测试环境的命令行选项，接下来可以在测试用例中使用这些选项。</p>
+<pre><code class="language-python"># content of test_pytestconfig.py
+
+def test_option(pytestconfig):
+    print('the current environment is:', pytestconfig.getoption('--env')
+</code></pre>
+<p>由于前面的 <code>pytest_addoption</code> 中定义的<code>env</code>的默认参数是test，所以通过 <code>pytestconfig.getoption</code> 获取到的<code>env</code>的值就是test；如果传递了其他的参数值（只能是choices=[“dev”, “test”, “pre”]中的三选一）则获取到对应的传参。执行效果如下：</p>
+<p>不指定’–env’参数，使用默认值：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_pytestconfig.py::test_option the current environment is: test
+PASSED
+
+=============================== 1 passed in 0.00s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>指定"“–env"参数，携带参数值"pre”：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py --env=pre
+=============================== test session starts ===========================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 1 item
+
+test_pytestconfig.py::test_option the current environment is: pre
+PASSED
+
+================================ 1 passed in 0.00s ============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<h5 id="7-2-3-1-3-5-huo-qu-ce-shi-gen-mu-lu">7.2.3.1.3.5 获取测试跟目录</h5>
+<p>获取测试根目录通常用于查找测试数据文件、配置文件或者为了根据项目结构进行相对定位。这个根目录通常是包含 <code>pyproject.toml</code>, <code>pytest.ini</code>, <code>tox.ini</code> 或者 <code>setup.py</code> 文件的目录，<code>pytest</code> 会将其视作测试的跟目录。</p>
+<p><strong>用途与场景：</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>加载测试数据文件</strong>：在测试中可能需要加载一些数据文件，如 JSON、XML 或 CSV 文件，这些文件通常放在一个固定的目录下，通过跟目录可以构建出正确的文件路径。</p>
+</li>
+<li class="lvl-2">
+<p><strong>配置文件定位</strong>：有时候我们会在项目的根目录下放置一些配置文件，测试时需要从这些文件中读取配置信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>目录结构依赖</strong>：对于可能根据项目目录结构有依赖的测试，知道根目录的位置能够帮助测试正确地定位其他模块或文件。</p>
+</li>
+</ul>
+<p><strong>代码示例：</strong></p>
+<p>获取测试跟目录的操作很简单，可以使用 <code>pytestconfig</code> fixture 的 <code>rootpath</code> 属性或者<code>rootdir</code>属性来获得项目的根目录作为一个 <code>pathlib.Path</code> 对象。</p>
+<pre><code class="language-python"># content of test_pytestconfig.py
+def test_get_root_dir(pytestconfig):
+    # 获取测试根目录路径
+    root_dir = pytestconfig.rootdir
+    print(f"Root directory of the tests: {root_dir}")
+
+
+def test_root_dir(pytestconfig):
+    rootdir = pytestconfig.rootpath
+    print(f"The root directory is: {rootdir}")
+    # 如果需要的话，可以根据这个根目录进行进一步的文件操作
+    # 例如，打开一个在根目录下的文件
+    filename = rootdir.joinpath("some_data_file.json")
+
+    with open(filename, "r") as file:
+        # 对文件进行相应的操作
+        pass
+</code></pre>
+<p>其执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_pytestconfig.py::test_root_dir test_pytestconfig.py::test_get_root_dir
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, metadata-3.0.0
+collected 2 items
+
+test_pytestconfig.py::test_root_dir The root directory is: /root/code
+PASSED
+test_pytestconfig.py::test_get_root_dir Root directory of the tests: /root/code
+PASSED
+
+=============================== 2 passed in 0.01s =============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>在编写 <code>pytest</code> 插件时，<code>pytestconfig</code> 尤其有用，因为插件可以通过它访问用户提供的配置、选项和其他有用的测试运行信息。</p>
+<p>使用 <code>pytestconfig</code> 允许你编写更灵活的测试，它可以根据环境设置或者用户提供配置来适当更改其行为。然而，依赖于全局状态的过度使用可能会导致测试之间的耦合，这是需要谨慎考虑的事情。</p>
+<h3 id="7-2-3-2-recwarn">7.2.3.2 recwarn</h3>
+<p><code>pytest</code> 的内置 <code>recwarn</code> fixture 允许你在测试过程中记录和检查 python 警告，它能帮助你确保你的代码在特定条件下正常发出警告，或者如果你做出了代码更改以防止某些警告，你可以验证这些警告不再发生。</p>
+<h4 id="7-2-3-2-1-shi-yong-chang-jing">7.2.3.2.1 使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>验证特定警告的发生</strong>：确保某个函数或方法在给定条件下正确发出了预期的警告。</p>
+</li>
+<li class="lvl-2">
+<p><strong>验证警告的细节</strong>：检查警告的信息，验证它包含正确的消息文本、分类或来源。</p>
+</li>
+<li class="lvl-2">
+<p><strong>测试警告的清除</strong>：测试过程结束后没有剩余警告，确保随后的测试不会受它们的干扰。</p>
+</li>
+</ul>
+<h4 id="7-2-3-2-2-dai-ma-shi-li">7.2.3.2.2 代码示例</h4>
+<pre><code class="language-python"># content of test_recwarn.py
+import pytest
+import warnings
+
+# 假设我们有一个函数，该函数将发出一个即将弃用的功能警告。
+def will_warn():
+    warnings.warn("deprecated", DeprecationWarning)
+
+# 测试使用 recwarn 来捕捉发出的警告
+def test_deprecation_warning(recwarn):
+    # 调用可能发出警告的函数
+    will_warn()
+
+    # 验证是否有警告被捕捉
+    assert len(recwarn) == 1
+
+    # 获取警告信息，recwarn.list 包含所有被捕捉的警告
+    warn = recwarn.pop(DeprecationWarning)
+    
+    # 验证警告信息和警告类型
+    assert issubclass(warn.category, DeprecationWarning)
+    assert "deprecated" in str(warn.message)
+
+# 测试使用 recwarn 确认没有警告被发出
+def test_no_warnings(recwarn):
+    # 假如有一个不发出警告的函数调用
+    # no_warnings()
+
+    # 确认 recwarn 没有捕捉到警告
+    assert len(recwarn) == 0
+    
+# 可以自定义测试来判断警告的特定行为
+def test_specific_behavior_for_warning(recwarn):
+    # 假设有一个特定的行为会导致警告
+    # specific_behavior()
+
+    # 循环通过捕获的警告并进行更详细的检查
+    for warning in recwarn.list:
+        if issubclass(warning.category, UserWarning) and "specific" in str(warning.message):
+            assert "specific" in str(warning.message)
+            break
+    else:
+        pytest.fail("UserWarning with 'specific' not found")
+</code></pre>
+<p>在上面的第一个测试函数 <code>test_deprecation_warning</code> 中，我们测试了函数 <code>will_warn()</code> 是否会发出 <code>DeprecationWarning</code>，我们用 <code>recwarn</code> fixture 来捕获警告，然后我们对它进行检验，以确保警告的分类和信息是正确的。</p>
+<p>在第二个测试函数 <code>test_no_warnings</code> 中，我们验证在某个操作后没有警告发出。我们期望 <code>recwarn</code> 的长度为 0，这意味着没有警告被记录。</p>
+<p>在第三个测试函数 <code>test_specific_behavior_for_warning</code> 中，我们演示了如何遍历所有捕获的警告，并且寻找特定类型和信息的警告。</p>
+<p>执行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code# pytest -s -v chapter1-7/test_recwarn.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+collected 3 items
+
+chapter1-7/test_recwarn.py::test_deprecation_warning PASSED
+chapter1-7/test_recwarn.py::test_no_warnings PASSED
+chapter1-7/test_recwarn.py::test_specific_behavior_for_warning FAILED
+
+================================ FAILURES =====================================
+______________________ test_specific_behavior_for_warning _____________________
+
+recwarn = WarningsRecorder(record=True)
+
+    def test_specific_behavior_for_warning(recwarn):
+        # 假设有一个特定的行为会导致警告
+        # specific_behavior()
+    
+        # 循环通过捕获的警告并进行更详细的检查
+        for warning in recwarn.list:
+            if issubclass(warning.category, UserWarning) and "specific" in str(warning.message):
+                assert "specific" in str(warning.message)
+                break
+        else:
+&gt;           pytest.fail("UserWarning with 'specific' not found")
+E           Failed: UserWarning with 'specific' not found
+
+chapter1-7/test_recwarn.py:42: Failed
+=========================== 1 failed, 2 passed in 0.04s ======================
+root@Gavin:~/code#
+</code></pre>
+<p>使用这个 fixture，你可以确保代码的警告行为符合预期，这是履行良好的维护和用户沟通实践的一部分。</p>
+<h2 id="7-2-4-ji-lu-ce-shi-tao-jian-shu-xing">7.2.4 记录测试套件属性</h2>
+<h3 id="7-2-4-1-request">7.2.4.1 request</h3>
+<p>当我们在 <code>pytest</code> 中编写测试代码时，经常会遇到需要获取当前测试用例的详细信息或上下文的情况。<code>pytest</code> 提供了一个强大的内置<code>fixture</code>—<code>request</code>来应对这样的需求，它为测试函数提供了一个 <code>FixtureRequest</code> 类型的对象，通过<code>request.config</code> 获取配置对象，可以访问很多关于当前测试函数、类、模块或会话的详细请求信息。在本文中，我们将深入探讨 <code>request</code> fixture 的能力，并且通过实际代码示例来展示其在不同场景下的应用。</p>
+<h4 id="7-2-4-1-1-request-ti-gong-de-gong-neng">7.2.4.1.1 request提供的功能</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>获取测试函数/用例的标记/标识</strong>：访问测试函数/用例上的自定义标记/标识，并根据这些标记/标识改变测试行为。</p>
+</li>
+<li class="lvl-2">
+<p><strong>访问自定义标记</strong>：可以检索用 <code>pytest.mark</code> 设置的标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>访问参数化数据</strong>：对于参数化的测试，可以获取当前测试用例的参数。</p>
+</li>
+<li class="lvl-2">
+<p><strong>动态资源管理</strong>：根据测试需求动态地设置和清理资源。</p>
+</li>
+<li class="lvl-2">
+<p><strong>访问其他 fixture</strong>：获取其他 fixture 的参数信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>实现复杂的依赖注入逻辑</strong>：基于测试的不同属性（如标记、参数值）条件性地设置 fixture。</p>
+</li>
+<li class="lvl-2">
+<p><strong>资源清理</strong>：注册最终化函数以在测试结束后执行资源清理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>访问 CLI 参数</strong>：可从 <code>pytest</code> 命令行参数获取信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>测试节点（item）和会话（session）信息</strong>：获取更多关于测试集合和测试会话的信息。</p>
+</li>
+</ul>
+<h4 id="7-2-4-1-2-shi-yong-request-de-chang-jing">7.2.4.1.2 使用request的场景</h4>
+<h5 id="7-2-4-1-2-1-huo-qu-ce-shi-han-shu-yong-li-de-biao-ji-biao-shi">7.2.4.1.2.1 获取测试函数/用例的标记/标识</h5>
+<pre><code class="language-python"># content of test_request.py
+# 使用pytest.mark来定义标记
+@pytest.mark.my_marker_name
+def test_get_mark_info1(request):
+    # 通过request访问该测试的标记
+    marker = request.node.get_closest_marker("my_marker_name")
+    if marker:
+        # 如果标记存在，执行相应的逻辑
+        pass
+
+@pytest.mark.category("slow")
+def test_get_mark_info2(request):
+    if request.node.get_closest_marker("category").args[0] == "slow":
+        # 对于 "slow" 类别的测试，可能需要特殊处理
+        pass
+</code></pre>
+<h5 id="7-2-4-1-2-2-fang-wen-can-shu-hua-shu-ju">7.2.4.1.2.2 访问参数化数据</h5>
+<pre><code class="language-python"># content of test_request.py
+# 参数化测试函数
+@pytest.mark.parametrize("value,expected", [(1, 2), (2, 3)])
+def test_add_one(value, expected, request):
+    # 通过request.node.callspec.params访问参数化的值，并将其赋值给param变量
+    param = request.node.callspec.params
+    assert value + 1 == expected
+
+# 创建了一个参数化的fixture param_fixture，它会对每一对参数进行迭代，
+# 并在每次测试中提供一对参数。然后，这些参数在test_with_fixture函数中被使用。
+# 这种方法适用于需要在fixture级别处理参数化数据的场景。
+@pytest.fixture(params=[("3+5", 8), ("2+4", 6), ("6*9", 54)])
+def param_fixture(request):
+    return request.param
+    
+def test_with_fixture(param_fixture):
+    input, expected = param_fixture
+    assert eval(input) == expected
+    
+@pytest.mark.parametrize("number,result", [(1, 2), (2, 4)])
+def test_doubling(number, result, request):
+    assert number * 2 == result
+    # 对参数化的测试进行断言，同时可以访问当前的参数化数据
+    print(request.node.callspec.params)  # 输出当前的测试参数，例如 (1, 2)
+</code></pre>
+<h5 id="7-2-4-1-2-3-dong-tai-zi-yuan-guan-li">7.2.4.1.2.3 动态资源管理</h5>
+<pre><code class="language-python"># content of test_request.py
+# 创建一个fixture，它将使用request对象来关闭文件资源
+@pytest.fixture
+def open_file(request):
+    # 创建并打开一个临时文件
+    temp_file = open('temp.txt', 'w+')
+    
+    # 定义一个内部函数用于关闭文件资源
+    def close_file():
+        temp_file.close()
+        os.remove('temp.txt')
+
+    # 添加一个finalizer，它在测试结束后被调用
+    request.addfinalizer(close_file)
+
+    # 返回打开的文件对象，供测试用例使用
+    return temp_file
+
+# 测试用例：写入内容并检查是否写入成功
+def test_write_to_file(open_file):
+    open_file.write('Hello pytest!')
+    open_file.flush()  # 确保内容写入到文件中
+    open_file.seek(0)  # 移动到文件的开头，以便读取内容
+    content = open_file.read()
+    assert content == 'Hello pytest!'
+
+# 测试用例：检查当打开文件时，文件是否存在
+def test_file_exists(open_file):
+    assert not open_file.closed
+</code></pre>
+<h5 id="7-2-41-2-4-huo-qu-fixture-de-ming-cheng-he-can-shu">7.2.41.2.4 获取 fixture 的名称和参数</h5>
+<pre><code class="language-python"># content of test_request.py
+@pytest.fixture(scope="function")
+def get_fixture_name_param(request):
+    print(f"Fixture name: {request.fixturename}")
+    print(f"Fixture params: {request.param}")
+
+def test_one(get_fixture_name_param):
+    pass
+
+def test_two(get_fixture_name_param):
+    pass
+</code></pre>
+<h5 id="7-2-4-1-2-5-fang-wen-qi-ta-fixture">7.2.4.1.2.5 访问其他 fixture</h5>
+<pre><code class="language-python"># content of test_request.py
+@pytest.fixture
+def other_fixture():
+    return "data"
+
+# 在fixture中使用request来访问其他fixture
+@pytest.fixture
+def combined_fixture(request):
+    other_data = request.getfixturevalue("other_fixture")
+    return f"combined with {other_data}"
+
+def test_combined(combined_fixture):
+    assert combined_fixture == "combined with data"
+</code></pre>
+<h5 id="7-2-4-1-2-6-huo-qu-bing-hong-fa-qi-ta-fixtures">7.2.4.1.2.6 获取并触发其他 fixtures</h5>
+<pre><code class="language-python"># content of test_request.py
+@pytest.fixture
+def setup_data():
+    return {'data': 1}
+
+@pytest.fixture
+def more_setup(setup_data, request):
+    setup_data.update({'extra': request.getfixturevalue('setup_data')['data'] + 1})
+    return setup_data
+
+def test_data(request):
+    assert request.getfixturevalue('more_setup')['extra'] == 2
+</code></pre>
+<h5 id="7-2-4-1-2-7-shi-xian-fu-za-de-yi-lai-zhu-ru-luo-ji">7.2.4.1.2.7 实现复杂的依赖注入逻辑</h5>
+<pre><code class="language-python"># content of test_request.py
+@pytest.fixture(params=[".txt", ".md", ".json"])
+def file_with_different_types(request):
+    # 根据不同的参数创建不同类型的文件名
+    filename = f"test_file{request.param}"
+
+    # 创建并打开文件
+    with open(filename, 'w') as f:
+        f.write(f"This is a {request.param} file.")
+
+    # 传递文件名给测试
+    yield filename
+
+    # 清理：测试结束后删除文件
+    os.remove(filename)
+
+# 测试用例，确保文件创建并且内容正确
+def test_file_content(file_with_different_types):
+    # 检查文件是否存在
+    assert os.path.exists(file_with_different_types)
+    # 读取文件内容
+    with open(file_with_different_types, 'r') as f:
+        content = f.read()
+    # 检查内容是否正确
+    expected_content = f"This is a {os.path.splitext(file_with_different_types)[1]} file."
+    assert content == expected_content
+
+# 测试用例，确保文件后缀名匹配
+def test_file_extension(file_with_different_types):
+    # 检查文件后缀名
+    assert any(file_with_different_types.endswith(ext) for ext in [".txt", ".md", ".json"])
+</code></pre>
+<p>在这个示例中，<code>file_with_different_types</code> 是一个参数化fixture，它会运行三次，每次生成不同类型的文件（<code>.txt</code>, <code>.md</code>, <code>.json</code>）。这个fixture使用<code>request.param</code>来获取当前的参数值。</p>
+<p><code>yield</code>在fixture中用于提供一个对象给测试用例，同时保持上下文，以便在测试执行结束后执行后续的代码。在这种情况下，我们在测试结束后删除了创建的文件，以清理测试环境。</p>
+<p><code>test_file_content</code> 测试用例检查文件是否存在，并且内容是否正确。<code>test_file_extension</code> 测试用例确保文件的扩展名是预期的类型之一。</p>
+<h5 id="7-2-4-1-2-8-huo-qu-zheng-zai-yun-xing-de-ce-shi-han-shu">7.2.4.1.2.8 获取正在运行的测试函数</h5>
+<pre><code class="language-python"># content of test_request.py
+def test_get_test_name(request):
+    # 打印当前测试用例函数名称
+    print(request.function.__name__)  # 输出 'test_get_test_name'
+
+@pytest.fixture(scope="function")
+def by_fixture_get_case_name(request):
+    print(f"Running test: {request.function.__name__}")
+
+def test_one(by_fixture_get_case_name):
+    pass
+
+def test_two(by_fixture_get_case_name):
+    pass
+</code></pre>
+<h5 id="7-2-4-1-2-9-huo-qu-zheng-zai-yun-xing-ce-shi-de-ce-shi-lei">7.2.4.1.2.9 获取正在运行测试的测试类</h5>
+<pre><code class="language-python"># content of test_request.py
+@pytest.fixture(scope="function")
+def by_fixture_get_cls_name(request):
+    print(f"Test class: {request.cls.__name__}")
+
+class TestCase:
+    def test_one(self, by_fixture_get_cls_name):
+        pass
+
+    def test_two(self, by_fixture_get_cls_name):
+        pass
+</code></pre>
+<h5 id="7-2-4-1-2-10-huo-qu-fixture-de-scope">7.2.4.1.2.10 获取 fixture 的 scope</h5>
+<pre><code class="language-python"># content of test_request.py
+@pytest.fixture(scope="function")
+def get_fixture_scope(request):
+    print(f"Fixture scope: {request.scope}")
+
+def test_one(get_fixture_scope):
+    pass
+
+def test_two(get_fixture_scope):
+    pass
+</code></pre>
+<h5 id="7-2-4-1-2-11-zhu-ce-qing-li-han-shu">7.2.4.1.2.11 注册清理函数</h5>
+<pre><code class="language-python"># content of test_request.py
+def file_open(request):
+    """打开一个文件并返回文件对象"""
+    filename = request.param  # 假设文件名通过param传递
+    print(f"Opening file {filename}")
+    return open(filename, 'w')  # 以写入模式打开文件
+    
+def release_resource(resource):
+    """释放资源，这里指的是关闭文件"""
+    resource.close()
+    print(f"File {resource.name} closed")
+    
+@pytest.fixture(params=["file1.txt", "file2.txt"])
+def register_clear_fixture(request):
+    resource = file_open(request)
+    # 注册清理函数以确保资源被释放
+    request.addfinalizer(lambda: release_resource(resource))
+    return resource
+    
+def test_my_fixture(register_clear_fixture):
+    # 测试可以使用资源 register_clear_fixture
+    # 这里可以进行一些写入文件的操作
+    register_clear_fixture.write("Hello, World!")
+    # 文件会在测试结束后自动关闭
+"test_request.py" 227L, 7657B written 
+</code></pre>
+<p>在这个例子中，<code>file_open</code>函数使用<code>request.param</code>来确定要打开哪个文件。我们使用<code>pytest.fixture</code>装饰器的<code>params</code>参数来为fixture提供参数化输入，这意味着<code>test_my_fixture</code>会对每个参数执行一次。</p>
+<p>注意，<code>file_open</code>函数假设文件名是通过<code>request.param</code>传递的，这就意味着在使用fixture时需要通过参数化来提供文件名。在这个例子中，我们在fixture装饰器中直接提供了两个文件名<code>["file1.txt", "file2.txt"]</code>，所以测试将会为这两个文件分别运行一次。</p>
+<p>上述用例执行效果：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_request.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+collecting ... /root/code/chapter1-7/test_request.py:6: PytestUnknownMarkWarning: Unknown pytest.mark.my_marker_name - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  @pytest.mark.my_marker_name
+/root/code/chapter1-7/test_request.py:14: PytestUnknownMarkWarning: Unknown pytest.mark.category - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+  @pytest.mark.category("slow")
+collected 26 items
+
+test_request.py::test_get_mark_info1 PASSED
+test_request.py::test_get_mark_info2 PASSED
+test_request.py::test_add_one[1-2] PASSED
+test_request.py::test_add_one[2-3] PASSED
+test_request.py::test_with_fixture[param_fixture0] PASSED
+test_request.py::test_with_fixture[param_fixture1] PASSED
+test_request.py::test_with_fixture[param_fixture2] PASSED
+test_request.py::test_doubling[1-2] {'number': 1, 'result': 2}
+PASSED
+test_request.py::test_doubling[2-4] {'number': 2, 'result': 4}
+PASSED
+test_request.py::test_write_to_file PASSED
+test_request.py::test_file_exists PASSED
+test_request.py::test_one Fixture scope: function
+PASSED
+test_request.py::test_two Fixture scope: function
+PASSED
+test_request.py::test_combined PASSED
+test_request.py::test_data PASSED
+test_request.py::test_file_content[.txt] PASSED
+test_request.py::test_file_content[.md] PASSED
+test_request.py::test_file_content[.json] PASSED
+test_request.py::test_file_extension[.txt] PASSED
+test_request.py::test_file_extension[.md] PASSED
+test_request.py::test_file_extension[.json] PASSED
+test_request.py::test_get_test_name test_get_test_name
+PASSED
+test_request.py::TestCase::test_one Test class: TestCase
+PASSED
+test_request.py::TestCase::test_two Test class: TestCase
+PASSED
+test_request.py::test_my_fixture[file1.txt] Opening file file1.txt
+PASSEDFile file1.txt closed
+
+test_request.py::test_my_fixture[file2.txt] Opening file file2.txt
+PASSEDFile file2.txt closed
+
+
+============================= 26 passed in 0.03s ==========================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>以上就是 <code>request</code> fixture 的一些常见使用场景和示例。通过使用 <code>request</code> fixture，你可以使你的测试更加灵活，适应各种复杂场景，并确保资源在测试结束时得到正确的管理。这是编写健壮测试的关键工具之一。</p>
+<h3 id="7-2-4-2-record-property">7.2.4.2 record_property</h3>
+<p><code>record_property</code> 允许你在测试期间添加额外的属性到测试报告中，这些属性稍后可以用于测试报告或在某些插件中进行进一步处理。使用 <code>record_property</code> 函数，你可以捕获和记录与特定测试相关的附加信息，这对于调试、报告或者由测试生成的文档来说可能非常有用。</p>
+<h4 id="7-2-4-2-1-shi-yong-chang-jing">7.2.4.2.1 使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>记录测试元数据</strong>：当你需要为特定测试存储额外信息，比如测试数据版本、测试参数等。</p>
+</li>
+<li class="lvl-2">
+<p><strong>改善测试报告</strong>：通过添加更多的上下文来使得测试报告更加详细和有用。</p>
+</li>
+<li class="lvl-2">
+<p><strong>在测试报告中包含动态数据</strong>：有些测试可能会生成或计算出对了解测试结果有帮助的值，使用 <code>record_property</code> 可以将它们包含在测试报告中。</p>
+</li>
+<li class="lvl-2">
+<p><strong>与其他插件集成</strong>：一些 <code>pytest</code> 插件可能使用这些额外的属性，例如 <code>pytest-html</code> 可以在 HTML 报告中显示这些属性。</p>
+</li>
+</ul>
+<h4 id="7-2-4-2-2-dai-ma-shi-li">7.2.4.2.2 代码示例</h4>
+<p>假设我们正在测试一个数学计算函数，并且我们希望记录下某些输入参数以便更好地理解测试结果。下面的代码示例说明了如何使用 <code>record_property</code>。</p>
+<pre><code class="language-python"># content of test_record_property.py
+import pytest
+
+
+def calculate_square(value):
+    return value * value
+
+
+def test_square(record_property):
+    value = 4
+    expected = 16
+    result = calculate_square(value)
+
+    # 记录测试属性
+    record_property("input", value)
+    record_property("expected_result", expected)
+
+    assert result == expected
+
+
+def test_record_description(record_property):
+    # 设置一个描述属性。
+    record_property("description", "A detailed description of the test case.")
+    # ... 测试逻辑 ...
+    assert 1 == 1
+
+
+def test_record_some_properties_1(record_property):
+    # 假设这是测试用例中的一些数据
+    input_data = "some input"
+    expected_result = "expected outcome"
+    actual_result = "actual outcome"
+
+    # 使用 record_property 记录这些数据
+    record_property("input_data", input_data)
+    record_property("expected_result", expected_result)
+    record_property("actual_result", actual_result)
+
+    # 断言实际结果是否符合期望结果
+    assert expected_result == actual_result
+
+
+def test_record_some_properties_2(record_property):
+    # 假设的测试逻辑
+    result = 42  # 一个假设的测试结果
+
+    # 记录额外的属性
+    record_property("example_property", "example_value")
+    record_property("result", result)
+
+    # 断言（仅示例）
+    assert result == 42
+</code></pre>
+<p>在上述示例中，<code>record_property</code> fixture 被用来记录传入 <code>calculate_square</code> 函数的输入值和预期的结果。这些属性被添加到测试的结果中，并且可以在生成的测试报告中看到。</p>
+<h4 id="7-2-4-2-3-zai-bao-gao-zhong-xian-shi">7.2.4.2.3 在报告中显示</h4>
+<p>使用 <code>pytest-html</code> 插件来生成 HTML 测试报告（如果没安装，请执行<code>pip install pytest-html</code>命令进行安装），一旦你运行了测试并生成了 HTML 报告，<code>record_property</code> 添加的属性应该会出现在 HTML 报告的 <code>Properties</code> 部分。但是，请注意，默认情况下，<code>pytest-html</code> 并不显示这些属性。你需要添加额外的钩子（hook）到你的 <code>conftest.py</code> 文件中，以确保属性信息被添加到 HTML 报告中。</p>
+<p>以下是包含在 <code>conftest.py</code> 中钩子和示例测试函数的完整示例。</p>
+<p>首先，在你的测试目录中创建 <code>conftest.py</code>，如果还没有的话：</p>
+<pre><code class="language-python"># content of conftest.py
+import pytest
+from pytest_html import extras
+
+# 捕获测试用例的属性并在报告中显示
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    report = outcome.get_result()
+
+    # 在测试阶段结束时捕获并处理属性
+    if call.when == 'call' or call.when == 'teardown':
+        if hasattr(item, 'user_properties'):
+            report.extra = getattr(report, 'extra', [])
+            report.user_properties = item.user_properties
+            print(report.user_properties)
+            # 将属性添加到报告的额外信息部分
+            for name, value in item.user_properties:
+                report.extra.append(extras.text(f'{name}: {value}'))
+        else:
+            print("has no user_properties")
+    else:
+        print(call.when)
+
+# 修改 HTML 报告的表头，添加一个属性列
+@pytest.hookimpl(tryfirst=True)
+def pytest_html_results_table_header(cells):
+    cells.insert(1, 'Properties')
+
+# 修改 HTML 报告的每一行，显示相应的属性
+@pytest.hookimpl(tryfirst=True)
+def pytest_html_results_table_row(report, cells):
+    properties = getattr(report, 'user_properties', [])
+    properties_str = ', '.join([f'{name}: {value}' for name, value in properties])
+    cells.insert(1, properties_str or 'N/A')
+
+# 选项：如果您想要在 HTML 报告的摘要部分以单独的区块显示属性
+def pytest_html_results_summary(prefix, summary, postfix):
+    # 此处可以根据需要添加自定义的 HTML 代码来格式化和显示属性
+    pass
+
+</code></pre>
+<p>生成<code>html</code>报告，运行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code# pytest -s -v chapter1-7/test_record_property.py  --html=report/record_property.html --self-contained-html
+============================= test session starts =============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+collected 4 items
+
+chapter1-7/test_record_property.py::test_square PASSED
+chapter1-7/test_record_property.py::test_record_description PASSED
+chapter1-7/test_record_property.py::test_record_some_properties_1 FAILED
+chapter1-7/test_record_property.py::test_record_some_properties_2 PASSED
+
+============================== FAILURES =======================================
+______________________________ test_record_some_properties_1 __________________
+
+record_property = &lt;function record_property.&lt;locals&gt;.append_property at 0x7f829dff3100&gt;
+
+    def test_record_some_properties_1(record_property):
+        # 假设这是测试用例中的一些数据
+        input_data = "some input"
+        expected_result = "expected outcome"
+        actual_result = "actual outcome"
+    
+        # 使用 record_property 记录这些数据
+        record_property("input_data", input_data)
+        record_property("expected_result", expected_result)
+        record_property("actual_result", actual_result)
+    
+        # 断言实际结果是否符合期望结果
+&gt;       assert expected_result == actual_result
+E       AssertionError: assert 'expected outcome' == 'actual outcome'
+E         - actual outcome
+E         + expected outcome
+
+chapter1-7/test_record_property.py:39: AssertionError
+------------------------------------------------------------------------------------- Generated html report: file:///root/code/report/record_property.html --------------------------------------------------------------------------------------
+======================== 1 failed, 3 passed in 0.04s ========================
+root@Gavin:~/code#
+</code></pre>
+<p>这样，当你查看测试报告时，你可以看到更多关于每个测试的上下文信息，如下图所示：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pytest-html-record-property.png" width="800">
+<p><strong>请注意：</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>record_property</code> 只在测试函数或者类的方法中使用，而不是在 fixture 中。</p>
+</li>
+<li class="lvl-2">
+<p><code>record_property</code> 适合记录简单的文本信息，而不适合大型数据，如图像或大型数据集/大数据。</p>
+</li>
+<li class="lvl-2">
+<p><code>record_property</code> 只能用于报告字符串值或可以被轻松转换为字符串的值。</p>
+</li>
+</ul>
+<h3 id="7-2-4-3-record-testsuite-property">7.2.4.3 record_testsuite_property</h3>
+<p><code>record_testsuite_property</code> 用于在测试套件的层面上记录属性，这些属性可以在生成的测试报告中查看。与 <code>record_property</code> 相比，<code>record_testsuite_property</code> 记录的是跨越整个测试会话的信息，而不是单个测试用例的信息。</p>
+<h4 id="7-2-4-3-1-shi-yong-chang-jing">7.2.4.3.1 使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>全局测试配置</strong>：如果你想要记录全局的测试配置或环境设置，可以使用 <code>record_testsuite_property</code>。</p>
+</li>
+<li class="lvl-2">
+<p><strong>统计信息</strong>：在整个测试时段内统计信息，例如，测试次数、成功率或失败率、运行时间，测试套件版本等。</p>
+</li>
+<li class="lvl-2">
+<p><strong>跨测试共享信息</strong>：比如说，当测试套件中的某个条件影响整个测试过程时，可以使用这个 fixture 记录这些信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>报告自定义信息</strong>：在生产测试报告时可能需要出现的自定义信息，例如为CI/CD流程添加标签，获取构建版本号，构建号，测试环境的描述；或者测试执行中创建的资源数量，API调用次数，或者其他自定义指标等。</p>
+</li>
+</ul>
+<h4 id="7-2-4-3-2-dai-ma-shi-li">7.2.4.3.2 代码示例</h4>
+<p>假设我们想要记录测试用例自定义的属性信息，诸如版本，环境，测试类等信息，使用 <code>record_testsuite_property</code>，可以做到这一点。以下是一个<code>pytest</code>代码示例：</p>
+<pre><code class="language-python">def test_example_one(record_testsuite_property):
+    # 假设这是测试套件级别的一个属性
+    record_testsuite_property("suite_name", "My Test Suite")
+    assert True
+
+def test_example_two():
+    # 此测试用例不需要记录属性
+    assert True
+    
+def test_example(record_testsuite_property):
+    # 记录测试套件属性
+    record_testsuite_property("version", "1.0.1")
+    record_testsuite_property("environment", "staging")
+
+    # ... 进行实际的测试操作
+    assert True
+</code></pre>
+<h4 id="7-2-4-3-3-zai-bao-gao-zhong-zhan-shi">7.2.4.3.3 在报告中展示</h4>
+<p>与 <code>record_property</code> 类似，加入你使用了生成 HTML 报告的插件（如 <code>pytest-html</code>），这些记录的套装属性也会在报告中展示。这可以帮助团队成员理解测试套件的全局视角，并在有需要时进行进一步分析。</p>
+<p>假设你使用了 <code>pytest-html</code> 这样的插件来生成 HTML 报告，那么通过 <code>record_testsuite_property</code> 记录的属性将会在 HTML 报告的 <code>Metadata</code> 部分展示出来。这提供了一种很方便的方式来传达关于整个测试执行环境和配置的信息给查看报告的利益相关者。</p>
+<pre><code class="language-python"># content of conftest.py
+import pytest
+
+# 测试套件属性存储结构，定义在全局以便其他hooks访问
+testsuite_property_storage = {}
+
+# pytest fixture 用于记录属性
+@pytest.fixture(scope="session")
+def record_testsuite_property(request):
+    # 这个内部方法让测试用例能记录属性
+    def add_property(key, value):
+        testsuite_property_storage[key] = value
+    return add_property
+
+# 修改 HTML 报告的表头，添加一个属性列
+@pytest.hookimpl(tryfirst=True)
+def pytest_html_results_table_header(cells):
+    # cells.insert(1, 'Properties')
+    cells.insert(1, '&lt;th&gt;Custom Column&lt;/th&gt;')
+
+# 修改 HTML 报告的每一行，显示相应的属性
+@pytest.hookimpl(tryfirst=True)
+def pytest_html_results_table_row(report, cells):
+    properties_cells = ', '.join([f'{key}: {value}' for key, value in testsuite_property_storage.items()])
+    cells.insert(1, properties_cells or 'N/A')
+</code></pre>
+<p>执行效果如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_record_testsuite_property.py --html=../report/record_testsuite_property.html --self-contained-html
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-14-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '7.4.0', 'pluggy': '1.2.0'}, 'Plugins': {'check': '2.2.2', 'html': '4.1.1', 'metadata': '3.0.0'}}
+rootdir: /root/code
+configfile: pytest.ini
+plugins: check-2.2.2, html-4.1.1, metadata-3.0.0
+collected 3 items
+
+test_record_testsuite_property.py::test_example_one PASSED
+test_record_testsuite_property.py::test_example_two PASSED
+test_record_testsuite_property.py::test_example PASSED
+
+---------------------- Generated html report: file:///root/code/chapter1-7/../report/record_testsuite_property.html ------------------------
+=============================== 3 passed in 0.01s ============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>生成的HTML测试报告展示效果如下：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pytest-html-record-testsuite-property.png" width="800">
+<h2 id="7-2-5-lin-shi-mu-lu-xiang-guan">7.2.5 临时目录相关</h2>
+<h3 id="7-2-5-1-testdir">7.2.5.1 testdir</h3>
+<p><code>testdir</code> 是一个用于测试的 <code>pytest</code> 内置 fixture，它使得编写针对<code>pytest</code>插件或<code>pytest</code>本身的功能的集成测试变得简单。此fixture为测试提供了一个临时的测试目录，其中包含了一些用于创建文件和运行<code>pytest</code>测试的便捷方法。<code>testdir</code> fixture 主要用在测试 <code>pytest</code> 插件时。但请注意：<code>testdir</code> fixture 已被 <code>pytest 6.2</code>版本中新引入的 <code>pytester</code> fixture 所取代（官方还保留着<code>testdir</code>代码与使用说明，但不推荐使用了），后者提供了更多的功能、改进和附加特性。建议使用新版本的 <code>pytest</code>下的 <code>pytester</code> fixture，故本文不再做赘述。</p>
+<h3 id="7-2-5-2-temp-path-he-temp-path-factory">7.2.5.2 temp_path 和 temp_path_factory</h3>
+<p><code>temp_path</code> 和 <code>temp_path_factory</code> 是 <code>pytest</code> 中用于文件和目录操作的内置 fixtures。这两个 fixtures 允许测试访问文件系统，并在测试结束时自动处理清理工作。</p>
+<h4 id="7-2-5-2-1-shi-yong-chang-jing">7.2.5.2.1 使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>temp_path</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-4">用于单个测试函数或类中，需要临时文件或目录时。</li>
+<li class="lvl-4">实际测试代码不需要创建多个临时目录。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>temp_path_factory</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-4">用于需要在一个测试会话中创建多个独立临时目录的场景。</li>
+<li class="lvl-4">实现测试特定的临时目录管理策略。</li>
+<li class="lvl-4">当你需要在会话级别或模块级别控制临时目录时使用。</li>
+</ul>
+</li>
+</ul>
+<h4 id="7-2-5-2-2-dai-ma-shi-li">7.2.5.2.2 代码示例</h4>
+<p><strong>temp_path 示例</strong>:</p>
+<pre><code class="language-python">def test_with_temp_path(temp_path):
+    # 创建一个临时文件
+    temp_file = temp_path / "temp_file.txt"
+    temp_file.write_text("Hello, World!")
+
+    # 读取内容并断言
+    assert temp_file.read_text() == "Hello, World!"
+</code></pre>
+<p><strong>temp_path_factory 示例</strong>:</p>
+<pre><code class="language-python"># 使用 temp_path_factory 在会话级别创建临时目录
+def test_with_temp_path_factory(request, temp_path_factory):
+    # 动态创建一个新的临时目录
+    temp_dir = temp_path_factory.mktemp("subdir") 
+
+    # 在这个目录中创建文件
+    temp_file = temp_dir / "temp_file.txt"
+    temp_file.write_text("This is a temp file.")
+
+    # 断言文件确实被创建
+    assert temp_dir.is_dir()
+    assert temp_file.is_file()
+    assert temp_file.read_text() == "This is a temp file."
+</code></pre>
+<h4 id="7-2-5-2-3-temp-path-yu-temp-path-factory-de-qu-bie">7.2.5.2.3 temp_path 与 temp_path_factory 的区别</h4>
+<p>以下表格对比了 <code>temp_path</code> 和 <code>temp_path_factory</code>：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>temp_path</code></th>
+<th><code>temp_path_factory</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>作用域</td>
+<td>在每个测试函数/方法中自动生成</td>
+<td>需要显式调用来创建新的临时目录</td>
+</tr>
+<tr>
+<td>用法</td>
+<td>作为参数传递给测试函数或类</td>
+<td>作为参数工厂传递给测试函数或类</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>在测试函数或类之前创建，在之后销毁</td>
+<td>在测试函数或类中显式创建，在之后显式销毁</td>
+</tr>
+<tr>
+<td>目录控制</td>
+<td>自动控制</td>
+<td>手动控制（通过 <code>mktemp</code> 方法）</td>
+</tr>
+<tr>
+<td>创建的临时目录数量</td>
+<td>通常为每个测试一个临时目录</td>
+<td>可以创建任意多的临时目录</td>
+</tr>
+<tr>
+<td>自动清理</td>
+<td>测试完成后自动清理生成的临时文件和目录</td>
+<td>测试完成后也会自动清理，但可以跨多个测试手动控制什么时候创建和清理资源</td>
+</tr>
+<tr>
+<td>应用场景</td>
+<td>简单情况，不需要多个临时文件/目录</td>
+<td>复杂情况或模块/会话级别控制，适合需要多个临时目录或精细控制临时资源生命周期的情景</td>
+</tr>
+<tr>
+<td>返回值类型</td>
+<td><code>pathlib.Path</code> 实例代表一个临时目录</td>
+<td>Factory，需要调用 <code>mktemp</code> 来创建目录</td>
+</tr>
+<tr>
+<td>优点</td>
+<td>使用简单，在不需要显式创建和销毁临时目录时非常方便</td>
+<td>提供了更多的灵活性，允许在测试函数或类中创建和销毁多个临时目录</td>
+</tr>
+<tr>
+<td></td>
+<td>在不需要显式创建和销毁临时目录时可能会有性能开销</td>
+<td>需要显式创建和销毁临时目录，可能会导致更复杂的测试代码</td>
+</tr>
+</tbody>
+</table>
+<p>在实际应用中，如果你的测试函数只需要访问单个临时文件或目录，那么使用 <code>temp_path</code> 是便捷的。如果需要更复杂的控制或在一个会话中创建多个独立的临时目录，<code>temp_path_factory</code> 则是更好的选择。</p>
+<h3 id="7-2-5-3-tmpdir-he-tmpdir-factory">7.2.5.3 tmpdir和tmpdir_factory</h3>
+<p>内置的<code>tmpdir</code>和<code>tmpdir_factory</code>负责在测试开始运行前创建临时文件和目录，并在测试结束后删除。这两个 fixtures 类似于 <code>temp_path</code> 和 <code>temp_path_factory</code>，但使用的是 <code>py.path.local</code> 对象而不是 <code>pathlib.Path</code>。</p>
+<h4 id="7-2-5-3-1-tmpdir-de-shi-yong-chang-jing">7.2.5.3.1 tmpdir 的使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>单一测试作用域</strong>: 当你需要在单一测试函数中创建临时文件或目录，并希望在测试结束后自动删除它们时，<code>tmpdir</code> 是一个好选择。</p>
+</li>
+<li class="lvl-2">
+<p><strong>简单操作</strong>: 对于相对简单的测试用例，不需要在多个测试中共享文件或目录，或者不需要在更大的作用域（类级别或模块级别）中处理临时文件。</p>
+</li>
+<li class="lvl-2">
+<p><strong>隔离测试</strong>: 希望确保每次测试都在干净的环境中运行，即每个测试函数都有自己的临时目录，以避免状态泄漏。</p>
+</li>
+</ul>
+<h4 id="7-2-5-3-2-tmpdir-factory-de-shi-yong-chang-jing">7.2.5.3.2 tmpdir_factory 的使用场景</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>跨测试作用域</strong>: 当测试需要在模块或会话级别共享临时目录时，<code>tmpdir_factory</code> 提供了更大的灵活性。</p>
+</li>
+<li class="lvl-2">
+<p><strong>定制临时目录</strong>: 如果需要对临时目录的创建有更多的控制，如指定目录名，控制创建时间或在单个测试会话中重用临时目录。</p>
+</li>
+<li class="lvl-2">
+<p><strong>复杂测试需求</strong>: 例如，在一组测试中需要对临时文件夹进行复杂的设置和清理策略，或者需要在不同的测试类和模块之间创建多个独立的临时环境。</p>
+</li>
+<li class="lvl-2">
+<p><strong>大量或有特定要求的临时资源</strong>: 在单个测试会话中创建和管理多个临时文件夹。例如，当一个测试会话涉及多个组件，且每个组件都需要其自己的临时存储空间。</p>
+</li>
+</ul>
+<h4 id="7-2-5-3-3-tempdir-yu-tempdir-factory-jie-shao">7.2.5.3.3 tempdir与tempdir_factory介绍</h4>
+<p><strong>tmpdir</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>用于创建临时目录。</p>
+</li>
+<li class="lvl-2">
+<p>在测试函数开始时创建临时目录，并在测试函数结束时删除。</p>
+</li>
+<li class="lvl-2">
+<p>可以使用 <code>tmpdir</code> 作为参数传递给测试函数。</p>
+</li>
+<li class="lvl-2">
+<p>可以使用 <code>tmpdir.join()</code> 来创建临时文件和目录。</p>
+</li>
+<li class="lvl-2">
+<p>当测试函数抛出异常时，临时目录将不会被删除。</p>
+</li>
+</ul>
+<p><strong>tmpdir_factory</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>用于创建临时目录工厂。</p>
+</li>
+<li class="lvl-2">
+<p>可以通过调用 <code>tmpdir_factory.mktemp()</code> 来创建临时目录。</p>
+</li>
+<li class="lvl-2">
+<p>可以使用 <code>tmpdir_factory.getbasetemp()</code> 来获取临时目录的根目录。</p>
+</li>
+<li class="lvl-2">
+<p>可以使用 <code>tmpdir_factory.listtempdirs()</code> 来列出所有临时目录。</p>
+</li>
+<li class="lvl-2">
+<p>当最后一个使用临时目录的测试函数结束时，临时目录将被删除。</p>
+</li>
+</ul>
+<p>简而言之：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果测试代码要对文件进行读/写操作，那么可以使用<code>tmpdir</code>或<code>tmpdir_factory</code>来创建文件或目录。</p>
+</li>
+<li class="lvl-2">
+<p><code>tmpdir</code>适用于需要在单个测试中创建临时文件或目录，并且希望这些资源在测试结束后自动清理。</p>
+</li>
+<li class="lvl-2">
+<p><code>tmpdir_factory</code>适用于需要在一个测试会话中手动控制创建多个临时目录的场景。提供了在测试会话、模块、类或函数级别控制临时目录的生命周期的能力。</p>
+</li>
+<li class="lvl-2">
+<p><code>tmpdir</code>的作用范围是函数级别，<code>tmpdir_factory</code>的作用范围是会话级别。</p>
+</li>
+</ul>
+<h4 id="7-2-5-3-4-dai-ma-shi-li">7.2.5.3.4 代码示例</h4>
+<pre><code class="language-python"># content of test_tmpdir_factory.py
+# 使用 tmpdir 创建临时目录
+def test_tmpdir(tmpdir):
+    # tmpdir already has a path name associated with it
+    # join() extends the path to include a filename
+    # the file is created when it's written to
+    a_file = tmpdir.join('something.txt')
+
+    # you can create directories
+    a_sub_dir = tmpdir.mkdir('anything')
+
+    # you can create files in directories (created when written)
+    another_file = a_sub_dir.join('something_else.txt')
+
+    # this write creates 'something.txt'
+    a_file.write('contents may settle during shipping')
+
+    # this write creates 'anything/something_else.txt'
+    another_file.write('something different')
+
+    # you can read the files as well
+    assert a_file.read() == 'contents may settle during shipping'
+    assert another_file.read() == 'something different'
+
+
+def test_create_tmpdir(tmpdir):
+    # Create a temporary Files
+    tmpfile = tmpdir.join("test.txt")
+    # Write date to temporary file
+    tmpfile.write("Hello, world!")
+    # Read from temporary file
+    assert tmpfile.read() == "Hello, world!"
+
+
+# 使用 tmpdir_factory 创建临时目录工厂
+def test_tmpdir_factory(tmpdir_factory):
+    # you should start with making a directory
+    # a_dir acts like the object returned from the tmpdir fixture
+    a_dir = tmpdir_factory.mktemp('mydir')
+
+    # base_temp will be the parent dir of 'mydir'
+    # you don't have to use getbasetemp()
+    # using it here just to show that it's available
+    base_temp = tmpdir_factory.getbasetemp()
+    print('base:', base_temp)
+
+    # the rest of this test looks the same as the 'test_tmpdir()'
+    # example except I'm using a_dir instead of tmpdir
+
+    a_file = a_dir.join('something.txt')
+    a_sub_dir = a_dir.mkdir('anything')
+    another_file = a_sub_dir.join('something_else.txt')
+
+    a_file.write('contents may settle during shipping')
+    another_file.write('something different')
+
+    assert a_file.read() == 'contents may settle during shipping'
+    assert another_file.read() == 'something different'
+
+
+def test_create_tmpdir_factory(tmpdir_factory):
+    # Create a temporary directory
+    tmpdir = tmpdir_factory.mktemp("mytmp")
+    # Create a temporary Files
+    tmpfile = tmpdir.join("test.txt")
+    # Write data to temporary file
+    tmpfile.write("Hello, world!")
+    # Read from the temporary file
+    assert tmpfile.read() == "Hello, world!"
+</code></pre>
+<p>如上示例，<code>testdir</code>创建一临时目录，并在目录下创建文件，向文件中写入数据，最后读取数据并断言读取内容；<code>testdir_factory</code>创建父目录及其子目录，向目录及其子目录下文件写入内容并读取做断言，其执行效果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/code/chapter1-7# pytest -s -v test_tmpdir_factory.py 
+============================== test session starts ============================
+platform linux -- Python 3.11.6, pytest-7.4.0, pluggy-1.2.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /root/code
+configfile: pytest.ini
+collected 4 items
+
+test_tmpdir_factory.py::test_tmpdir PASSED
+test_tmpdir_factory.py::test_create_tmpdir PASSED
+test_tmpdir_factory.py::test_tmpdir_factory base: /tmp/pytest-of-root/pytest-2
+PASSED
+test_tmpdir_factory.py::test_create_tmpdir_factory PASSED
+
+============================== 4 passed in 0.02s ==============================
+root@Gavin:~/code/chapter1-7#
+</code></pre>
+<p>执行后会在<code>/tmp/pytest-of-root</code>目录下产生临时目录，参考如下：</p>
+<pre><code class="language-shell">root@Gavin:/tmp/pytest-of-root# ll
+total 20
+drwx------  5 root root 4096 Dec 26 21:36 ./
+drwxrwxrwt 16 root root 4096 Dec 26 21:36 ../
+drwx------  5 root root 4096 Dec 26 21:35 pytest-0/
+drwx------  6 root root 4096 Dec 26 21:36 pytest-1/
+drwx------  6 root root 4096 Dec 26 21:36 pytest-2/
+lrwxrwxrwx  1 root root   28 Dec 26 21:36 pytest-current -&gt; /tmp/pytest-of-root/pytest-2/
+root@Gavin:/tmp/pytest-of-root#
+</code></pre>
+<p>默认只保留3个临时目录，从会话0开始，再次执行，自动删除<code>pytest-0</code>，产生<code>pytest-3</code>目录：</p>
+<pre><code class="language-shell">root@Gavin:/tmp/pytest-of-root# ll
+total 20
+drwx------  5 root root 4096 Dec 26 21:43 ./
+drwxrwxrwt 16 root root 4096 Dec 26 21:43 ../
+drwx------  6 root root 4096 Dec 26 21:36 pytest-1/
+drwx------  6 root root 4096 Dec 26 21:36 pytest-2/
+drwx------  6 root root 4096 Dec 26 21:43 pytest-3/
+lrwxrwxrwx  1 root root   28 Dec 26 21:43 pytest-current -&gt; /tmp/pytest-of-root/pytest-3/
+root@Gavin:/tmp/pytest-of-root#
+</code></pre>
+<h4 id="7-2-5-3-5-tmpdir-he-tmpdir-factory-de-qu-bie">7.2.5.3.5 tmpdir和tmpdir_factory的区别</h4>
+<p>以下是 <code>tmpdir</code> 和 <code>tmpdir_factory</code> 特性的比较：</p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th><code>tmpdir</code></th>
+<th><code>tmpdir_factory</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>用途</strong></td>
+<td>用于单个测试，提供独立的临时文件系统路径</td>
+<td>用于多个测试，跨测试函数、类、模块或整个会话创建临时目录</td>
+</tr>
+<tr>
+<td><strong>创建时机</strong></td>
+<td>每个测试函数自动创建</td>
+<td>手动调用 <code>mktemp</code> 方法创建临时目录</td>
+</tr>
+<tr>
+<td><strong>创建数量</strong></td>
+<td>默认每个测试函数一个</td>
+<td>可以创建任意数量的临时目录</td>
+</tr>
+<tr>
+<td><strong>清理机制</strong></td>
+<td>测试结束时自动清理</td>
+<td>当最后一个使用临时目录的测试函数结束时删除，<br>但可控制临时目录的生命周期</td>
+</tr>
+<tr>
+<td><strong>目录控制</strong></td>
+<td>隐藏目录控制细节</td>
+<td>显式控制目录的创建位置和时间</td>
+</tr>
+<tr>
+<td><strong>复用目录</strong></td>
+<td>不容易在多个测试中复用临时目录</td>
+<td>可以在多个测试中复用临时目录或跨会话复用</td>
+</tr>
+<tr>
+<td><strong>API</strong></td>
+<td>基于 <code>py.path.local</code> API，如 <code>join()</code> , <code>write()</code></td>
+<td>同 <code>tmpdir</code>，基于 <code>py.path.local</code> API</td>
+</tr>
+<tr>
+<td><strong>路径类型</strong></td>
+<td>返回 <code>py.path.local</code> 对象</td>
+<td>返回 <code>py.path.local</code> 对象</td>
+</tr>
+<tr>
+<td><strong>适用场景示例</strong></td>
+<td>单个测试需要临时文件，如测试文件写入</td>
+<td>需要在整个测试会话期间控制文件生命周期的复杂集成测试</td>
+</tr>
+<tr>
+<td><strong>测试隔离</strong></td>
+<td>每个测试运行在隔离的临时目录</td>
+<td>多个测试可以共享相同的临时目录，如果需要</td>
+</tr>
+</tbody>
+</table>
+<p><code>tmpdir</code> 和 <code>tmpdir_factory</code> 之间的主要区别在于它们创建临时目录的方式以及所返回的对象类型。<code>tmpdir</code> 直接为每个测试提供一个临时目录，而 <code>tmpdir_factory</code> 允许在测试会话中创建和管理多个临时目录。两者都使用 <code>py.path.local</code> 对象进行路径操作，这与 <code>temp_path</code> 和 <code>temp_path_factory</code> 使用的 <code>pathlib.Path</code> 对象不同。选择哪一个取决于你的具体需求和对 <code>py.path.local</code> 或 <code>pathlib.Path</code> 的偏好。</p>
+<h1 id="7-3-ben-zhang-xiao-jie">7.3 本章小结</h1>
+<p>在本章中，我们深入探讨了<code>pytest</code>内置<code>fixture</code>的功能和用法，并介绍了它在测试代码中的重要性。<code>pytest</code>内置<code>fixture</code>是<code>pytest</code>框架提供的一组预定义的<code>fixture</code>，它们为我们提供了方便且强大的功能，用于管理和共享资源、设置测试环境以及执行常见的测试操作。</p>
+<p><code>pytest</code>提供了一些常用的内置<code>fixture</code>，例如 <code>tmpdir</code>、<code>monkeypatch</code>、<code>caplog</code> 等，它们可以通过直接使用或者应用装饰器 <code>@pytest.mark.usefixtures</code> 在测试用例中使用。这些内置<code>fixture</code>为我们提供了一些常见的功能，如临时目录的创建、对全局变量的修改、日志捕获等。</p>
+<p>同时，我们还介绍了一些常用的内置<code>fixture</code>和它们的用途。例如，<code>tmpdir</code> fixture可以创建临时目录，并在测试结束后自动清理；<code>monkeypatch</code> fixture可以在测试过程中修改全局变量和函数行为；<code>caplog</code> fixture可以捕获和分析日志输出等。这些内置fixture为我们提供了方便且可靠的方式来处理测试中的各种需求。</p>
+<p>通过充分利用这些内置<code>fixture</code>，我们可以减少重复的代码编写，提高测试代码的可读性和可维护性。同时，还要注意<code>fixture</code>之间的依赖关系和执行顺序，以避免潜在的问题和错误。</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/05/27/pytest_test_guide_part1_chapter1_7_pytest_internal_fixture/">https://gavin-wang-note.github.io/2024/05/27/pytest_test_guide_part1_chapter1_7_pytest_internal_fixture/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2024/05/27/set_paste_for_vim/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/Linux/vim2.jpg" class="responsive-img" alt="Linux下解决vim内容黏贴缩进异常问题">
+                        
+                        <span class="card-title">Linux下解决vim内容黏贴缩进异常问题</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            设置vim永久生效内容黏贴缩进异常问题
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-05-27
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Linux/" class="post-category">
+                                    Linux
+                                </a>
+                            
+                            <a href="/categories/vim/" class="post-category">
+                                    vim
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Linux/">
+                        <span class="chip bg-color">Linux</span>
+                    </a>
+                    
+                    <a href="/tags/vim/">
+                        <span class="chip bg-color">vim</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/05/26/pytest_test_guide_part1_chapter1_6_pytest_fixture/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="《pytest测试指南》-- 章节1-6 pytest fixture">
+                        
+                        <span class="card-title">《pytest测试指南》-- 章节1-6 pytest fixture</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            《pytest测试指南》一书 章节1-6 pytest fixture详细介绍与示例说明
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-05-26
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2009-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">811.4k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

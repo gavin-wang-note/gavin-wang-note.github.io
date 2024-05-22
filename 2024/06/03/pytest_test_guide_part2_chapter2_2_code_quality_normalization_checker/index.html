@@ -1,0 +1,1566 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="《pytest测试指南》-- 第二章 2-2 代码质量与规范化检查工具-pylint, 软硬件测试">
+    <meta name="description" content="《pytest测试指南》一书 第二章 2-2 代码质量与规范化检查工具-pylint">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>《pytest测试指南》-- 第二章 2-2 代码质量与规范化检查工具-pylint | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/goodpapers" class="waves-effect waves-light">
+      
+      <i class="fas fa-coffee" style="zoom: 0.6;"></i>
+      
+      <span>好文收藏</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/goodpapers" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-coffee"></i>
+			
+			好文收藏
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-2.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">《pytest测试指南》-- 第二章 2-2 代码质量与规范化检查工具-pylint</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-06-03
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    3.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    12 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>为了保证代码质量与规范化，借助pylint生成代码质量结果，根据结果调整代码；此外可以结合Jenkins，完成pylint历史代码质量统计与监控。接下来本章节介绍pylint，以及pylint配置文件和常见 pylint 错误如何消除， 对于如何与Jenkins结合，请参考后续章节《与Jenkins结合完成CI构建》。</p>
+<h1 id="2-1-pylint-jie-shao">2.1 pylint介绍</h1>
+<h2 id="2-1-1-pylint-shi-shi-yao">2.1.1 pylint是什么</h2>
+<p>Pylint是一个流行的Python代码静态分析工具，它检查Python代码中的各种问题，从语法错误到代码风格问题，乃至于一些代码设计的推荐改进点。Pylint通过静态分析来捕获编程错误，帮助提升代码质量和遵循编码标准，如PEP 8。</p>
+<h2 id="2-1-2-he-xin-te-xing">2.1.2 核心特性</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>检查代码错误</p>
+</li>
+<li class="lvl-2">
+<p>查找代码 smells 或不良代码实践</p>
+</li>
+<li class="lvl-2">
+<p>审查代码复杂度和重复代码</p>
+</li>
+<li class="lvl-2">
+<p>验证是否遵循了编码标准（例如PEP 8）</p>
+</li>
+<li class="lvl-2">
+<p>提供重构建议</p>
+</li>
+<li class="lvl-2">
+<p>支持插件扩展，可以添加自定义检查</p>
+</li>
+</ul>
+<h2 id="2-1-3-an-zhuang-pylint">2.1.3 安装pylint</h2>
+<p>可以通过pip轻松安装Pylint：</p>
+<pre><code class="language-shell">pip install pylint
+</code></pre>
+<h2 id="2-1-4-ji-ben-shi-yong">2.1.4 基本使用</h2>
+<p>使用Pylint非常简单，只需要在命令行中运行以下命令，并传入要检查的Python文件或模块：</p>
+<pre><code class="language-shell">pylint mymodule.py
+</code></pre>
+<p>这将输出一系列的消息，如错误（E），警告（W），重构建议（R），和约定（C）。</p>
+<h2 id="2-1-5-xiao-xi-lei-xing">2.1.5 消息类型</h2>
+<p>Pylint结果中的消息大致分为以下几种类型：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>© Conventions</strong>：违反了编程标准和风格指南。</p>
+</li>
+<li class="lvl-2">
+<p><strong>® Refactor</strong>：代码可能需要重构，可能含有不必要的复杂性或冗余。</p>
+</li>
+<li class="lvl-2">
+<p><strong>(W) Warnings</strong>：警示可能的错误，如Python语法的弃用。</p>
+</li>
+<li class="lvl-2">
+<p><strong>(E) Errors</strong>：往往指代码中会导致程序无法运行的严重问题。</p>
+</li>
+<li class="lvl-2">
+<p><strong>(F) Fatal</strong>：导致Pylint无法进一步运行分析的错误，如文件无法加载。</p>
+</li>
+<li class="lvl-2">
+<p><strong>(I) Information</strong>：只是提供一些附加信息，通常是对代码的一些统计信息。</p>
+</li>
+</ul>
+<h2 id="2-1-6-shu-chu-jie-xi">2.1.6 输出解析</h2>
+<p>运行Pylint后，你会得到一份详细报告，包括：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>文件的评分（10分满分），分数低表示需要改进的地方较多。</p>
+</li>
+<li class="lvl-2">
+<p>每个问题标识符和消息描述</p>
+</li>
+<li class="lvl-2">
+<p>触发问题的代码行数和列数</p>
+</li>
+</ul>
+<h2 id="2-1-7-pei-zhi">2.1.7 配置</h2>
+<p>Pylint可以通过<code>pylintrc</code>或<code>.pylintrc</code>文件进行详细配置，你可以禁用某些消息或者设置作用域限制。</p>
+<h2 id="2-1-8-jin-zhi-jian-cha">2.1.8 禁止检查</h2>
+<p>在代码中，可以使用特殊注释<code># pylint: disable=</code>来忽略特定类型的检查。</p>
+<p>示例：</p>
+<pre><code class="language-python"># pylint: disable=wildcard-import, method-hidden
+from mymodule import *
+...
+</code></pre>
+<h2 id="2-1-9-yu-ide-ji-cheng">2.1.9 与IDE集成</h2>
+<p>很多开发环境和编辑器提供了与Pylint的集成，自动在编写代码时进行检查。例如，VS Code可以利用插件来实现这一点。</p>
+<h2 id="2-1-10-ci-cd-ji-cheng">2.1.10 CI/CD集成</h2>
+<p>Pylint也可以集成到持续集成/持续部署流程中，自动检查每次提交的代码，确保代码质量始终满足设置的标准。</p>
+<h2 id="2-1-11-shi-yong-pylint-zhu-yi-shi-xiang">2.1.11 使用Pylint注意事项</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>某些Pylint警告可能是误报，开发者需要对警告进行评估是否合理。</p>
+</li>
+<li class="lvl-2">
+<p>避免为了提高Pylint分数而过度重构工作正常的代码。</p>
+</li>
+<li class="lvl-2">
+<p>在需要时适当禁用Pylint检查，但不应滥用。</p>
+</li>
+</ul>
+<p>Pylint是一个非常有力的工具，有助于维持和改进代码的质量。然而，就像任何工具一样，最佳实践是了解何时使用它，何时根据项目的特定需求采取适当的行动。</p>
+<h1 id="2-2-pylint-pei-zhi-wen-jian-pylintrc">2.2 pylint配置文件 .pylintrc</h1>
+<p>Pylint是一个非常强大的Python代码静态分析工具，它可以识别代码中的错误，执行代码风格检查，以及标记可疑的代码段；它可以高度定制化，让你可以根据自己的需求来调整要应用的规则。</p>
+<h2 id="2-2-1-pylintrc-wen-jian">2.2.1 .pylintrc 文件</h2>
+<p><code>.pylintrc</code> 文件是Pylint的配置文件，你可以在这里设置各种参数以定制化Pylint的行为。这个文件通常位于项目的根目录下，Pylint在运行时会查找这个文件以获取配置。你也可以通过<code>--rcfile</code>参数来显式的指定配置文件的位置。如果没有<code>.pylintrc</code>文件，Pylint会使用默认设置。</p>
+<p>.pylintrc文件包含了一系列的配置选项，下面是这个文件的主要部分：</p>
+<h3 id="2-2-1-1-master">2.2.1.1 [MASTER]</h3>
+<p>这部分包含了和Pylint运行有关的一般设置。</p>
+<p>例如：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>ignore</code>：可以指定要忽略的文件模式。</p>
+</li>
+<li class="lvl-2">
+<p><code>load-plugins</code>：可以指定要加载的Pylint插件。</p>
+</li>
+<li class="lvl-2">
+<p><code>persistent</code>：决定是否写入历史信息文件。</p>
+</li>
+<li class="lvl-2">
+<p><code>jobs</code>：指定并行执行Pylint检查的进程数（例如，jobs=4将使用四个进程）。</p>
+</li>
+</ul>
+<h3 id="2-2-1-2-messages-control">2.2.1.2 [MESSAGES CONTROL]</h3>
+<p>在这个部分，你可以选择启用或禁用具体的消息（例如，某个具体的警告或错误）。</p>
+<p>例如：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>disable</code>：禁用特定的消息。</p>
+</li>
+<li class="lvl-2">
+<p><code>enable</code>：启用特定的消息。</p>
+</li>
+</ul>
+<h3 id="2-2-1-3-basic">2.2.1.3 [BASIC]</h3>
+<p>这部分包含了基本的代码分析设置，比如代码行的长度限制和函数参数数量限制等。</p>
+<p>例如：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>max-line-length</code>：设置允许的最大代码行长度。</p>
+</li>
+<li class="lvl-2">
+<p><code>function-rgx</code>：正则表达式，用于匹配函数名并制定函数命名样式。</p>
+</li>
+</ul>
+<h3 id="2-2-1-4-variables">2.2.1.4 [VARIABLES]</h3>
+<p>涉及变量的命名规范和声明规则。</p>
+<h3 id="2-2-1-5-format">2.2.1.5 [FORMAT]</h3>
+<p>涉及代码格式，例如：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>indent-string</code>：指定用于缩进的字符串，比如<code>' '</code> (space) 或<code>'\t'</code> (tab)。</p>
+</li>
+</ul>
+<h3 id="2-2-1-6-design">2.2.1.6 [DESIGN]</h3>
+<p>设置与代码设计相关的模式，比如设置允许的最大父类数量，或者函数内变量的最大数量等。</p>
+<h3 id="2-2-1-7-exceptions">2.2.1.7 [EXCEPTIONS]</h3>
+<p>定义对异常处理的检查规则。</p>
+<h3 id="2-2-1-8-similarities">2.2.1.8 [SIMILARITIES]</h3>
+<p>这一部分用于检查和标记相似和重复的代码段。</p>
+<h3 id="2-2-1-9-spelling">2.2.1.9 [SPELLING]</h3>
+<p>涉及到拼写检查的设置。</p>
+<h2 id="2-2-2-chang-yong-de-pei-zhi-can-shu-he-shi-li">2.2.2 常用的配置参数和示例</h2>
+<p>例如，如果你想要忽略所有的<code>missing-docstring</code>警告，你的<code>.pylintrc</code>文件中的<code>[MESSAGES CONTROL]</code>部分可以这样设置：</p>
+<pre><code class="language-ini">[MESSAGES CONTROL]
+disable=missing-docstring
+</code></pre>
+<p>如果你希望修改代码行最大长度的检查，可以设置<code>[FORMAT]</code>部分的相关选项：</p>
+<pre><code class="language-ini">[FORMAT]
+max-line-length=120
+</code></pre>
+<p>如果你打算只启用一部分特定的警告，你可以进行如下设置：</p>
+<pre><code class="language-ini">[MESSAGES CONTROL]
+enable=trailing-whitespace,unused-import
+</code></pre>
+<p>要配置忽略文件或目录，可以在<code>[MASTER]</code>部分中设置：</p>
+<pre><code class="language-ini">[MASTER]
+ignore=tests/*
+</code></pre>
+<h2 id="2-2-3-zai-dai-ma-zhong-fu-gai-pylintrc-pei-zhi">2.2.3 在代码中覆盖.pylintrc配置</h2>
+<p>你还可以在代码中使用特定的注释来临时使Pylint忽略某些警告：</p>
+<pre><code class="language-python"># pylint: disable=specific-warning,another-one
+</code></pre>
+<p>在上面的代码中，<code>specific-warning</code>和<code>another-one</code>代表你想要Pylint跳过的特定警告的名称。</p>
+<h2 id="2-2-4-sheng-cheng-mo-ren-de-pylintrc-wen-jian">2.2.4 生成默认的.pylintrc文件</h2>
+<p>如果你想生成一个默认配置的<code>.pylintrc</code>文件，可以在命令行中运行以下命令：</p>
+<pre><code class="language-shell">pylint --generate-rcfile &gt; .pylintrc
+</code></pre>
+<p>然后你可以开始编辑这个文件，根据你的需要修改各种设置。</p>
+<h2 id="2-2-5-zong-he-guan-li-pylint-xiao-xi">2.2.5 综合管理Pylint消息</h2>
+<p>操作<code>.pylintrc</code>文件可以让你精细管理Pylint的消息，这在维护一致的代码风格和规范中非常重要。在大型项目中，这些配置可以帮助团队成员遵循一致的代码标准，从而提高代码的可读性和维护性。</p>
+<h1 id="2-3-pylint-cuo-wu-xiao-chu">2.3 pylint错误消除</h1>
+<p>为了在<code>.pylintrc</code>文件中消除各种告警，通常你需要按以下步骤操作：</p>
+<h2 id="2-3-1-sheng-cheng-chu-shi-de-code-pylintrc-code-wen-jian-ru-guo-huan-mei-you">2.3.1 生成初始的<code>.pylintrc</code>文件（如果还没有）</h2>
+<p>在项目根目录下运行以下命令来生成初始的<code>.pylintrc</code>文件（如果你还没有这个文件）：</p>
+<pre><code class="language-bash">pylint --generate-rcfile &gt; .pylintrc
+</code></pre>
+<h2 id="2-3-2-bian-ji-code-pylintrc-code-wen-jian-nei-de-messages-control-bu-fen">2.3.2 编辑<code>.pylintrc</code>文件内的[MESSAGES CONTROL]部分</h2>
+<p>配置文件<code>.pylintrc</code>中有一个专门的部分<code>[MESSAGES CONTROL]</code>用于控制告警信息的显示。以下是示例如何修改这一部分内容来消除特定的告警：</p>
+<pre><code class="language-ini">[MESSAGES CONTROL]
+disable=
+    C0111, # missing-docstring
+    W0702, # bare-except
+    E1101, # no-member
+</code></pre>
+<p>这样的配置将会禁用三种告警：缺少文档字符串、裸露的except语句以及成员不存在提示。</p>
+<h2 id="2-3-3-gao-jing-de-cuo-wu-ma-ji-miao-shu">2.3.3 告警的错误码及描述</h2>
+<p>Pylint的错误码通常有一个特定的前缀，表示告警的类别：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>C</code> (Convention)：不符合编码风格约定的编码。</p>
+</li>
+<li class="lvl-2">
+<p><code>R</code> (Refactor)：代码需要重构的地方。</p>
+</li>
+<li class="lvl-2">
+<p><code>W</code> (Warning)：可能的代码运行错误。</p>
+</li>
+<li class="lvl-2">
+<p><code>E</code> (Error)：确定的代码运行错误。</p>
+</li>
+<li class="lvl-2">
+<p><code>F</code> (Fatal)：阻碍Pylint进一步运行的错误。</p>
+</li>
+</ul>
+<p>以下是一些常见的Pylint告警信息及其描述：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>C0111 (missing-docstring)</code>: 代码中缺少模块、类、函数或方法的文档字符串。</p>
+</li>
+<li class="lvl-2">
+<p><code>W0702 (bare-except)</code>: 使用了<code>except:</code>而没有具体指定异常类型。</p>
+</li>
+<li class="lvl-2">
+<p><code>E1101 (no-member)</code>: 一个对象被赋予了一个Pylint认为不存在的成员。</p>
+</li>
+</ul>
+<h2 id="2-3-4-shi-li-shuo-ming-ru-he-xiao-chu-gao-jing">2.3.4 示例说明如何消除告警</h2>
+<p>假设你的代码中有多处缺少文档字符串的情况，Pylint检查时会提醒缺少docstring，并为之分配一个ID，比如<code>C0111</code>。如果你认为这个检查在某些情况下可以忽略（比如私有函数），可以在<code>.pylintrc</code>文件中禁用它：</p>
+<pre><code class="language-ini">[MESSAGES CONTROL]
+# 禁用缺少文档字符串的告警
+disable=missing-docstring
+</code></pre>
+<p>此外，如果你想要对某个具体的文件或代码段忽略这个告警，可以在文件或代码段的顶部添加如下注释：</p>
+<pre><code class="language-python"># pylint: disable=missing-docstring
+</code></pre>
+<p>或者，如果你只想忽略某个具体函数或类的这个告警：</p>
+<pre><code class="language-python">class MyClass:
+    # pylint: disable=missing-docstring
+    def my_method(self):
+        pass
+</code></pre>
+<h2 id="2-3-5-jian-cha-gao-jing-id">2.3.5 检查告警ID</h2>
+<p>当你不确定告警的ID时，可以让Pylint输出它的所有默认消息和相应的ID。这可以通过以下命令完成：</p>
+<pre><code class="language-bash">pylint --list-msgs
+</code></pre>
+<h2 id="2-3-6-ying-yong-code-pylintrc-code-wen-jian-de-pei-zhi">2.3.6 应用<code>.pylintrc</code>文件的配置</h2>
+<p>配置完<code>.pylintrc</code>文件后，再次运行Pylint时，它将应用新的规则：</p>
+<pre><code class="language-bash">pylint your_module.py
+</code></pre>
+<p>Pylint将根据<code>.pylintrc</code>文件中的设置来执行检查，并忽略你指定的告警。</p>
+<p>这样，你可以细致地控制每条告警的显示与否，以便在保证代码质量的同时，减少不必要的噪音。</p>
+<h2 id="2-3-7-xiu-fu-pylint-gao-jing-shi-jian">2.3.7 修复pylint告警实践</h2>
+<p>假如存在如下一个示例告警：</p>
+<pre><code class="language-shell">root@Gavin:~/code# pylint --rcfile=.pylintrc chapter1-5/test_nose_assert.py 
+************* Module .pylintrc
+.pylintrc:1:0: E0015: Unrecognized option found: argument-name-hint, attr-name-hint, class-attribute-name-hint, class-name-hint, const-name-hint, function-name-hint, inlinevar-name-hint, method-name-hint, module-name-hint, variable-name-hint (unrecognized-option)
+************* Module test_nose_assert
+chapt1-5/test_nose_assert.py:63:28: C0303: Trailing whitespace (trailing-whitespace)
+chapt1-5/test_nose_assert.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+chapt1-5/test_nose_assert.py:1:0: C0103: Module name "test_nose_assert" doesn't conform to '(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$' pattern (invalid-name)
+chapt1-5/test_nose_assert.py:6:0: E0401: Unable to import 'tools' (import-error)
+</code></pre>
+<p>如何消除上述告警？</p>
+<pre><code class="language-shell">E0015 --&gt;  在.pylintrc文件中增加```disable=E0015```
+C0303: Trailing whitespace (trailing-whitespace) --&gt; 文件中含有多余空格，多数发生于某行的尾部
+</code></pre>
+<p>如上，在.pylintrc文件中增加后，再次执行<code>pylint --rcfile=.pylintrc chapter1-5/test_nose_assert.py</code> 观察效果。</p>
+<h1 id="2-4-ben-zhang-xiao-jie">2.4 本章小结</h1>
+<p>本章节中，我们深入探讨了pylint工具的核心特性、基本使用、配置文件以及错误消除等方面。</p>
+<p>我们首先介绍了pylint的核心特性。pylint是一个Python代码静态分析工具，用于检测潜在的问题和错误。它可以帮助开发人员提高代码的质量和可维护性，并遵循PEP 8代码风格指南，这些特性使pylint成为了优化Python代码的重要工具。</p>
+<p>接着，我们学习了pylint的基本使用方法。我们了解了如何安装pylint，并使用命令行界面来分析Python代码。我们还学习了如何指定要分析的文件或目录，并设置分析的规则和报告输出的格式。</p>
+<p>我们进一步讨论了pylint的配置文件。配置文件允许我们自定义分析的规则、忽略特定的错误和警告，以及指定报告的输出路径和格式。我们学习了如何创建和编辑配置文件，并通过示例展示了常见的配置选项和用法。</p>
+<p>最后，我们探讨了pylint提供的错误消除功能。pylint可以为我们提供详细的错误信息和建议，帮助我们理解和解决代码中的问题。我们了解了如何解读和理解pylint的错误报告，并根据报告中的信息进行代码修复和改进。</p>
+<p>通过本章的学习，我们对pylint工具的核心特性、基本使用、配置文件和错误消除有了更深入的了解。使用pylint可以帮助我们提高Python代码的质量和可维护性，减少潜在的错误和问题。</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/06/03/pytest_test_guide_part2_chapter2_2_code_quality_normalization_checker/">https://gavin-wang-note.github.io/2024/06/03/pytest_test_guide_part2_chapter2_2_code_quality_normalization_checker/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2024/06/04/pytest_test_guide_part2_chapter2_3_api_framework_design/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="《pytest测试指南》-- 第二章 2-3 pytest+requests+allure自动化测试框架设计">
+                        
+                        <span class="card-title">《pytest测试指南》-- 第二章 2-3 pytest+requests+allure自动化测试框架设计</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            《pytest测试指南》一书 第二章 2-3 pytest+requests+allure自动化测试框架设计
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-06-04
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/06/02/pytest_test_guide_part2_chapter2_1_api_and_requests_module/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="《pytest测试指南》-- 第二章 2-1 API与requests模块介绍">
+                        
+                        <span class="card-title">《pytest测试指南》-- 第二章 2-1 API与requests模块介绍</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            《pytest测试指南》一书 第二章 2-1 API与requests模块介绍
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-06-02
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2009-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">811.4k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
