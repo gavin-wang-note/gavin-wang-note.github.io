@@ -1,8 +1,8 @@
 ---
 title: 《pytest测试指南》-- 章节1-3 pytest参数详解PART2
-date: 2024-06-12 21:09:15
+date: 2024-05-22 21:09:15
 author: Gavin Wang
-img: "/img/pytest/pytest-5.png"
+img: "/img/pytest/pytest-2.png"
 top: false
 hide: false
 cover: false
@@ -1305,3 +1305,6 @@ pytest --junit-xml=report311.xml --junit-prefix=py311
 
 在 CI 系统中合并多个报告时，这样的前缀可以防止测试用例的名称冲突，并提供一个更清晰的报告结构。
 
+
+
+[续下文](https://gavin-wang-note.github.io/2024/05/23/pytest_test_guide_part1_chapter1_3_3_pytest_params/)

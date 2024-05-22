@@ -1,6 +1,6 @@
 ---
 layout:     post
-title:      "pytest+requests+allure接口级自动化指南"
+title:      "pytest+requests+Allure实现接口级自动化测试"
 subtitle:   "User guide of pytest+requests+allure"
 date:       2020-03-07
 author:     "Gavin Wang"
@@ -8,7 +8,7 @@ catalog:    true
 top: true
 img: "/img/pytest/pytest-8.png"
 cover: true
-summary: 详细介绍pytest+requests+allure的安装与使用，并结合产品，给出具体示例
+summary: 详细介绍pytest+requests+Allure实现API自动化测试框架设计与开发工作，并结合产品给出具体示例，以及与Jenkins完成CI/CD
 categories:
     - [pytest]
     - [Automation]

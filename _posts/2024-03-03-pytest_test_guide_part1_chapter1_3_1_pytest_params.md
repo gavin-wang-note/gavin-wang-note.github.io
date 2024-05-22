@@ -2,7 +2,7 @@
 title: 《pytest测试指南》-- 章节1-3 pytest参数详解PART1
 date: 2024-03-03 21:09:15
 author: Gavin Wang
-img: "/img/pytest/pytest-4.png"
+img: "/img/pytest/pytest-2.png"
 top: false
 hide: false
 cover: false
@@ -19,7 +19,9 @@ tags:
     - pytest
 ---
 
-`pytest`提供了丰富的参数，本文以 `pytest 7.4.0` 版本为基础，在未安装任何额外插件情况下，分类阐述参数的使用方法与介绍：
+# 概述
+
+`pytest` 提供了丰富的参数，本文以 `pytest 7.4.0` 版本为基础，在未安装任何额外插件情况下，分类阐述参数的使用方法与介绍：
 
 * positional arguments
 
@@ -1229,3 +1231,6 @@ pytest --stepwise --stepwise-skip
 - 类似 `--stepwise`，这个选项在调试一个大型测试套件时非常有用，尤其是当你希望忽略已知将被跳过的测试，将焦点放在需要修复的失败测试上时。
 - `--stepwise-skip` 选项创造了一个快速迭代的测试环境，特别是在调试过程中，它绕过了不需要关注的测试，让你可以集中精力在当前失败处一步步前进。
 - 这个选项的使用前提是你的测试套件中包含了使用 `pytest.mark.skip` 或 `pytest.mark.skipif` 标记的测试。如果没有这样的跳过标记，它的行为就和标准的 `--stepwise` 选项一样。
+
+
+[续下文](https://gavin-wang-note.github.io/2024/05/22/pytest_test_guide_part1_chapter1_3_2_pytest_params/)
