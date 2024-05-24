@@ -3,15 +3,22 @@ layout:     post
 title:      "魔法键重启Linux机器"
 subtitle:   "reboot Linux machine by magic key"
 date:       2019-11-27
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+cover:      true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
 
+# 前言
+
+本文介绍魔法键重启Linux机器， very magical.
+
 # 概述
 
-啥？ 重启Linux机器，无非通过下列几种常见命令：
+重启Linux机器，无非通过下列几种常见命令：
 
 ```reboot ```
 

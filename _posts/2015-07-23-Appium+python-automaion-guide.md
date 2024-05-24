@@ -1,14 +1,22 @@
 ---
-layout:     post
-title:      "Appium+python自动化安装指南"
-subtitle:   "Appium+python APP automation guide"
-date:       2015-07-23
-author:     "Gavin"
-catalog:    true
+layout: post
+title:  "Appium+python自动化安装指南"
+subtitle: "Appium+python APP automation guide"
+date:  2015-07-23
+author: "Gavin Wang"
+catalog: true
+summary: 详细介绍Appium+python开发APP自动化
+top: true
+img: "/img/appium/appium2.jpg"
+cover: true
+categories:
+    - [Automation]
+    - [python]
 tags:
     - Appium
     - Automation
     - APP
+    - python
 ---
 
 
@@ -24,21 +32,21 @@ tags:
 
 ### 步骤1、下载并安装nodejs
 
-下载nodejs安装包（http://nodejs.org/download/）并进行安装，**安装的时候有选项，记得把环境变量添加到****path****路径**。
+下载nodejs安装包（http://nodejs.org/download/）并进行安装，**安装的时候有选项，记得把环境变量添加到path路径**。
 
 下图红框中表示要下载的版本：
 
 <img class="shadow" src="/img/in-post/current_version.png" width="1200">
 
 
- 
+
 
 ### 步骤2、测试nodejs安装是否成功
 
 在cmd中输入node –v，如果出现如下结果，则表明安装成功
 
 <img class="shadow" src="/img/in-post/node_success.png" width="1200">
- 
+
 
 ## **安装android的SKD**
 
@@ -69,7 +77,7 @@ tags:
 变量值：**%ANDROID_HOME%\tools;%ANDROID_HOME%\platform-tools;** 
 
 <img class="shadow" src="/img/in-post/plat_path.png" width="1200">
- 
+
 
 ### 步骤3、SDK包更新
 
@@ -132,7 +140,7 @@ http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.h
 ​     变量值： 你刚解压到的路径： **C:\apache\apache-ant-1.9.4**
 
 <img class="shadow" src="/img/in-post/ant_home.png" width="1200">
- 
+
 
 设置Path:
 
@@ -222,7 +230,7 @@ Microsoft .NET Framework 4.5 下载地址：http://www.microsoft.com/en-us/downl
 
 # Python和selenium的安装配置
 
-## **安装****python**
+## 安装python
 
 ### 步骤1、下载并安装python2.7.5
 
@@ -241,7 +249,7 @@ Microsoft .NET Framework 4.5 下载地址：http://www.microsoft.com/en-us/downl
 变量值：**C:\Python27**
 
 <img class="shadow" src="/img/in-post/python_path.png" width="1200">
- 
+
 
 ## **安装setuptools**
 
@@ -263,7 +271,7 @@ https://pypi.python.org/pypi/setuptools#windows-7-or-graphical-install
 
 **注意：**
 
-  **ez_setup.py****文件要存放在不包含中文以及空格目录中！**
+  **ez_setup.py文件要存放在不包含中文以及空格目录中！**
 
 ### 步骤2、安装setuptools
 
@@ -355,11 +363,11 @@ http://www.eclipse.org/downloads/
 
 **注意：**
 
-   **Eclipse****解压后所在目录不能含有中文、空格。**
+   **Eclipse解压后所在目录不能含有中文、空格。**
 
  
 
-## **P****ydev插件安装**
+## **Pydev插件安装**
 
 ### 步骤1、打开Eclipse工具
 
@@ -368,7 +376,7 @@ http://www.eclipse.org/downloads/
 **在eclipse**工具，点击Help，选择Eclipse Marketplace，如下图所示：
 
 <img class="shadow" src="/img/in-post/market.png" width="1200">
- 
+
 
 在弹出界面中Find出，输入pydev，点击GO进行搜索：
 
@@ -417,7 +425,7 @@ http://www.eclipse.org/downloads/
 
 在testCase目录下新创建个test.py文件，输入脚本内容：
 
-```
+```python
 #/usr/bin/env python
 #-*- coding:UTF-8 -*-
 
@@ -466,7 +474,7 @@ if __name__ == "__main__":
 
 # client安装
 
-## **客户端****安装步骤如下：**
+## 客户端安装步骤如下：
 
 ### 安装python并设置python环境变量
 

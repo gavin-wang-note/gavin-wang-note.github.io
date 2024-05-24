@@ -1,11 +1,11 @@
 ---
-title: 《pytest测试指南》
+title: 自己总结的《pytest测试指南》
 date: 2999-12-31 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-2.png"
 top: true
 hide: false
-cover: false
+cover: true
 coverImg:
 password:
 theme: flip
@@ -19,6 +19,10 @@ tags:
     - pytest
     - Automation
 ---
+
+# 概述
+
+工作之余，前前后后大约一年半的时间，断断续续的写了这些内容，好记性不如烂笔头，自己留存下来偶尔看看温习温习。
 
 # 本书全部链接
 
