@@ -2,7 +2,7 @@
 title: 借助pytest hook生成Allure所需的environment.properties文件内容
 date: 2024-08-01 13:20:18
 author: Gavin Wang
-img: "/img/pytest/pytest-10.png"
+img: "/img/pytest/pytest-11.png"
 top: false
 hide: false
 cover: false
