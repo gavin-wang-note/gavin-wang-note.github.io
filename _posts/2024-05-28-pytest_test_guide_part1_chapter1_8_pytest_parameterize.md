@@ -1064,7 +1064,7 @@ def get_browser_driver(browser_name, browser_version):
 @pytest.mark.parametrize("browser_name, browser_version", [
     ('Firefox', '80'),
     ('Chrome', '85'),
-    # 您可以添加更多的浏览器与版本作为组合
+    # 你可以添加更多的浏览器与版本作为组合
     # ('Safari', '13'),
     # ('Edge', '85'),
 ])

@@ -5,10 +5,10 @@ subtitle:   "pyserial Embedded Automation Test Framework for Windows"
 date:       2023-07-19
 author:     "Gavin Wang"
 catalog:    true
-top: true
+top: false
 img: "/img/pytest/pytest-8.png"
 summary: pytest基于pyserial模块做嵌入式产品串口功能自动化
-password: Huawei123!
+password:
 theme: flip
 categories:
     - [Automation]

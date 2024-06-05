@@ -824,7 +824,7 @@ def test_pytester_example(pytester):
     assert result.stdout.str().find('100%') != -1 # 检查成功率100%
     assert 'test_fail' in result.stdout.str()    # 检查失败的测试是否出现
 
-    # 您可以使用 'result.stdout.lines' 获取输出的行列表
+    # 你可以使用 'result.stdout.lines' 获取输出的行列表
     for line in result.stdout.lines:
         print(line) # 这里可以打印每一行的内容，或者进行额外的处理和断言
 ```
@@ -1974,7 +1974,7 @@ def pytest_html_results_table_row(report, cells):
     properties_str = ', '.join([f'{name}: {value}' for name, value in properties])
     cells.insert(1, properties_str or 'N/A')
 
-# 选项：如果您想要在 HTML 报告的摘要部分以单独的区块显示属性
+# 选项：如果你想要在 HTML 报告的摘要部分以单独的区块显示属性
 def pytest_html_results_summary(prefix, summary, postfix):
     # 此处可以根据需要添加自定义的 HTML 代码来格式化和显示属性
     pass

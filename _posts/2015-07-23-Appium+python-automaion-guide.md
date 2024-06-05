@@ -1,13 +1,13 @@
 ---
 layout: post
-title:  "Appium+python自动化安装指南"
+title:  "Appium+python APP 自动化安装指南"
 subtitle: "Appium+python APP automation guide"
 date:  2015-07-23
 author: "Gavin Wang"
 catalog: true
 summary: 详细介绍Appium+python开发APP自动化
 top: true
-img: "/img/appium/appium2.jpg"
+img: "img/appium/appium1.jpg"
 cover: true
 categories:
     - [Automation]

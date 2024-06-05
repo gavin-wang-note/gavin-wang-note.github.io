@@ -138,7 +138,7 @@ pytest调用以下钩子函数来收集测试文件及目录。
 
 ### 2.2.1.2 用法与示例
 
-- 在您的`conftest.py`文件中定义`pytest_addoption`函数，并使用`parser`参数来添加自定义的命令行选项。
+- 在你的`conftest.py`文件中定义`pytest_addoption`函数，并使用`parser`参数来添加自定义的命令行选项。
 - 使用`addoption`方法添加命令行选项，并指定选项的名称、帮助文本、默认值等。
 
 如下所示：

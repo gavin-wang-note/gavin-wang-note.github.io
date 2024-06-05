@@ -154,7 +154,7 @@ import pytest
 # 钩子函数，在每个测试调用时运行
 def pytest_runtest_call(item):
     current_test = os.environ.get('PYTEST_CURRENT_TEST')
-    # 注意：在测试开始之前，'current_test' 可能是 None。确保您在 'pytest_runtest_call' 钩子或之后的钩子中访问它。
+    # 注意：在测试开始之前，'current_test' 可能是 None。确保你在 'pytest_runtest_call' 钩子或之后的钩子中访问它。
     if current_test:
         test_name = current_test.split(' ')[0]
         print(f"\nRUNNING TEST: {test_name}")
@@ -334,7 +334,7 @@ root@Gavin:~/code/chapter1-12#
 
 ```python
 # content of test_debug_with_snoop.py
-# 假设这是您要测试的函数
+# 假设这是你要测试的函数
 def function_to_test(x):
     y = x + 1
     z = y * y
@@ -351,7 +351,7 @@ def test_function_to_test():
 
 当你运行`pytest`时，`test_function_to_test`函数中的`snoop`装饰器会自动记录函数的执行过程，并将详细的跟踪信息打印到控制台。
 
-如果您想将`snoop`的输出重定向到文件中，可以在装饰器中提供一个输出文件名：
+如果你想将`snoop`的输出重定向到文件中，可以在装饰器中提供一个输出文件名：
 
 ```shell
 @snoop(output='function_trace.log')

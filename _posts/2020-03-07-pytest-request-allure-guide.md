@@ -6,7 +6,7 @@ date:       2020-03-07
 author:     "Gavin Wang"
 catalog:    true
 top: true
-img: "/img/pytest/pytest-8.png"
+img:
 cover: true
 summary: 详细介绍pytest+requests+Allure实现API自动化测试框架设计与开发工作，并结合产品给出具体示例，以及与Jenkins完成CI/CD
 categories:

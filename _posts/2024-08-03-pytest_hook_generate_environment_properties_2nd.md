@@ -40,7 +40,7 @@ from zoneinfo import ZoneInfo
 
 from utils.config import CONFIG
 
-# 测试环境信息，根据您的实际情况进行修改
+# 测试环境信息，根据你的实际情况进行修改
 BASE_URL = CONFIG['orangehrm_base_url']
 TEST_ENVIRONMENT_IP = BASE_URL.split('/')[1:][1]    # 被测环境的IP
 PRODUCT_VERSION = BASE_URL.split('/')[1:][2]        # 被测产品的版本

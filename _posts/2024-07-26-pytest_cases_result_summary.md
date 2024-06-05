@@ -1,10 +1,10 @@
 ---
 title: 借助pytest hook获取用例执行结果信息汇总
-date: 2024-07-24 16:59:18
+date: 2024-07-26 16:59:18
 author: Gavin Wang
 img: "/img/pytest/pytest-10.png"
 top: false
-hide: true
+hide: false
 cover: false
 coverImg:
 password:

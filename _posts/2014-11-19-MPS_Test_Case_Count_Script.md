@@ -1,10 +1,12 @@
 ---
 layout:     post
-title:      "MPS测试用例数统计脚本"
-subtitle:   "MPS Test Case Count Script"
+title:      "MPS API 测试用例数统计脚本"
+subtitle:   "MPS 接口Test Case Count Script"
 date:       2014-11-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -27,7 +29,7 @@ tags:
 
 代码片段：
 
-```
+```python
 #!/usr/bin/env python
 #-*- coding:UTF-8 -*-
 
@@ -71,15 +73,15 @@ def all_case_files():
     return  test_case_files
 
 
-​    
+    
 #读取文件，获取:4个空格开头， + def + 空格 + '(self):' 结尾的行记录的数量
 def test_case_count(fname):
-​    count = 0
-​    for file_line in open(fname).xreadlines():
-​        m = re.match(r'^(\s{4})def(\s+)(test*)', file_line)
-​        if m is not None:
-​            count += 1
-​    return count
+    count = 0
+    for file_line in open(fname).xreadlines():
+        m = re.match(r'^(\s{4})def(\s+)(test*)', file_line)
+        if m is not None:
+            count += 1
+    return count
 
 
 
