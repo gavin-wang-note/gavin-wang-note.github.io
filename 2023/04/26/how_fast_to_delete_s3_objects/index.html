@@ -512,14 +512,14 @@
                 
                 <div class="info-break-policy">
                     <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
-                    2.7k
+                    3.4k
                 </div>
                 
 
                 
                 <div class="info-break-policy">
                     <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
-                    15 分
+                    19 分
                 </div>
                 
 
@@ -998,7 +998,136 @@ function empty_bucket()
             split_no=1000
             file_no=$(($no_of_obj/${split_no}))
             previous_file_no=$((${file_no} - 1))
-            suffix_length=$</code></pre>
+            suffix_length=${\#file_no} # penultimate file, appending '], "Quiet":true}' to the end \# delete the '\'
+            paged_file_name="$current_prefix-page-"
+
+            # split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name} &amp;&amp; ls | grep ${paged_file_name} | xargs -n1 -i mv {} {}.json
+
+            if [[ ${version_flag} == 'disable' ]]; then 
+                split -l ${NO_VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
+            else
+                split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name}
+            fi
+
+            # 3rd, rename file, e.g: Change name from Veeam-page-75 to Veeam-page-75.json, $3 is 75 in example
+            # ls | grep Veeam-page- | awk -F "-" '{d=sprintf("%d" ,$3);system("mv "$0" Veeam-page-"d".json")}'
+            ls | grep ${paged_file_name} | awk -F "-" '{d=sprintf("%d" ,$3);system("mv "$0" '${paged_file_name}'"d".json")}'
+
+            # 4th, modify each split file
+            ## First line add content of '{"Objects":['
+            ## Last line replace ',' to '], "Quiet":true}'
+            for((i=0;i&lt;=$file_no;i++))
+            do
+                src_file_name="${paged_file_name}$i.json"
+                sed -i '1i{"Objects":[' ${src_file_name}
+                if  [[ ${no_of_obj} -eq ${split_no} ]]; then  # Only one file need to split
+                    # Last end of file, add ',/], "Quiet":true}' to file, the ',' is in next page file, just break
+                    sed -i '$a\], "Quiet":true}' ${src_file_name}
+                    # Just echo content to the next file, because it only has ',' in
+                    echo "{\"Objects\":[], \"Quiet\":true}" &gt; ${paged_file_name}1.json
+                    break
+                else
+                    if [[ $i != $file_no ]]; then
+                        if [[ ${i} -eq ${previous_file_no} ]];then
+                            sed -i '$a\], "Quiet":true}' ${src_file_name}  # penultimate file, appending '], "Quiet":true}' to the end
+                        else
+                            sed -i '$s/},/}\n], "Quiet":true}/' ${src_file_name}
+                        fi
+                    else
+                        sed -i '$s/,/], "Quiet":true}/' ${src_file_name}
+                    fi
+                fi
+            done
+
+            split_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
+            split_obj_time_distance=$(expr $(date +%s -d "${split_obj_end_time}") - $(date +%s -d "${split_obj_start_time}"))
+            echo -e "[${split_obj_end_time}]  Split json file cost ${split_obj_time_distance}s" | tee -a ${LOG}
+
+            echo -e "***********************************  Delete Objects *************************************" | tee -a ${LOG}
+            del_obj_start_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${del_obj_start_time}]  Delete Objects" &gt;&gt; ${LOG}
+            page_file_prefix="$current_prefix-page"
+            echo -e "[${del_obj_start_time}]  1000 records per pickup file, which will be delete from ${file_no} file(s)" | tee -a ${LOG}
+
+            # If file_no is too large, needs to be split into multiple tasks to be executed sequentially,
+            # avoiding too much system resource usage due to simultaneous initiation
+            if [[ ${file_no} -gt ${TASK_NO} ]];then
+               loop_times=$(expr ${file_no} / ${TASK_NO})
+               echo -e "[DEBUG]  Total loop times : $(expr ${loop_times} + 1)" &gt;&gt; ${LOG}
+               for((i=0;i&lt;=${loop_times};i++))
+               do
+                   _start=$(expr ${TASK_NO} \* ${i})
+                   start=$(expr ${_start} + 1)
+                   multiplier=$(expr ${i} + 1)
+                   end=$(expr ${TASK_NO} \* ${multiplier})
+                   if [[ ${end} -ge ${file_no} ]];then 
+                       end=${file_no}
+                   fi
+                   echo -e "[DEBUG]  Loop time : ${i}, delete from ${start} to ${end}" &gt;&gt; ${LOG}
+                   for((j=${start};j&lt;=${end};j++))
+                   do
+                       cmd="aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${j}.json --endpoint-url=http://localhost"
+                       echo "$cmd" &gt;&gt; ${LOG}
+                       eval "$cmd" &amp;
+                   done
+                   wait
+               done
+            else
+               for((i=0;i&lt;=$file_no;i++))
+               do
+                   cmd="aws s3api delete-objects --bucket $BUCKET --delete file://${page_file_prefix}-${i}.json --endpoint-url=http://localhost"
+                   echo "$cmd" &gt;&gt; ${LOG}
+                   eval "$cmd" &amp;
+               done
+               wait
+            fi
+
+            del_obj_end_time=`date "+%G-%m-%d %H:%M:%S"`
+            del_obj_time_distance=$(expr $(date +%s -d "${del_obj_end_time}") - $(date +%s -d "${del_obj_start_time}"))
+            echo -e "[${del_obj_end_time}]  Delete Objects cost ${del_obj_time_distance}s" | tee -a ${LOG}
+
+            echo -e "***************************************  ceph df ****************************************" | tee -a ${LOG}
+            # Get output of 'ceph df' again
+            cur_time=`date "+%G-%m-%d %H:%M:%S"`
+            echo -e "[${cur_time}]  ceph df:" &gt;&gt; ${LOG}
+            ceph df | tee -a ${LOG}
+        done &lt; "$PREFIXES_FILE"
+    else
+        echo "$PREFIXES_FILE does not exist."
+        exit 1
+    fi
+}
+
+
+function loop_delete()
+{
+    start_time=`date "+%G-%m-%d %H:%M:%S"`
+
+    # Don't worry about the huge number of loops here, there is an exit mechanism in the called function
+    for((i=0;i&lt;100000;i++))
+    do
+       empty_bucket
+    done
+}
+
+
+# Usage
+if [[ $# -lt 1 ]]; then
+    usage
+fi
+
+# Should install jq first
+check_jq
+
+# Action
+loop_delete
+
+</code></pre>
+<h1 id="can-kao-wen-dang">参考文档</h1>
+<pre><code class="language-shell">https://stackoverflow.nilmap.com/question?dest_url=https://stackoverflow.com/questions/29809105/how-do-i-delete-a-versioned-bucket-in-aws-s3-using-the-cli
+https://serverfault.com/questions/679989/most-efficient-way-to-batch-delete-s3-files
+https://stackoverflow.nilmap.com/question?dest_url=https://stackoverflow.com/questions/10054985/how-to-delete-files-recursively-from-an-s3-bucket
+</code></pre>
 
                 
             </div>
@@ -1422,7 +1551,7 @@ function empty_bucket()
             <br>
             
                 &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
-                        class="white-color">816.2k</span>
+                        class="white-color">817.6k</span>
             
             
             
