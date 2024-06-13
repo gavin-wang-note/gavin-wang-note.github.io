@@ -3,8 +3,11 @@ layout:     post
 title:      "快速清除S3 Bucket下Objects"
 subtitle:   "Fast to delete S3 Objects"
 date:       2023-04-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: true
+categories: 
+    - [ceph]
 tags:
     - ceph
 ---
@@ -49,7 +52,7 @@ tags:
 
 ## Bucket 没有启用version
 
-```
+```shell
 *****************************************************************************************
 [2023-04-26 08:45:45]  ceph df:
 GLOBAL:
@@ -104,7 +107,7 @@ aws s3api list-object-versions --endpoint-url=http://localhost --bucket "bucket0
 
 清理速度：
 
-```
+```shell
 (726 - 16.2) / 167 = 4.25GiB/s
 (297854 - 3323) / 167 = 1763 Objects/s
 ```
@@ -113,7 +116,7 @@ aws s3api list-object-versions --endpoint-url=http://localhost --bucket "bucket0
 
 ## Bucket 启用 version
 
-```
+```shell
 root@node161:~# bash empty_bucket_v1.2.sh 
 ***** This script will to delete objects which PREFIX is Veeam *****
 *****************************************************************************************
@@ -173,7 +176,7 @@ root@node161:~#
 
 清理速度：
 
-```
+```shell
 (734 - 1.38) / 314 = 2.33 GiB/s
 (597759 - 541) / 314 = 1901 Objects/s
 ```
@@ -182,12 +185,14 @@ root@node161:~#
 
 TiB 级别的大量数据的删除：
 
+{% note default %}
 说明：
+{% endnote %}
   * 如下删除动作，是先全部Dump完被删除对象，再并发清理。 Script后来有调整，防止最初的dump原始数据耗时太久出现异常。
   * 如下记录，仅做一个参考（通过其他的测试，从结果上看，Script后来的调整并没有出现删除衰减掉线严重现象）
   * 全部Dump出来记录再删除，如果这个dump的速度跟不上业务写入的速度（假定业务会持续写入），会出现一直都在dump数据，肯定会消耗比较多的Memory；所以跳转成每次只dump 5万笔记录，然后并发对这5万笔记录清理。
 
-```
+```shell
 *****************************************************************************************
 [2023-04-25 15:57:06]  ceph df:
 GLOBAL:
@@ -254,7 +259,7 @@ POOLS:
 
 删除速度：
 
-```
+```shell
 root@node162:~# python
 Python 2.7.12 (default, Oct  5 2020, 13:56:01) 
 [GCC 5.4.0 20160609] on linux2
@@ -292,7 +297,7 @@ prefixes.txt，这个文件要存在，里面记录被删除Object的前缀(是�
 单个prefix信息：
 e.g:
 
-```
+```shell
 root@node161:~# cat prefixes.txt 
 Veeam
 root@node161:~# 
@@ -301,7 +306,7 @@ root@node161:~#
 多个prefix信息：
 e.g:
 
-```
+```shell
 root@node161:~# cat prefixes.txt 
 Veeam
 Video
@@ -311,7 +316,7 @@ root@node161:~#
 
 ## Script 内容
 
-{% raw %}```
+```shell
 root@node244:~# cat empty_bucket_v1.3.sh 
 #!/bin/bash
 
@@ -456,7 +461,7 @@ function empty_bucket()
             split_no=1000
             file_no=$(($no_of_obj/${split_no}))
             previous_file_no=$((${file_no} - 1))
-            suffix_length=${#file_no} # penultimate file, appending '], "Quiet":true}' to the end
+            suffix_length=${\#file_no} # penultimate file, appending '], "Quiet":true}' to the end \# delete the '\'
             paged_file_name="$current_prefix-page-"
 
             # split -l ${VERSION_SPLIT_NUMBER} $OLD_OBJECTS_FILE -d -a ${suffix_length} ${paged_file_name} && ls | grep ${paged_file_name} | xargs -n1 -i mv {} {}.json
@@ -580,12 +585,12 @@ check_jq
 # Action
 loop_delete
 
-``` {% endraw %}
+```
 
 
 # 参考文档
 
-```
+```shell
 https://stackoverflow.nilmap.com/question?dest_url=https://stackoverflow.com/questions/29809105/how-do-i-delete-a-versioned-bucket-in-aws-s3-using-the-cli
 https://serverfault.com/questions/679989/most-efficient-way-to-batch-delete-s3-files
 https://stackoverflow.nilmap.com/question?dest_url=https://stackoverflow.com/questions/10054985/how-to-delete-files-recursively-from-an-s3-bucket

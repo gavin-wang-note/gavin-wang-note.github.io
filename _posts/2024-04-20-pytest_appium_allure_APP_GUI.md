@@ -64,7 +64,7 @@ Appium测试框架，参考下图：
 
 需要安装&配置的软件如下：
 
-* 安装JAVA，设置JAVA_HOME，JRK等相关环境变量
+* 安装JAVA，设置JAVA_HOME，JRE等相关环境变量
 * 安装Android SDK组件
 * 安装Node.js
 * 安装Appium&pytest以及pytest相关插件
@@ -83,7 +83,7 @@ selenium==4.18.1
 root@Gavin:~/MobileAppTestFramework# 
 ```
 
-具体的安装&配置细节，非本文重点，就不写了，但在安装ANDROID SDK时需要科学上网。
+具体的安装&配置细节，非本文重点，就不写了，但在安装Android SDK时需要科学上网。
 
 我的测试环境是Windows 11和 Ubuntu 23两套环境，使得一套代码能够分别在Windows和Linux下运行，做到windows和Linux的兼容。
 

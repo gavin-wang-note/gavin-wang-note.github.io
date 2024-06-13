@@ -34,7 +34,7 @@ tags:
 
 # 调整过程
 
-要将设备ID信息从`run_testcases`函数传递到`conftest.py`文件中的`pytest_itemcollected`钩子方法中，你可以利用`pytest`的强大`fixture`机制和配置（`conftest.py`）来实现跨文件共享数据。一种常见的做法是使用`pytest`的内置`config`对象来存储设备信息，然后在需要的地方检索该信息。
+要将设备ID信息从`run_testcases`函数传递到`conftest.py`文件中的`pytest_itemcollected`钩子方法中，可以利用`pytest`的强大`fixture`机制和配置（`conftest.py`）来实现跨文件共享数据。一种常见的做法是使用`pytest`的内置`config`对象来存储设备信息，然后在需要的地方检索该信息。
 
 
 * 步骤 1: 修改`run_testcases`函数以便将设备ID信息存储在pytest的配置中

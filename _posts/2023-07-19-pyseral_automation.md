@@ -8,7 +8,7 @@ catalog:    true
 top: false
 img: "/img/pytest/pytest-8.png"
 summary: pytest基于pyserial模块做嵌入式产品串口功能自动化
-password:
+password: Pytest@123!
 theme: flip
 categories:
     - [Automation]
@@ -23,7 +23,7 @@ tags:
 
 # 概述
 
-本文介绍如何基于 python + pytest + pyserial + allure，完成嵌入式产品自动化框架的设计与用例编写。
+本文介绍如何基于 `python` + `pytest` + `pyserial` + `allure`，完成嵌入式产品自动化框架的设计与用例编写。
 
 
 # 预期目标
