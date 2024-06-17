@@ -24,7 +24,7 @@ tags:
 
 本文主要介绍一下如何在`Linux`下安装和配置浏览器和`driver`。
 
-`Windows`下安装比较简单，对应`exe`文件下载下来后放在浏览器所在路径即可。
+`Windows`下安装比较简单，匹配对应浏览器版本的`exe`文件下载下来后放在浏览器所在路径即可。
 
 # 安装&配置过程
 
@@ -34,7 +34,7 @@ tags:
 
 `https://github.com/mozilla/geckodriver/releases`
 
-`windows`下下载后，加压放到`Firefox`安装路径即可。
+`windows`下下载后，解压放到`Firefox`安装路径即可。
 
 `Linux`下下载后解压，放在`Firefox`安装路径下， 一般情况下，`Firefox`默认安装路径为`/usr/bin`：
 
@@ -76,6 +76,8 @@ br.get("http://www.baidu.com/")
 
 `Linux`下执行如上代码，确定能够正常启动`Firefox browser`。
 
+
+如果不想使用`Local Director`处的内容，可以点击`Create a New Profile`，新增一个`profile`（假如起名为`selenium`），并将新增的`profile`路径写入到上面调试代码中。
 
 ## Chrome和chromedriver的安装
 

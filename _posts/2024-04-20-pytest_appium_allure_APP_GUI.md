@@ -984,6 +984,10 @@ root@Gavin:~/MobileAppTestFramework#
 2024-04-20 14:23:25 [conftest.py:39  ] [ INFO] Quitting the Appium driver
 ```
 
+# 运行过程gif示例
+
+<img class="shadow" src="/img/in-post/gif/APP.gif" width="1200">
+
 # 结语
 
 此框架未来改进点：

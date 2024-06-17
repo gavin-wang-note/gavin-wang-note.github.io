@@ -670,6 +670,18 @@ if __name__ == '__main__':
 
 ## 执行过程与效果
 
+### 运行过程gif示例
+
+`Chrome`浏览器（默认）：
+
+<img class="shadow" src="/img/in-post/gif/Web1.gif" width="1200">
+
+`Firefox`浏览器：
+
+<img class="shadow" src="/img/in-post/gif/Web2.gif" width="1200">
+
+### Allure测试报告
+
 运行成功后，在项目的reports目录下产生json目录和test.log文件，借助allure完成可视化测试报告的输出，如下图所示：
  
 <img class="shadow" src="/img/in-post/allure/web_automation_report.png" width="1200">

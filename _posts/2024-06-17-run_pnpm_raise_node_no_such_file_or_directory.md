@@ -30,7 +30,7 @@ CentOS 环境下，安装了nodejs和pnpm，但是执行pnpm命令时，提示�
 
 <img class="shadow" src="/img/in-post/CentOS下安装pnpm.png" width="800">
 
-之后就碰到了上面出现的问题。
+之后就碰到了上面描述的问题。
 
 
 
