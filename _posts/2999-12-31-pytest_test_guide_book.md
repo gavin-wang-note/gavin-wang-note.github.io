@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: 自己总结的《pytest测试指南》一书
+summary: 自己总结的《pytest测试指南》一书，超级详细的pytest介绍，以及具体API项目实践和Jenkins CI/CD落地，完整的一套从入门到项目实践的详细记载，值得详细阅读。
 categories:
     - [pytest]
     - [Automation]
@@ -76,3 +76,7 @@ tags:
 
 [《pytest测试指南》-- 附录2 pytest hook介绍](https://gavin-wang-note.github.io/2024/06/08/pytest_test_guide_appendice_2_pytest_hook/)
 
+
+# 其他
+
+对于`pytest hook`的详细介绍与应用，敬请期待我的另外一篇汇总博文，将分门别类的详细介绍各个`hook`的使用场景和案例。
