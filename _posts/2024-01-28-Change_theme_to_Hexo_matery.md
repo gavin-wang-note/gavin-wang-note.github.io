@@ -18,7 +18,7 @@ tags:
 
 # 概述
 
-之前的博客使用的是Jekyll，比较简约，今天看到一个蛮炫酷的主题，故而使用它，重新搭建了一下博客，并迁移了旧有博客中的文章内容(博客地址不变)， 但历史访问记录，诸如访问量，访问人数等信息全部清空了，从零开始计。
+之前的博客使用的是Jekyll，比较简约，今天看到一个蛮炫酷的主题，故而使用它，重新搭建了一下博客，并迁移了旧有博客中的文章内容(少部分博客地址发生了变化，导致相关文章的历史访问记录诸如访问量会从零开始计)。
 
 # 过程
 
@@ -579,3 +579,405 @@ var getColor = function() {
 然后访问下对应页面，即可看到效果。
 
 
+## 增加文章统计
+
+在`Hexo`家目录下（如：`~/gavin-wang-note.github.io/`），执行如下命令创建统计页：
+
+```shell
+hexo new page stat
+```
+
+然后在文件内容的双线内添加：
+
+```shell
+type: stat
+layout: stat
+```
+
+在主题目录的`layout/`文件夹下新建`stat.ejs`模板文件，然后用`vim`也好，用其他工具也好，写入以下内容：
+
+```ejs
+<style type="text/css">
+    /* don't remove. */
+    .about-cover {
+        height: 75vh;
+    }
+</style>
+
+<%- partial('_partial/bg-cover') %>
+
+<main class="content">
+    <div class="container chip-container">
+        <div class="card">
+            <div class="card-content">
+                <div class="tag-title center-align">
+                    <i class="<%= theme.stat.icon %>"></i>&nbsp;&nbsp;<%= theme.stat.title %>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-content">
+                <% if (theme.stat.text) { %>
+                <style>
+                    #stat-text {
+                        -webkit-text-size-adjust: 100%;
+                        line-height: 1.5;
+                        font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+                        font-weight: normal;
+                        --fa-font-brands: normal 400 1em/1 "Font Awesome 6 Brands";
+                        --fa-font-regular: normal 400 1em/1 "Font Awesome 6 Free";
+                        --fa-font-solid: normal 900 1em/1 "Font Awesome 6 Free";
+                        color: 
+#34495e;
+                        text-align: center;
+                        float: left;
+                        box-sizing: border-box;
+                        padding: 0 .75rem;
+                        min-height: 1px;
+                        opacity: .6;
+                        font-size: 1.1rem;
+                        width: 83.3333333333%;
+                        left: auto;
+                        right: auto;
+                        margin-left: 8.3333333333%;
+                    }
+                </style>
+                <div id="stat-text">
+                    <div class="row">
+                        <div class="col l8 offset-l2 m10 offset-m1 s10 offset-s1 center-align text">
+                            <%= theme.stat.text %>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <hr>
+                <% } %>
+
+                <%- page.content %>
+
+                <% if (theme.stat.show_post) { %>
+                <h1 id="<%= theme.stat.title %>"><a href="#<%= theme.stat.title %>" class="headerlink" title="<%= theme.stat.title %>"></a><%= theme.stat.title %></h1>
+                <%
+                    var article_posts = [];
+                    site.posts.forEach(post => {
+                        article_posts.push(post);
+                    });
+                    
+                    for (var i = 0; i < article_posts.length - 1; i++) {
+                        for (var j = 1; j < article_posts.length - i; j++) {
+                            if (article_posts[j].date > article_posts[j-1].date) {
+                                var tmp = article_posts[j];
+                                article_posts[j] = article_posts[j-1];
+                                article_posts[j-1] = tmp;
+                            }
+                        }
+                    }
+                    
+                    var post_date_index = null;
+                    article_posts.forEach(post => {
+                        pwd = post.password;
+                        if ((!(pwd && pwd.length > 0))&&(post.hide != true)) {
+                            if (date(post.date, 'YYYY-MM') != post_date_index) {
+                                post_date_index = date(post.date, 'YYYY-MM');
+                %>
+
+                <h2 id="<%= post_date_index %>"><a href="#<%= post_date_index %>" class="headerlink" title="<%= post_date_index %>"></a><%= post_date_index %></h2>
+                            <% } %>
+                <p>
+                    <code><%= date(post.date, 'YYYY-MM-DD') %></code>&ensp;-
+                    <a href="<%- url_for(post.path) %>"><%= post.title %></a>
+                </p>
+                        <% } %>
+                    <% }); %>
+                <% } %>
+
+            </div>
+        </div>
+
+        <style type="text/css">
+            #posts-chart,
+            #categories-chart,
+            #tags-chart {
+                width: 100%;
+                height: 300px;
+                margin: 0.5rem auto;
+                padding: 0.5rem;
+            }
+        </style>
+        <div class="card">
+            <div class="card-content">
+                <div class="chart col s12 m6 l4" data-aos="zoom-in-up">
+                    <div id="posts-chart"></div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="chart col s12 m6 l4" data-aos="zoom-in-up">
+                    <div id="tags-chart"></div>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-content">
+                <div class="chart col s12 m6 l4" data-aos="zoom-in-up">
+                    <div id="categories-chart"></div>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="card">
+            <div class="card-content">
+                
+            </div>
+        </div> -->
+    </div>
+
+    <% if (site.categories && site.categories.length > 0) { %>
+    <%- partial('_widget/category-radar') %>
+    <% } %>
+
+            
+    <script type="text/javascript" src="<%- theme.jsDelivr.url %><%- url_for(theme.libs.js.echarts) %>"></script>
+    <script>
+        let postsChart = echarts.init(document.getElementById('posts-chart'));
+        let categoriesChart = echarts.init(document.getElementById('categories-chart'));
+        let tagsChart = echarts.init(document.getElementById('tags-chart'));
+    
+        <%
+        /* calculate postsOption data. */
+        var startDate = moment().subtract(1, 'years').startOf('month');
+        var endDate = moment().endOf('month');
+    
+        var monthMap = new Map();
+        var dayTime = 3600 * 24 * 1000;
+        for (var time = startDate; time <= endDate; time += dayTime) {
+            var month = moment(time).format('YYYY-MM');
+            if (!monthMap.has(month)) {
+                monthMap.set(month, 0);
+            }
+        }
+    
+        // post and count map.
+        site.posts.forEach(function (post) {
+            var month = post.date.format('YYYY-MM');
+            if (monthMap.has(month)) {
+                monthMap.set(month, monthMap.get(month) + 1);
+            }
+        });
+    
+        // xAxis data and yAxis data.
+        var monthArr = JSON.stringify([...monthMap.keys()]);
+        var monthValueArr = JSON.stringify([...monthMap.values()]);
+        %>
+    
+        let postsOption = {
+            title: {
+                text: '<%- __("postPublishChart")  %>',
+                top: -5,
+                x: 'center'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: <%- monthArr %>
+            },
+            yAxis: {
+                type: 'value',
+            },
+            series: [
+                {
+                    name: '<%- __("postsNumberName")  %>',
+                    type: 'line',
+                    color: ['#6772e5'],
+                    data: <%- monthValueArr %>,
+                    markPoint: {
+                        symbolSize: 45,
+                        color: ['#fa755a','#3ecf8e','#82d3f4'],
+                        data: [{
+                            type: 'max',
+                            itemStyle: {color: ['#3ecf8e']},
+                            name: '<%- __("maximum")  %>'
+                        }, {
+                            type: 'min',
+                            itemStyle: {color: ['#fa755a']},
+                            name: '<%- __("minimum")  %>'
+                        }]
+                    },
+                    markLine: {
+                        itemStyle: {color: ['#ab47bc']},
+                        data: [
+                            {type: 'average', name: '<%- __("average")  %>'}
+                        ]
+                    }
+                }
+            ]
+        };
+    
+        <%
+        /* calculate categoriesOption data. */
+        var categoryArr = [];
+        site.categories.map(function(category) {
+            categoryArr.push({'name': category.name, 'value': category.length})
+        });
+    
+        var categoryArrJson = JSON.stringify(categoryArr);
+        %>
+    
+        let categoriesOption = {
+            title: {
+                text: '<%- __("categoriesChart")  %>',
+                top: -4,
+                x: 'center'
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c} ({d}%)"
+            },
+            series: [
+                {
+                    name: '<%- __("categories")  %>',
+                    type: 'pie',
+                    radius: '50%',
+                    color: ['#6772e5', '#ff9e0f', '#fa755a', '#3ecf8e', '#82d3f4', '#ab47bc', '#525f7f', '#f51c47', '#26A69A'],
+                    data: <%- categoryArrJson %>,
+                    itemStyle: {
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }
+                }
+            ]
+        };
+    
+        <%
+        /* calculate tagsOption data. */
+        // get all tags name and count,then order by length desc.
+        var tagArr = [];
+        site.tags.map(function(tag) {
+            tagArr.push({'name': tag.name, 'value': tag.length});
+        });
+        tagArr.sort((a, b) => {return b.value - a.value});
+    
+        // get Top 10 tags name and count.
+        var tagNameArr = [];
+        var tagCountArr = [];
+        for (var i = 0, len = Math.min(tagArr.length, 10); i < len; i++) {
+            tagNameArr.push(tagArr[i].name);
+            tagCountArr.push(tagArr[i].value);
+        }
+    
+        var tagNameArrJson = JSON.stringify(tagNameArr);
+        var tagCountArrJson = JSON.stringify(tagCountArr);
+        %>
+    
+        let tagsOption = {
+            title: {
+                text: '<%- __("top10TagsChart")  %>',
+                top: -5,
+                x: 'center'
+            },
+            tooltip: {},
+            xAxis: [
+                {
+                    type: 'category',
+                    data: <%- tagNameArrJson %>
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value'
+                }
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    color: ['#82d3f4'],
+                    barWidth : 18,
+                    data: <%- tagCountArrJson %>,
+                    markPoint: {
+                        symbolSize: 45,
+                        data: [{
+                            type: 'max',
+                            itemStyle: {color: ['#3ecf8e']},
+                            name: '<%- __("maximum")  %>'
+                        }, {
+                            type: 'min',
+                            itemStyle: {color: ['#fa755a']},
+                            name: '<%- __("minimum")  %>'
+                        }],
+                    },
+                    markLine: {
+                        itemStyle: {color: ['#ab47bc']},
+                        data: [
+                            {type: 'average', name: '<%- __("average")  %>'}
+                        ]
+                    }
+                }
+            ]
+        };
+    
+        // render the charts
+        postsChart.setOption(postsOption);
+        categoriesChart.setOption(categoriesOption);
+        tagsChart.setOption(tagsOption);
+    </script>
+            
+</main>
+```
+
+在主题配置文件中(`~/gavin-wang-note.github.io/themes/matery/_config.yml`)添加：
+
+```yaml
+# 统计
+stat:
+  title: 文章统计  # 标题
+  text: 身处不幸的时候，更应该竭尽全力。  # 一言
+  icon: far fa-bar-chart  # 图标
+  show_post: true  # 是否显示文章统计
+```
+
+此处参考了这篇文章[小蝉博客](https://zwxo.github.io/articles/41278/)
+
+## 配置二级菜单栏
+
+直接修改主题（如我的主题`themes/matery`目录下）`_config.yml`文件即可，内容参看如下：
+
+```shell
+# 配置菜单导航的名称、路径和图标icon.
+menu:
+  Index:
+    url: /
+    icon: fas fa-home
+  统计:
+    url: /stat
+    icon: fas fa-list-alt
+  文章:
+    icon: fas fa-bars
+    children:
+      - name: 归档
+        url: /archives
+        icon: fas fa-archive
+      - name: 分类
+        url: /categories
+        icon: fas fa-bookmark
+      - name: 标签
+        url: /tags
+        icon: fas fa-tags
+  About:
+    icon: fas fa-star
+    children:
+      - name: 知我
+        url: /about
+        icon: fas fa-user-circle
+      - name: 友链
+        url: /friends
+        icon: fas fa-address-book
+      - name: 收藏
+        url: /goodpapers
+        icon: fas fa-coffee
+```
