@@ -3,20 +3,20 @@ layout:     post
 title:      "pytest fixture.mark.parametrize"
 subtitle:   "pytest fixture.mark.parametrize"
 date:       2023-10-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+img: "/img/pytest/pytest-6.png"
+summary: 介绍pytest参数化fixture.mark.parametrize
+categories:
+    - [Automation]
+    - [pytest]
 tags:
     - Automation
     - pytest
 ---
 
 
-
-
-
-
 # 概述
-
 
 
 pytest中装饰器 <font color='red'>```@pytest.mark.parametrize```</font> 可以实现测试用例参数化，类似DDT。
@@ -31,14 +31,13 @@ pytest在几个级别上支持测试参数化：
 
 
 
+{% note success %}
 语法格式如下：
+{% endnote %}
 
-
-
-```
+```shell
 @pytest.mark.parametrize('参数名',list) 
 ```
-
 
 
 - 第一个参数是字符串，多个参数中间用逗号隔开
@@ -47,7 +46,9 @@ pytest在几个级别上支持测试参数化：
 
 
 
+{% note success %}
 示例：
+{% endnote %}
 
 - 传一个参数 @pytest.mark.parametrize('参数名'，list) 进行参数化
 
@@ -77,7 +78,7 @@ pytest在几个级别上支持测试参数化：
 
 示例代码如下：
 
-```text
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -94,7 +95,7 @@ def test_case1(name):
 
 输出结果：
 
-```
+```shell
 C:\Users\Wang>pytest -vrs --show-progress --cache-clear --full-trace C:\Users\Wang\Desktop\test_4.py
 ================================================= test session starts =================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe
@@ -121,7 +122,7 @@ C:\Users\Wang>
 
 这种比较常见，示例代码如下：
 
-```text
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -140,7 +141,7 @@ def test_case1(name):
 
 
 
-```
+```shell
 C:\Users\Wang>pytest -vrs --show-progress --cache-clear C:\Users\Wang\Desktop\test_4.py
 ============================================================================================= test session starts ==============================================================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe
@@ -232,7 +233,7 @@ C:\Users\Wang>
 
 
 
-```
+```python
 # content of test_expectation.py
 import pytest
 
@@ -248,7 +249,7 @@ def test_eval(test_input, expected):
 
 ```https://docs.pytest.org/en/stable/how-to/parametrize.html ``` 下 “To parametrize all tests in a module, you can assign to the [`pytestmark`](https://docs.pytest.org/en/stable/reference/reference.html#globalvar-pytestmark) global variable:”
 
-```
+```python
 import pytest
 
 pytestmark = pytest.mark.parametrize("test_input, expected", [("3+5", 8), ("2+4", 6), ("6*9", 42)])
@@ -265,7 +266,7 @@ def test_eval(test_input, expected):
 
 
 
-```
+```shell
 C:\Users\Wang>pytest -vrs --show-progress --cache-clear C:\Users\Wang\Desktop\test_expectation.py
 ============================================================================================= test session starts ==============================================================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe
@@ -309,7 +310,7 @@ C:\Users\Wang>
 
 
 
-```text
+```python
 import pytest
 
 
@@ -325,7 +326,7 @@ def test_foo(x, y):
 
 
 
-```
+```shell
 C:\Users\Wang>pytest -vrs --show-progress --cache-clear C:\Users\Wang\Desktop\test_5.py
 ============================================================================================= test session starts ==============================================================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe
@@ -357,7 +358,7 @@ C:\Users\Wang>
 
 
 
-```
+```python
 data1 = [1, 2]
 data2 = ["python", "Shell"]
 data3 = ["Software", "Test", Engineer", "from", "Gavin"]
@@ -392,11 +393,11 @@ def test_case3(a, b, c):
 
 
 
-```
+```python
 import pytest
 
 
-json=({"username":"Json","password":"Python@123!"},{"username":"Alex","password":"226699"},{"username":"Rita","password":"123456"})
+json=({"username":"Json","password":"Python@666"},{"username":"Alex","password":"226699"},{"username":"Rita","password":"123456"})
 
 @pytest.mark.parametrize('json', json)
 def test_pytest_parametrize(json):
@@ -410,7 +411,7 @@ def test_pytest_parametrize(json):
 
 
 
-```
+```shell
 C:\Users\Wang>pytest -vs --show-progress --cache-clear C:\Users\Wang\Desktop\test_pytest_parameter.py
 ============================================================================================= test session starts ==============================================================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe
@@ -420,8 +421,8 @@ plugins: allure-pytest-2.13.2, order-1.1.0, progress-1.2.5, repeat-0.9.1, timeou
 collected 3 items
 
 Desktop/test_pytest_parameter.py::test_pytest_parametrize[json0] dit :
-{'username': 'Json', 'password': 'Python@123!'}
-username : Json, password : Python@123!
+{'username': 'Json', 'password': 'Python@666'}
+username : Json, password : Python@666
 PASSED
 _________________________________________________________________ 1 of 3 completed, 1 Pass, 0 Fail, 0 Skip, 0 XPass, 0 XFail, 0 Error, 0 ReRun _________________________________________________________________
 
@@ -454,7 +455,7 @@ C:\Users\Wang>
 
 
 
-```
+```python
 import pytest
 
 
@@ -475,7 +476,7 @@ def test_login(username, password):
 
 
 
-```
+```shell
 C:\Users\Wang>pytest -vs --show-progress --cache-clear C:\Users\Wang\Desktop\test_multi_parameter.py
 ============================================================================================= test session starts ==============================================================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe
@@ -536,7 +537,7 @@ C:\Users\Wang>
 
 
 
-```
+```python
     @pytest.mark.parametrize('object_quota',
                              [-1, 0, 1, 1000, 1000000, 1000000000, 1000000000000, 1000000000000000, 1000000000000000000,
                               7168000000000000000])

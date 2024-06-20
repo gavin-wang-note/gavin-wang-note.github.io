@@ -524,7 +524,7 @@ root@Gavin:~/code/chapter1-8#
 import pytest
 
 
-json=({"username":"Jason","password":"Python@123!"},{"username":"Alex","password":"226699"},{"username":"Rita","password":"123456"})
+json=({"username":"Jason","password":"Python@666"},{"username":"Alex","password":"226699"},{"username":"Rita","password":"123456"})
 
 @pytest.mark.parametrize('json', json)
 def test_pytest_parametrize(json):
@@ -546,8 +546,8 @@ plugins: html-4.1.1, metadata-3.0.0
 collected 3 items
 
 test_passing_in_dictionary_data.py::test_pytest_parametrize[json0] dit : 
-{'username': 'Jason', 'password': 'Python@123!'}
-username : Json, password : Python@123!
+{'username': 'Jason', 'password': 'Python@666'}
+username : Json, password : Python@666
 PASSED
 test_passing_in_dictionary_data.py::test_pytest_parametrize[json1] dit : 
 {'username': 'Alex', 'password': '226699'}
