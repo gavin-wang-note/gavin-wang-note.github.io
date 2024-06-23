@@ -1,0 +1,2294 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="继续执行中断后的测试用例, 软硬件测试">
+    <meta name="description" content="本文介绍了测试用例在执行过程中被中断，如何续接之前的用例继续执行余下的测试用例，给出了几种实践方案供读者参考">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>继续执行中断后的测试用例 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-6.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">继续执行中断后的测试用例</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-06-23
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    7.7k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    43 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p>碰到这样一种情况：</p>
+<p>比如有100个测试用例，第一次执行了20个，但是在执行过程中被中断了，如何在下一次执行余下的80个测试用例？</p>
+<p>对于这个问题的解决，想到了插件<code>pytest-rerunfailures</code>和<code>pytest cache</code>机制，但<code>pytest-rerunfailures</code>插件用于执行那些被标记为失败状态的测试用例，而非余下未被执行的测试用例；<code>cache</code>机制记录曾经执行失败的测试用例信息，而插件<code>pytest-rerunfailures</code>也是借鉴了<code>pytest cache</code>中的<code>lastfailed</code>内容实现失败用例的重新执行。</p>
+<p>分析到这里，发现<code>pytest</code>中并没有现成的参数或者插件来实现我们的预期目标，只能另寻他法了。</p>
+<h1 id="ti-wai-pian-zhi-pytest-cache">题外篇之pytest cache</h1>
+<p>先花一些篇幅简单介绍一下<code>pytest cache</code>。</p>
+<p><code>.pytest_cache</code> 是 <code>pytest</code> 自动创建的目录，用于存储缓存数据，帮助提高测试执行效率和管理测试状态。里面包含多个文件和目录，常见内容包括：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>CACHEDIR.TAG</strong>：标记这个目录是一个缓存目录。</p>
+</li>
+<li class="lvl-2">
+<p><strong><a target="_blank" rel="noopener" href="http://README.md">README.md</a></strong>：说明缓存目录的用途。</p>
+</li>
+<li class="lvl-2">
+<p><strong>v/cache/</strong>：具体的缓存数据文件存放在这个目录下。</p>
+</li>
+</ul>
+<p><code>.pytest_cache/v/cache</code> 目录</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>v/cache</code> 目录下存放了各种缓存数据文件，包括 <code>lastfailed、nodeids</code> 和 <code>stepwise</code> 文件。</p>
+</li>
+</ul>
+<p><code>stepwise</code> 文件</p>
+<p><code>stepwise</code> 文件专用于记录上一次运行中失败的测试项目。当启用 <code>--stepwise</code> 模式时，<code>pytest</code> 会根据这个文件记录的位置，从上次失败的地方继续执行测试。但这也意味着使用此模式后，一旦碰到失败的测试用例，<code>pytest</code>就会退出不再执行后续的测试用例了。</p>
+<p>我们来看一个本地生成的<code>.pytest_cache</code>目录：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# tree .pytest_cache/
+.pytest_cache/
+├── CACHEDIR.TAG
+├── README.md
+└── v
+    └── cache
+        ├── lastfailed
+        ├── nodeids
+        └── stepwise
+
+3 directories, 5 files
+root@Gavin:~/run_left# 
+</code></pre>
+<p>其中<code>cache</code>目录下文件内容参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left/.pytest_cache/v/cache# cat lastfailed 
+{
+  "test_example.py::test_example_2": true
+}root@Gavin:~/run_left/.pytest_cache/v/cache# cat nodeids 
+[
+  "test_example.py::test_example_1",
+  "test_example.py::test_example_2",
+  "test_example.py::test_example_3",
+  "test_example.py::test_example_4",
+  "test_example_boolean.py::test_and_operation",
+  "test_example_boolean.py::test_bool_false",
+  "test_example_boolean.py::test_bool_true",
+  "test_example_boolean.py::test_not_operation",
+  "test_example_boolean.py::test_or_operation",
+  "test_example_dict.py::test_get_item",
+  "test_example_dict.py::test_keys",
+  "test_example_dict.py::test_remove_item",
+  "test_example_dict.py::test_set_item",
+  "test_example_dict.py::test_values",
+  "test_example_list.py::test_append",
+  "test_example_list.py::test_index",
+  "test_example_list.py::test_remove",
+  "test_example_list.py::test_reverse",
+  "test_example_list.py::test_sort",
+  "test_example_math.py::test_addition",
+  "test_example_math.py::test_division",
+  "test_example_math.py::test_multiplication",
+  "test_example_math.py::test_subtraction",
+  "test_example_string.py::test_concatenation",
+  "test_example_string.py::test_find_substring",
+  "test_example_string.py::test_lowercase",
+  "test_example_string.py::test_replace",
+  "test_example_string.py::test_uppercase"
+]root@Gavin:~/run_left/.pytest_cache/v/cache# cat stepwise 
+[]root@Gavin:~/run_left/.pytest_cache/v/cache#
+</code></pre>
+<p>虽然有失败的测试用例，但上面的<code>stepwise</code>文件内容却为空，这是因为用例执行的时候没有携带上参数<code>--stepwise</code>；如果携带了，<code>stepwise</code>文件内容参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left/.pytest_cache/v/cache# cat stepwise 
+"test_example.py::test_example_2"root@Gavin:~/run_left/.pytest_cache/v/cache# 
+root@Gavin:~/run_left/.pytest_cache/v/cache# 
+</code></pre>
+<p>注意这里的<code>nodeids</code>文件，它记录所有测试用例的标识符，并不是已经执行过了的测试用例，言外之意是记录所有被<code>pytest</code>搜集到的测试用例的<code>ids</code>信息。</p>
+<h1 id="jie-jue-guo-cheng">解决过程</h1>
+<h2 id="zhun-bei-gong-zuo">准备工作</h2>
+<p>准备一些测试用例，内容随便写，有执行成功，也有执行失败的，参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# ll
+total 32
+drwxr-xr-x  2 root root 4096 Jun 21 15:21 ./
+drwx------ 43 root root 4096 Jun 21 15:07 ../
+-rw-r--r--  1 root root  308 Jun 21 14:54 test_example_boolean.py
+-rw-r--r--  1 root root  636 Jun 21 14:34 test_example_dict.py
+-rw-r--r--  1 root root  429 Jun 21 14:33 test_example_list.py
+-rw-r--r--  1 root root  185 Jun 21 14:33 test_example_math.py
+-rw-r--r--  1 root root  210 Jun 21 14:32 test_example.py
+-rw-r--r--  1 root root  364 Jun 21 14:33 test_example_string.py
+root@Gavin:~/run_left# cat test_example_string.py 
+def test_concatenation():
+    assert "Hello, " + "World!" == "Hello, World!"
+
+def test_uppercase():
+    assert "hello".upper() == "HELLO"
+
+def test_lowercase():
+    assert "WORLD".lower() == "world"
+
+def test_find_substring():
+    assert "hello world".find("world") != -1
+
+def test_replace():
+    assert "hello world".replace("world", "pytest") == "hello pytest"
+
+root@Gavin:~/run_left#
+</code></pre>
+<h2 id="fang-an-yi-wen-jian-ji-lu-yong-li-zhi-xing-zhuang-tai-pytest-hook-tiao-guo-yi-ji-lu-yong-li">方案一：文件记录用例执行状态，pytest hook跳过已记录用例</h2>
+<p>可以使用一个简单的文本文件或<code>JSON</code>文件来记录哪些测试已被执行，当然，如果测试用例通过，其标识符也可被记录在文件中；然后编写插件来记录和跳过测试用例（即在<code>conftest.py</code>文件中，使用<code>pytest hooks</code>来实现这一功能）。</p>
+<p>文件<code>contest.py</code>内容参考如下：</p>
+<pre><code class="language-python">import pytest
+import json
+import os
+
+# 定义保存状态的文件
+STATUS_FILE = "test_status.json"
+
+# 读取状态文件
+def load_status():
+    if os.path.exists(STATUS_FILE):
+        with open(STATUS_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+# 写入状态文件
+def save_status(status):
+    with open(STATUS_FILE, 'w') as f:
+        json.dump(status, f)
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_protocol(item, nextitem):
+    status = load_status()
+    nodeid = item.nodeid
+
+    # 如果测试用例已经成功执行过，则跳过
+    # 如果想跳过其他状态的测试用例，继续增加状态判断即可
+    # if nodeid in status and status[nodeid] == "passed":
+    #     pytest.skip(f"Skipping {nodeid}, already passed.")
+    if nodeid in status:
+        item.add_marker(pytest.mark.skip(reason=f"Skipping {nodeid}, already passed."))
+
+def pytest_runtest_logreport(report):
+    if report.when == 'call':
+        status = load_status()
+        nodeid = report.nodeid
+
+        if report.outcome == "passed":
+            status[nodeid] = "passed"
+        elif report.outcome == "failed":
+            status[nodeid] = "failed"
+        elif report.outcome == "skipped":
+            status[nodeid] = "skipped"
+        
+        save_status(status)
+
+@pytest.hookimpl(trylast=True)
+def pytest_sessionfinish(session, exitstatus):
+    print(f"Results saved in {STATUS_FILE}")
+</code></pre>
+<p>接下来验证一下效果：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# ll
+total 36
+drwxr-xr-x  2 root root 4096 Jun 21 14:54 ./
+drwx------ 43 root root 4096 Jun 21 14:54 ../
+-rw-r--r--  1 root root 1249 Jun 21 14:54 conftest.py
+-rw-r--r--  1 root root  308 Jun 21 14:54 test_example_boolean.py
+-rw-r--r--  1 root root  636 Jun 21 14:34 test_example_dict.py
+-rw-r--r--  1 root root  429 Jun 21 14:33 test_example_list.py
+-rw-r--r--  1 root root  185 Jun 21 14:33 test_example_math.py
+-rw-r--r--  1 root root  210 Jun 21 14:32 test_example.py
+-rw-r--r--  1 root root  364 Jun 21 14:33 test_example_string.py
+root@Gavin:~/run_left# pytest -s -v
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-41-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'progress': '1.2.5', 'order': '1.2.1', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py::test_example_1 PASSED
+test_example.py::test_example_2 FAILED
+test_example.py::test_example_3 PASSED
+test_example.py::test_example_4 PASSED
+test_example_boolean.py::test_bool_true PASSED
+test_example_boolean.py::test_bool_false PASSED
+test_example_boolean.py::test_and_operation PASSED
+test_example_boolean.py::test_or_operation PASSED
+test_example_boolean.py::test_not_operation ^CResults saved in test_status.json
+
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/root/run_left/test_example_boolean.py:17: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+============================================================================================================== 1 failed, 7 passed in 1.42s ===============================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<p>上述用例，在执行过程中，收集到了28个测试用例（<code>collected 28 items </code>），执行过程中被中断（<code>Ctrl+C中断，KeyboardInterrupt</code>），最终显示<code>1 failed, 7 passed in 1.42s</code>，说明执行了8个测试用例，7个通过1个失败了，还余下20个测试用例没有被执行。相应的记录到<code>test_status.json</code>文件，内容如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# cat test_status.json | json_pp
+{
+   "test_example.py::test_example_1" : "passed",
+   "test_example.py::test_example_2" : "failed",
+   "test_example.py::test_example_3" : "passed",
+   "test_example.py::test_example_4" : "passed",
+   "test_example_boolean.py::test_and_operation" : "passed",
+   "test_example_boolean.py::test_bool_false" : "passed",
+   "test_example_boolean.py::test_bool_true" : "passed",
+   "test_example_boolean.py::test_or_operation" : "passed"
+}
+root@Gavin:~/run_left#
+</code></pre>
+<p>也说明执行了8个测试用例，7个通过1个失败了，内容和执行用例过程中的屏显输出是匹配的上的。</p>
+<p>接下来我们验证一下，余下的20个用例是不是能够被正常执行，已经执行过了的测试用例，是否会被跳过：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# pytest -s -v
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-41-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'progress': '1.2.5', 'order': '1.2.1', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py::test_example_1 SKIPPED (Skipping test_example.py::test_example_1, already passed.)
+test_example.py::test_example_2 SKIPPED (Skipping test_example.py::test_example_2, already passed.)
+test_example.py::test_example_3 SKIPPED (Skipping test_example.py::test_example_3, already passed.)
+test_example.py::test_example_4 SKIPPED (Skipping test_example.py::test_example_4, already passed.)
+test_example_boolean.py::test_bool_true SKIPPED (Skipping test_example_boolean.py::test_bool_true, already passed.)
+test_example_boolean.py::test_bool_false SKIPPED (Skipping test_example_boolean.py::test_bool_false, already passed.)
+test_example_boolean.py::test_and_operation SKIPPED (Skipping test_example_boolean.py::test_and_operation, already passed.)
+test_example_boolean.py::test_or_operation SKIPPED (Skipping test_example_boolean.py::test_or_operation, already passed.)
+test_example_boolean.py::test_not_operation PASSED
+test_example_dict.py::test_set_item PASSED
+test_example_dict.py::test_remove_item PASSED
+test_example_dict.py::test_get_item PASSED
+test_example_dict.py::test_keys PASSED
+test_example_dict.py::test_values PASSED
+test_example_list.py::test_append PASSED
+test_example_list.py::test_remove PASSED
+test_example_list.py::test_index PASSED
+test_example_list.py::test_sort PASSED
+test_example_list.py::test_reverse PASSED
+test_example_math.py::test_addition PASSED
+test_example_math.py::test_subtraction PASSED
+test_example_math.py::test_multiplication PASSED
+test_example_math.py::test_division PASSED
+test_example_string.py::test_concatenation PASSED
+test_example_string.py::test_uppercase PASSED
+test_example_string.py::test_lowercase PASSED
+test_example_string.py::test_find_substring PASSED
+test_example_string.py::test_replace PASSEDResults saved in test_status.json
+
+
+============================================================================================================= 20 passed, 8 skipped in 2.10s ==============================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<p>预期目标达成了么？似乎还少了点啥？如果我再次执行，是否会忽略此次执行的20个测试用例，再次执行了第一次被执行过了的8个测试用例呢？如果再再次执行，是否会如此反复、反复如此呢？</p>
+<p>继续验证一下：</p>
+<p>在第二次执行了余下的20个测试用例后，文件<code>test_status.json</code>内容如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# cat test_status.json | json_pp
+{
+   "test_example.py::test_example_1" : "passed",
+   "test_example.py::test_example_2" : "failed",
+   "test_example.py::test_example_3" : "passed",
+   "test_example.py::test_example_4" : "passed",
+   "test_example_boolean.py::test_and_operation" : "passed",
+   "test_example_boolean.py::test_bool_false" : "passed",
+   "test_example_boolean.py::test_bool_true" : "passed",
+   "test_example_boolean.py::test_not_operation" : "passed",
+   "test_example_boolean.py::test_or_operation" : "passed",
+   "test_example_dict.py::test_get_item" : "passed",
+   "test_example_dict.py::test_keys" : "passed",
+   "test_example_dict.py::test_remove_item" : "passed",
+   "test_example_dict.py::test_set_item" : "passed",
+   "test_example_dict.py::test_values" : "passed",
+   "test_example_list.py::test_append" : "passed",
+   "test_example_list.py::test_index" : "passed",
+   "test_example_list.py::test_remove" : "passed",
+   "test_example_list.py::test_reverse" : "passed",
+   "test_example_list.py::test_sort" : "passed",
+   "test_example_math.py::test_addition" : "passed",
+   "test_example_math.py::test_division" : "passed",
+   "test_example_math.py::test_multiplication" : "passed",
+   "test_example_math.py::test_subtraction" : "passed",
+   "test_example_string.py::test_concatenation" : "passed",
+   "test_example_string.py::test_find_substring" : "passed",
+   "test_example_string.py::test_lowercase" : "passed",
+   "test_example_string.py::test_replace" : "passed",
+   "test_example_string.py::test_uppercase" : "passed"
+}
+root@Gavin:~/run_left# 
+</code></pre>
+<p>第三次执行用例：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# pytest -s -v
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-41-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'progress': '1.2.5', 'order': '1.2.1', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py::test_example_1 SKIPPED (Skipping test_example.py::test_example_1, already passed.)
+test_example.py::test_example_2 SKIPPED (Skipping test_example.py::test_example_2, already passed.)
+test_example.py::test_example_3 SKIPPED (Skipping test_example.py::test_example_3, already passed.)
+test_example.py::test_example_4 SKIPPED (Skipping test_example.py::test_example_4, already passed.)
+test_example_boolean.py::test_bool_true SKIPPED (Skipping test_example_boolean.py::test_bool_true, already passed.)
+test_example_boolean.py::test_bool_false SKIPPED (Skipping test_example_boolean.py::test_bool_false, already passed.)
+test_example_boolean.py::test_and_operation SKIPPED (Skipping test_example_boolean.py::test_and_operation, already passed.)
+test_example_boolean.py::test_or_operation SKIPPED (Skipping test_example_boolean.py::test_or_operation, already passed.)
+test_example_boolean.py::test_not_operation SKIPPED (Skipping test_example_boolean.py::test_not_operation, already passed.)
+test_example_dict.py::test_set_item SKIPPED (Skipping test_example_dict.py::test_set_item, already passed.)
+test_example_dict.py::test_remove_item SKIPPED (Skipping test_example_dict.py::test_remove_item, already passed.)
+test_example_dict.py::test_get_item SKIPPED (Skipping test_example_dict.py::test_get_item, already passed.)
+test_example_dict.py::test_keys SKIPPED (Skipping test_example_dict.py::test_keys, already passed.)
+test_example_dict.py::test_values SKIPPED (Skipping test_example_dict.py::test_values, already passed.)
+test_example_list.py::test_append SKIPPED (Skipping test_example_list.py::test_append, already passed.)
+test_example_list.py::test_remove SKIPPED (Skipping test_example_list.py::test_remove, already passed.)
+test_example_list.py::test_index SKIPPED (Skipping test_example_list.py::test_index, already passed.)
+test_example_list.py::test_sort SKIPPED (Skipping test_example_list.py::test_sort, already passed.)
+test_example_list.py::test_reverse SKIPPED (Skipping test_example_list.py::test_reverse, already passed.)
+test_example_math.py::test_addition SKIPPED (Skipping test_example_math.py::test_addition, already passed.)
+test_example_math.py::test_subtraction SKIPPED (Skipping test_example_math.py::test_subtraction, already passed.)
+test_example_math.py::test_multiplication SKIPPED (Skipping test_example_math.py::test_multiplication, already passed.)
+test_example_math.py::test_division SKIPPED (Skipping test_example_math.py::test_division, already passed.)
+test_example_string.py::test_concatenation SKIPPED (Skipping test_example_string.py::test_concatenation, already passed.)
+test_example_string.py::test_uppercase SKIPPED (Skipping test_example_string.py::test_uppercase, already passed.)
+test_example_string.py::test_lowercase SKIPPED (Skipping test_example_string.py::test_lowercase, already passed.)
+test_example_string.py::test_find_substring SKIPPED (Skipping test_example_string.py::test_find_substring, already passed.)
+test_example_string.py::test_replace SKIPPED (Skipping test_example_string.py::test_replace, already passed.)Results saved in test_status.json
+
+
+================================================================================================================== 28 skipped in 0.04s ===================================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<p>28个测试用例全部被忽略了，这是因为文件<code>test_status.json</code>内容是追加式增加被执行过了的测试用例，从而避免了我们忧虑的问题。</p>
+<h2 id="fang-an-er-shi-yong-pytest-de-pytest-rerunfailures-cha-jian-yu-huan-jing-bian-liang">方案二：使用pytest的pytest-rerunfailures插件与环境变量</h2>
+<p>通过保存已完成测试的<code>nodeid</code>到环境变量中，在下次运行时读取并跳过已完成的测试。</p>
+<p>文件<code>conftest.py</code>内容参考如下：</p>
+<pre><code class="language-python">import pytest
+import json
+import os
+import signal
+import atexit
+
+# 状态文件路径
+STATUS_FILE = "test_status.json"
+completed_tests = set()
+interrupted = False
+
+# 读取状态
+def load_status():
+    if os.path.exists(STATUS_FILE):
+        with open(STATUS_FILE, 'r', encoding='utf-8') as f:
+            return set(json.load(f))
+    return set()
+
+# 保存状态
+def save_status():
+    with open(STATUS_FILE, 'w') as f:
+        json.dump(list(completed_tests), f)
+
+# 添加命令行选项
+def pytest_addoption(parser):
+    parser.addoption("--run-until-complete", action="store_true", help="Run until all tests are completed")
+
+# 配置处理
+def pytest_configure(config):
+    global completed_tests
+    if config.getoption("--run-until-complete"):
+        completed_tests = load_status()
+
+# 测试设置钩子
+def pytest_runtest_setup(item):
+    if item.config.getoption("--run-until-complete"):
+        if item.nodeid in completed_tests:
+            pytest.skip(f"Skipping {item.nodeid}, already executed and passed")
+
+# 测试报告钩子
+def pytest_runtest_logreport(report):
+    if report.when == 'call' and report.outcome == 'passed':
+        completed_tests.add(report.nodeid)
+        save_status()
+
+# 进程中断处理
+def handle_exit(signum, frame):
+    global interrupted
+    interrupted = True
+    save_status()
+    print(f"\nInterrupted! Results saved in {STATUS_FILE}")
+    exit(1)
+
+signal.signal(signal.SIGINT, handle_exit)
+signal.signal(signal.SIGTERM, handle_exit)
+atexit.register(save_status)
+
+# 会话结束钩子
+def pytest_sessionfinish(session, exitstatus):
+    if not interrupted:
+        save_status()
+        print(f"Results saved in {STATUS_FILE}")
+</code></pre>
+<p>我们看下执行效果：</p>
+<p>第一次执行，中间发生中断：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# pytest -s -v
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-41-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'progress': '1.2.5', 'order': '1.2.1', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py::test_example_1 PASSED
+test_example.py::test_example_2 FAILED
+test_example.py::test_example_3 PASSED
+test_example.py::test_example_4 PASSED
+test_example_boolean.py::test_bool_true PASSED
+test_example_boolean.py::test_bool_false PASSED
+test_example_boolean.py::test_and_operation PASSED
+test_example_boolean.py::test_or_operation PASSED
+test_example_boolean.py::test_not_operation ^C
+Interrupted! Results saved in test_status.json
+FAILED
+test_example_dict.py::test_set_item PASSED
+test_example_dict.py::test_remove_item PASSED
+test_example_dict.py::test_get_item PASSED
+test_example_dict.py::test_keys PASSED
+test_example_dict.py::test_values PASSED
+test_example_list.py::test_append PASSED
+test_example_list.py::test_remove PASSED
+test_example_list.py::test_index PASSED
+test_example_list.py::test_sort PASSED
+test_example_list.py::test_reverse PASSED
+test_example_math.py::test_addition PASSED
+test_example_math.py::test_subtraction PASSED
+test_example_math.py::test_multiplication PASSED
+test_example_math.py::test_division PASSED
+test_example_string.py::test_concatenation PASSED
+test_example_string.py::test_uppercase PASSED
+test_example_string.py::test_lowercase PASSED
+test_example_string.py::test_find_substring PASSED
+test_example_string.py::test_replace PASSED
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+___________________________________________________________________________________________________________________ test_not_operation ___________________________________________________________________________________________________________________
+
+    def test_not_operation():
+        assert not False == True
+&gt;       time.sleep(5)
+
+test_example_boolean.py:17: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+conftest.py:52: in handle_exit
+    exit(1)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = Use exit() or Ctrl-D (i.e. EOF) to exit, code = 1
+
+&gt;   ???
+E   SystemExit: 1
+
+&lt;frozen _sitebuiltins&gt;:26: SystemExit
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+FAILED test_example_boolean.py::test_not_operation - SystemExit: 1
+============================================================================================================== 2 failed, 26 passed in 0.61s ==============================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<p>显示2个执行失败，26个成功的，生成的<code>test_status.json</code>文件内容参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# cat test_
+test_example_boolean.py  test_example_dict.py     test_example_list.py     test_example_math.py     test_example.py          test_example_string.py   test_status.json         
+root@Gavin:~/run_left# cat test_status.json | json_pp
+[
+   "test_example_dict.py::test_keys",
+   "test_example_list.py::test_index",
+   "test_example_string.py::test_concatenation",
+   "test_example_dict.py::test_values",
+   "test_example_boolean.py::test_and_operation",
+   "test_example_dict.py::test_set_item",
+   "test_example_math.py::test_subtraction",
+   "test_example_list.py::test_reverse",
+   "test_example_string.py::test_replace",
+   "test_example_dict.py::test_get_item",
+   "test_example_list.py::test_append",
+   "test_example_dict.py::test_remove_item",
+   "test_example_string.py::test_uppercase",
+   "test_example_string.py::test_find_substring",
+   "test_example.py::test_example_4",
+   "test_example.py::test_example_1",
+   "test_example_list.py::test_remove",
+   "test_example_string.py::test_lowercase",
+   "test_example_math.py::test_addition",
+   "test_example_boolean.py::test_bool_true",
+   "test_example_boolean.py::test_or_operation",
+   "test_example_boolean.py::test_bool_false",
+   "test_example_math.py::test_division",
+   "test_example_math.py::test_multiplication",
+   "test_example.py::test_example_3",
+   "test_example_list.py::test_sort"
+]
+root@Gavin:~/run_left# 
+</code></pre>
+<p>再次执行测试用例，此时携带参数<code>--run-until-complete</code>:</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# pytest -s -v --run-until-complete
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-41-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'progress': '1.2.5', 'order': '1.2.1', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py::test_example_1 SKIPPED (Skipping test_example.py::test_example_1, already executed and passed)
+test_example.py::test_example_2 FAILED
+test_example.py::test_example_3 SKIPPED (Skipping test_example.py::test_example_3, already executed and passed)
+test_example.py::test_example_4 SKIPPED (Skipping test_example.py::test_example_4, already executed and passed)
+test_example_boolean.py::test_bool_true SKIPPED (Skipping test_example_boolean.py::test_bool_true, already executed and passed)
+test_example_boolean.py::test_bool_false SKIPPED (Skipping test_example_boolean.py::test_bool_false, already executed and passed)
+test_example_boolean.py::test_and_operation SKIPPED (Skipping test_example_boolean.py::test_and_operation, already executed and passed)
+test_example_boolean.py::test_or_operation SKIPPED (Skipping test_example_boolean.py::test_or_operation, already executed and passed)
+test_example_boolean.py::test_not_operation PASSED
+test_example_dict.py::test_set_item SKIPPED (Skipping test_example_dict.py::test_set_item, already executed and passed)
+test_example_dict.py::test_remove_item SKIPPED (Skipping test_example_dict.py::test_remove_item, already executed and passed)
+test_example_dict.py::test_get_item SKIPPED (Skipping test_example_dict.py::test_get_item, already executed and passed)
+test_example_dict.py::test_keys SKIPPED (Skipping test_example_dict.py::test_keys, already executed and passed)
+test_example_dict.py::test_values SKIPPED (Skipping test_example_dict.py::test_values, already executed and passed)
+test_example_list.py::test_append SKIPPED (Skipping test_example_list.py::test_append, already executed and passed)
+test_example_list.py::test_remove SKIPPED (Skipping test_example_list.py::test_remove, already executed and passed)
+test_example_list.py::test_index SKIPPED (Skipping test_example_list.py::test_index, already executed and passed)
+test_example_list.py::test_sort SKIPPED (Skipping test_example_list.py::test_sort, already executed and passed)
+test_example_list.py::test_reverse SKIPPED (Skipping test_example_list.py::test_reverse, already executed and passed)
+test_example_math.py::test_addition SKIPPED (Skipping test_example_math.py::test_addition, already executed and passed)
+test_example_math.py::test_subtraction SKIPPED (Skipping test_example_math.py::test_subtraction, already executed and passed)
+test_example_math.py::test_multiplication SKIPPED (Skipping test_example_math.py::test_multiplication, already executed and passed)
+test_example_math.py::test_division SKIPPED (Skipping test_example_math.py::test_division, already executed and passed)
+test_example_string.py::test_concatenation SKIPPED (Skipping test_example_string.py::test_concatenation, already executed and passed)
+test_example_string.py::test_uppercase SKIPPED (Skipping test_example_string.py::test_uppercase, already executed and passed)
+test_example_string.py::test_lowercase SKIPPED (Skipping test_example_string.py::test_lowercase, already executed and passed)
+test_example_string.py::test_find_substring SKIPPED (Skipping test_example_string.py::test_find_substring, already executed and passed)
+test_example_string.py::test_replace SKIPPED (Skipping test_example_string.py::test_replace, already executed and passed)Results saved in test_status.json
+
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+======================================================================================================== 1 failed, 1 passed, 26 skipped in 5.14s =========================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<p>显示执行失败的用例和未被执行的用例被执行，上一次被执行过的测试用例被忽略，且会同步更新文件<code>test_status.json</code>内容，当第三次执行时候，只执行所有失败的测试用例，此时效果等同于插接件<code>pytest-rerunfailures</code>:</p>
+<p>如下是第三次执行效果：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# cat test_status.json  | json_pp
+[
+   "test_example_dict.py::test_get_item",
+   "test_example_string.py::test_uppercase",
+   "test_example_math.py::test_addition",
+   "test_example_boolean.py::test_bool_true",
+   "test_example_dict.py::test_remove_item",
+   "test_example_math.py::test_division",
+   "test_example_dict.py::test_keys",
+   "test_example_list.py::test_sort",
+   "test_example_list.py::test_reverse",
+   "test_example_math.py::test_subtraction",
+   "test_example_boolean.py::test_and_operation",
+   "test_example.py::test_example_4",
+   "test_example_dict.py::test_set_item",
+   "test_example.py::test_example_1",
+   "test_example_boolean.py::test_or_operation",
+   "test_example_list.py::test_append",
+   "test_example_math.py::test_multiplication",
+   "test_example_boolean.py::test_bool_false",
+   "test_example.py::test_example_3",
+   "test_example_boolean.py::test_not_operation",
+   "test_example_string.py::test_lowercase",
+   "test_example_string.py::test_replace",
+   "test_example_string.py::test_find_substring",
+   "test_example_list.py::test_remove",
+   "test_example_list.py::test_index",
+   "test_example_string.py::test_concatenation",
+   "test_example_dict.py::test_values"
+]
+root@Gavin:~/run_left# cat test_status.json  | json_pp | wc -l
+29
+root@Gavin:~/run_left# pytest -s -v --run-until-complete
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-41-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'progress': '1.2.5', 'order': '1.2.1', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py::test_example_1 SKIPPED (Skipping test_example.py::test_example_1, already executed and passed)
+test_example.py::test_example_2 FAILED
+test_example.py::test_example_3 SKIPPED (Skipping test_example.py::test_example_3, already executed and passed)
+test_example.py::test_example_4 SKIPPED (Skipping test_example.py::test_example_4, already executed and passed)
+test_example_boolean.py::test_bool_true SKIPPED (Skipping test_example_boolean.py::test_bool_true, already executed and passed)
+test_example_boolean.py::test_bool_false SKIPPED (Skipping test_example_boolean.py::test_bool_false, already executed and passed)
+test_example_boolean.py::test_and_operation SKIPPED (Skipping test_example_boolean.py::test_and_operation, already executed and passed)
+test_example_boolean.py::test_or_operation SKIPPED (Skipping test_example_boolean.py::test_or_operation, already executed and passed)
+test_example_boolean.py::test_not_operation SKIPPED (Skipping test_example_boolean.py::test_not_operation, already executed and passed)
+test_example_dict.py::test_set_item SKIPPED (Skipping test_example_dict.py::test_set_item, already executed and passed)
+test_example_dict.py::test_remove_item SKIPPED (Skipping test_example_dict.py::test_remove_item, already executed and passed)
+test_example_dict.py::test_get_item SKIPPED (Skipping test_example_dict.py::test_get_item, already executed and passed)
+test_example_dict.py::test_keys SKIPPED (Skipping test_example_dict.py::test_keys, already executed and passed)
+test_example_dict.py::test_values SKIPPED (Skipping test_example_dict.py::test_values, already executed and passed)
+test_example_list.py::test_append SKIPPED (Skipping test_example_list.py::test_append, already executed and passed)
+test_example_list.py::test_remove SKIPPED (Skipping test_example_list.py::test_remove, already executed and passed)
+test_example_list.py::test_index SKIPPED (Skipping test_example_list.py::test_index, already executed and passed)
+test_example_list.py::test_sort SKIPPED (Skipping test_example_list.py::test_sort, already executed and passed)
+test_example_list.py::test_reverse SKIPPED (Skipping test_example_list.py::test_reverse, already executed and passed)
+test_example_math.py::test_addition SKIPPED (Skipping test_example_math.py::test_addition, already executed and passed)
+test_example_math.py::test_subtraction SKIPPED (Skipping test_example_math.py::test_subtraction, already executed and passed)
+test_example_math.py::test_multiplication SKIPPED (Skipping test_example_math.py::test_multiplication, already executed and passed)
+test_example_math.py::test_division SKIPPED (Skipping test_example_math.py::test_division, already executed and passed)
+test_example_string.py::test_concatenation SKIPPED (Skipping test_example_string.py::test_concatenation, already executed and passed)
+test_example_string.py::test_uppercase SKIPPED (Skipping test_example_string.py::test_uppercase, already executed and passed)
+test_example_string.py::test_lowercase SKIPPED (Skipping test_example_string.py::test_lowercase, already executed and passed)
+test_example_string.py::test_find_substring SKIPPED (Skipping test_example_string.py::test_find_substring, already executed and passed)
+test_example_string.py::test_replace SKIPPED (Skipping test_example_string.py::test_replace, already executed and passed)Results saved in test_status.json
+
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+============================================================================================================= 1 failed, 27 skipped in 0.14s ==============================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<h2 id="fang-an-san-shi-yong-shu-ju-ku-cun-chu-ce-shi-zhuang-tai">方案三：使用数据库存储测试状态</h2>
+<p>使用数据库（如<code>SQLite</code>）来存储测试状态，并在运行过程中查询和更新这些状态。</p>
+<p>如果没有安装<code>SQLite</code>，执行如下命令进行安装：</p>
+<pre><code class="language-shell">pip install sqlite
+</code></pre>
+<p>接下来，逐步实现目标，先创建<code>utils/database.py</code>文件：</p>
+<h3 id="utils-database-py-wen-jian">utils/database.py文件</h3>
+<pre><code class="language-python">import sqlite3
+
+def create_connection(db_file):
+    conn = sqlite3.connect(db_file)
+    return conn
+
+def create_table(conn):
+    create_table_sql = """
+    CREATE TABLE IF NOT EXISTS tests (
+        id integer PRIMARY KEY,
+        nodeid text NOT NULL UNIQUE,
+        status text
+    );
+    """
+    conn.execute(create_table_sql)
+    conn.commit()
+
+def insert_test_status(conn, nodeid, status):
+    sql = ''' INSERT OR REPLACE INTO tests(nodeid, status) VALUES(?, ?) '''
+    conn.execute(sql, (nodeid, status))
+    conn.commit()
+
+def get_test_status(conn, nodeid):
+    sql = 'SELECT status FROM tests WHERE nodeid=?'
+    cur = conn.cursor()
+    cur.execute(sql, (nodeid,))
+    row = cur.fetchone()
+    return row[0] if row else None
+
+def get_all_test_status(conn):
+    sql = 'SELECT nodeid FROM tests WHERE status="passed"'
+    cur = conn.cursor()
+    cur.execute(sql)
+    rows = cur.fetchall()
+    return [row[0] for row in rows]
+</code></pre>
+<h2 id="wen-jian-conftest-py-nei-rong">文件conftest.py内容</h2>
+<pre><code class="language-python">import pytest
+import sqlite3
+import os
+from utils.database import create_connection, create_table, insert_test_status, get_test_status, get_all_test_status
+
+DB_FILE = "test_status.db"
+
+def pytest_addoption(parser):
+    parser.addoption("--run-until-complete", action="store_true", help="Run until all tests are completed")
+
+# 确保数据库表被创建
+def pytest_configure(config):
+    conn = create_connection(DB_FILE)
+    create_table(conn)
+    conn.close()
+
+def pytest_sessionstart(session):
+    # 在pytest session开始时确保表存在
+    conn = create_connection(DB_FILE)
+    create_table(conn)
+    conn.close()
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_setup(item):
+    if item.config.getoption("--run-until-complete"):
+        conn = create_connection(DB_FILE)
+        nodeid = item.nodeid
+        status = get_test_status(conn, nodeid)
+
+        if status == "passed":
+            pytest.skip(f"Skipping {item.nodeid}, already executed and passed.")
+        conn.close()
+
+def pytest_runtest_logreport(report):
+    if report.when == 'call':
+        conn = create_connection(DB_FILE)
+        status = "passed" if report.outcome == "passed" else "failed"
+        insert_test_status(conn, report.nodeid, status)
+        conn.close()
+
+def pytest_collection_modifyitems(session, config, items):
+    if config.getoption("--run-until-complete"):
+        conn = create_connection(DB_FILE)
+        completed_tests = get_all_test_status(conn)
+        remaining_tests = [item for item in items if item.nodeid not in completed_tests]
+        items[:] = remaining_tests
+        conn.close()
+</code></pre>
+<h2 id="yun-xing-xiao-guo">运行效果</h2>
+<p>第一次执行，并中断测试用例的执行：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# pytest
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py .F..                                                                                                                                                                                                                               [ 14%]
+test_example_boolean.py ....^C
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/root/run_left/test_example_boolean.py:17: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+============================================================================================================== 1 failed, 7 passed in 0.59s ===============================================================================================================
+root@Gavin:~/run_left#
+</code></pre>
+<p>此时生成了数据库文件<code>test_status.db</code>：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# ll
+total 64
+drwxr-xr-x  5 root root  4096 Jun 21 16:36 ./
+drwx------ 43 root root  4096 Jun 21 16:36 ../
+-rw-r--r--  1 root root  1601 Jun 21 16:33 conftest.py
+drwxr-xr-x  2 root root  4096 Jun 21 16:36 __pycache__/
+drwxr-xr-x  3 root root  4096 Jun 21 16:36 .pytest_cache/
+-rw-r--r--  1 root root   170 Jun 21 16:36 sql.py
+-rw-r--r--  1 root root   308 Jun 21 16:02 test_example_boolean.py
+-rw-r--r--  1 root root   636 Jun 21 14:34 test_example_dict.py
+-rw-r--r--  1 root root   429 Jun 21 14:33 test_example_list.py
+-rw-r--r--  1 root root   185 Jun 21 14:33 test_example_math.py
+-rw-r--r--  1 root root   210 Jun 21 14:32 test_example.py
+-rw-r--r--  1 root root   364 Jun 21 14:33 test_example_string.py
+-rw-r--r--  1 root root 12288 Jun 21 16:36 test_status.db
+drwxr-xr-x  3 root root  4096 Jun 21 16:34 utils/
+root@Gavin:~/run_left#
+</code></pre>
+<p>增加一个查询sqlite数据库代码：</p>
+<pre><code class="language-python">root@Gavin:~/run_left# cat sql.py 
+import sqlite3 
+conn = sqlite3.connect("test_status.db")
+cur = conn.cursor()
+cur.execute("select * from tests ")
+
+for row in cur.fetchall():
+    print(row)
+
+conn.close()
+</code></pre>
+<p>第一次执行用例中断后，查询看看有哪些测试用例被执行到：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# python3 sql.py 
+(1, 'test_example.py::test_example_1', 'passed')
+(2, 'test_example.py::test_example_2', 'failed')
+(3, 'test_example.py::test_example_3', 'passed')
+(4, 'test_example.py::test_example_4', 'passed')
+(5, 'test_example_boolean.py::test_bool_true', 'passed')
+(6, 'test_example_boolean.py::test_bool_false', 'passed')
+(7, 'test_example_boolean.py::test_and_operation', 'passed')
+(8, 'test_example_boolean.py::test_or_operation', 'passed')
+root@Gavin:~/run_left# 
+</code></pre>
+<p>再次执行用例，携带上参数<code>--run-until-complete</code>:</p>
+<pre><code class="language-shell">pytest --run-until-complete
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py F                                                                                                                                                                                                                                  [  4%]
+test_example_boolean.py .                                                                                                                                                                                                                          [  9%]
+test_example_dict.py .....                                                                                                                                                                                                                         [ 33%]
+test_example_list.py .....                                                                                                                                                                                                                         [ 57%]
+test_example_math.py ....                                                                                                                                                                                                                          [ 76%]
+test_example_string.py .....                                                                                                                                                                                                                       [100%]
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+============================================================================================================== 1 failed, 20 passed in 5.16s ==============================================================================================================
+root@Gavin:~/run_left# 
+</code></pre>
+<p>此时数据库中存放的记录信息如下：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# python3 sql.py 
+(1, 'test_example.py::test_example_1', 'passed')
+(3, 'test_example.py::test_example_3', 'passed')
+(4, 'test_example.py::test_example_4', 'passed')
+(5, 'test_example_boolean.py::test_bool_true', 'passed')
+(6, 'test_example_boolean.py::test_bool_false', 'passed')
+(7, 'test_example_boolean.py::test_and_operation', 'passed')
+(8, 'test_example_boolean.py::test_or_operation', 'passed')
+(9, 'test_example.py::test_example_2', 'failed')
+(10, 'test_example_boolean.py::test_not_operation', 'passed')
+(11, 'test_example_dict.py::test_set_item', 'passed')
+(12, 'test_example_dict.py::test_remove_item', 'passed')
+(13, 'test_example_dict.py::test_get_item', 'passed')
+(14, 'test_example_dict.py::test_keys', 'passed')
+(15, 'test_example_dict.py::test_values', 'passed')
+(16, 'test_example_list.py::test_append', 'passed')
+(17, 'test_example_list.py::test_remove', 'passed')
+(18, 'test_example_list.py::test_index', 'passed')
+(19, 'test_example_list.py::test_sort', 'passed')
+(20, 'test_example_list.py::test_reverse', 'passed')
+(21, 'test_example_math.py::test_addition', 'passed')
+(22, 'test_example_math.py::test_subtraction', 'passed')
+(23, 'test_example_math.py::test_multiplication', 'passed')
+(24, 'test_example_math.py::test_division', 'passed')
+(25, 'test_example_string.py::test_concatenation', 'passed')
+(26, 'test_example_string.py::test_uppercase', 'passed')
+(27, 'test_example_string.py::test_lowercase', 'passed')
+(28, 'test_example_string.py::test_find_substring', 'passed')
+(29, 'test_example_string.py::test_replace', 'passed')
+root@Gavin:~/run_left# 
+</code></pre>
+<p>第三次执行，只执行余下失败状态的测试用例了，此时效果等同于插接件<code>pytest-rerunfailures</code>：</p>
+<pre><code class="language-shell">root@Gavin:~/run_left# pytest --run-until-complete
+================================================================================================================== test session starts ===================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.2.2, pluggy-1.5.0
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+rootdir: /root/run_left
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, progress-1.2.5, order-1.2.1, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2
+asyncio: mode=Mode.STRICT
+collected 28 items                                                                                                                                                                                                                                       
+
+test_example.py F                                                                                                                                                                                                                                  [100%]
+
+======================================================================================================================== FAILURES ========================================================================================================================
+_____________________________________________________________________________________________________________________ test_example_2 _____________________________________________________________________________________________________________________
+
+    def test_example_2():
+&gt;       assert 1 == 2  # 这个测试用例会失败
+E       assert 1 == 2
+
+test_example.py:7: AssertionError
+================================================================================================================ short test summary info =================================================================================================================
+FAILED test_example.py::test_example_2 - assert 1 == 2
+=================================================================================================================== 1 failed in 0.12s ====================================================================================================================
+root@Gavin:~/run_left# 
+</code></pre>
+<h1 id="xiao-jie">小结</h1>
+<p>三种方案各有千秋，读者可根据个人喜好选择，不过我更推荐方案一，更<code>pytestnic</code>(自造的词…)，更简洁。</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/06/23/pytest_rerun_left_cases/">https://gavin-wang-note.github.io/2024/06/23/pytest_rerun_left_cases/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2999/12/31/pytest_test_guide_book/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="自己总结的《pytest测试指南》">
+                        
+                        <span class="card-title">自己总结的《pytest测试指南》</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            自己总结的《pytest测试指南》一书，超级详细的pytest介绍，以及具体API项目实践和Jenkins CI/CD落地，完整的一套从入门到项目实践的详细记载，值得详细阅读。
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2999-12-31
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/06/19/pytest_variables_plugin/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-25.jpg" class="responsive-img" alt="pytest-Variables插件与实战介绍">
+                        
+                        <span class="card-title">pytest-Variables插件与实战介绍</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            介绍pytest-Variables插件的功能、应用场景及实战示例
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-06-19
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2009-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">837.8k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
