@@ -265,7 +265,7 @@ def test_post_request(base_url, api_key):
 
 根据环境变量或配置文件，动态跳过破坏性测试。
 
-**修改conftest.py内容**
+**修改后的conftest.py内容**
 
 ```python
 import pytest
@@ -356,7 +356,7 @@ prod:
 
 #### 步骤 2：配置 pytest
 
-通过 `pytest.ini` 文件注册 `nondestructive` 标记，并指定 pytest 变量。
+通过 `pytest.ini` 文件注册 `nondestructive` 标记，并指定`pytest`变量。
 
 **pytest.ini**
 

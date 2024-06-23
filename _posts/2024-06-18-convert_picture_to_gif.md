@@ -1,5 +1,5 @@
 ---
-title: 如何将图片或视频转转gif
+title: 如何将图片或视频转gif
 date: 2024-06-18 17:12:37
 author: Gavin Wang
 img: ""
