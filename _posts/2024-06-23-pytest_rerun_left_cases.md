@@ -1,5 +1,5 @@
 ---
-title: 继续执行中断后的测试用例
+title: 让pytest继续执行中断后的测试用例
 date: 2024-06-23
 author: Gavin Wang
 img: "/img/pytest/pytest-6.png"
@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: 本文介绍了测试用例在执行过程中被中断，如何续接之前的用例继续执行余下的测试用例，给出了几种实践方案供读者参考
+summary: 本文介绍了pytest测试用例在执行过程中被中断，如何续接之前的用例继续执行余下的测试用例，给出了几种实践方案供读者参考
 categories:
     - [pytest]
     - [Automation]
@@ -189,9 +189,9 @@ def pytest_runtest_protocol(item, nextitem):
     # 如果测试用例已经成功执行过，则跳过
     # 如果想跳过其他状态的测试用例，继续增加状态判断即可
     # if nodeid in status and status[nodeid] == "passed":
-    #     pytest.skip(f"Skipping {nodeid}, already passed.")
+    #     item.add_marker(pytest.mark.skip(reason=f"Skipping {nodeid}, already passed."))
     if nodeid in status:
-        item.add_marker(pytest.mark.skip(reason=f"Skipping {nodeid}, already passed."))
+        item.add_marker(pytest.mark.skip(reason=f"Skipping {nodeid}, already executed."))
 
 def pytest_runtest_logreport(report):
     if report.when == 'call':
