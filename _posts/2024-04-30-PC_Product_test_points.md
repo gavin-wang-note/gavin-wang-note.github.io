@@ -1,6 +1,6 @@
 ---
 title: PC端产品测试关注点
-date: 2024-07-17 23:00:00
+date: 2024-04-30 23:00:00
 author: Gavin Wang
 img: ""
 top: false
@@ -14,10 +14,10 @@ mathjax: false
 summary: Summary一下PC端产品通用的测试功能点
 categories:
     - [PC]
-    - [windows]
+    - [Windows]
 tags:
     - PC
-    - windows
+    - Windows
 ---
 
 # Overview
