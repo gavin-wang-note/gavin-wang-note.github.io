@@ -50,6 +50,8 @@ Windows自带的，详细使用方法，参考官方[链接](https://techcommuni
 
 ## Windows Performance Toolkit
 
+<img class="shadow" src="/img/in-post/windows/WPA界面全览.png" width="1200">
+
 这个工具比较复杂，也非常的强悍，后面再专门介绍。
 
 想了解的读者，请移步[官网](https://learn.microsoft.com/zh-cn/windows-hardware/test/wpt/windows-performance-toolkit-technical-reference)。
