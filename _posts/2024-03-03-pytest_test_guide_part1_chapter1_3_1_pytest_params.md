@@ -39,6 +39,9 @@ tags:
 
 * 对于一些常用参数，在本书后续独立章节详细介绍。
 * 本文以 `pytest 7.4.0` 版本下展示的参数进行说明描述，`pytest` 版本不同，参数会有些许差异，所以你应当参照你所使用的 `pytest` 版本的官方文档以获得最准确的信息。
+* 参数比较多，内容比较长，拆分成三部分介绍，另外两部分参考如下链接：
+[Part2](https://gavin-wang-note.github.io/2024/05/22/pytest_test_guide_part1_chapter1_3_2_pytest_params/)
+[Part3](https://gavin-wang-note.github.io/2024/05/23/pytest_test_guide_part1_chapter1_3_3_pytest_params/)
 
 
 

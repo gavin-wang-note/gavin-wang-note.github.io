@@ -20,7 +20,7 @@ tags:
     - Automation
 ---
 
-[续上文](http://gavin-wang-note.github.io/2024/06/12/pytest_test_guide_part1_chapter1_3_2_pytest_params/)
+[续上文](https://gavin-wang-note.github.io/2024/05/22/pytest_test_guide_part1_chapter1_3_2_pytest_params/)
 
 ## 3.2.4 pytest-warnings 相关参数
 
