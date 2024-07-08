@@ -1,6 +1,6 @@
 ---
 title: pytest+requests+Allure实现API自动化测试框架设计
-date: 2024-06-18 17:12:37
+date: 2024-06-18 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-3.png"
 top: true
