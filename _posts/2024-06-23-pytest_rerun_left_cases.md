@@ -1,6 +1,6 @@
 ---
 title: 让pytest继续执行中断后的测试用例
-date: 2024-06-23
+date: 2024-06-23 21:29:01
 author: Gavin Wang
 img: "/img/pytest/pytest-6.png"
 top: false
