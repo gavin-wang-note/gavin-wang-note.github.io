@@ -1,10 +1,12 @@
 ---
 layout:     post
-title:      "提升 PG scrub速度"
+title:      "提升 ceph PG scrub速度"
 subtitle:   "Improve ceph PG scrub"
 date:       2023-03-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -22,7 +24,7 @@ CEPH会定期（默认每个星期一次）对所有的PGs进行scrub，即通�
 
 当CEPH更换一块坏硬盘，进行数据修复后，出现了大量的PGs不能及时进行scrub，甚至有些PGs数据不一致，导致CEPH系统报警，如下所示：
 
-```
+```shell
   cluster:
     id:     8f1c1f24-59b1-11eb-aeb6-f4b78d05bf17
     health: HEALTH_ERR
@@ -57,11 +59,13 @@ osd_max_scrubs参数用于设置单个OSD同时进行的最大scrub操作数量�
 
 首先，获取ceph101中所有的OSD信息：
 
-```ceph osd dump | grep `grep ceph101 /etc/hosts | perl -ne 'print $1 if m/(\d\S*)/'` | perl -ne 'print "$1\n" if m/(osd.\d+)/' > /tmp/osd.list```
+```shell
+ceph osd dump | grep `grep ceph101 /etc/hosts | perl -ne 'print $1 if m/(\d\S*)/'` | perl -ne 'print "$1\n" if m/(osd.\d+)/' > /tmp/osd.list
+```
 
 然后，对所有OSD的参数进行批量修改：
 
-```
+```shell
 for i in `cat /tmp/osd.list`
 do
     ceph tell $i injectargs --osd_max_scrubs=10 --osd_scrub_load_threshold=10
@@ -78,7 +82,7 @@ done
 对所有的CEPH主机进行上述修改后，同时进行scrub的数量提高了30倍，并且使用top命令可以看到ceph-osd进程对CPU的资源消耗明显上升。
 
 
-```
+```shell
   cluster:
     id:     8f1c1f24-59b1-11eb-aeb6-f4b78d05bf17
     health: HEALTH_ERR
@@ -112,7 +116,7 @@ done
 
 对两个星期内（当前时间2022-08-03）未进行deep-scrubbed，已经有报警信息的PGs进行操作。
 
-```
+```shell
 ceph pg dump | perl -e 'while (<>) { @_ = split /\s+/; $pg{$_[0]} = $1 if ($_[22] =~ m/2022-07-(\d+)/ && $1 <= 21); } foreach ( sort {$pg{$a} <=> $pg{$b}} keys %pg ) { print "ceph pg deep-scrub $_; sleep 30;\n"; }' > for_deep_scrub.list
 
 sh for_deep_scrub.list
