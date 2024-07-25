@@ -1,6 +1,6 @@
 ---
 title: 测试用例重复执行插件pytest-repeat源码解读
-date: 2024-11-02 23:00:00
+date: 2025-10-05 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-26.jpg"
 top: false

@@ -1,6 +1,6 @@
 ---
 title: 测试用例进度显示插件pytest-sugar源码解读
-date: 2024-11-10 23:00:00
+date: 2025-11-10 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-26.jpg"
 top: false

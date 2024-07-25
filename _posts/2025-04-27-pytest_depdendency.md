@@ -585,7 +585,7 @@ def pytest_runtest_makereport(item, call):
 #### 代码解读
 
 1. **钩子装饰器**:
-   - `@pytest.hookimpl(tryfirst=True, hookwrapper=True)`: 这个装饰器将函数注册为 Pytest 的钩子。`tryfirst=True` 表示该钩子会在其他钩子之前执行，`hookwrapper=True` 表示该钩子会包装其他钩子的执行。
+   - `@pytest.hookimpl(tryfirst=True, hookwrapper=True)`: 这个装饰器将函数注册为 `pytest` 的钩子。`tryfirst=True` 表示该钩子会在其他钩子之前执行，`hookwrapper=True` 表示该钩子会包装其他钩子的执行。
 
 2. **函数定义**:
    - `def pytest_runtest_makereport(item, call)`: 定义了名为 `pytest_runtest_makereport` 的钩子函数，它接收两个参数：

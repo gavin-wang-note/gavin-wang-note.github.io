@@ -1,6 +1,6 @@
 ---
 title: 测试用例中多个软断言pytest-assume源码解读
-date: 2024-11-17 23:00:00
+date: 2024-11-07 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-26.jpg"
 top: false

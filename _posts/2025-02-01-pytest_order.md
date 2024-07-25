@@ -728,9 +728,9 @@ def pytest_configure(config: Config) -> None:
     config.pluginmanager.register(OrderingPlugin(), "orderingplugin")
 ```
 
-- **功能**：在 Pytest 配置阶段注册 "order" 标记，并根据命令行选项配置插件。
+- **功能**：在 `pytest` 配置阶段注册 "order" 标记，并根据命令行选项配置插件。
 - **参数**：
-  - `config`：`Config`，Pyst 的配置对象。
+  - `config`：`Config`，`pytest` 的配置对象。
 - **逻辑**：
   - 向配置文件中添加 "order" 标记的说明。
   - 根据是否设置了 `--indulgent-ordering` 选项，决定 `modify_items` 函数的执行顺序（`tryfirst` 或 `trylast`）。
@@ -812,9 +812,9 @@ def pytest_addoption(parser: Parser) -> None:
     )
 ```
 
-- **功能**：为 Pytest 设置命令行选项。
+- **功能**：为 `pytest` 设置命令行选项。
 - **参数**：
-  - `parser`：`Parser`，Pyst 的命令行参数解析器。
+  - `parser`：`Parser`，`pytest` 的命令行参数解析器。
 - **逻辑**：
   - 创建一个名为 "order" 的参数组。
   - 添加多个选项，允许用户控制测试用例的执行顺序和相关行为。
@@ -832,7 +832,7 @@ def _get_mark_description(mark: Mark):
 
 - **功能**：获取标记的描述。
 - **参数**：
-  - `mark`：`Mark`，Pyst 的标记对象。
+  - `mark`：`Mark`，`pytest` 的标记对象。
 - **返回值**：`str`，标记的描述。
 
 ### pytest_generate_tests 函数
@@ -866,7 +866,7 @@ def pytest_generate_tests(metafunc):
 
 - **功能**：处理多个 `pytest.mark.order` 装饰器，并生成相应的参数化测试。
 - **参数**：
-  - `metafunc`：`Metafunc`，Pyst 的元函数对象。
+  - `metafunc`：`Metafunc`，`pytest` 的元函数对象。
 - **逻辑**：
   - 获取函数的所有标记。
   - 筛选出所有的 "order" 标记。
@@ -897,8 +897,8 @@ def modify_items(session: Session, config: Config, items: List[Function]) -> Non
 
 - **功能**：修改项目列表，根据指定的顺序对测试用例进行排序。
 - **参数**：
-  - `session`：`Session`，Pyst 的会话对象。
-  - `config`：`Config`，Pyst 的配置对象。
+  - `session`：`Session`，`pytest` 的会话对象。
+  - `config`：`Config`，`pytest` 的配置对象。
   - `items`：`List[Function]`，测试用例列表。
 - **逻辑**：
   - 创建一个 `Sorter` 对象，传入配置和测试用例列表。
@@ -1597,7 +1597,7 @@ def warn_about_unknown_test(item: Item, rel_mark: str) -> None:
 
 #### 注意事项
 
-- 警告信息是直接输出到控制台的，不会被 Pytest 的日志系统捕获，因此它们可能不会被一些日志收集工具记录。
+- 警告信息是直接输出到控制台的，不会被 `pytest` 的日志系统捕获，因此它们可能不会被一些日志收集工具记录。
 - 这个方法不返回任何值，它的目的仅仅是为了通知用户存在未处理的标记。
 
 ### collect_markers 方法
@@ -1730,7 +1730,7 @@ def resolve_dependency_markers(
 #### 注意事项
 
 - **别名字典**：`aliases` 字典用于存储测试用例的别名，确保能够正确匹配依赖关系。
-- **警告信息**：输出的警告信息直接写入标准输出，不会被 Pytest 的日志系统捕获，因此可能不会被一些日志收集工具记录。
+- **警告信息**：输出的警告信息直接写入标准输出，不会被 `pytest` 的日志系统捕获，因此可能不会被一些日志收集工具记录。
 
 ### matching_alias 方法
 

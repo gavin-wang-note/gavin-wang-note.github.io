@@ -186,7 +186,7 @@ pytest --random-order --random-order-bucket
 - `global`：测试全部随机化。不做任何分组，所有的测试用例被汇集到一起并随机排序。
 - `none`：不对测试用例执行顺序做任何干预，即保持 `pytest` 默认的顺序。
 
-例如，如果你想要按照模块来随机化测试用例的执行顺序，你可以在运行 Pytest 时采用如下命令：
+例如，如果你想要按照模块来随机化测试用例的执行顺序，你可以在运行 `pytest` 时采用如下命令：
 
 ```shell
 pytest --random-order --random-order-bucket=module
@@ -301,7 +301,7 @@ class XdistHooks:
    - `-> None` 表示这个方法没有返回值。
 
 4. **获取随机种子配置**:
-   - `seed = node.config.getoption('random_order_seed')`：从当前节点的配置中获取 `random_order_seed` 选项的值。这个配置是由用户在使用 Pytest 时通过命令行选项指定的，用于设置随机执行测试用例的种子。
+   - `seed = node.config.getoption('random_order_seed')`：从当前节点的配置中获取 `random_order_seed` 选项的值。这个配置是由用户在使用 `pytest` 时通过命令行选项指定的，用于设置随机执行测试用例的种子。
 
 5. **设置工作输入**:
    - `node.workerinput['random_order_seed'] = seed`：将获取到的随机种子 `seed` 设置到 `node.workerinput` 字典中，以 `'random_order_seed'` 作为键。`workerinput` 是一个在 `pytest-xdist` 插件中使用的特殊字典，用于存储需要发送给工作进程的数据。这样，每个工作进程在执行测试用例时都会接收到相同的随机种子，以确保它们可以生成一致的测试执行顺序。
@@ -597,10 +597,10 @@ root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order#
    - 从 `random_order` 包中导入了相关的模块和类。
 
 2. **添加命令行选项**:
-   - `pytest_addoption` 函数用于向 Pytest 添加自定义命令行选项，允许用户控制随机顺序的行为。
+   - `pytest_addoption` 函数用于向 `pytest` 添加自定义命令行选项，允许用户控制随机顺序的行为。
 
 3. **配置插件**:
-   - `pytest_configure` 函数在 Pytest 配置阶段被调用，用于注册插件和处理与 `pytest-xdist` 的集成。
+   - `pytest_configure` 函数在 `pytest` 配置阶段被调用，用于注册插件和处理与 `pytest-xdist` 的集成。
 
 4. **报告头部信息**:
    - `pytest_report_header` 函数用于在测试报告的头部添加关于插件状态的信息。
@@ -618,7 +618,7 @@ def pytest_addoption(parser):
 ```python
 def pytest_configure(config):
 ```
-   - 在 Pytest 配置阶段注册配置项和钩子，特别是与 `pytest-xdist` 的集成。
+   - 在 `pytest` 配置阶段注册配置项和钩子，特别是与 `pytest-xdist` 的集成。
 
 ```python
 def pytest_report_header(config):

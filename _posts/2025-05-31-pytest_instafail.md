@@ -1,5 +1,5 @@
 ---
-title: 测试用例依赖之pytest-instafaily源码解读
+title: 测试用例依赖之pytest-instafail源码解读
 date: 2025-05-31 22:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-26.jpg"
@@ -134,7 +134,7 @@ def pytest_addoption(parser):
 
 1. **导入依赖**:
    - `import pytest`: 导入 `pytest`模块，以便使用 `pytest`提供的功能。
-   - `from _pytest.terminal import TerminalReporter`: 从 Pytest 的内部模块中导入 `TerminalReporter` 类，这可能用于自定义终端报告的输出。
+   - `from _pytest.terminal import TerminalReporter`: 从 `pytest` 的内部模块中导入 `TerminalReporter` 类，这可能用于自定义终端报告的输出。
 
 2. **添加命令行选项**:
    - `def pytest_addoption(parser)`: 这是一个钩子函数，当 `pytest`启动时会被调用，允许插件向 `pytest` 添加额外的命令行选项。
