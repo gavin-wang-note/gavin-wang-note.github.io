@@ -3,8 +3,11 @@ layout:     post
 title:      "统计NAS写入速度(Base on oceanfile tool)"
 subtitle:   "Calc NAS write speed base on oceanfile tool"
 date:       2023-06-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [shell]
 tags:
     - ceph
     - shell
@@ -14,17 +17,17 @@ tags:
 
 # 概述
 
-借助oceanfile（类似mdtest或者vdbench的一个工具），快速观察写不同block size的file（含多层目录），NAS的性能表现如何。
+借助同事 [Bean Li](http://bean-li.github.io/) 写的`oceanfile`（类似`mdtest`或者`vdbench`的一个简易工具），快速观察写不同`block size`的`file`（含多层目录），NAS的性能表现如何。
 
-此脚本方便快速获取NAS的读写性能，下班前tmux在被测环境中跑一夜，第二天观察统计结果即可。
+此脚本方便快速获取NAS的读写性能，下班前`tmux`在被测环境中跑一夜，第二天观察统计结果即可。
 
 
 # 脚本内容
 
-run_oceanfile_calc_NAS_performance.sh
+```run_oceanfile_calc_NAS_performance.sh```
 
 
-```
+```shell
 #!/bin/bash
 
 EFILE=/usr/local/bin/oceanfile

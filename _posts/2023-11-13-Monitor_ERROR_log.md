@@ -3,8 +3,11 @@ layout:     post
 title:      "python监听日志变化"
 subtitle:   "Monitor Log Changes"
 date:       2023-11-13
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+summary: 借助python监听产品异常日志，方便测试过程中及时捕获异常操作日志，避免遗漏
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -17,7 +20,7 @@ tags:
 
 # 代码示例
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -70,7 +73,7 @@ if __name__  == '__main__':
 
 执行过程示例如下：
 
-```
+```shell
 [qatest@iZbp1fl8ef9wkdizi6soq1Z ~]$ python monitor_debug_log.py "/mnt/logs/marketingservice/debug.log"
 /usr/lib/python2.7/site-packages/requests/__init__.py:91: RequestsDependencyWarning: urllib3 (1.25.3) or chardet (2.2.1) doesn't match a supported version!
   RequestsDependencyWarning)

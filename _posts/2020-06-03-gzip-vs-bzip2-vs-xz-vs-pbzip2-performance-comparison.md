@@ -3,8 +3,13 @@ layout:     post
 title:      "gzip vs bzip2 vs xz vs pbzip2 性能对比"
 subtitle:   "gzip vs bzip2 vs xz vs pbzip2 performance comparison"
 date:       2020-06-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [gzip]
+    - [bzip2]
+    - [pbzip2]
+    - [xz]
 tags:
     - gzip
     - bzip2
@@ -35,7 +40,7 @@ tags:
 
 
 
-```
+```shell
 root@node244:/mnt/disk/compress_test# ll
 total 557704
 drwxr-xr-x 2 root root      4096 Jun  3 10:34 ./
@@ -50,7 +55,7 @@ root@node244:/mnt/disk/compress_test#
 
 
 
-```
+```shell
 for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time gzip -k -f -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; gzip -l -v ceph-client.radosgw.0.log.gz; echo "-----  Uncompress -----"; time gzip -d -f ceph-client.radosgw.0.log.gz; done
 ```
 
@@ -64,7 +69,7 @@ for i in {1..9}; do echo "============================  Compress Level $i  =====
 
 
 
-```
+```shell
 root@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time gzip -k -f -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; gzip -l -v ceph-client.radosgw.0.log.gz; echo "-----  Uncompress -----"; time gzip -d -f ceph-client.radosgw.0.log.gz; done
 ============================  Compress Level 1  ===========================
  ----- Compress -----
@@ -201,7 +206,7 @@ root@node244:/mnt/disk/compress_test#
 
 
 
-```
+```shell
 root@node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time bzip2 -k -f -v -$i ceph-client.radosgw.0.log ceph-client.radosgw.0.log.bz2; echo "-----  Uncompress -----"; time bzip2 -d -f ceph-client.radosgw.0.log.bz2; done
 ============================  Compress Level 1  ===========================
  ----- Compress -----
@@ -331,7 +336,7 @@ root@node244:/mnt/disk/compress_test#
 
 由于担心不同CPU并发影响测试效果，这里指定了CPU个数为24个，在不带-p参数情况下，默认32个，当前环境虽然有32cores，但并不是每次都能全部参与，有时候是32，有时候是29，有时候是26，所以这里指定一个更低值，确保每次执行都使用相同cores的CPU数。
 
-```
+```shell
 @node244:/mnt/disk/compress_test# for i in {1..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; time pbzip2 -k -f -v -p24 -$i ceph-client.radosgw.0.log; echo "----- Uncompress -----"; time pbzip2 -p24 -d -f ceph-client.radosgw.0.log.bz2; done
 ============================  Compress Level 1  ===========================
  ----- Compress -----
@@ -612,7 +617,7 @@ root@node244:/mnt/disk/compress_test#
 
 
 
-```
+```shell
 root@node244:/mnt/disk/compress_test# for i in {0..9}; do echo "============================  Compress Level $i  ==========================="; echo " ----- Compress -----"; rm -rf *.xz; time xz -k -f -v -$i ceph-client.radosgw.0.log; echo " ----- Compress info -----"; xz -l -v ceph-client.radosgw.0.log.xz; echo "----- Uncompress -----"; time xz -d -f ceph-client.radosgw.0.log.xz; done
 ============================  Compress Level 0  ===========================
  ----- Compress -----

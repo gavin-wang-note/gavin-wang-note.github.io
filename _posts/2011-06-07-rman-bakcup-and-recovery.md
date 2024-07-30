@@ -3,8 +3,10 @@ layout:     post
 title:      "oracle RMAN备份与恢复概述与实践篇2"
 subtitle:   "oracle rman backup and recovery, and RMAN Practice Part2"
 date:       2011-06-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -35,7 +37,7 @@ RMAN备份有两种形式：
 1、镜像备份（image copies）；
 
 2、备份集备份（backup sets）。
- 
+
 ### 镜像备份
 
 镜像备份实际就是RMAN利用目标数据库服务进程来完成文件的copy操作，是数据文件、控制文件或者归档日志文件的副本。
@@ -70,7 +72,7 @@ RMAN镜像备份的副本无法通过list backup显示，可以通过list copy�
 
 ### report
 
-```
+```shell
 1. 报告目标数据库的物理结构              RMAN> report schema;
 
 2. 报告最近N天尚未备份的数据文件           RMAN> report need backup days=3;
@@ -92,7 +94,7 @@ RMAN镜像备份的副本无法通过list backup显示，可以通过list copy�
 
 ### list
 
-```
+```shell
 list backup;             列出详细备份
 
 list expired backup;         列出过期备份
@@ -126,7 +128,7 @@ list backup by file;         按备份类型列出备份
 
 ### check
 
-```
+```shell
 RMAN> crosscheck backup;               核对所有备份集 
 
 RMAN> crosscheck backup of database;         核对所有数据文件的备份集 
@@ -172,7 +174,7 @@ RMAN> crosscheck archivelog until sequence 522;
 
 ### delete
 
-```
+```shell
 RMAN> delete obsolete;         删除陈旧备份；
 
 RMAN> delete expired backup;      删除EXPIRED备份 
@@ -203,7 +205,7 @@ RMAN> delete backupset id;       删除备份集
 
 ### 备份整个数据库
 
-```
+```shell
 run {
 
 allocate channel c1 type disk;
@@ -225,13 +227,13 @@ release channel c1;
 
 ### 备份指定的数据文件
 
-```
+```shell
 backup datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
 ```
 
 ### 备份表空间
 
-```
+```shell
 backup tablespace MMSG;
 ```
 
@@ -239,25 +241,25 @@ backup tablespace MMSG;
 
 方法1：
 
-```
+```shell
 configure controlfile autobackup on;
 ```
 
 方法2：
 
-```
+```shell
 backup current controlfile;
 ```
 
 方法3:
 
-```
+```shell
 backup database include current controlfile;
 ```
 
 ### 备份归档日志
 
-```
+```shell
 backup archivelog all;
 ```
 
@@ -265,13 +267,13 @@ backup archivelog all;
 
 建立一个增量级别为0的全库备份：
 
-```
+```shell
  backup INCREMENTAL LEVEL=0 database;
 ```
 
 建立一个增量级别为1的数据库表空间的备份：
 
-```
+```shell
  backup incremental level=1 tablespace MMSG;
 ```
 
@@ -279,7 +281,7 @@ backup archivelog all;
 
 * Rman默认创建的增量备份是Differential方式，如果要建立Cumulative方式的增量备份，在执行BACKUP命令时显式指定即可，例如：
 
-```
+```shell
 RMAN> BACKUP INCREMENTAL LEVEL=2 CUMULATIVE DATABASE;
 ```
 
@@ -287,13 +289,13 @@ RMAN> BACKUP INCREMENTAL LEVEL=2 CUMULATIVE DATABASE;
 
 步骤一：显示指定copies数量
 
-```
+```shell
 RMAN> backup copies 2 tablespace MMSG;
 ```
 
 步骤二：在批处理中增加set backup copies参数：
 
-```
+```shell
 RMAN> run
 
 {
@@ -314,7 +316,7 @@ backup tablespace MMSG;
 
 ### 恢复spfile文件
 
-```
+```shell
 RMAN> startup nomount
 
 RMAN> set dbid=1037536304
@@ -326,7 +328,7 @@ RMAN> startup force
 
 ### 表空间的恢复
 
-```
+```shell
 RMAN> shutdown immediate
 
 RMAN>startup mount
@@ -342,7 +344,7 @@ RMAN>alter database open;
 
 这个操作类似于表空间的恢复
 
-```
+```shell
 RMAN>shutdown immediate
 
 RMAN>startup mount
@@ -356,7 +358,7 @@ RMAN>alter database open
 
 ### 全库的恢复
 
-```
+```shell
 RMAN>shutdown immediate
 
 RMAN>startup mount
@@ -401,7 +403,7 @@ RMAN> run
 
 2、RMAN恢复
 
-```
+```shell
  RMAN> run {
 
    allocate channel c1 device type disk;
@@ -415,7 +417,7 @@ RMAN> run
 
 ### 重做日志文件的恢复
 
-```
+```shell
 SQL> shutdown immediate
 
 数据库已经关闭。
@@ -433,7 +435,7 @@ SQL> alter database open resetlogs;
 
 ### 归档日志文件的恢复
 
-```
+```shell
 RMAN>shutdown immediate
 
 RMAN>startup mount
@@ -457,20 +459,20 @@ RMAN> run
 
 步骤三  用CLEAR命令重建该日志文件 
 
-```
+```shell
 SQL> alter database clear logfile group 3;
 ```
 
 ​      如果是该日志组还没有归档，则需要用
 
-   
-```
+
+```shell
   SQL>alter database clear unarchived logfile group 3;
 ```
 
 步骤四  打开数据库，并备份数据库 
 
-```
+```shell
  SQL> alter database open;
 ```
 
@@ -478,7 +480,7 @@ SQL> alter database clear logfile group 3;
 
 一、数据库正常关闭，日志文件中没有未决的事务需要实例恢复，当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建
 
-```
+```shell
   SQL> alter database clear unarchived logfile group 2;
 
   SQL> alter database open;
@@ -496,7 +498,7 @@ SQL> alter database clear logfile group 3;
 
   步骤四 数据库启动到mount状态，进行不完全恢复：
 
-```
+```shell
       SQL> startup mount
 
       SQL> recover database until cancel;
@@ -506,7 +508,7 @@ SQL> alter database clear logfile group 3;
 
  注：这个时候是不能用rman进行恢复的！
 
- 
+
 2、通过强制性恢复，这种方法会导致数据的不一致性，推荐使用方法一
 
   步骤一 模拟当前日志组中日志成员被损坏 SQL> select * from v$log;
@@ -514,7 +516,7 @@ SQL> alter database clear logfile group 3;
   步骤二 修改pfile文件，增加隐性参数
 
 
-```
+```shell
  vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
 
   \#add for test by wangyunzeng
@@ -526,20 +528,20 @@ SQL> alter database clear logfile group 3;
 
 步骤四 进行介质恢复 
 
-```
+```shell
 SQL> recover database until cancel;
 ```
 
 ​      出现如下信息时，选择cancel命令  指定日志:
 
-```
+```shell
  {<RET>=suggested | filename | AUTO | CANCEL}
  cancel
 ```
 
   步骤五 resetlogs方式启动数据库
 
-```
+```shell
 SQL> alter database open resetlogs;
 ```
 
@@ -551,7 +553,7 @@ SQL> alter database open resetlogs;
 
 步骤九 表数据分析  建议执行一下表分析 
 
-```
+```shell
 SQL> ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
 ```
 
@@ -578,7 +580,7 @@ SQL> ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
 
 RMAN脚本
 
-```
+```shell
 oracle@mmsg:~/rman> more back_full.rman
 
 run
@@ -608,11 +610,11 @@ delete noprompt obsolete;
 
 命令执行
 
-```
+```shell
 oracle@mmsg:~/rman> rman target / msglog /opt/oracle/rman/bak.log cmdfile=/opt/oracle/rman/back_full.rman
 ```
 
-```
+```shell
 oracle@mmsc103:~/rmanbak> more backup.pl
 
 #!/usr/bin/perl
@@ -646,7 +648,7 @@ daytime.log");
 
 每天凌晨1点执行数据库的备份
 
-```
+```shell
 0 1 * * * su - oracle -c /opt/oracle/rmanbak/backup.pl
 ```
 
@@ -655,11 +657,11 @@ daytime.log");
 1、备份整个数据库，包括控制文件以及归档日志；
 
 2、清除3天前备份的归档日志。
- 
+
 
 RMAN脚本
 
-```
+```shell
 oracle@mmsc103:~/rmanbak> more everydaybak.rman
 
 #script.:fullbakup.rman
@@ -700,7 +702,7 @@ release channel t1;
 
 #end
 ```
- 
+
 
 ## RMAN常见问题解决方法
 
@@ -729,12 +731,12 @@ RMAN-06004: 恢复目录数据库发生 ORACLE 错误: RMAN-20001: 在恢复目�
 
 解决方法：注册RMAN。
 
-```
+```shell
 RMAN> register database;           
 ```
 
 ​           
- 
+
 
 ### RMAN备份文件异常删除
 
@@ -742,7 +744,7 @@ RMAN> register database;
 
 解决：
 
-```
+```shell
 RMAN> list backupset by backup summary;
 
 RMAN> crosscheck backupset;

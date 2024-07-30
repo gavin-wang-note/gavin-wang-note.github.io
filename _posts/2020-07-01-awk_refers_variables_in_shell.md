@@ -3,8 +3,12 @@ layout:     post
 title:      "awk引用shell中变量"
 subtitle:   "Awk refers to variables in the shell"
 date:       2020-07-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
+    - [ceph]
+    - [awk]
 tags:
     - shell
     - awk
@@ -16,7 +20,7 @@ tags:
 
 在网上找了一个统计pool下pg分布的脚本，拿来使用了一下，发现可以在ceph J版上执行，在L版报错，原脚本内容参考如下:
 
-{% raw %}```
+```shell
 ceph pg dump | egrep -v "^[0-9]*  " | awk '
 /^pg_stat/ { col=1; while($col!="up") {col++}; col++ }
 /^[0-9a-f]+.[0-9a-f]+/ { match($0,/^[0-9a-f]+/); pool=substr($0, RSTART, RLENGTH); poollist[pool]=0;
@@ -32,7 +36,7 @@ for (j in poollist) { printf("%i\t", array[i,j]); sum+=array[i,j]; poollist[j]+=
 for (i in poollist) printf("--------"); printf("--------------\n");
 printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n");
 }'
-``` {% endraw %}
+```
 
 本文讲述awk如何引用shell变量，来解决上面这个脚本对我们产品的兼容问题。
 
@@ -40,7 +44,7 @@ printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n")
 
 修改后的脚本参考如下:
 
-{% raw %}```
+```shell
 ceph_version=`ceph -v | awk '{{print $3}}'`
 
 if [[ ${ceph_version} =~ '10.' ]]; then
@@ -66,28 +70,28 @@ for (j in poollist) { printf("%i\t", array[i,j]); sum+=array[i,j]; poollist[j]+=
 for (i in poollist) printf("--------"); printf("--------------\n");
 printf("SUM :\t"); for (i in poollist) printf("%s\t",poollist[i]); printf("|\n");
 }'
-``` {% endraw %}
+```
 
 
 # awk引用shell中变量
 
-## 方法1： {% raw %}```"'$var'" ``` {% endraw %}
+## 方法1： ```"'$var'" ``` 
 
 这种写法大家无需改变用'括起awk程序的习惯,是老外常用的写法.如:
 
-{% raw %}```
+```shell
 var="test"
 
 awk 'BEGIN{print "'$var'"}'
-``` {% endraw %}
+```
 
 这种写法其实就是把一对单引号分成了两段单引号，中间的shell变量直接按照shell变量的引用方式即可，但是如果var中含空格,为了shell不把空格作为分格符,便应该如下使用:
 
-{% raw %}```
+```shell
 var="thisis a test"
 
 awk 'BEGIN{print "'"$var"'"}'    （也就是在shell变量的两边加上一对双引号即可）
-``` {% endraw %}
+```
 
 ## 方法2：export变量
 
@@ -95,31 +99,31 @@ awk 'BEGIN{print "'"$var"'"}'    （也就是在shell变量的两边加上一对
 
 如:                                                                     
 
-{% raw %}```
+```shell
 var="thisis a test";export $var
 
 awk 'BEGIN{print ENVIRON["var"]}'
-``` {% endraw %}
+```
 
 ## 方法3：使用-v选项
 
 如:
 
-{% raw %}```
+```shell
 var="thisis a test"
 
 awk –v nvar="$var"  'BEGIN{print nvar}'
-``` {% endraw %}
+```
 
 这样便把系统变量定义成了awk变量.
 
 如果在awk是这种格式的话 ``` awk  'script'  filename ``` 也可以这样引用shell变量
 
-{% raw %}```
+```shell
 awk 'script' awkvar="shellvar" filename
 
 awk 'END{print awkvar}' awkvar="$shellvar" filename
-``` {% endraw %}
+```
 
 
 
@@ -127,7 +131,7 @@ awk 'END{print awkvar}' awkvar="$shellvar" filename
 
 参考如下:
 
-{% raw %}```
+```python
 #!/usr/bin/env  python
 import sys 
 import os
@@ -190,4 +194,4 @@ for osd in OSD:
 SUM = " ".join(["%(x)-6s" % {"x": x[1]["count"]} for x in MA])
 msg = {"pool": "pool", "pools": pools, "line": "-" * line, "dy": DY, "end": SUM, "sun": "SUM"}
 print MSG % msg
-``` {% endraw %}
+```

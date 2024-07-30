@@ -3,8 +3,10 @@ layout:     post
 title:      "Monkey Tool 介绍"
 subtitle:   "Introducing Monkey Tool for APP"
 date:       2015-08-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Monkey]
 tags:
     - Monkey
 ---
@@ -12,7 +14,9 @@ tags:
 
 # Monkey 是什么？
 
-    Monkey 就是SDK中附带的一个工具。
+```shell
+Monkey 就是SDK中附带的一个工具。
+```
 
 
 
@@ -26,7 +30,9 @@ tags:
 
 # Monkey 测试的特点？
 
-    Monkey 测试,所有的事件都是随机产生的，不带任何人的主观性。
+```shell
+Monkey 测试,所有的事件都是随机产生的，不带任何人的主观性。
+```
 
 
 
@@ -36,7 +42,7 @@ tags:
 
 ## 标准的monkey 命令
 
-```
+```shell
 [adb shell] monkey [options] <eventcount> 
 ```
 
@@ -46,7 +52,9 @@ tags:
 
 
 
-    adb shell monkey -v 500    --------产生500次随机事件，作用在系统中所有activity（其实也不是所有的activity，而是包含  Intent.CATEGORY_LAUNCHER 或Intent.CATEGORY_MONKEY 的activity）。
+```shell
+adb shell monkey -v 500    --------产生500次随机事件，作用在系统中所有activity（其实也不是所有的activity，而是包含  Intent.CATEGORY_LAUNCHER 或Intent.CATEGORY_MONKEY 的activity）。
+```
 
 上面只是一个简单的例子，实际情况中通常会有很多的options 选项。
 
@@ -120,7 +128,7 @@ tags:
 
 
 
-```
+```shell
 adb shell monkey -p com.xy.android.junit -s 500 -v 10000
 ```
 
@@ -132,7 +140,7 @@ adb shell monkey -p com.xy.android.junit -s 500 -v 10000
 
 monkey 测试命令如下：
 
-```
+```shell
 adb shell monkey -p com.xy.android.junit -s 500 --ignore-crashes --ignore-timeouts --monitor-native-crashes -v -v 10000 > E:\monkey_log\java_monkey_log.txt
 ```
 

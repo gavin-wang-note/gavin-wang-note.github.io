@@ -3,15 +3,25 @@ layout:     post
 title:      "List 3 object from Bucket"
 subtitle:   "List S3 object fomr Bucket"
 date:       2018-04-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
 
+
+
+# 概述
+
+因为要调测`ceph S3`相关参数，观察参数调整对`list S3 Objects`的 影响，因此写了如下脚本辅助测试。
+
+
+
 # Script
 
-```
+```python
 #!/usr/bin/python
 # coding: utf8
 

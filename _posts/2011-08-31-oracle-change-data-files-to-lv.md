@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--oracle本地磁盘数据文件更改到lv上"
 subtitle:   "Oracle troubleshoot--Change local data files to LV"
 date:       2011-08-31
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -24,7 +26,7 @@ oracle数据库的所有数据文件安装在本地系统盘，现要将所有�
 
 #### 本地数据文件
 
-```
+```shell
 SQL> create tablespace wyztest datafile '/opt/oracle/oradata/mmsgdb/wyztest.dbf' size 50M;   
 
 表空间已创建。
@@ -34,7 +36,7 @@ SQL> create tablespace wyztest datafile '/opt/oracle/oradata/mmsgdb/wyztest.dbf'
 
 #### 创建用户并授权
 
-```
+```shell
 SQL> create user test identified by test  
   2  default tablespace wyztest 
   3  profile default;
@@ -68,7 +70,7 @@ SQL> exit
 
 #### 创建用户表，并插入两条记录
 
-```
+```shell
 oracle@mmsc103:~> sqlplus test/test@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 8月 31 12:11:17 2011
@@ -112,7 +114,7 @@ SQL> exit
 
 #### 创建lv
 
-```
+```shell
 mmsc103:/opt/oracle # lvcreate -L 290M -n oratest vg_dlsc_uoa
   Rounding up size to full physical extent 292.00 MB
   Logical volume "oratest" created
@@ -120,7 +122,7 @@ mmsc103:/opt/oracle # lvcreate -L 290M -n oratest vg_dlsc_uoa
 
 #### 修改lv属主信息
 
-```
+```shell
 mmsc103:/opt/oracle # cd /dev
 mmsc103:/dev # chown -R oracle.oinstall vg_dlsc_uoa
 mmsc103:/dev # chown -R oracle.oinstall vg_dlsc_uoa/*
@@ -146,7 +148,7 @@ mmsc103:/dev/mapper #
 
 #### 关闭数据库
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -155,7 +157,7 @@ ORACLE 例程已经关闭。
 
 #### 启动数据库到mount状态
 
-```
+```shell
 SQL> startup mount
 ORACLE 例程已经启动。
 
@@ -172,7 +174,7 @@ SQL> exit
 
 #### 复制本地数据文件到lv上
 
-```
+```shell
 oracle@mmsc103:~> rman target/
 
 恢复管理器: Release 11.1.0.6.0 - Production on 星期三 8月 31 11:45:14 2011
@@ -198,7 +200,7 @@ RMAN> quit
 
 ### 步骤五、修改控制文件并open数据库
 
-```
+```shell
 oracle@mmsc103:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 8月 31 11:50:50 2011
@@ -221,7 +223,7 @@ SQL> alter database open;
 
 ### 步骤六、查看迁移结果
 
-```
+```shell
 SQL> select FILE_NAME from dba_data_files where TABLESPACE_NAME ='WYZTEST';
 
 FILE_NAME
@@ -235,7 +237,7 @@ With the Partitioning, OLAP, Data Mining and Real Application Testing options �
 
 #### 查看前后后表中数据记录
 
-```
+```shell
 oracle@mmsc103:~> sqlplus test/test@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 8月 31 12:21:50 2011
@@ -278,7 +280,7 @@ SQL>
 
 * 永久数据文件包括：
 
-```
+```shell
 select file_name from dba_data_files;
 system01.dbf 
 sysaux01.dbf 
@@ -295,14 +297,14 @@ redo03.log
 
 由于临时文件不存放数据，可以将原先临时文件drop掉，并重新创建在lv上既可。
 
-```
+```shell
 select file_name from dba_temp_files;
 temp01.dbf
 ```
 
 ### 变更控制文件位置
 
-```
+```shell
 select * from v$controlfile;
 control01.ctl
 control02.ctl

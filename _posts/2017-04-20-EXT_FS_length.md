@@ -3,8 +3,10 @@ layout:     post
 title:      "EXT3/4 FS 长度"
 subtitle:   "Lenth of EXT3/4"
 date:       2017-04-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -15,7 +17,7 @@ tags:
 
 # 脚本
 
-```
+```shell
 LENTH=`for i in {1..255};do for x in a;do echo -n $x;done;done`
 touch $LENTH
 ```

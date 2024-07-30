@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--联机日志损坏"
 subtitle:   "Oracle troubleshoot--online log recovery"
 date:       2011-03-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 步骤一  启动数据库，报错：ORA-00313和ORA-00312
 
-```
+```shell
 SQL> startup
 ORACLE 例程已经启动。
 
@@ -29,7 +31,7 @@ ORA-00312: 联机日志 3 线程 1: '/opt/oracle/oradata/mmsgdb/redo03.log'
 
 ## 步骤二  查看v$log视图
 
-```
+```shell
 SQL> select group#,sequence#,archived,status from v$log;
 
     GROUP#  SEQUENCE# ARC STATUS
@@ -45,7 +47,7 @@ SQL>
 
 ## 步骤三   用CLEAR命令重建该日志文件
 
-```
+```shell
 SQL> alter database clear logfile group 3;
 
 数据库已更改。
@@ -56,7 +58,7 @@ SQL>alter database clear unarchived logfile group 3;
 
 ## 步骤四   打开数据库，并备份数据库
 
-```
+```shell
 SQL> alter database open;
 
 数据库已更改。
@@ -77,7 +79,7 @@ SQL>
 
 当前日志组的损坏，可以直接使用alter database clear unarchived logfile group N;命令来重建，步骤如下：
 
-```
+```shell
 oracle@mmsc103:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期二 3月 8 17:46:33 2011
@@ -138,7 +140,7 @@ SQL>
 
 ### 步骤一  模拟当前日志组中日志文件损坏
 
-```
+```shell
 SQL> set wrap off
 SQL> set linesize 200
 SQL> select * from v$log;
@@ -157,7 +159,7 @@ exit
 
 ### 步骤二  启动数据库，报错
 
-```
+```shell
 SQL> startup force
 ORACLE 例程已经启动。
 
@@ -187,7 +189,7 @@ SQL>
 
 ### 步骤三  clear不成功
 
-```
+```shell
 SQL> alter database clear unarchived logfile group 3;
 alter database clear unarchived logfile group 3
 *
@@ -203,7 +205,7 @@ SQL>
 
 文件拷贝
 
-```
+```shell
 oracle@mmsc103:~> cd bak_20110307/mmsgdb/
 oracle@mmsc103:~/bak_20110307/mmsgdb> l
 total 2256564
@@ -248,7 +250,7 @@ SQL>
 注意：
 * 这个时候是不能用RMAN进行恢复的，否则报错：
 
-```
+```shell
 ORA-00283: 恢复会话因错误而取消
 ORA-00313: 无法打开日志组 3 (用于线程 1) 的成员
 ORA-00312: 联机日志 3 线程 1: '/opt/oracle/oradata/mmsgdb/redo03.log'
@@ -267,7 +269,7 @@ Additional information: 3
 
 ### 步骤一 模拟当前日志组中日志成员被损坏
 
-```
+```shell
 SQL> set wrap off
 SQL> set linesize 200
 SQL> select * from v$log;
@@ -303,7 +305,7 @@ SQL>
 
 ### 步骤二  修改pfile文件，增加隐性参数
 
-```
+```shell
 vi /opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420
 #add for test by wangyunzeng
 _allow_resetlogs_corruption=TRUE
@@ -311,7 +313,7 @@ _allow_resetlogs_corruption=TRUE
 
 ### 步骤三  通过pfile文件启动数据库
 
-```
+```shell
 SQL> startup force pfile='/opt/oracle/admin/mmsgdb/pfile/init.ora.232011183420' 
 ORACLE 例程已经启动。
 
@@ -330,7 +332,7 @@ Additional information: 3
 
 ### 步骤四  进行介质恢复
 
-```
+```shell
 SQL> recover database until cancel;
 ORA-00279: 更改 688820 (在 03/08/2011 18:14:25 生成) 对于线程 1 是必需的
 ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_08/o1_mf_1_1_%u_.arc
@@ -356,7 +358,7 @@ SQL>
 
 ### 步骤五   关闭数据库，去掉pfile文件中隐性参数，重启数据库
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -401,7 +403,7 @@ SQL>
 
 建议执行一下表分析
 
-```
+```shell
 SQL> ANALYZE TABLE time VALIDATE STRUCTURE CASCADE;
 
 表已分析。

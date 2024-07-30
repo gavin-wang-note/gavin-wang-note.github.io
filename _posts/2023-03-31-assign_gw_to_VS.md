@@ -3,8 +3,10 @@ layout:     post
 title:      "Loop assign GWs to different VS"
 subtitle:   "Loop assign GWs to different VS"
 date:       2023-03-31
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -25,7 +27,7 @@ Considering that manual testing can be time consuming, write a test script and r
 
 # Script of assign_gw_v8.3.sh
 
-```
+```shell
 #!/bin/bash
 
 target="1.2.3.164"

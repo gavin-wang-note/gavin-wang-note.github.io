@@ -3,8 +3,13 @@ layout:     post
 title:      "pytest fixture of ids/name"
 subtitle:   "pytest fixture of ids/name"
 date:       2023-11-02
-author:     "Gavin"
+author:     "Gavin Wang"
+img: "/img/pytest/pytest-3.png"
 catalog:    true
+summary: pytest fixture的ids和name参数详解
+categories:
+    - [Automation]
+    - [pytest]
 tags:
     - pytest
     - Automation
@@ -19,7 +24,7 @@ pytest fixture 的ids，需要结合fixture的param使用，其作用是给测�
 
 
 
-```
+```shell
 @pytest.fixture(scope="", params="", autouse="", ids="", name="")
 ```
 
@@ -32,12 +37,9 @@ pytest fixture 的ids，需要结合fixture的param使用，其作用是给测�
 # 示例
 
 
-
-
-
 未使用ids情况下
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -73,7 +75,7 @@ def test_fixtures_02(my_fixture):
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -133,7 +135,7 @@ def test_fixtures_03(my_fixture):
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -175,13 +177,15 @@ def test_case_01(my_AI_fixture):
 
 <img class="shadow" src="/img/in-post/with_-k_parameter.png" width="1200">
 
-注意：
+{% note warning %}
+注意:
+{% endnote %}
 
   -k 后面，字符串一定要使用双引号，单引号不可以。
 
 -k的意思如下：
 
-```
+```shell
   -k EXPRESSION    Only run tests which match the given substring expression. An expression is a Python evaluatable expression where all names are substring-matched against test names and their parent classes.
 Example: -k 'test_method or test_other' matches all test functions and classes whose name contains 'test_method' or 'test_other', while -k 'not test_method' matches those that don't contain 'test_method' in their names. -k 'not test_method and not test_other' will eliminate the matches. Additionally keywords are matched to classes and functions containing extra names in their 'extra_keyword_matches' set, as well as functions which have names assigned directly to them. The matching is case-insensitive.
 ```
@@ -198,7 +202,7 @@ name参数实用性不大，用于给fixture设置别名，或者描述一下这
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -230,7 +234,7 @@ def test_fixtures_03(Test_Fixture_Name_Daemon):
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -251,7 +255,7 @@ def test_fixtures_03(my_fixture):
 
 如上，代码执行时报如下错误信息：
 
-```
+```shell
 C:\Users\Wang>pytest -vrs C:\Users\Wang\Desktop\test_0.py
 ================================================= test session starts =================================================
 platform win32 -- Python 3.11.4, pytest-7.4.2, pluggy-1.3.0 -- C:\Users\Wang\AppData\Local\Programs\Python\Python311\python.exe

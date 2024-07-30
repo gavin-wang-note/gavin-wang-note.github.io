@@ -3,8 +3,11 @@ layout:     post
 title:      "pylot安装与使用"
 subtitle:   "pylot use guide"
 date:       2014-09-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [pylot]
+    - [performance]
 tags:
     - pylot
     - performance
@@ -29,7 +32,7 @@ Pylot基于Python开发，和著名的Apache压力测试工具ab一样，默认�
 
 pylot-1.26\pylot_1.26\ui\console\win目录下，cpos.py文件部分内容如下：
 
-```
+```python
 import sys
  
 is_25 = sys.version.startswith('2.5')
@@ -49,7 +52,7 @@ gotoxy = _consolepos.gotoxy
 
 2、python2.6出现另外一个问题，tk不支持多线程
 
-```
+```python
 Generating Results...
 Generating Graphs...
 ERROR: Unable to generate graphs with Matplotlib
@@ -138,7 +141,7 @@ http://www.oschina.net/p/pylot-bug-fix
 
  
 
-## **安装****python**
+## 安装python
 
 ### 步骤1、下载并安装python2.5
 
@@ -217,7 +220,7 @@ http://www.lfd.uci.edu/~gohlke/pythonlibs/#python-dateutil
 
    在pylot文件夹里，会看到一个testcases.xml的文件，我们需要更改一下这个文件，用记事本打开它，把需要测试的网页地址添加进去。
 
-```
+```shell
 <testcases>
   <case>
     <url>http://midh.mlpplus.gikoo.cn/e-learning/index-test.html</url>

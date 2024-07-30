@@ -3,8 +3,11 @@ layout:     post
 title:      "perf检查ceph-osd CPU使用率高问题"
 subtitle:   "perf check ceph-osd high CPU"
 date:       2019-05-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [ceph]
 tags:
     - perf
     - ceph
@@ -36,11 +39,11 @@ CPU消耗大户是ceph-osd，其中用户态的operator<< 操作罪魁祸首，�
 
 找到ceph-osd的进程ID 4966， 用如下指令采集下：
 
-```
+```shell
 perf record -e cpu-clock -g -p 4966
 ```
 
-```
+```shell
 -g 选项是告诉perf record额外记录函数的调用关系
 -e cpu-clock 指perf record监控的指标为cpu周期
 -p 指定需要record的进程pid
@@ -49,7 +52,7 @@ perf record -e cpu-clock -g -p 4966
 我们观测的对象是ceph-osd。运行10秒中左右，ctrl+C中断掉perf record:
 
 
-```
+```shell
 root@converger-128:~# perf record -e cpu-clock -g -p 4966
 ^C[ perf record: Woken up 7 times to write data ]
 [ perf record: Captured and wrote 5.058 MB perf.data (17667 samples) ]
@@ -63,7 +66,7 @@ root@converger-128:~#
 
 用如下指令查看dump 出来的perf.data
 
-```
+```shell
 perf report -i perf.data
 ```
 
@@ -82,7 +85,7 @@ perf report -i perf.data
 
 这部分代码代码在：
 
-```
+```shell
 osd/ReplicatedBackend.cc
 ------------------------------
 #define dout_subsys ceph_subsys_osd
@@ -96,7 +99,7 @@ static ostream& _prefix(std::ostream *_dout, ReplicatedBackend *pgb) {
 
 原因是128集群之前有人分析ceph-osd.4，ceph.conf 里面debug osd = 0/20, 尽管不会往磁盘里面打印日志，但是因为OSD crash的时候，需要dump 级别为20 的debug log，因此，大量的osd debug log会暂存在内存的环形buﬀer 中，因此，gen_preﬁx函数被大量的调用，消耗了太多的CPU资源实时修改ceph-osd debug_osd的级别，并修改ceph.conf 永久生效，发现ceph-osd CPU使用正常。
 
-```
+```shell
 root@converger-128:/etc/ceph# ceph daemon osd.5 config set debug_osd 0
 {
     "success": ""
@@ -114,7 +117,7 @@ root@converger-128:/etc/ceph# ceph daemon osd.4 config set debug_osd 0
 
 perf工具我们产品并不自带，如果大家需要的话，需要自行编译。我们buildman上面，进入linux-kernel
 
-```
+```shell
 jenkins@buildman-trusty:~/jobs/virtualstor_scaler_7.0/workspace/linux-kernel/tools/perf$
 ```
 

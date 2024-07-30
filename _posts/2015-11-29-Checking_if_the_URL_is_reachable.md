@@ -3,8 +3,10 @@ layout:     post
 title:      "检查URL是否可达"
 subtitle:   "Checking if the URL is reachable"
 date:       2015-11-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - shell
 ---
@@ -17,7 +19,7 @@ tags:
 
 # 代码
 
-```
+```shell
 #!/usr/bin/env bash 
 
 # Description: Web check with curl
@@ -75,7 +77,7 @@ main $*
 
 测试效果：
 
-```
+```shell
 [ wyz@node2 ~]$ bash check_url.sh 
 Start checking ...
 [ Passed ] => http://www.bing.com

@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01078,ORA-00119,ORA-00132"
 subtitle:   "Oracle error code troubleshoot--ORA-01078,ORA-00119,ORA-00132"
 date:       2010-03-25
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 表象
 
-```
+```shell
 oracle@mmsg01:~/product/11g/network/admin> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Thu Mar 25 09:51:02 2010
@@ -33,7 +35,7 @@ SQL> exit
 
 将监听文件中HOST处改成具体的IP地址
 
-```
+```shell
 LISTENER_MMSGDB =
   (ADDRESS = (PROTOCOL = TCP)(HOST = your host ip )(PORT = 1523))
 ```

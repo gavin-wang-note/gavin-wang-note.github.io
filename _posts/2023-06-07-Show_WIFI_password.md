@@ -3,8 +3,10 @@ layout:     post
 title:      "获取WIFI密码"
 subtitle:   "Get WIFI Password"
 date:       2023-06-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories: 
+    - [WIFI]
 tags:
     - WIFI
 ---
@@ -18,7 +20,7 @@ tags:
 
 # 实践
 
-```
+```shell
 Microsoft Windows [版本 10.0.19045.2965]
 (c) Microsoft Corporation。保留所有权利。
 
@@ -40,8 +42,8 @@ netsh>wlan show profile
 netsh>
 ```
 
-		
-```
+
+```shell
 netsh>wlan show profile name="strayeagle_5G" key=clear
 
 接口 WLAN 上的配置文件 strayeagle_5G:

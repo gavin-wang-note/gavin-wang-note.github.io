@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--sqlldr导入数据报错"
 subtitle:   "Oracle troubleshoot--sqlldr import data error"
 date:       2010-06-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ qlldr导入数据报错
 
 # 表象
 
-```
+```shell
 Record 47: Rejected - Error on table NAPTR_MMS, column SEQUENCENO.   
 Column not found before end of logical record (use TRAILING NULLCOLS)
 Record 48: Rejected - Error on table NAPTR_MMS, column SEQUENCENO.   
@@ -32,7 +34,7 @@ Column not found before end of logical record (use TRAILING NULLCOLS)
 
 # 解决方法
 
-```
+```shell
 Load      data　                                             
 infile      '/opt/oracle/trim_naptr_datafile.xls'            
 append  into  table  NAPTR_MMS                               

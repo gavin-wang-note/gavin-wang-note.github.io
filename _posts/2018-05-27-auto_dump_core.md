@@ -3,8 +3,10 @@ layout:     post
 title:      "Ubuntu kdump dump core files"
 subtitle:   "Ubuntu kdump"
 date:       2018-05-27
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -35,13 +37,13 @@ kdump 是一种先进的基于 kexec 的内核崩溃转储机制。当系统崩�
 注意:
 选择YES。选择完成后，安装过程完毕，该安装会自动修改grub.cfg:
 
-```
+```shell
 linux   /boot/vmlinuz-4.1.49-server root=UUID=cfb17230-a084-4117-a9b8-38bcd48f7c07 ro video=VGA-1:800x600 quiet 915.modeset=0 nomodeset net.ifnames=1 biosdevname=0 nomdmonddf nomdmonisw crashkernel=384M-:128M
 ```
 
 后面新增 crashkernel=384M -:128M 了部分。 安装好了之后，执行kdump-conﬁg show会发现，该功能尚未启用。
 
-```
+```shell
 root@46:~# kdump-config show
 Usage: /usr/sbin/kdump-config {help|test|show|status|load|unload|savecore} root@46:~# kdump-config show
  * /etc/default/kdump-tools: USE_KDUMP is not set or zero
@@ -58,7 +60,7 @@ kexec command:
 
 第二步是要启用kdump，方法是修改/etc/default/kdump-tools 中的USE_KDUMP
 
-```
+```shell
 # kdump-tools configuration
 # ---------------------------------------------------------------------------# USE_KDUMP - controls kdump will be configured
 #     0 - kdump kernel will not be loaded
@@ -81,7 +83,7 @@ USE_KDUMP=0
 第三步重启机器，然后检查 kdump-conﬁg show： (换了一台机器展示)
 
 
-```
+```shell
 root@44:~# kdump-config show
 DUMP_MODE:        kdump
 USE_KDUMP:        1
@@ -102,7 +104,7 @@ kexec command:
 
 就会触发crash，搜集资料，机器启动之后会看到如下内容:
 
-```
+```shell
 root@44:/var/crash/201808021451# crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021451
 
 crash 7.0.3
@@ -188,7 +190,7 @@ crash>
 
 当搜集信息完成之后，会自动重启，重启之后，可以在/var/crash下看到对应的信息：
 
-```
+```shell
 root@44:~# ll /var/crash
 total 56
 drwxrwxrwt  4 root root  4096 Aug  2 15:53 ./
@@ -212,7 +214,7 @@ drwxrwxrwt 4 root root       4096 Aug  2 15:53 ../
 要分析crash文件，需要安装内核符号表：
 
 
-```
+```shell
 root@44:~# dpkg -l |grep linux-image
 ii  linux-image-4.1.49-server            201808011426~cf7c219                 amd64        Linux kernel binary image for version 4.1.49-server
 ii  linux-image-4.1.49-server-dbg        201808011426~cf7c219                 amd64        Linux kernel debug image for version 4.1.49-server
@@ -220,13 +222,13 @@ ii  linux-image-4.1.49-server-dbg        201808011426~cf7c219                 am
 
 安装后，使用如下指令开始分析crash
 
-```
+```shell
 crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021553
 ```
 
 对于本次的crash，可以查出是由于scst引起的，如下所示：
 
-```
+```shell
 root@44:/var/crash/201808021553# crash  /usr/lib/debug/lib/modules/4.1.49-server/vmlinux dump.201808021553
 
 crash 7.0.3
@@ -304,7 +306,7 @@ crash>
 
 我们打开该反编译的文件:
 
-```
+```shell
 0000000000034410 <scst_update_lat_stats>:
 
 void scst_update_lat_stats(struct scst_cmd *cmd)
@@ -333,7 +335,7 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
 
 去反编译的文件中寻找对应的未知:
 
-```
+```shell
 #ifdef CONFIG_SCST_MEASURE_LATENCY
         if (cmd->dev->vdev_update_lat_stats) {
    344f0:       4c 8b 97 40 02 00 00    mov    0x240(%rdi),%r10 
@@ -343,7 +345,7 @@ void scst_update_lat_stats(struct scst_cmd *cmd)
 
 原因是：cmd->dev在更新统计新的时候已经变成了NULL，这和之前的分析对应。
 
-```
+```shell
 10925 #ifdef CONFIG_SCST_MEASURE_LATENCY
 10926         if (cmd->dev->vdev_update_lat_stats) {
 10927                 cmd->dev->vdev_update_lat_stats(cmd->dev, cmd->data_direction, 10928                                                 total_time);

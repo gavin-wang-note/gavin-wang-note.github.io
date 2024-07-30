@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-27046"
 subtitle:   "Oracle error code troubleshoot--ORA-27046"
 date:       2011-04-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -19,7 +21,7 @@ tags:
 
 通过spfile文件创建pfile，报ORA-27046
 
-```
+```shell
 SQL> create pfile='/home/oracle/product/11g/dbs/pfile' from spfile;
 create pfile='/home/oracle/product/11g/dbs/pfile' from spfile
 *

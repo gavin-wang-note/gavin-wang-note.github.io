@@ -3,8 +3,10 @@ layout:     post
 title:      "Demo for trasferring large file from break point"
 subtitle:   "Demo for trasferring large file from break point"
 date:       2021-01-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -58,9 +60,10 @@ Change configuration in the head part of `bigtera_download_file.py`  and `bigter
 
 
 ### Content of Scripts
-bigtera_download_file.py
 
-{% raw %}```
+`bigtera_download_file.py`
+
+```python
 #!/usr/bin/env python
 
 from boto.s3.connection import S3Connection
@@ -171,12 +174,12 @@ def main():
 if __name__ == '__main__':
     main()
 
-``` {% endraw %}
+```
 
 
-bigtera_multipart_upload.py
+`bigtera_multipart_upload.py`
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 
 from boto.s3.connection import S3Connection
@@ -366,12 +369,12 @@ def main():
 if __name__ == '__main__':
     main()
 
-``` {% endraw %}
+```
 
 
-obsync.py
+`obsync.py`
 
-{% raw %}```
+```python
 """
 obsync.py: common library for ezobsync and s3backup
 """
@@ -1710,4 +1713,4 @@ class FileStore(Store):
                 else:
                     return StringIO(f.read())
 
-``` {% endraw %}
+```

@@ -3,8 +3,10 @@ layout:     post
 title:      "解决 Log output is incomplete or unavailable 问题"
 subtitle:   "Log output is incomplete or unavailable"
 date:       2022-04-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -26,7 +28,7 @@ tags:
 
 放大journal，比如：
 
-```journalctl --vacuum-size=1G```
+`journalctl --vacuum-size=1G`
 
 示例的意思是：最大可存放1GB journal。
 

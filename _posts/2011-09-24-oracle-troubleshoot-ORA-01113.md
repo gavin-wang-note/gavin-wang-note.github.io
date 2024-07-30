@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01113"
 subtitle:   "Oracle error code troubleshoot--ORA-01113"
 date:       2011-09-24
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 表象
 
-```
+```shell
 SQL> startup
 ORACLE instance started.
 
@@ -29,7 +31,7 @@ ORA-01110: 数据文件 17: '/home/oracle/dls_tbs_idx.dbf'
 
 ## 解决方法
 
-```
+```shell
 oracle@linux25:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期六 9月 24 17:43:45 2011

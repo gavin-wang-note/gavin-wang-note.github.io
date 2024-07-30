@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle备份与恢复概述"
 subtitle:   "Oracle backup and restore"
 date:       2011-03-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -42,7 +44,7 @@ ORACLE数据库的备份分为物理备份和逻辑备份两种。
 数据库处于打开状态； 
 
 数据库处于关闭状态，但是用非正常手段关闭的。例如，数据库是通过 shutdown abort 或机器掉电等等方法关闭的。 
- 
+
 汇总如下图所示：
 
 <img class="shadow" src="/img/in-post/oracle_backup.png" width="600">
@@ -120,7 +122,7 @@ oracle数据库有两种运行方式：
 
 ## 由非归档方式调整成归档方式
 
-```
+```shell
 node1:oracle:mmsgdb > sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Tue Feb 22 11:42:35 2011
@@ -172,7 +174,7 @@ SQL>
 
 ## 由归档方式调整成非归档方式
 
-```
+```shell
 SQL> shutdown immediate
 Database closed.
 Database dismounted.
@@ -217,7 +219,7 @@ SQL>
 
 ### 1、正常关闭数据库
 
-```
+```shell
 shutdown immediate
 ```
 
@@ -227,13 +229,13 @@ shutdown immediate
 
 ### 3、启动数据库
 
-```
+```shell
 startup
 ```
 
 冷备的优点是简单、快捷、方便，缺点是备份文件占用空间，且数据只能恢复到备份前状态。日常工作中，可以使用脚本进行数据库的冷备操作，提供一个简单oracle数据库冷备perl脚本：
 
-```
+```shell
 #/usr/bin/perl
 
 ###############################################################
@@ -532,7 +534,7 @@ else
   print "@foo\n"; 
 }
 ```
- 
+
 ## 冷备的恢复
 
 冷备的恢复比较简单，比如数据库数据文件损坏，则关闭数据库后，将原先备份的所有文件再拷贝到相应目录下，重启数据库即可。
@@ -547,7 +549,7 @@ RMAN是一种物理备份，可以用RMAN来备份数据文件、控制文件、
 
 ## 准备工作
 
-```
+```shell
 SQL> create tablespace RMAN_DATA datafile '/opt/oracle/oradata/mmsgdb/rman_data.dbf'
   2  size 200M
   3  autoextend off
@@ -596,7 +598,7 @@ SQL>exit
 
 在命令行中指定目标和默认连接，nocatalog是可选的，如果留下空白，则为默认使用nocatalog。
 
-```
+```shell
 oracle@mmsg:~> rman target / nocatalog
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期五 11月 12 12:31:04 2010
@@ -611,7 +613,7 @@ RMAN>
 
 ### 使用RMAN工具
 
-```
+```shell
 oracle@mmsg:~> rman
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期五 11月 12 12:33:11 2010
@@ -629,7 +631,7 @@ RMAN>
 
 #### 命令行
 
-```
+```shell
 oracle@mmsg:~> rman target / catalog rman/rman@inomc
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期五 11月 12 12:34:44 2010
@@ -644,7 +646,7 @@ RMAN>
 
 #### RMAN工具
 
-```
+```shell
 oracle@mmsg:~> rman
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期五 11月 12 12:35:58 2010
@@ -665,14 +667,14 @@ RMAN>
 ## 通道分配
 
 通道分配是连接RMAN和目标数据库的方法，也是确定I/O设备类型的方法，服务器进程将使用该I/O设备完成备份和重建操作。I/O设备可以是磁盘，也可以是磁带，通道分配可以自动分配也可以手工分配。
- 
+
 ### 手工分配通道
 
 只要发布allocate channel，即可执行手工分配通道。
 
 手工分配通道的命令是
 
-```
+```shell
 allocate channel channel_name type disk/sbt
 allocate channel c1 type disk
 ```
@@ -687,7 +689,7 @@ allocate channel c1 type disk
 
 自动通道分配的完整清单如下：
 
-```
+```shell
 config device type disk backup|clear|parallelism n;
 config default device type to|clear;
 config channel device type disk|equal;
@@ -696,7 +698,7 @@ config channel n device type disk|equal;
 
 下面的示例显示默认设备类型被设置为磁盘，并行数被设置为1，这意味着：如果没有手工分配通道，参数将如下：
 
-```
+```shell
 RMAN> show all;
 db_unique_name 为 INOMC 的数据库的 RMAN 配置参数为:
 CONFIGURE RETENTION POLICY TO REDUNDANCY 1; # default
@@ -721,7 +723,7 @@ CONFIGURE SNAPSHOT CONTROLFILE NAME TO '/opt/oracle/product/11g/dbs/snapcf_inomc
 
 有一些长用的有助于使用RMAN的配置参数设置，在日常操作中，这些设置很有用：
 
-```
+```shell
 device type
 backup type
 compressed backupset
@@ -733,7 +735,7 @@ channel tapy device
 
 将默认设备设置为磁带，然后是磁盘，使用如下命令：
 
-```
+```shell
 RMAN> configure default device type to sbt;
 
 旧的 RMAN 配置参数:
@@ -761,7 +763,7 @@ RMAN>
 
 该参数和设置值设定备份的类型是图像副本还是备份集。
 
-```
+```shell
 RMAN> configure device type disk backup type to copy;
 
 新的 RMAN 配置参数:
@@ -808,7 +810,7 @@ RMAN>
 
 保留策略是为了用于可能的恢复，是备份被保留的时间长度。保留策略由参数RETENTION POLICY确定，使用show all命令可以显示此参数。
 
-```
+```shell
 RMAN> show all;
 
 db_unique_name 为 INOMC 的数据库的 RMAN 配置参数为:
@@ -842,7 +844,7 @@ RMAN中提供了两种保留策略，分别是：基于时间和基于冗余数�
 
 设置基于时间的备份保留策略可以通过CONFIGURE命令，例如： 
 
-```
+```shell
 configure retention policy to recovery window of n days;
 RMAN> configure retention policy to recovery window of 2 days;
 
@@ -862,7 +864,7 @@ RMAN>
 
 执行该命令后，RMAN将始终保留那些将数据库恢复到n天前的状态时需要用到的备份，比如，恢复时间段被设置为7天，那么各个数据文件的备份必须满足如下条件： 
 
-```
+```shell
 SYSDATE-(SELECT CHECKPOINT_TIME FROM V$DATAFILE)>=7 
 任何不满足上述条件的备份都将被RMAN废弃并可通过
 DELETE OBSOLETE命令删除。 
@@ -876,7 +878,7 @@ RMAN>  CONFIGURE RETENTION POLICY TO  REDUNDANCY n ;
 
 你也可以通过下列命令设置成不采用任何备份保留策略:
 
-```
+```shell
 RMAN>  CONFIGURE RETENTION POLICY TO NONE; 
 RMAN的show、report、list、crosscheck、delete命令
 show
@@ -909,7 +911,7 @@ RMAN>
 
 #### 报告目标数据库的物理结构
 
-```
+```shell
 RMAN> report schema;
 
 db_unique_name 为 INOMC 的数据库的数据库方案报表
@@ -952,7 +954,7 @@ RMAN>
 
 #### 报告最近N天尚未备份的数据文件
 
-```
+```shell
 RMAN> report need backup days=3;
 
 文件报表的恢复需要超过 3 天的归档日志
@@ -980,7 +982,7 @@ RMAN>
 
 #### 报告表空间上最近N天未备份的数据文件
 
-```
+```shell
 RMAN> report need backup days=3 tablespace MMSG;
 
 文件报表的恢复需要超过 3 天的归档日志
@@ -993,7 +995,7 @@ RMAN>
 
 #### 报告恢复数据文件需要的增量备份个数超过3次的数据文件
 
-```
+```shell
 RMAN> report need backup incremental 3; 
 
 恢复时需要超过3增量的文件报表
@@ -1005,7 +1007,7 @@ RMAN>
 
 #### 报告备份文件低于2份的所有数据文件
 
-```
+```shell
 RMAN> report need backup redundancy 2 database; 
 
 文件冗余备份少于2个
@@ -1034,7 +1036,7 @@ RMAN>
 
 #### 报告文件报表的恢复需要超过6天的归档日志的数据文件
 
-```
+```shell
 RMAN> report need backup recovery window of 6 days; 
 
 必须备份以满足 6 天恢复窗口所需的文件报表
@@ -1062,7 +1064,7 @@ RMAN>
 
 #### 报告数据库所有不可恢复的数据文件
 
-```
+```shell
 RMAN> report unrecoverable; 
 
 由于操作无法被恢复, 文件的报表需要备份
@@ -1074,7 +1076,7 @@ RMAN>
 
 #### 报告备份次数超过2次的陈旧备份
 
-```
+```shell
 RMAN> report obsolete redundancy 2;
 
 未找到已废弃的备份
@@ -1084,7 +1086,7 @@ RMAN>
 
 #### 报告多余的备份
 
-```
+```shell
 RMAN> report obsolete;
 
 RMAN 保留策略将应用于该命令
@@ -1096,7 +1098,7 @@ RMAN>
 
 ### list
 
-```
+```shell
 list backup;                        列出详细备份
 list expired backup;                列出过期备份
 list backup of database;            列出所有数据文件的备份集
@@ -1121,7 +1123,7 @@ list backup by file;    按备份类型列出备份
 
 ### check
 
-```
+```shell
 RMAN> crosscheck backup;                            核对所有备份集  
 RMAN> crosscheck backup of database;                  核对所有数据文件的备份集  
 RMAN> crosscheck backup of tablespace MMSG;         核对特定表空间的备份集  
@@ -1147,7 +1149,7 @@ RMAN> crosscheck archivelog until sequence 522;
 
 ### delete
 
-```
+```shell
 RMAN> delete obsolete;                 删除陈旧备份；
 RMAN> delete expired backup;           删除EXPIRED备份   
 RMAN> delete expired copy;             删除EXPIRED副本
@@ -1166,7 +1168,7 @@ RMAN> delete backupset id;              删除备份集
 
 ## 列出数据库中所以文件的备份的信息
 
-```
+```shell
 RMAN> list backup of database;
 
 
@@ -1199,7 +1201,7 @@ RMAN>
 
 ## 列出指定表空间备份信息
 
-```
+```shell
 RMAN> list backup of tablespace 'MMSG';
 
 
@@ -1220,7 +1222,7 @@ BS 关键字  类型 LV 大小       设备类型 经过时间 完成时间
 
 ## 列出指定的数据文件备份信息
 
-```
+```shell
 RMAN> list backup of datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
 
 
@@ -1243,7 +1245,7 @@ RMAN>
 
 ## 删除整个数据库的备份
 
-```
+```shell
 RMAN> delete backup;
 
 分配的通道: ORA_DISK_1
@@ -1295,7 +1297,7 @@ RMAN>
 
 ## 删除表空间的备份
 
-```
+```shell
 RMAN> delete backup of tablespace 'MMSG';
 
 使用通道 ORA_DISK_1
@@ -1316,7 +1318,7 @@ RMAN>
 
 ## 删除指定的数据文件备份
 
-```
+```shell
 RMAN> delete backup of datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
 
 使用通道 ORA_DISK_1
@@ -1337,7 +1339,7 @@ RMAN>
 
 ## 删除陈旧备份
 
-```
+```shell
 RMAN> delete obsolete ; 
 
 RMAN 保留策略将应用于该命令
@@ -1393,7 +1395,7 @@ RMAN镜像备份的副本无法通过list backup显示，可以通过list copy�
 
 ## 备份整个数据库
 
-```
+```shell
 oracle@mmsg:~> rman target/
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期日 10月 24 15:37:56 2010
@@ -1520,7 +1522,7 @@ RMAN> run {
 
 ## 备份指定的数据文件
 
-```
+```shell
 RMAN> backup datafile '/opt/oracle/oradata/mmsgdb/test.dbf';
 
 启动 backup 于 18-11月-10
@@ -1539,7 +1541,7 @@ RMAN>
 
 ## 备份表空间
 
-```
+```shell
 RMAN> backup tablespace MMSG;
 
 启动 backup 于 18-11月-10
@@ -1561,7 +1563,7 @@ RMAN>
 
 1、最简单的方式就是通过configure命令修改CONTROLFILE AUTOBACKUP为on
 
-```
+```shell
 RMAN> configure controlfile autobackup on;
 
 新的 RMAN 配置参数:
@@ -1577,7 +1579,7 @@ RMAN>
 
 3、手工执行备份命令
 
-```
+```shell
 RMAN> backup current controlfile;
 
 启动 backup 于 18-11月-10
@@ -1596,7 +1598,7 @@ RMAN>
 
 4、执行backup操作时，指定include current controlfile参数
 
-```
+```shell
 RMAN> backup database include current controlfile;
 
 启动 backup 于 18-11月-10
@@ -1742,7 +1744,7 @@ RMAN>
 
 ### 利用BACKUP ARCHIVELOG命令备份
 
-```
+```shell
 RMAN> backup archivelog all;
 
 启动 backup 于 18-11月-10
@@ -1763,7 +1765,7 @@ RMAN>
 
 ### 在backup过程中，使用plus archivelog参数
 
-```
+```shell
 RMAN> backup database plus archivelog;
 
 
@@ -1893,7 +1895,7 @@ RMAN>
 
 例如：建立一个增量级别为0的全库备份。
 
-```
+```shell
 RMAN> backup INCREMENTAL LEVEL=0 database;
 
 启动 backup 于 19-11月-10
@@ -1991,7 +1993,7 @@ RMAN>
 
 再例如：建立一个增量级别为1的数据库表空间的备份
 
-```
+```shell
 RMAN> backup incremental level=1 tablespace MMSG;
 
 启动 backup 于 19-11月-10
@@ -2019,7 +2021,7 @@ RMAN提供了一种更谨慎的备份策略：Duplexed 方式备份，实质就�
 
 ### 显示指定copies数量
 
-```
+```shell
 RMAN> backup copies 2 tablespace MMSG;
 
 启动 backup 于 19-11月-10
@@ -2039,7 +2041,7 @@ RMAN>
 
 ### 在批处理中增加set backup copies参数
 
-```
+```shell
 RMAN> run
 2> {
 3> set backup copies 1;
@@ -2068,7 +2070,7 @@ RMAN>
 
 ### 通过configure设定预备份Duplexed方式
 
-```
+```shell
 RMAN> configure datafile backup copies for device type disk to 1;
 
 新的 RMAN 配置参数:
@@ -2084,7 +2086,7 @@ RMAN>
 
 ## 恢复spfile文件
 
-```
+```shell
 oracle@mmsg:~> rman target/
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期四 11月 18 18:14:15 2010
@@ -2166,7 +2168,7 @@ RMAN>
 
 由于RMAN不支持口令文件的备份，所以，无法通过RMAN进行口令文件的恢复，通过orapw命令重新建立口令文件即可。
 
-```
+```shell
 oracle@mmsg:~/product/11g/dbs> orapwd
 Usage: orapwd file=<fname> password=<password> entries=<users> force=<y/n> ignorecase=<y/n> nosysdba=<y/n>
 
@@ -2248,7 +2250,7 @@ RMAN>
 
 这个操作类似于表空间的恢复
 
-```
+```shell
 RMAN>shutdown immediate
 RMAN>startup mount
 RMAN>restorer datafile datafilepath;  #或者是restore datafile datafile_num; 
@@ -2264,7 +2266,7 @@ RMAN> alter database open
 
 2、以test用户登陆数据库，创建表test，并向表test中insert几条记录
 
-```
+```shell
 insert into test(id) values (1);
 insert into test(id) values (2);
 insert into test(id) values (3);
@@ -2279,7 +2281,7 @@ commit;
 
 4、停止数据库后，再次启动数据库。
 
-```
+```shell
 oracle@mmsg:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期二 11月 23 11:17:32 2010
@@ -2303,7 +2305,7 @@ ORA-01110: 数据文件 17: '/opt/oracle/oradata/mmsgdb/test.dbf'
 
 5、查询数据库当前状态
 
-```
+```shell
 SQL> select instance_name,status from v$instance;
 
 INSTANCE_NAME    STATUS
@@ -2315,7 +2317,7 @@ SQL>
 
 ### RMAN恢复操作
 
-```
+```shell
 oracle@mmsg:~> rman  target/
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期二 11月 23 11:18:24 2010
@@ -2392,7 +2394,7 @@ SQL>
 
 ## 全库的恢复
 
-```
+```shell
 RMAN>shutdown immediate
 RMAN>startup mount
 RMAN> run
@@ -2408,7 +2410,7 @@ RMAN> run
 
 2、RMAN恢复
 
-```
+```shell
 RMAN> run {
 2> allocate channel c1 device type disk;
 3> restore controlfile from ‘/opt/oracle/rman/back_c-1037536304-20101123-07’;
@@ -2418,7 +2420,7 @@ RMAN> run {
 
 ## 重做日志文件的恢复
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -2450,7 +2452,7 @@ SQL>
 
 ## 归档日志文件的恢复
 
-```
+```shell
 RMAN>shutdown immediate
 RMAN>startup mount
 RMAN> run
@@ -2473,7 +2475,7 @@ RMAN> run
 
 ### RMAN脚本
 
-```
+```shell
 oracle@mmsg:~/rman> more back_full.rman 
 run
 {
@@ -2498,13 +2500,13 @@ delete noprompt obsolete;
 
 ### 命令执行
 
-```
+```shell
 oracle@mmsg:~/rman> rman target / msglog /opt/oracle/rman/bak.log cmdfile=/opt/oracle/rman/back_full.rman
 ```
 
 ### 日志
 
-```
+```shell
 oracle@mmsg:~/rman> more bak.log 
 
 恢复管理器: Release 11.1.0.7.0 - Production on 星期五 11月 19 18:04:46 2010
@@ -2752,7 +2754,7 @@ RMAN 保留策略将应用于该命令
 
 ### RMAN脚本
 
-```
+```shell
 oracle@mmsc103:~/rmanbak> more everydaybak.rman
 #script:fullbakup.rman
 # creater:wangyunzeng
@@ -2778,7 +2780,7 @@ release channel t1;
 
 ### Perl脚本
 
-```
+```shell
 oracle@mmsc103:~/rmanbak> more backup.perl 
 #!/use/bin/perl
 ##################################################
@@ -2805,7 +2807,7 @@ oracle@mmsc103:~/rmanbak>
 
 ### 设定定时任务
 
-```
+```shell
 mmsc103:~ # crontab -e
 
       # DO NOT EDIT THIS FILE - edit the master and reinstall.
@@ -2867,7 +2869,7 @@ mmsc103:~ # crontab -e
 
 ### 获得正在进行的镜像复制操作的状态信息
 
-```
+```shell
 Select  sid,serial#, context ,sofar,totalwork,totalwork,
 round(sofar / totalwork *  100 ,  2 )
 from v$session_longops where  opname  like  'RMAN::aggregate';
@@ -2875,7 +2877,7 @@ from v$session_longops where  opname  like  'RMAN::aggregate';
 
 ### 获得rman用来完成备份操作的服务进程的SID与SPID信息  
 
-```
+```shell
 select  sid, spid, client_info 
 from  v$process p, v$session s 
 where  p.addr = s.paddr 
@@ -2884,7 +2886,7 @@ and  client_info  like   '%id=rman%';
 
 ### 查询数据文件，临时文件与表空间对应及数据文件序号
 
-```
+```shell
 select  ts.tablespace_name, df.file_name, df.file_id, tf.file_name 
 from  dba_tablespaces ts, dba_data_files df, dba_temp_files tf 
 where  ts.tablespace_name = df.tablespace_name(+) 

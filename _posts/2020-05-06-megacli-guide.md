@@ -3,8 +3,10 @@ layout:     post
 title:      "Megacli详解"
 subtitle:   "Megacli Guide"
 date:       2020-05-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Megacli]
 tags:
     - Megacli
 ---
@@ -204,7 +206,7 @@ hpacucli工具查看阵列、硬盘、电池信息，其实就只要一条指令
 
 ## 手工配置初始化
 
-```
+```shell
 /opt/MegaRAID/MegaCli/MegaCli64 -LDInit -start –L0 -a0         # 快速初始化
 
 /opt/MegaRAID/MegaCli/MegaCli64 -LDInit -start -full –L0 -a0     # 完全初始化
@@ -222,7 +224,7 @@ hpacucli工具查看阵列、硬盘、电池信息，其实就只要一条指令
 
 ## 设置RAID cache
 
-```
+```shell
 /opt/MegaRAID/MegaCli/MegaCli64 -ldinfo -l1 -a0
 
 /opt/MegaRAID/MegaCli/MegaCli64 -ldsetprop cached -l1 -a0
@@ -267,26 +269,25 @@ hpacucli工具查看阵列、硬盘、电池信息，其实就只要一条指令
 
 RAID Level对应关系：
 
-```
+```shell
 RAID Level : Primary-1, Secondary-0, RAID Level Qualifier-0	RAID 1
 RAID Level : Primary-0, Secondary-0, RAID Level Qualifier-0	RAID 0
 RAID Level : Primary-5, Secondary-0, RAID Level Qualifier-3	RAID 5
 RAID Level : Primary-1, Secondary-3, RAID Level Qualifier-0	RAID 10
-
 ```
 
 
 
 ## 在线做Raid
 
-```
+```shell
 /opt/MegaRAID/MegaCli/MegaCli64 -CfgLdAdd -r0 [0:11] WB NORA Direct CachedBadBBU -strpsz64 -a0 -NoLog
 /opt/MegaRAID/MegaCli/MegaCli64 -CfgLdAdd -r5 [12:2,12:3,12:4,12:5,12:6,12:7] WB Direct -a0 
 ```
 
 ## 让硬盘LED灯闪烁（定位）
 
-```
+```shell
     1、  MegaCli  -AdpSetProp UseDiskActivityforLocate -1 -a0 
     2、  MegaCli  -PdLocate  -start  –physdrv[E:S]  -a0  让硬盘LED灯闪烁
     3、  MegaCli  -PdLocate  -stopt  –physdrv[E:S]  -a0 停掉硬盘LED灯
@@ -313,7 +314,7 @@ RAID Level : Primary-1, Secondary-3, RAID Level Qualifier-0	RAID 10
 ## 设置HotSpare
 
 
-```
+```shell
 /opt/MegaRAID/MegaCli/MegaCli64 -pdhsp -set [-Dedicated [-Array2]] [-EnclAffinity] [-nonRevertible] -PhysDrv[4:11] -a0
 /opt/MegaRAID/MegaCli/MegaCli64 -pdhsp -set [-EnclAffinity] [-nonRevertible] -PhysDrv[32：1}] -a0
 ```
@@ -346,7 +347,7 @@ RAID Level : Primary-1, Secondary-3, RAID Level Qualifier-0	RAID 10
 
 一般在没有BBU情况下， 要执行如下命令进行修改：
 
-```
+```shell
 /opt/MegaRAID/MegaCli/MegaCli64 -ldsetprop WB -lall -aall;
 
 /opt/MegaRAID/MegaCli/MegaCli64 -LDSetProp CachedBadBBU -Lall -aALL;
@@ -462,7 +463,7 @@ Rebuild 中的物理磁盘状态中会显示："Firmware state: Rebuild"
 
 屏幕显示类似下面的内容：
 
-```
+```shell
 Rebuild progress of physical drives...
 Enclosure:Slot         Percent Complete           Time Elps
      032 :05   #######################87 %################*******  01:59:07
@@ -477,7 +478,7 @@ Enclosure:Slot         Percent Complete           Time Elps
 
 返回结果类似下面这样
 
-```
+```shell
 Rebuild Rate                             : 30%
 Auto Rebuild                             : Enabled
 Rebuild Rate                             : Yes

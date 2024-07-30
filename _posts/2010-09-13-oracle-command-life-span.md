@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle 一条SQL命令的生命周期"
 subtitle:   "Oracle SQL command life span"
 date:       2010-09-13
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---

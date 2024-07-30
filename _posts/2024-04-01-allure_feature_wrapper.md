@@ -2,7 +2,7 @@
 title: Allure属性装饰器优化
 date: 2024-04-01 00:53:31
 author: Gavin Wang
-img:
+img: "/img/pytest/allure3.jpg"
 top: false
 hide: false
 cover: false

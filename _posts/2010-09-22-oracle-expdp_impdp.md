@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle导入导出之数据泵(expdp/impdp)"
 subtitle:   "Oracle data pump(expdp/impdp)"
 date:       2010-09-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -19,12 +21,12 @@ EXPDP可以导出表、导出用户模式、表空间和全数据库4种方式�
 
 expdp和impdp的使用，类似与exp和dmp 
 
-```
+```shell
 expdp help=y
 impdp help=y
 ```
- 
-```
+
+```shell
 oracle@GW_8:~> expdp help=y
 
 Export: Release 11.1.0.7.0 - 64bit Production on 星期五, 01 2月, 2013 9:31:19
@@ -122,7 +124,7 @@ STOP_JOB              顺序关闭执行的作业并退出客户机。
                       数据泵作业。
 ```
 
-```
+```shell
 oracle@GW_8:~> impdp help=y
 
 Import: Release 11.1.0.7.0 - 64bit Production on 星期五, 01 2月, 2013 10:52:27
@@ -259,7 +261,7 @@ STOP_JOB              顺序关闭执行的作业并退出客户机。
 
 data pump要求为将要创建和读取的数据文件和日志文件创建目录，用来指向使用的外部目录。在oracle中创建目录对象时，可以使用 create directory语句。
 
-```
+```shell
 SQL> create directory mypump as '/opt/oracle/admin/mmsgdb/dpdump/';
 目录已创建。
 SQL> grant read, write on directory mypump to mmsg;
@@ -283,7 +285,7 @@ SQL>
 
 ## 表模式导出
 
-```
+```shell
 oracle@mmsg:~> expdp mmsg/mmsg directory=mypump  dumpfile=table_module.dmp tables=interfaceaccount_20100916,interfaceaccount_20100920 logfile=table_module.log
 Export: Release 11.1.0.7.0 - 64bit Production on 星期六, 18 9月, 2010 10:38:13
 Copyright (c) 2003, 2007, Oracle.  All rights reserved.
@@ -311,7 +313,7 @@ oracle@mmsg:~>
 【注意】
 * 当导出的dumpfile名称与已有的dmp文件名重复时，导出失败，不覆盖原先存在的dmp文件
 
-```
+```shell
 oracle@mmsg:~> expdp mmsg/mmsg directory=mypump  dumpfile=table_module.dmp tables=interfaceaccount_20100916,interfaceaccount_20100920 logfile=table_module.log
 Export: Release 11.1.0.7.0 - 64bit Production on 星期六, 18 9月, 2010 10:40:16
 Copyright (c) 2003, 2007, Oracle.  All rights reserved.
@@ -326,7 +328,7 @@ Additional information: 1
 
 ## schema模式导出 
 
-```
+```shell
 oracle@mmsg:~> expdp system/sys directory=mypump dumpfile=schema.dmp schemas=mmsg nologfile=y
 Export: Release 11.1.0.7.0 - 64bit Production on 星期六, 18 9月, 2010 10:49:31
 Copyright (c) 2003, 2007, Oracle.  All rights reserved.
@@ -367,7 +369,7 @@ SYSTEM.SYS_EXPORT_SCHEMA_01 的转储文件集为:
 
 ### 1：表空间数据的导出
 
-```
+```shell
 oracle@mmsg:~> expdp system/sys directory=mypump dumpfile=tablespace_data.dmp tablespaces=mmsg 
 Export: Release 11.1.0.7.0 - 64bit Production on 星期六, 18 9月, 2010 10:51:45
 Copyright (c) 2003, 2007, Oracle.  All rights reserved.
@@ -399,7 +401,7 @@ SYSTEM.SYS_EXPORT_TABLESPACE_01 的转储文件集为:
 
 先将对应的表空间设置成只读状态，然后执行可移动表空间元数据导出
 
-```
+```shell
 SQL> alter tablespace wyztest read only;
 表空间已更改。
 SQL> host expdp system/sys directory=mypump dumpfile=tablespace.dmp transport_tablespaces=wyztest;
@@ -423,17 +425,17 @@ SQL> alter tablespace wyztest online;
 表空间已更改。
 SQL>
 ```
- 
+
 ### 全库模式导出
 
-```
+```shell
 expdp system/sys directory=mypump dumpfile=full_oracle.dmp full=y  logfile=full_oracle.log
 expdp mmsg/mmsg  directory=mypump dumpfile=app_oracle.dmp full=y   logfile=full_oracle.log
 ```
 
 ### 表模式导入
 
-```
+```shell
 SQL> host impdp mmsg/mmsg directory=mypump dumpfile=table_module.dmp tables=interfaceaccount_20100916,interfaceaccount_20100920 table_exists_action=replace
 Import: Release 11.1.0.7.0 - 64bit Production on 星期六, 18 9月, 2010 11:09:41
 Copyright (c) 2003, 2007, Oracle.  All rights reserved.
@@ -454,13 +456,13 @@ With the Partitioning, OLAP, Data Mining and Real Application Testing options
 
 ## schema模式导入
 
-```
+```shell
 impdp system/sys directory=mypump dumpfile=schema.dmp schemas=mmsg nologfile=y
 ```
 
 ## 表空间数据导入
 
-```
+```shell
 impdp system/sys directory=mypump dumpfile=tablespace_data.dmp tablespaces=mmsg 
 ```
 
@@ -468,7 +470,7 @@ impdp system/sys directory=mypump dumpfile=tablespace_data.dmp tablespaces=mmsg
 
 将对应的表空间设置成只读状态，然后执行可移动表空间元数据导出
 
-```
+```shell
    SQL>  alter tablespace wyztest read only;
    SQL>  host impdp system/sys directory=mypump dumpfile=tablespace.dmp transport_tablespaces=wyztest;
    SQL>  alter tablespace wyztest online;
@@ -476,7 +478,7 @@ impdp system/sys directory=mypump dumpfile=tablespace_data.dmp tablespaces=mmsg
 
 ## 全库模式导入
 
-```
+```shell
 impdp system/sys directory=mypump dumpfile=full_oracle.dmp full=y
 ```
 

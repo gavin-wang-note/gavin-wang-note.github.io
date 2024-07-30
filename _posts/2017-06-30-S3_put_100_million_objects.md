@@ -3,18 +3,27 @@ layout:     post
 title:      "Put 1Million S3 objects to bucket"
 subtitle:   "Put 1Million S3 objects to bucket"
 date:       2017-06-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
 
 
+
+# Overview
+
+NanKing Office，test ceph S3 objects, needs to upload more than 100 million objects into the bucket,so, write a script to help me to upload the objects.
+
+
+
 # Script
 
-S3-1million-testing.py
+S3-100million-testing.py
 
-```
+```python
 import boto
 import boto.s3.connection
 

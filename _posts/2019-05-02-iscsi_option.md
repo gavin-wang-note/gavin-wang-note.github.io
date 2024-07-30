@@ -3,8 +3,10 @@ layout:     post
 title:      "iSCSI 相关操作介绍"
 subtitle:   "iSCSI Options"
 date:       2019-05-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [iSCSI]
 tags:
     - iSCSI
 ---
@@ -71,7 +73,7 @@ initiator客户端执行login命令后，在target服务器端可以发现新通
 
 ## 挂载文件系统
 
-```
+```shell
 mkdir /mnt/iscsi
 
 mount /dev/sdb1 /mnt/iscsi
@@ -81,7 +83,7 @@ mount /dev/sdb1 /mnt/iscsi
 
 不需要时可以注销iSCSI initiator登录，先umount文件系统，再把第四步命令的login参数改成logout执行即可：
 
-```
+```shell
 umount /mnt/iscsi
 
 iscsiadm --mode node --targetname iqn.renyuannetdisk --portal 192.168.0.9:3260 --logout
@@ -125,7 +127,7 @@ https://www.ietf.org/rfc/rfc3721.txt 参考 : 1.1.  Constructing iSCSI names usi
 
 iscsi-scstd 这个用户态进程负责处理
 
-```
+```shell
 root@node248:~# ps -ef |grep iscsi-scstd | grep -v grep
 root      293083       1  0 Sep22 ?        00:00:04 iscsi-scstd
 root@node248:~# 

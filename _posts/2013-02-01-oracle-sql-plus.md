@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle SQL*Plus"
 subtitle:   "Oracle SQL*Plus"
 date:       2013-02-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -29,7 +31,7 @@ Oracle SQL*Plus是连接Oracle常用的工具，本文介绍这个工具的常�
 
 ## Windows平台
 
-```
+```shell
 host cls
 clear screen
 clea scre
@@ -39,7 +41,7 @@ clea scr
 
 ## Unix/Linux平台
 
-```
+```shell
 clear screen
 clea scre
 clear scr
@@ -49,7 +51,7 @@ clea scr
 
 # SQL*Plus系统环境变量信息以及如何修改这些变量信息
 
-```
+```shell
 show和set命令是两条用于维护SQL*Plus系统变量的命令 
       SQL> show all          --查看所有68个系统变量值 
       SQL> show user         --显示当前连接用户 
@@ -68,7 +70,7 @@ show和set命令是两条用于维护SQL*Plus系统变量的命令
 说明：
 * long值默认为80，设置1000是为了显示更多的内容，因为很多数据字典视图中用到了long数据类型，如：
 
-```
+```shell
 SQL> desc user_views
 列名                          可空值否   类型
 ------------------------------- -------- ----
@@ -83,7 +85,7 @@ TEXT                                     LONG
 
 假设当前执行命令为：```select * from tab; ```
 
-```
+```shell
 (a)ppend　　　　      添加文本到缓冲区当前行尾　　　　a  order by tname　
 结果：select * from tab order by tname;
 （注：a后面跟2个空格）
@@ -143,7 +145,7 @@ clear screen　　 清空当前屏幕显示
 
 使用英文输入法中的感叹号”!”，即可从SQL模式退出到Linux/Unix命令行模式下。
 
-```
+```shell
 SQL> show parameter processes
 
 NAME                                 TYPE        VALUE
@@ -163,7 +165,7 @@ exit
 在SQL模式下执行linux/unix命令
 在linux/unix命令前，增加host命令，即可在不退出SQL模式下执行Linux/Unix命令.
 
-```
+```shell
 SQL> host ls -l
 total 5902
 -rw-r--r--  1 oracle oinstall  371339 2012-11-28 15:49 14_45.html

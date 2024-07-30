@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01536"
 subtitle:   "Oracle error code troubleshoot--ORA-01536"
 date:       2011-07-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -16,7 +18,7 @@ tags:
 
 执行刷库脚本，创建表报错
 
-```
+```shell
 SQL> SQL> SQL>   2    3    4    5    6  CREATE TABLE "ECTOSIINFO"
 *
 ERROR at line 1:
@@ -27,7 +29,7 @@ ORA-01536: space quota exceeded for tablespace 'MMSG'
 
 1、查看错误码
 
-```
+```shell
 01536, 00000, "space quota exceeded for tablespace '%s'"
 // *Cause:  The space quota for the segment owner in the tablespace has
 //          been exhausted and the operation attempted the creation of a
@@ -43,7 +45,7 @@ ORA-01536: space quota exceeded for tablespace 'MMSG'
 
 观察一下表空间是否已经满了，无法自动扩展或者扩展已达配额
 
-```
+```shell
 TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
 ------------------------------ ---------- --------------- ------------
 MMSG                                13384         4194302   .319099578
@@ -56,7 +58,7 @@ MMSG表空间使用率很低啊，3.27G的空间只使用了104M
 
 表空间限额和表空间是两个不同的概念，表空间限额约束了表空间的使用情况，如果表空间200M，表空间限额只分配20M，剩下的180M的空间能够被数据库所使用的空间就被浪费掉了。
 
-```
+```shell
 SQL>select tablespace_name,username,bytes,max_bytes from dba_ts_quotas;
 
 TABLESPACE_NAME                USERNAME                            BYTES  MAX_BYTES

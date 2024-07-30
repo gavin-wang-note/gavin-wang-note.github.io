@@ -3,8 +3,10 @@ layout:     post
 title:      "获取OSD与CPU绑定关系"
 subtitle:   "bind relationship between OSD and CPUS"
 date:       2022-05-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -13,12 +15,12 @@ tags:
 # 代码
 
 
-这里代码转自```https://blog.51cto.com/zphj1987/3212869```，在他基础上增加了+号的颜色显示(高亮)，表明当前ceph-osd运行在对应On-line CPU(s)上.
+这里代码转自(https://blog.51cto.com/zphj1987/3212869)，在它基础上增加了+号的颜色显示(高亮)，表明当前ceph-osd运行在对应On-line CPU(s)上.
 
 
 ## CPU信息
 
-```
+```shell
 [root@node163 ~]# lscpu
 Architecture:          x86_64
 CPU op-mode(s):        32-bit, 64-bit
@@ -48,7 +50,7 @@ Flags:                 fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca 
 
 代码块
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 import os

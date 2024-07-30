@@ -3,8 +3,11 @@ layout:     post
 title:      "gdisk分区"
 subtitle:   "gdisk to partition disk device"
 date:       2017-11-13
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [gdisk]
 tags:
     - Linux
     - gdisk
@@ -20,7 +23,7 @@ tags:
 
 步骤：
 
-```
+```shell
   gdisk /dev/sdb
   > o (y)     # 重建GPT分区表
   > n         # 分第一个分区，分区序号都使用默认即可，选择合适的开始扇区和结束扇区，这里结束扇区用+{offset}表示
@@ -45,7 +48,7 @@ tags:
 
 步骤：
 
-```
+```shell
 gdisk /dev/sdb
 > d         # 删除分区
 > 2
@@ -61,7 +64,8 @@ gdisk /dev/sdb
 
 比如上述示例如果用sgdisk，只需要如下两行代码：
 
-```sgdisk -Z /dev/sdb # 清空分区表 
+```shell
+sgdisk -Z /dev/sdb # 清空分区表 
 sgdisk /dev/sdb -n 1:1M:+32G -n 2:0:+32G -N 3
 ```
 

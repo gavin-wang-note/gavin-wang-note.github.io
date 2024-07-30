@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--登录RAC间歇性成功"
 subtitle:   "Oracle troubleshoot--Access RAC login intermittently successful"
 date:       2009-03-14
-author:     "Gavin"
+author:     "Gavini Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -20,7 +22,7 @@ tags:
 
 sys用户登录，修改spfile文件中remote_listener 的VALUE值为空。
 
-```
+```shell
 node1:oracle:ora11g > sqlplus sys/oracle@ora11g as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu May 14 17:23:06 2009

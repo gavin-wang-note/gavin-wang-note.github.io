@@ -3,8 +3,12 @@ layout:     post
 title:      "Ubuntu 22.04上部署、配置Jenkins"
 subtitle:   "Deploy Jenkins in Ubuntu 22.04"
 date:       2023-03-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Jenkins]
+    - [CI]
+    - [Automation]
 tags:
     - Jenkins
     - CI
@@ -25,7 +29,7 @@ tags:
 
 OS信息如下：
 
-```
+```shell
  Static hostname: jenkins
        Icon name: computer-vm
          Chassis: vm
@@ -46,7 +50,7 @@ Operating System: Ubuntu 22.04.1 LTS
 
 如下，列出了必要的软件安装（没有完整的记录下来，可能不全）：
 
-```
+```shell
 apt-get update
 apt-get install git -y
 apt-get install libpcsclite1 -y
@@ -74,7 +78,7 @@ apt install jenkins -y
 为了支持Email对pylint 绘图功能，需要安装matlpotib, 相关安装包信息参考如下：
 
 
-```
+```shell
 ca-certificates-java_20190909ubuntu1.1_all.deb
 contourpy-1.0.7-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 cycler-0.11.0-py3-none-any.whl
@@ -105,7 +109,7 @@ Jenkins 安装好后，访问8080端口，按提示一步一步往下走，此�
 
 **需要安装如下插件与工具：**
 
-```
+```shell
 allure
 Cobertura Coverage
 Violations Plugin # Pylint
@@ -119,11 +123,9 @@ Next Build Number Plugin
 
 **install allure commandline：**
 
-安装包手动下载下来：``` https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.21.0/allure-commandline-2.21.0.tgz ```
+安装包手动[下载](https://repo.maven.apache.org/maven2/io/qameta/allure/allure-commandline/2.21.0/allure-commandline-2.21.0.tgz)下来，在Jenkins上使用root 用户，安装到/usr/lib/下，参考如下：
 
-在Jenkins上使用root 用户，安装到/usr/lib/下，参考如下：
-
-``` /usr/lib/allure-2.21.0/lib/allure-commandline-2.21.0.jar ```
+`/usr/lib/allure-2.21.0/lib/allure-commandline-2.21.0.jar `
 
 
 
@@ -132,7 +134,7 @@ Next Build Number Plugin
 
 修改vim /etc/ssh/ssh_config
 
-``` StrictHostKeyChecking ask   -->改为 StrictHostKeyChecking no ```
+` StrictHostKeyChecking ask   -->改为 StrictHostKeyChecking no `
 
 并重启ssh服务，以此来避免expect 中执行spawn交互失败。
 
@@ -150,7 +152,7 @@ Jenkins 当前登录UI用户的邮箱，需要和全局配置里设置的邮箱�
 
 参考如下：
 
-``` https://naiveskill.com/jenkins-pipeline-email-notification/ ```
+` https://naiveskill.com/jenkins-pipeline-email-notification/ `
 
 
 
@@ -166,11 +168,11 @@ Jenkins 当前登录UI用户的邮箱，需要和全局配置里设置的邮箱�
 
 ## Email 模板
 
-为了让CI结果更好的展示，基于官方模板(```https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template ```)，
-增加了allure, pylint 和 CODE COVERAGE信息，自定义了一个EMail模板，存放在Jenkins install path()下：
+为了让CI结果更好的展示，基于[官方模板](https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template)，
+增加了allure, pylint 和 CODE COVERAGE信息，自定义了一个EMail模板，存放在Jenkins install path下：
 
 
-```
+```shell
 jenkins@jenkins:/var/lib/jenkins$ cd email-templates/
 jenkins@jenkins:/var/lib/jenkins/email-templates$ ls -l
 total 120
@@ -185,7 +187,7 @@ jenkins@jenkins:/var/lib/jenkins/email-templates$
 
 其中，**v1.1_allure-pipeline-report.groovy** 为当前使用模板，里面有定义一个需要被替换的内容：
 
-```
+```shell
   <table>
     <tr>
         <img src="EMAIL_BASE64_IMG_REPLACE" width="500px" height="200px"/>
@@ -212,8 +214,8 @@ jenkins@jenkins:/var/lib/jenkins/email-templates$
 总共设置了String类型的如下参数：
 
 
-* GIT_WEB  --> http://1.22.21.9/pytest_framework
-* GIT_URL  --> git@1.22.21.9:pytest_framework.git
+* GIT_WEB  --> `http://1.22.21.9/pytest_framework`
+* GIT_URL  --> `git@1.22.21.9:pytest_framework.git`
 * GIT_BRANCH --> 8.3
 * REPORT_DIR --> /root/${JOB_NAME}/report                                        # Jenkins install path
 * WORK_SPACE --> ${JENKINS_INSTALL_PATH}/workspace/pytest_8.3_pipeline           # Jenkins work space
@@ -225,12 +227,12 @@ jenkins@jenkins:/var/lib/jenkins/email-templates$
 
 **Email Template**
 
-在官方模板 ``` https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template ``` 的基础上，增加了三张图。
+在[官方模板](https://github.com/jenkinsci/email-ext-plugin/blob/master/src/main/resources/hudson/plugins/emailext/templates/groovy-html.template)的基础上，增加了三张图。
 
 
 **pipline Script**
 
-{% raw %}```
+```shell
 #!groovy
 
 ip_list = IPS.split(',')
@@ -536,14 +538,14 @@ pipeline {
         }
     }
 }
-``` {% endraw %}
+``` 
 
 
 
 如果想生成3个维度的数据，示例代码如下：
 
 
-{% raw %}```
+```python
 import base64
 import io
 import matplotlib.pyplot as plt
@@ -577,7 +579,7 @@ if __name__ == "__main__":
     failing = [0, 0, 0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,0,0,0,93]
     res = generate_chart(x, excellent, satisfactory, failing)
     print(res)
-``` {% endraw %}
+``` 
 
 
 # 效果展示

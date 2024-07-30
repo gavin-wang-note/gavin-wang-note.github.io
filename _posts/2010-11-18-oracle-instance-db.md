@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle实例与数据库的区别"
 subtitle:   "Different with oracle instance and database"
 date:       2010-11-18
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---

@@ -3,16 +3,25 @@ layout:     post
 title:      "Calc NAS write speed by oceanfile tools"
 subtitle:   "Calc NAS write speed by oceanfile tools"
 date:       2021-04-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
 tags:
     - shell
 ---
 
 
+
+# Overview
+
+With the help of colleague Bean Li's oceanfile tool, a simple, quick pressure test of the product's NAS performance, so I wrote a test script to quickly know the results.
+
+
+
 # Script
 
-{% raw %}```
+```shell
 #!/bin/bash
 
 EFILE=/usr/local/bin/oceanfile
@@ -85,4 +94,4 @@ do
     echo >>$LOG 2>&1
     echo >>$LOG 2>&1
 done
-``` {% endraw %}
+```

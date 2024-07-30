@@ -3,8 +3,10 @@ layout:     post
 title:      "修改oracle字符集(汉字显示为乱码)"
 subtitle:   "Change oracle NLS_LANGUAGE"
 date:       2011-11-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -18,7 +20,7 @@ tags:
 
 安装数据库时，如果字符集选择错误，会导致汉字显示为乱码。
 
-```
+```shell
 SQL> select value$ from props$ where  name='NLS_LANGUAGE' or     name='NLS_TERRITORY' or     name='NLS_CHARACTERSET';
 
 VALUE$
@@ -34,7 +36,7 @@ WE8MSWIN1252
 
 操作如下：
 
-```
+```shell
 以sqlplus "/as sysdba"登录，执行如下更新：
 
 update sys.props$ set VALUE$='ZHS16GBK' where name='NLS_CHARACTERSET';
@@ -42,7 +44,7 @@ update sys.props$ set VALUE$='ZHS16GBK' where name='NLS_CHARACTERSET';
 
 查看更新后的值：
 
-```
+```shell
 select * from sys.props$ where NAME='NLS_CHARACTERSET';
 ```
 

@@ -3,8 +3,10 @@ layout:     post
 title:      "统计两个时间的时间差"
 subtitle:   "Calc time difference"
 date:       2020-06-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -23,7 +25,7 @@ tags:
 参考如下：
 
 
-```
+```python
 root@node244:~/75# cat timestamp_calc.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -48,7 +50,7 @@ root@node244:~/75#
 
 # 运行效果
 
-```
+```shell
 root@node244:~/75# python timestamp_calc.py '2020-06-28 10:49:18' '2020-06-28 11:22:53'
 2015
 root@node244:~/75# 

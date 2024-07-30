@@ -3,8 +3,11 @@ layout:     post
 title:      "CentOS6.5 testlink-1.9.10升级到1.9.20"
 subtitle:   "CentOS6.5 upgrade testlink-1.9.10 to testlink-1.9-20"
 date:       2020-12-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - Linux
     - shell
@@ -24,7 +27,7 @@ Lab使用的testlink版本是1.9.10，运行在CentOS6.5上，应大家要求，
 
 修改源
 
-```
+```shell
 vi redhat.repo
 [rhel6-media]
 name=local
@@ -57,7 +60,7 @@ enabled=1
 
 ## 查看php版本
 
-```
+```shell
 [root@localhost mnt]# php -v
 PHP 5.6.40 (cli) (built: Jan 12 2019 09:19:57) 
 Copyright (c) 1997-2016 The PHP Group
@@ -71,7 +74,7 @@ Zend Engine v2.6.0, Copyright (c) 1998-2016 Zend Technologies
 
 ### 查看升级前版本
 
-```
+```shell
 [root@localhost mnt]# yum info mysql-server
 Loaded plugins: fastestmirror, refresh-packagekit, security
 Loading mirror speeds from cached hostfile
@@ -112,7 +115,7 @@ Description : MySQL is a multi-user, multi-threaded SQL database server. MySQL i
 
 ### 添加MySQL的yum安装库
 
-```
+```shell
 wget http://dev.mysql.com/get/mysql-community-release-el6-5.noarch.rpm
 rpm -ivh mysql-community-release-el6-5.noarch.rpm
 ```
@@ -167,19 +170,19 @@ Step1. 修改config_db.conf，并重启httpd服务
 Step2. 尝试访问旧版testlink报错
 
 
-```
+```shell
 [root@localhost logs]# mysql -ubigtera -p111111 testlink_bak
 Warning: Using a password on the command line interface can be insecure.
 ERROR 1044 (42000): Access denied for user 'bigtera'@'localhost' to database 'testlink_bak'
 ```
 
-```
+```shell
 mysql -uroot -pp@ssw0rd testlink_bak
 ```
 
 执行
 
-```
+```shell
 GRANT ALL PRIVILEGES ON *.* TO 'bigtera'@'localhost' IDENTIFIED BY '111111';
 ```
 
@@ -191,7 +194,7 @@ GRANT ALL PRIVILEGES ON *.* TO 'bigtera'@'localhost' IDENTIFIED BY '111111';
 如果不先修复mysql，在安装过程中会报错：
 
 
-```
+```shell
 TestLink setup will now attempt to setup the database:
 
 Creating connection to Database Server:OK!
@@ -213,7 +216,7 @@ Creating database `testlink_20`:OK!
 
 创建账户时：
 
-```
+```shell
 CREATE USER 'bigtera'@'localhost' IDENTIFIED BY '111111';
 
 ERROR 1558 (HY000): Column count of mysql.user is wrong. Expected 43, found 42. Created with MySQL 50538, now running 50650. Please use mysql_upgrade to fix this error.
@@ -239,7 +242,7 @@ ERROR 1558 (HY000): Column count of mysql.user is wrong. Expected 43, found 42. 
 
 然后执行下面操作：
 
-``` 
+```shell
 alter table platforms add enable_on_design tinyint(1) unsigned NOT NULL default '0';
 alter table platforms add enable_on_execution tinyint(1) unsigned NOT NULL default '1';
 
@@ -291,7 +294,7 @@ CREATE TABLE /*prefix*/baseline_l1l2_context (
 
 然后执行如下操作，升级testlink db
 
-```
+```shell
 mysql -uroot -pp@ssw0rd testlink < /var/www/html/testlink-1.9.20/install/sql/alter_tables/1.9.10/mysql/DB.1.9.10/step1/db_data_update.sql
 
 

@@ -3,8 +3,11 @@ layout:     post
 title:      "解决因RAID卡提示VD有cache而无法创建RAID问题"
 subtitle:   "Resolve controller has data in cache for offline or missing virtual disks"
 date:       2019-12-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Megacli]
+    - [RAID]
 tags:
     - RAID
     - Megacli 
@@ -18,7 +21,7 @@ tags:
 
 单盘RAID0被拔掉后，这块SATA盘的“Firmware State” 是 “Unconfigured(bad), Spun Up”，于是尝试make good it:
 
-```
+```shell
 root@node247:~# /opt/MegaRAID/MegaCli/MegaCli64 -PDMakeGood -PhysDrv[0:5] -a0
                                      
 Adapter: 0: EnclId-0 SlotId-5 state changed to Unconfigured-Good.
@@ -32,7 +35,7 @@ Exit Code: 0x00
 
 ```/opt/MegaRAID/MegaCli/MegaCli64 -AdpEventLog -GetEvents -f event.log -A0 ```
 
-```
+```shell
 seqNum: 0x000153dc
 Time: Mon Dec 30 10:12:20 2019
 
@@ -50,7 +53,7 @@ None
 
 ```/opt/MegaRAID/MegaCli/MegaCli64 -FwTermLog -Dsply -aALL ```
 
-```
+```shell
 12/30/19 10:13:10: C0:EVT#87008-12/30/19 10:13:10: 218=Foreign Configuration Detected
 12/30/19 10:13:11: C0:pii addBvdInfo rsvd2=1 <- bvd ld=0
 12/30/19 10:13:11: C0:createMegaraidCfg: cfg:4422ac20 forCfg=441cd7e0 merge:0 import:0 other_pinned_vds:c02e1240 
@@ -69,7 +72,7 @@ None
 
 清理Foreign状态
 
-```
+```shell
 root@node247:~# /opt/MegaRAID/MegaCli/MegaCli64 -CfgForeign -Clear -a0
                                      
 Failed to clear Foreign configuration 0 on controller 0.
@@ -85,7 +88,7 @@ root@node247:~#
 
 再次解决之：
 
-```
+```shell
 root@node247:~# /opt/MegaRAID/MegaCli/MegaCli64  -DiscardPreservedCache -L1 -a0 
                                      
 Adapter #0

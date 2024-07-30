@@ -3,8 +3,11 @@ layout:     post
 title:      "ESXi remount VMFS"
 subtitle:   "ESXi remount VMFS"
 date:       2017-06-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ESXi]
+    - [shell]
 tags:
     - shell
     - ESXi
@@ -20,7 +23,7 @@ Write a script, put it on the ESXi side, set a timed task, and initiate a scan.
 
 # Script of vmware_scan_remount.sh
 
-```
+```shell
 #!/bin/sh
 
 # add by bigtera wyz for remout vmfs at 2017-06-06 15:10

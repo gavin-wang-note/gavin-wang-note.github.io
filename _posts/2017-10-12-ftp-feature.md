@@ -3,8 +3,11 @@ layout:     post
 title:      "FTP需求汇总"
 subtitle:   "FTP Feature"
 date:       2017-10-12
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [FTP]
 tags:
     - FTP
 ---
@@ -13,7 +16,6 @@ tags:
 # 引言
 **vsftpd(very secure FTP daemon)**，如果你想在你的Linux/Unix服务器上搭建一个安全、高性能、稳定性好的FTP服务器，那么vsftpd可能是你的首选应用。
 我们的客户对FTP有需求，目前只能通过手动部署、配置的方式来实现客户的要求，工作往往重复。为了规范化FTP配置流程，本文整理一下FTP的需求，以供RD参考。
-<br><br>
 
 # 基本配置
 默认如下拥有配置项：
@@ -22,7 +24,7 @@ tags:
 
 支持默认与非默认的修改,针对对安全有特殊要求的用户
 
-```
+```shell
     listen_port=<port> :设置控制连接的监听端口号，默认为21
     connect_from_port_20=<YES/NO> :若为YES，则强迫FTP－DATA的数据传送使用port 20，默认YES
 ```
@@ -33,7 +35,7 @@ tags:
 
 ## (3)记录vsftpd的log
 
-```
+```shell
     log_ftp_protocol=YES (all FTP requests and responses are logged)
     xferlog_enable=yes  （激活上传和下传的日志）
     xferlog_std_format=yes (使用标准的日志格式)  
@@ -41,7 +43,7 @@ tags:
 
 ## (4)anon_root
 
-```
+```shell
     This option represents a directory  which  vsftpd  will  try  to change  into  after  an  anonymous  login.  Failure  is silently ignored.
     Default: (none)
     留给匿名账号使用。
@@ -49,7 +51,7 @@ tags:
 
 ## (5)local_umask
 
-```
+```shell
 default 022
 ```
 
@@ -57,7 +59,7 @@ default 022
 
 ## (6) 其他默认配置项
 
-```
+```shell
     dirmessage_enable=YES
     use_localtime=YES
     secure_chroot_dir=/var/run/vsftpd/empty
@@ -72,13 +74,13 @@ default 022
 说明：
 
 基于安全考虑，禁止匿名用户启用SSL，即：```allow_anon_ssl=NO```
- 
+
 
 ### 场景1、仅有上传权限
 
 #### vsftpd.conf需要修改的内容如下
 
-```
+```shell
     anon_upload_enable=YES (开放上传权限)
     anon_mkdir_write_enable=YES（可创建目录的同时可以在此目录中上传文件）
     anon_other_write_enable=NO (匿名帐号可以有删除的权限，基于安全考虑，建议设置为NO)
@@ -87,8 +89,8 @@ default 022
     hide_ids=YES
     no_anon_password=YES （是否询问匿名访问时输入密码）
     write_enable=yes (开放本地用户写的权限)
-``` 
-   
+```
+
 #### 测试
 
 ##### FTP的匿名登录一般有三种：
@@ -99,7 +101,7 @@ default 022
 
 ##### 出现如下错误
 
-```
+```shell
     500 OOPS: vsftpd: refusing to run with writable root inside chroot()
 ```
 
@@ -112,7 +114,7 @@ Bean 修改了vsftpd的source code，将vsftpd 校验根目录的写权限这部
 
 vsftpd.conf内容变更如下：
 
-```
+```shell
     anonymous_enable=YES
     anon_world_readable_only=YES
     anon_root=/var/share/ezfs/shareroot/gz/
@@ -132,7 +134,7 @@ vsftpd.conf内容变更如下：
 
 vsftpd.conf内容变更如下：
 
-```
+```shell
     anonymous_enable=YES
     anon_umask=002
     anon_upload_enable=YES
@@ -148,7 +150,7 @@ vsftpd.conf内容变更如下：
 
 ### 场景4、约束传输速率
 
-```
+```shell
     anon_max_rate=51200  （匿名用户的传输比率，单位b/s）
 ```
 
@@ -159,7 +161,7 @@ vsftpd.conf内容变更如下：
 
 这个作为场景3的附属配置，一旦设置了属主，文件的umask始终是600，这样，ftp用户只有上传权限，无法下载。
 
-```
+```shell
     chown_uploads=YES
     chown_username=指定一个账号
 ```
@@ -186,7 +188,7 @@ vsftpd.conf内容变更如下：
 
 vsftpd.conf内容变更如下：
 
-```
+```shell
     anonymous_enable=NO
     local_enable=YES
     write_enable=YES
@@ -200,7 +202,7 @@ vsftpd.conf内容变更如下：
 
 vsftpd.conf内容变更如下：
 
-```
+```shell
     anonymous_enable=NO
     local_enable=YES
     write_enable=NO
@@ -214,7 +216,7 @@ vsftpd.conf内容变更如下：
 
 vsftpd.conf内容变更如下：
 
-```
+```shell
     anonymous_enable=NO
     local_enable=YES
     write_enable=YES
@@ -222,12 +224,12 @@ vsftpd.conf内容变更如下：
     use_sendfile=NO
     local_umask=002
 ```
- 
+
 ## 冻结FTP账号
 
 vsftpd.conf内容增加如下配置项：
 
-```
+```shell
     userlist_enable=YES
     userlist_deny=YES
     userlist_file=xxxPATH
@@ -239,7 +241,7 @@ vsftpd.conf内容增加如下配置项：
 
 #### vsftpd.conf中增加
 
-```
+```shell
     userlist_enable=YES
     userlist_deny=YES
     userlist_file=/etc/vsftpd.deny_list 
@@ -247,13 +249,13 @@ vsftpd.conf内容增加如下配置项：
 
 #### 然后，增加被限制账号到userlist_file中
 
-```
+```shell
     echo -n "guizhou" > vsftpd.deny_list
 ```
 
 #### 最后，restart vsftp，使用client 访问FTP server
 
-```
+```shell
     root@631:~# ftp 172.17.59.5
     Connected to 172.17.59.5.
     220 (vsFTPd 2.3.5)
@@ -274,7 +276,7 @@ vsftpd.conf内容增加如下配置项：
 
 如果设置为：
 
-```
+```shell
     chroot_local_user＝YES
     chroot_list_enable=YES(这行可以没有, 也可以有)
     chroot_list_file=/etc/vsftpd.chroot_list
@@ -288,7 +290,7 @@ vsftpd.conf内容增加如下配置项：
 
 或者, 设置如下：
 
-```
+```shell
     chroot_local_user＝NO
     chroot_list_enable=YES(这行必须要有, 否则文件
     vsftpd.chroot_list不会起作用)
@@ -307,7 +309,7 @@ vsftpd.conf内容增加如下配置项：
 #### 测试
 按照上面的配置，在限制住用户只能访问bash_home情况下，会出现FTP 500错误码：
 
-```
+```shell
     root@scaler01:/var/share/ezfs/shareroot# ftp 172.17.59.5
     Connected to 172.17.59.5.
     220 (vsFTPd 2.3.5)
@@ -323,7 +325,7 @@ vsftpd.conf内容增加如下配置项：
 
 ## 限制ftp 传输速率
 
-```
+```shell
 local_max_rate=5120000 （本地用户的传输比率，单位b/s ）
 ```
 
@@ -337,7 +339,7 @@ local_max_rate=5120000 （本地用户的传输比率，单位b/s ）
 
 * vsftpd.conf中增加：
 
-```
+```shell
     tcp_wrappers=YES
 ```
 
@@ -345,7 +347,7 @@ local_max_rate=5120000 （本地用户的传输比率，单位b/s ）
 
 /etc/hosts.deny 中增加如下内容：
 
-```
+```shell
     #vsftpd
     vsftpd:ALL
 
@@ -358,21 +360,21 @@ local_max_rate=5120000 （本地用户的传输比率，单位b/s ）
 
 在/etc/hosts.deny 中增加如下内容：
 
-```
+```shell
     #vsftpd
     vsftpd:ALL
 ```
 
 在/etc/hosts.allow中增加如下内容：
 
-```
+```shell
     #vsftpd
     vsftpd:172.19.5.
 ```
 
 client访问ftp server：
 
-```
+```shell
     root@631:~# ftp 172.17.59.5
     Connected to 172.17.59.5.
     421 Service not available.
@@ -381,7 +383,7 @@ client访问ftp server：
 
 vsftpd的log显示：
 
-```
+```shell
     Thu Oct 12 14:46:44 2017 [pid 2] CONNECT: Client "172.17.59.8", "Connection refused: tcp_wrappers denial."
     Thu Oct 12 14:46:44 2017 [pid 2] FTP response: Client "172.17.59.8", "421 Service not available."
 ```
@@ -390,7 +392,7 @@ vsftpd的log显示：
 
 /etc/hosts.allow 内容格式与要求，示例如下：
 
-```
+```shell
     vsftpd:.hype.com
     vsftpd:172.17.59.
     vsftpd:172.17.0.0/255.255.254.0
@@ -405,7 +407,7 @@ vsftpd的log显示：
 ## ftp TLS加密传输
 ### 未加密传输情况下，直接抓包：
 
-```
+```shell
     1146	7.562069	172.17.59.8	172.17.59.5	FTP	74	Request: PASS 1
 ```
 
@@ -417,7 +419,7 @@ vsftpd的log显示：
 
 ### 先确认，vsftpd是否支持SSL认证：
 
-```
+```shell
     root@scaler01:/etc# ldd /usr/sbin/vsftpd |grep libssl
 	libssl.so.1.0.0 => /lib/x86_64-linux-gnu/libssl.so.1.0.0 (0x00007fc154eb4000)
 ```
@@ -427,7 +429,7 @@ vsftpd的log显示：
 
 ### 生成vsftpd.pem 证书
 
-```
+```shell
     root@scaler01:/etc/ssl/private# openssl req -x509 -nodes -days 365 -newkey rsa:1024 \-keyout /etc/ssl/private/vsftpd.pem \-out /etc/ssl/private/vsftpd.pem
     Generating a 1024 bit RSA private key
     ................++++++
@@ -453,7 +455,7 @@ vsftpd的log显示：
 
 vsftpd.conf的设置
 
-```
+```shell
     ssl_enable=YES
     allow_anon_ssl=NO
     force_local_data_ssl=YES
@@ -468,7 +470,7 @@ vsftpd.conf的设置
 
 ### 测试
 
-```
+```shell
     root@631:~# ftp 172.17.59.5
     Connected to 172.17.59.5.
     220 (vsFTPd 2.3.5)

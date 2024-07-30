@@ -3,8 +3,10 @@ layout:     post
 title:      "CentOS中cp -f copy强制覆盖命令无效"
 subtitle:   "Solve 'cp' copy force overwrite issue"
 date:       2021-07-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -20,7 +22,7 @@ tags:
 
 # 环境
 
-```
+```shell
 [root@node179 ~]# cat /etc/redhat-release 
 Red Hat Enterprise Linux Server release 7.2 (Maipo)
 [root@node179 ~]# 
@@ -29,7 +31,7 @@ Red Hat Enterprise Linux Server release 7.2 (Maipo)
 
 # 现象
 
-```
+```shell
 [root@node179 06_30]# cp -i json/* /root/pytest_framework/report/json/
 cp: overwrite ‘/root/pytest_framework/report/json/0002c684-9976-416e-8149-ed85c5e38aa8-container.json’? y
 cp: overwrite ‘/root/pytest_framework/report/json/001824e6-1cde-4d7d-ae45-02acf4f2d33f-container.json’? y
@@ -37,7 +39,7 @@ cp: overwrite ‘/root/pytest_framework/report/json/001824e6-1cde-4d7d-ae45-02ac
 
 换 -rf，效果一样
 
-```
+```shell
 [root@node179 06_30]# cp -rf json/* /root/pytest_framework/report/json/
 cp: overwrite ‘/root/pytest_framework/report/json/0002c684-9976-416e-8149-ed85c5e38aa8-container.json’? y
 cp: overwrite ‘/root/pytest_framework/report/json/001824e6-1cde-4d7d-ae45-02acf4f2d33f-container.json’? y
@@ -51,7 +53,7 @@ cp: overwrite ‘/root/pytest_framework/report/json/001824e6-1cde-4d7d-ae45-02ac
 
 在CentOS里执行alias，信息如下:
 
-```
+```shell
 [root@node179 ~]# alias
 alias cp='cp -i'
 alias egrep='egrep --color=auto'
@@ -75,20 +77,20 @@ alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot --show-ti
 
 1)取消cp的alias（放心这不是永久生效）：
 
-```
+```shell
 # unalias cp
 # cp -rf /test/test_other
 ```
 
 2)加反斜杠 \cp 执行cp命令时不走alias：（注：推荐这个方法！）
 
-```	
+```shell
 # \cp -rf /test/test_other
 ```
 
 3）另外一个有意思的方法：
 
-```
+```shell
 # yes|cp -rf /test/test_other
 ```
 

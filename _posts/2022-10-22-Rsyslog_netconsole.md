@@ -3,8 +3,11 @@ layout:     post
 title:      "使用rsyslog 配置netconsole记录dmesg"
 subtitle:   "rsyslog to config netconsole for dmesg"
 date:       2022-10-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [netconsole]
 tags:
     - Linux
     - netconsole
@@ -16,14 +19,14 @@ tags:
 
 ENV Info：
 
-```
+```shell
 Server ：127.71.57.11
 Log Reciver： 127.71.57.13
 ```
 
 OS Info：
 
-```
+```shell
 root@pytest-11:~# hostnamectl 
    Static hostname: pytest-11
          Icon name: computer-vm
@@ -43,7 +46,7 @@ root@pytest-11:~#
 
 ## Shell script
 
-```
+```shell
 root@pytest-11:~# cat net_console.sh 
 #!/bin/bash
 senddev=bond0
@@ -68,7 +71,7 @@ echo 7 > /proc/sys/kernel/printk
 
 * Description
 
-* * Script run in Server.
+    * Script run in Server.
 
 
 
@@ -79,7 +82,7 @@ If not config this, log will record in kern.log by efault.
 
 ### Create a 'xxx.conf' file
 
-```
+```shell
 root@pytest-83-13:/etc/rsyslog.d# cat net-console.conf 
 $ModLoad imudp
 $UDPServerRun 6666
@@ -91,31 +94,31 @@ root@pytest-83-13:/etc/rsyslog.d#
 
 ### Restart rsyslog service
 
-```systemctl restart rsyslog```
+`systemctl restart rsyslog`
 
 
 # How to use
 
 ## Add Executable Permissions
 
-```chmod +x net_console.sh````
+`chmod +x net_console.sh`
 
 ## Write to boot-up
 
 
-```echo /root/net_console.sh >> /etc/rc.local```
+`echo /root/net_console.sh >> /etc/rc.local`
 
 
 ## Run script to config netconsole
 
-```bash net_console.sh```
+`bash net_console.sh`
 
 
 ## Check dmesg
 
-```dmesg|grep console```, output like the fallowing:
+`dmesg|grep console`, output like the fallowing:
 
-```
+```shell
 Jan  9 18:36:29 pytest-11 kernel: [ 2639.892808] console [netcon0] enabled
 Jan  9 18:36:29 pytest-11 kernel: [ 2639.892872] netconsole: network logging started
 Jan  9 18:36:30 pytest-11 kernel: [ 2641.324336] netpoll: netconsole: local port 6665
@@ -134,7 +137,7 @@ Jan  9 18:38:13 pytest-11 kernel: [ 2743.844811] netpoll: netconsole: remote por
 
 ## Check if the receiving end has received log messages
 
-```
+```shell
 root@pytest-83-13:/var/log# cat /var/log/127.71.57.11.log 
 Jan 10 10:47:17 pytest-11.local [56833.474232] memory_corrupted,adsjkfjlasjdkf
 root@pytest-83-13:/var/log# 
@@ -142,10 +145,10 @@ root@pytest-83-13:/var/log#
 
 * Description
 
-* * As above log is simulated by injecting messages to Kernel with the help of syslog-tool tool (self-developed).
-* * Of course, it can be simulated by restarting the Server side (too heavy action), or simulating the NIC down/up. e.g:
+    * As above log is simulated by injecting messages to Kernel with the help of syslog-tool tool (self-developed).
+    * Of course, it can be simulated by restarting the Server side (too heavy action), or simulating the NIC down/up. e.g:
 
-```
+```shell
 Jan 10 10:54:17 pytest-11.local [57253.352107] bond1: link status definitely down for interface ens19, disabling it
 Jan 10 10:54:17 pytest-11.local [57253.352950] bond1: now running without any active interface!
 Jan 10 10:54:30 pytest-11.local [57266.124671] 8021q: adding VLAN 0 to HW filter on device ens19

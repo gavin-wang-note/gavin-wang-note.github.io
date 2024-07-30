@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux下显示文件隶属于哪个包"
 subtitle:   "Show which package the file belongs to"
 date:       2022-02-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux 
 ---
@@ -19,13 +21,13 @@ RD在定位问题的时候，需要QA告知当前文件隶属于哪个包，方�
 
 * CentOS
 
-```
+```shell
 [root@83fc1 bin]# rpm -qf zerocopy_setup.py 
 ezgateway-8.3-211.git09ae02f.x86_64
 ```
 
 * Ubuntu
-```
+```shell
 root@CVM01:/usr/local/bin# dpkg -S ezcopy
 ezgateway: /usr/local/bin/ezcopy
 ```

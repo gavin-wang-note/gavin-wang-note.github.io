@@ -3,8 +3,11 @@ layout:     post
 title:      "shell完成一次ceph-osd crash验证"
 subtitle:   "Reproduce ceph-osd crash by shell script"
 date:       2020-07-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
+    - [ceph]
 tags:
     - shell
     - ceph
@@ -15,9 +18,10 @@ tags:
 最近在测试ceph rocksdb性能优化效果，由于频繁的重启机器（ipmitool power off），出现了两次ceph-osd replay crash问题，由于频繁的power off太伤机器了，验证完毕rocksdb性能优化后，重写了个script，通过kill ceph 核心服务来模拟突然掉电，同时cosbench持续狂打流量，以及不间断的reset s3 pool 来完成场景的复现。
 
 
+
 # 脚本参考如下
 
-{% raw %}```
+```shell
 root@node76:~# cat kill_ceph_and_reset_s3_pool.sh 
 #!/bin/bash
 
@@ -272,5 +276,5 @@ do
     echo "[Success]  Loop $i pass"
 done
 root@node76:~#
-``` {% endraw %}
+```
 

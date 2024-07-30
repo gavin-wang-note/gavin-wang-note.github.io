@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-00257"
 subtitle:   "Oracle error code troubleshoot--ORA-00257"
 date:       2010-04-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 现象
 
-```
+```shell
 ========== Running state of HUAWEI infoX IAG system 20100407 09:09:05 ==========
 The path of the installation : /home/mmsg/mms_home. 
 The monitor process  is running well-balanced . pid:7753
@@ -26,7 +28,7 @@ The monitor process  is running well-balanced . pid:7753
 
 尝试登录数据库
 
-```
+```shell
 164 mmsg01 [mmsg] :/home/mmsg>sqlplus mmsg/mmsg@mmsgdb_222
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Wed Apr 7 09:09:54 2010
@@ -52,7 +54,7 @@ Enter user-name:
 
 ## 原因
 
-```
+```shell
 00257, 00000, "archiver error. Connect internal only, until freed."
 // *Cause:  The archiver process received an error while trying to archive
 //       a redo log.  If the problem is not resolved soon, the database
@@ -69,7 +71,7 @@ Enter user-name:
 
 查看文件系统
 
-```
+```shell
 oracle@mmsg:~> df
 Filesystem           1K-blocks      Used Available Use% Mounted on
 /dev/sda2             30969600   3364888  26031548  12% /
@@ -85,7 +87,7 @@ opt空间已满！
 
 2、查看文件系统空间信息
 
-```
+```shell
 oracle@mmsg:/opt/oraInventory> df
 Filesystem           1K-blocks      Used Available Use% Mounted on
 /dev/sda2             30969600   3364888  26031548  12% /
@@ -96,7 +98,7 @@ udev                   8218880       176   8218704   1% /dev
 
 3、修改数据库日志运行模式，由原来的归档模式修改为非归档模式，并启动数据库。
 
-```
+```shell
 SQL> startup mount
 ORACLE 例程已经启动。
 

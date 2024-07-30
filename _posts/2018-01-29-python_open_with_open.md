@@ -3,8 +3,10 @@ layout:     post
 title:      "Python文件操作：'with open()'与'open()'的区别"
 subtitle:   "Difference of 'with open()' and 'open()'"
 date:       2018-01-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -74,7 +76,7 @@ with open('example.txt', 'r') as file:
 
 
 
-```
+```python
 try:
     file = open('example.txt', 'r')
     file.read()
@@ -107,13 +109,13 @@ finally:
 
 
 
+```shell
 Unlike `open()` where you have to close the file with the `close()` method, the `with` statement closes the file for you without you telling it to.
 
 This is because the `with` statement calls 2 built-in methods behind the scene – `__enter()__` and `__exit()__`.
 
 The `__exit()__` method closes the file when the operation you specify is done.
-
-
+```
 
 
 
@@ -151,7 +153,7 @@ print("After with block")
 
 输出：
 
-```
+```shell
 Entering context
 Inside with block
 Exiting context

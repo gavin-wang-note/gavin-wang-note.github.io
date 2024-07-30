@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--Oracle已启动，dba连接报空闲实例"
 subtitle:   "Oracle troubleshoot of idle instance"
 date:       2011-11-25
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -15,7 +17,7 @@ tags:
 
 Oracle服务的启动是VCS5.1启动的，VCS启动日志中显示数据库已经成功启动，且双机运行正常，但是，使用dba用户连接数据库时，报连接到空闲实例，如下：
 
-```
+```shell
 oracle@dlsc01:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Fri Nov 25 09:31:17 2011
@@ -29,7 +31,7 @@ SQL>
 
 查看oracle进程，进程存在，且正常
 
-```
+```shell
 oracle@dlsc01:~> ps -ef | grep oracle
 oracle     301     1  0 Nov18 ?        00:00:03 ora_dbw0_dlscdb
 oracle     305     1  0 Nov18 ?        00:00:09 ora_lgwr_dlscdb
@@ -69,7 +71,7 @@ oracle   32765     1  0 Nov18 ?        00:00:01 ora_mman_dlscdb
 
 由进程信息，可以看出，数据库的SID为dlscdb，查看环境变量中的sid
 
-```
+```shell
 oracle@dlsc01:~> echo $ORACLE_SID
 dlscdb
 ```
@@ -86,7 +88,7 @@ Oracle使用的环境变量.profile文件中，设置的ORACLE_HOME中多加了�
 
 修改环境变量文件中的.profile文件中的ORACLE_HOM的环境变量，去掉多余的/“”，并source环境变量文件。
 
-```
+```shell
 oracle@dlsc01:~> source .profile
 oracle@dlsc01:~> echo $ORACLE_HOME
 /home/oracle/product/11g

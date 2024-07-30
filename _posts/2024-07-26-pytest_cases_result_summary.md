@@ -22,9 +22,9 @@ tags:
 
 # 概述
 
-pytest hook功能很强大，本文简要概述如何借助pytest的`pytest_runtest_makereport`&`pytest_sessionstart`这两个hook，实现用例执行结果的汇总。
+`pytest hook`功能很强大，本文简要概述如何借助`pytest`的`pytest_runtest_makereport`&`pytest_sessionstart`这两个`hook`，实现用例执行结果的汇总。
 
-至于pytest hook知识点，非本文介绍内容，请读者另行查阅资料。
+至于`pytest hook`知识点，非本文介绍内容，请读者另行查阅资料。
 
 # 预期效果
 
@@ -271,6 +271,6 @@ root@Gavin:~/test_result_summary#
 
 # 结语
 
-上述代码仅是个示例，抛砖引玉，在具体自动化Project中，可按自己的需求调整此文件位置、名称、内容展示等信息。
+上述代码仅是个示例，抛砖引玉，在具体自动化`Project`中，可按自己的需求调整此文件位置、名称、内容展示等信息。
 
-也可以将此文件的部分内容（如担心非passed状态用例数太多，引发文档内容过多）作为邮箱附件发送CI/CD构建通知。
+也可以将此文件的部分内容（如担心非`passed`状态用例数太多，引发文档内容过多）作为邮箱附件发送`CI/CD`构建通知。

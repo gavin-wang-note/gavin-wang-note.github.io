@@ -3,8 +3,10 @@ layout:     post
 title:      "重置ESXi root密码"
 subtitle:   "Reset root's password for ESXi"
 date:       2019-04-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ESXi]
 tags:
     - 虚拟化
     - ESXi
@@ -28,20 +30,20 @@ tags:
 
 * (4) 进入到/tmp 目录下，依次解压state.tgz local.tgz
 
-```
+```shell
 sh-3.2# tar xvfz state.tgz
 sh-3.2# tar xvfz local.tgz
 ```
 
 * (5) 修改存放用户密码的配置文件，将root用户的密码清除掉（即通过MD5加密的长串字符）
 
-```
+```shell
 sh-3.2# vi etc/shadow
 ```
 
 * (6) 重要的步骤：
 
-```
+```shell
 sh-3.2# rm -rf state.tgz local.tgz
 sh-3.2# tar czvf local.tgz etc
 sh-3.2# tar czvf state.tgz local.tgz

@@ -3,8 +3,10 @@ layout:     post
 title:      "python max 函数介绍"
 subtitle:   "python max function"
 date:       2022-08-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -23,7 +25,7 @@ key可以对要比较的对象进行一些处理，以达到对对象进行特�
 
 语法如下：
 
-```
+```shell
 root@scaler80:~# python
 Python 2.7.12 (default, Mar  1 2021, 11:38:31) 
 [GCC 5.4.0 20160609] on linux2
@@ -44,14 +46,14 @@ max(...)
 
 获取list中最大值(元祖类似)
 
-```
+```python
 >>> max([1,2,3,6,10,60])
 60
 ```
 
 获取字典中key的最大值
 
-```
+```python
 dict1 = {'a': '11', 'c': '22', 'b': '33'}
 print(max(dict1))
 print(max(dict1.keys()))
@@ -60,7 +62,7 @@ print(max(dict1.keys()))
 
 获取字典中最大value对应的key值
 
-```	
+```python
 dict1 = {'a': '11', 'c': '22', 'b': '33'}
 print(max(dict1, key=dict1.get))
 print(max(dict1, key=lambda x: dict1[x]))
@@ -69,7 +71,7 @@ print(max(dict1, key=lambda x: dict1[x]))
 
 获取字典中最大value的值
 
-```
+```python
 dict1 = {'a': '11', 'c': '22', 'b': '33'}
 print(max(dict1.values()))
 ```
@@ -77,7 +79,7 @@ print(max(dict1.values()))
 
 获取句子中的最长单词
 
-```
+```python
 str3 = "Life is short , I use python"
 print(str3.split())
 print(max(str3.split(), key=len))
@@ -86,7 +88,7 @@ print(max(str3.split(), key=len))
 
 获取list中的最大值
 
-```
+```python
 list1 = ['11', 'zzz', '22', 'eee']
 print(max(list1))
 ```
@@ -94,7 +96,7 @@ print(max(list1))
 
 获取list中的最大数值
 
-```
+```python
 list2 = ['11', '3', '222', '67']
 print(max(list2, key=lambda x: int(x)))
 ```
@@ -102,7 +104,7 @@ print(max(list2, key=lambda x: int(x)))
 
 获取list中的绝对值最大的值
 
-```
+```python
 list3 = ['11', '-399', '222', '67']
 print(max(list2, key=lambda x: abs(int(x))))
 ```
@@ -110,7 +112,7 @@ print(max(list2, key=lambda x: abs(int(x))))
 
 获取元组list中指定索引的最大值
 
-```
+```python
 list4 = [(1, 'a'), (3, 'c'), (4, 'e'), (-1, 'z')]
 print(max(list4, key=lambda x: x[1]))
 ```
@@ -118,7 +120,7 @@ print(max(list4, key=lambda x: x[1]))
 
 # Other Code example
 
-```
+```python
 #!/usr/bin/env python
 #-*-coding:UTF-8 -*-
 

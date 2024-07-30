@@ -2,9 +2,11 @@
 layout:     post
 title:      "Oracle管理篇之启动与关闭"
 subtitle:   "Oracle Manager about startup and shutdown"
-date:       2011-02--3
-author:     "Gavin"
+date:       2011-02-03
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -31,7 +33,7 @@ tags:
 
 startup等于以下三个命令 
 
-```
+```shell
    startup nomount  
    alter database mount  
    alter database open
@@ -41,20 +43,20 @@ startup等于以下三个命令
 
 约束启动的选项是restrict，它启动数据库时装入并打开它，但是此时的数据库只能为有特殊权限的数据库管理员使用，一般用户不能联入到该数据库。
 
-```
+```shell
 SQL>startup restrict
 ```
 
 非特权用户访问时，会出现以下提示：
 
-```
+```shell
    ERROR：  
    ORA-01035: ORACLE 只允许具有 RESTRICTED SESSION 权限的用户使用
 ```
 
 一般说来，当用户有create session权限时，可以连入数据库，但对于restrict方式启动的数据库，则只有用户具有restricted session系统权限才允许联入。若要在数据库运行过程中改变这一方式，可用alter system命令。
 
-```
+```shell
 SQL>alter system disable restricted session;
 ```
 
@@ -70,7 +72,7 @@ SQL>alter system disable restricted session;
 
 带初始化参数文件的启动方式，先读取参数文件，再按参数文件中的设置启动数据库。例：
 
-```
+```shell
 startup pfile=’/opt/oracle/product/11g/dbs/mypfile,ora’  
 ```
 
@@ -78,13 +80,13 @@ startup pfile=’/opt/oracle/product/11g/dbs/mypfile,ora’
 
 独占启动的选项是exclusive，表示只允许一个例程使用该数据库；
 
-```
+```shell
 startup EXCLUSIVE
 ```
 
 共享启动的参数是shared，表示允许多个例程并行使用该数据库，即将数据库装入多个现场。
 
-```
+```shell
 startup shared
 ```
 
@@ -100,7 +102,7 @@ startup shared
 
 该方式用在某些紧急的情况下，比如通知马上停电，此时需要紧急关闭数据库以应付这些情况。这种方式用的选项是immediate，在这种方式下并不等待所有的用户断开连接再关闭，而是由系统断开连接，然后关闭数据库。
 
-```
+```shell
 SQL>shutdown immediate;
 ```
 
@@ -114,7 +116,7 @@ SQL>shutdown immediate;
 
 异常关闭选项是abort，此种方式下系统并不做任何检查和断开用户操作以及回退操作，而是直接将数据库现场撤销，这样现场中的数据库数据当然就无效了，数据库自然也就被关掉了。
 
-```
+```shell
 SQL>shutdown abort;
 ```
 

@@ -1,10 +1,12 @@
 ---
 layout:     post
-title:      ""
-subtitle:   ""
+title:      "谁在使用Linux SWAP"
+subtitle:   "Who used Linux SWAP"
 date:       2019-09-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -22,7 +24,7 @@ tags:
 
 参考链接： ```https://blog.csdn.net/m0_37886429/article/details/73826868```
 
-```
+```shell
 for i in $(ls /proc | grep "^[0-9]" | awk '$0>100'); do awk '/Swap:/{a=a+$2}END{print '"$i"',a/1024"M"}' /proc/$i/smaps;done| sort -k2nr | head
 ```
 
@@ -30,7 +32,7 @@ for i in $(ls /proc | grep "^[0-9]" | awk '$0>100'); do awk '/Swap:/{a=a+$2}END{
 
 一个更详细的命令如下：
 
-{% raw %}```
+```shell
 #!/bin/bash  
 # Get current swap usage for all running processes  
 # writted by xly  
@@ -55,13 +57,12 @@ function getswap {
 
 getswap
 #getswap|egrep -v "Swap used: 0" 
-``` {% endraw %}
+```
 
 # 硬释放swap空间
 
-参考: ```https://blog.51cto.com/9237101/1921268```
 
-```
+```shell
 （1）执行sync
 （2）echo 3 > /proc/sys/vm/drop_caches
  (3) swapoff -a

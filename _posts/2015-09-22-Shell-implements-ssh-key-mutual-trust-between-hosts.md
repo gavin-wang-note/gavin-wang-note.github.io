@@ -3,8 +3,10 @@ layout:     post
 title:      "使用shell实现节点间ssh互信"
 subtitle:   "ssh key mutual trust between hosts"
 date:       2015-09-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - ssh
     - shell
@@ -16,9 +18,13 @@ tags:
 
 
 
+# 实现过程
+
+
+
 ## 方案1：脚本实现
 
-```
+```shell
 #!/bin/expect
 #循环100台机器的IP地址，生成密钥文件authorized_keys
 
@@ -26,20 +32,20 @@ for ip in {cat ip.list}
 do
   ssh user@$ip ssh-keygen -t rsa  &>/dev/null
   expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }
+        "yes/no" { send "yes\r";exp_continue}
+        "password:"{send "$passwd\r";exp_continue}
+       }
 
   cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys &> /dev/null  
   exit
 
   if [ !-f ~/.ssh/authorized_keys ];<br>   then
-​    touch ~/.ssh/authorized_keys<br>   fi
+    touch ~/.ssh/authorized_keys<br>   fi
   ssh user@$ip cat ~/.ssh/authorized_keys >> ~/.ssh/authorized_keys  &> /dev/null
   expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }  
+        "yes/no" { send "yes\r";exp_continue}
+        "password:"{send "$passwd\r";exp_continue}
+       }  
 done
 
  
@@ -48,9 +54,9 @@ for ip in {cat ip.list}
 do
   scp ~/.ssh/authorized_keys user@$ip:~/.ssh/ 
   expect{
-​        "yes/no" { send "yes\r";exp_continue}
-​        "password:"{send "$passwd\r";exp_continue}
-​       }  
+        "yes/no" { send "yes\r";exp_continue}
+        "password:"{send "$passwd\r";exp_continue}
+       }  
 done
 ```
 
@@ -66,13 +72,13 @@ ssh-copy-id 将本机的公钥复制到远程机器的authorized_keys文件中�
 
 语法格式如下：
 
-```
+```shell
  ssh-copy-id 将key写到远程机器的 ~/ .ssh/authorized_key.文件中 
 ```
 
 示例：
 
-```
+```shell
  ssh-copy-id -i .ssh/id_rsa.pub 用户名字@192.168.x.xxx
 ```
 

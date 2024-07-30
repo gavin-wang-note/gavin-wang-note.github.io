@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux stat家族之pidstat"
 subtitle:   "Linux pidstat"
 date:       2023-01-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -34,7 +36,7 @@ CentOS/Fedora/RHEL版本的linux中则使用下面的命令：
 
 使用 -p ALL 选项查看所有正在运行的进程的性能统计信息，如下所示:
 
-```
+```shell
 root@node166:~# pidstat -p ALL | wc -l
 1275
 root@node166:~# pidstat -p ALL | head
@@ -56,7 +58,7 @@ root@node166:~#
 
 使用 -p PID 监视特定进程的性能统计信息，如下所示:
 
-```
+```shell
 root@node166:~# pidstat -p  5736
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -69,7 +71,7 @@ root@node166:~#
 
 以下示例将显示匹配特定关键字（例如：ceph-osd）的所有进程的性能统计信息:
 
-```
+```shell
 root@node166:~# pidstat -C "ceph-osd"
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -89,10 +91,10 @@ root@node166:~#
 
 ## 以一定的间隔重复输出
 
-默认情况下，不会重复输出。例如，选项 -u 是显示任务的 CPU 使用统计信息，这是 pidstat 命令给出的默认统计信息。Thsi 将只显示输出一次。
+默认情况下，不会重复输出。例如，选项 -u 是显示任务的 CPU 使用统计信息，这是 pidstat 命令给出的默认统计信息，只显示输出一次。
 
 
-```
+```shell
 root@node166:~# pidstat -p 5753
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -103,7 +105,7 @@ root@node166:~#
 
 要重复输出，请指定以秒为单位的间隔作为最后一个参数。例如，以下示例将每 1 秒重复输出一次（直到按 Ctrl-C）:
 
-```
+```shell
 root@node166:~# pidstat -p 5753 1
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -121,7 +123,7 @@ root@node166:~#
 
 以下将每 15 秒重复输出一次（直到按 Ctrl-C）
 
-```
+```shell
 t@node166:~# pidstat -p 5753 15
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -143,7 +145,7 @@ root@node166:~#
 
 以下示例每 1 秒显示 PID 23493 的磁盘使用情况。
 
-```
+```shell
 root@node166:~# pidstat -p 5736 -d 1
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -164,7 +166,7 @@ root@node166:~#
 
 使用选项 -r 显示给定任务 (PID) 的页面错误和内存利用率。
 
-```
+```shell
 root@node166:~# pidstat -p 5753 -r 1
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -186,7 +188,7 @@ root@node166:~#
 
 默认情况下，pidstat 仅显示命令名称。即没有命令的完整路径及其参数。例如，在命令列中，你只会看到 "python" （它只是程序的名称）。
 
-```
+```shell
 root@node166:~# pidstat -C python
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -197,7 +199,7 @@ root@node166:~#
 
 但是，当使用选项 -l 时，它将显示命令的完整路径及其所有参数，如下所示:
 
-```
+```shell
 root@node166:~# pidstat -C python -l
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -208,7 +210,7 @@ root@node166:~#
 
 为了定期获取任务的统计信息，只需传递你希望查看统计信息的秒数:
 
-```
+```shell
 root@node166:~# pidstat -C ceph-osd -l 1
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -254,7 +256,7 @@ root@node166:~#
 
 例如，下面将显示输出 5 次（以 2 秒的固定间隔）。在报告结束时，它还将显示“平均值”值。
 
-```
+```shell
 root@node166:~# pidstat 2 5
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -375,7 +377,7 @@ root@node166:~#
 
 -T 的可能值：CHILD、TASKS 或 ALL。
 
-```
+```shell
 root@node166:~# pidstat -T CHILD | head 
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -394,7 +396,7 @@ root@node166:~#
 
 使用选项 -t，你可以以树格式显示输出，如下所示。
 
-```
+```shell
 root@node166:~# pidstat -t -C "ceph-osd"
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 
@@ -426,13 +428,13 @@ root@node166:~#
 
 如果要求 pidstat 报告多个统计数据，它会显示一个又一个统计数据。在下面的示例中，它将首先显示选项“r”的性能统计信息，然后是选项“u”，最后是选项“d”。
 
-```
+```shell
 pidstat -rud
 ```
 
 但是，如果希望单个进程的所有这些统计信息都显示在一行中，请使用选项 -h，如下所示:
 
-```
+```shell
 root@node166:~# pidstat -rud -h | head
 Linux 4.14.148-202302151035.git6a5dacc (node166) 	04/17/2023 	_x86_64_	(40 CPU)
 

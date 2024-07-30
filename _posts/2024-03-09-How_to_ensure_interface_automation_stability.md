@@ -2,7 +2,7 @@
 title: 接口自动化测试的稳定性保证
 date: 2024-03-09 14:25:29
 author: Gavin Wang
-img:
+img: "img/API/api4.jpg"
 top: false
 hide: false 
 cover: false

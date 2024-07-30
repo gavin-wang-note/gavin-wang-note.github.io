@@ -3,8 +3,10 @@ layout:     post
 title:      "获取SSD寿命"
 subtitle:   "Get life span for SSD device"
 date:       2020-01-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -22,7 +24,7 @@ SSD虽然不是机械盘，但上面的晶元伴随着数据的擦写，导致�
 
 NVME有一个driver，这个driver可以监控NVMESSD的状态以及获取实时信息，有兴趣的可以参考nvmemgr driver的help信息：
 
-```
+```shell
 root@CVM-01:~# nvmemgr 
 nvmemgr version: 00.06.202
 usage: nvmemgr <command> [<options>] <target> [<args>]
@@ -132,7 +134,7 @@ root@CVM-01:~#
 
 ## Step1. 获取NVME的controller name
 
-```
+```shell
 root@CVM-01:~# nvmemgr list | grep controller
 controller nvme0 (namespace nvme0n1):
 controller  (namespace nvme0n1p1):
@@ -167,7 +169,7 @@ controller  (namespace nvme0n1p9):
 
 ## Step2. 使用nvmemgr monitor获取对应controller信息
 
-```
+```shell
 root@CVM-01:~# nvmemgr monitor -i 1000 -p --ctrl nvme0
 Manufacture Name:              Memblaze Technology Co.,Ltd
 Product Name:                  PBlaze4
@@ -222,7 +224,7 @@ Current Write Bandwidth:       0.07MB/s
 
 直接上代码
 
-```
+```shell
 root@CVM-01:~# cat get_nvme_ssd_life_time.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -384,7 +386,7 @@ if __name__ == '__main__':
 
 执行效果：
 
-```
+```shell
 root@CVM-01:~# python get_nvme_ssd_life_time.py 
 4
 root@CVM-01:~# 
@@ -401,7 +403,7 @@ root@CVM-01:~#
 
 ### SSD 不在RAID卡上
 
-```
+```shell
 root@node243:~# lsscsi
 [0:0:9:0]    enclosu GOOXIBM  2U12SXP 24Sx12G  B013  -        
 [0:0:13:0]   disk    ATA      INTEL SSDSC2KG48 0100  /dev/sdk 
@@ -421,7 +423,7 @@ root@node243:~# lsscsi
 
 ### SSD 在RAID卡上
 
-```
+```shell
 root@node243:~# lsblk -d -o name,rota
 NAME ROTA
 sda     1
@@ -458,7 +460,7 @@ root@node243:~#
 
 本文RAID卡型号是LSI的，显示是AVAGO，截取了片段信息，如下:
 
-```
+```shell
 root@CVM-01:~# /opt/MegaRAID/MegaCli/MegaCli64 adpallinfo -a0
                                      
 Adapter #0
@@ -480,7 +482,7 @@ FW Package Build: 24.15.0-0018
 * 如果SSD在RAID卡上，但是设置成JBOD模式，依然可以通过本章节方法获取SSD寿命
 
 ### Step1. 先获取到SSD分区信息
-```
+```shell
 root@node-196:~# lsblk -d -o name,rota
 NAME ROTA
 rbd0    0
@@ -503,7 +505,7 @@ root@node-196:~#
 
 ### Step2. 查看smart信息
 
-```
+```shell
 root@node-196:~# smartctl -a /dev/sdd
 smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-server] (local build)
 Copyright (C) 2002-18, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -621,7 +623,7 @@ root@node-196:~#
 
 尝试使用lsblk去获取
 
-```
+```shell
 root@node243:~# lsblk -d -o name,rota
 NAME ROTA
 sda     1
@@ -643,7 +645,7 @@ root@node243:~#
 
 换个思路，使用megacli命令试试：
 
-```
+```shell
 root@node243:~# /opt/MegaRAID/MegaCli/MegaCli64 ldpdinfo aall | grep -Ei 'Device Id:|Inquiry Data:|Raw Size:'
 Enclosure Device ID: 9
 Device Id: 24
@@ -698,9 +700,9 @@ root@node243:~#
 
 这里有一列信息```Inquiry Data```，表示每个Device的序列号，里面有品牌信息，其中，```INTEL SSDSC2KG480G7```表示这块盘，是INTEL SSD，容量480G，至此，可以知道，```Device Id: 13```（这很重要）这块盘，是SSD，对应分区是/dev/sdl（至于如何确认RAID卡上RAID组对应哪个系统分区（盘符）信息，参考我的其他推文）
 
-## Step2. smartctl获取smart信息
+### Step2. smartctl获取smart信息
 
-```
+```shell
 root@node243:~# smartctl -a -d megaraid,23 /dev/sdl
 smartctl 6.6 2016-05-31 r4324 [x86_64-linux-4.1.49-server] (local build)
 Copyright (C) 2002-16, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -812,7 +814,7 @@ root@node243:~#
 
 这是一个完整的SSD 分区的smart信息，信息有些多，过滤一下，只获取我们关心的几个值就好：
 
-```
+```shell
 root@node243:~# smartctl -a -d megaraid,23 /dev/sdl | grep -Ei 'Device Model|Serial Number|User Capacity|Media_Wearout_Indicator'
 Device Model:     INTEL SSDSC2KG480G7
 Serial Number:    BTYM7406012Z480BGN
@@ -826,7 +828,7 @@ root@node243:~#
 
 那如果不带device id，能直接通过smartctl获取SSD寿命信息么？
 
-```
+```shell
 root@node243:~# smartctl -a /dev/sdl
 smartctl 6.6 2016-05-31 r4324 [x86_64-linux-4.1.49-server] (local build)
 Copyright (C) 2002-16, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -861,7 +863,7 @@ root@node243:~#
 
 * 由于lab里只有intel的SSD，这个SSD使用寿命对应smart项是233（Media_Wearout_Indicator），但并不是所有类型的SSD的都是233，参考如下：
 
-```
+```shell
 SSD_INDICATOR = {
     'INTEL': '233',
     'INDILINX': '209',

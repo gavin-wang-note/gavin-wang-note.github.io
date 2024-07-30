@@ -3,8 +3,10 @@ layout:     post
 title:      "跨库拷贝数据"
 subtitle:   "Copy data between different DB by oracle"
 date:       2011-07-18
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -37,7 +39,7 @@ B数据库假设是有大量数据的数据库。IP地址是10.168.38.52
 * 要先在A数据库的机器上先建立一个本地连接到数据库B，且名字是如下输入框的Database要一致。
 
 <img class="shadow" src="/img/in-post/oracle-conn.png" width="600" />
- 
+
 
 ### 步骤三、拷贝数据
 
@@ -50,6 +52,6 @@ Apply【应用】这个数据库链接后，就可以直接按填写的name使�
 ```insert into memberinfo nologging select * from  memberinfo@ ora11g ```
 
 如果没有在机器上建立本地链接，则会出现以下错误：
- 
+
 <img class="shadow" src="/img/in-post/oracle-ora-12154.png" width="300" />
 

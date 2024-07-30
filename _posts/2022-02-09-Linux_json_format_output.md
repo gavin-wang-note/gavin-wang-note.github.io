@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux 输出格式化成Json"
 subtitle:   "Linux output format to Json"
 date:       2022-02-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -16,29 +18,29 @@ tags:
 
 # 实践
 
-## 方法1 'python -mjson.tool'
+## 方法1 `python -mjson.tool`
 
 此适用于多种OS
 
 
-```ceph config-key get gateway_groups | python -mjson.tool```
+`ceph config-key get gateway_groups | python -mjson.tool`
 
 
-## 方法2 'json_pp' or 'jq'
+## 方法2 `json_pp` or `jq`
 
 
 适用于Debin系OS
 
-```ceph config-key get gateway_groups | json_pp```
+`ceph config-key get gateway_groups | json_pp`
 
 
 适用于RedHat系OS，带颜色
 
-```ceph config-key get gateway_groups | jq```
+`ceph config-key get gateway_groups | jq`
 
 e.g:
 
-```
+```shell
 root@CVM01:~# ceph config-key get gateway_groups | json_pp
 obtained 'gateway_groups'
 {

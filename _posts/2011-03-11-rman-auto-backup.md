@@ -3,8 +3,10 @@ layout:     post
 title:      "Perl脚本实现oracle RMAN自动备份"
 subtitle:   "rman auto backup by Perl script"
 date:       2011-03-11
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -12,9 +14,9 @@ tags:
 
 通过rman，实现定期自动备份，直接上脚本
 
-[oracle@mmsc103:~/rmanbak](mailto:oracle@mmsc103:~/rmanbak)> vi backup.pl
+[oracle@mmsc103:~/rmanbak]> vi backup.pl
 
-```
+```shell
 #!/usr/bin/perl
 ##################################################
 ###    作用：rman定时任务脚本         ###
@@ -35,15 +37,15 @@ my $daytime = "$year$month$day$hour$min$sec";
 system("/opt/oracle/product/11g/bin/rman  cmdfile = '/opt/oracle/rmanbak/everydaybak.rman' msglog=/opt/oracle/rmanbak/everydaybak_$daytime.log");
 ```
 
-```
-oracle@mmsc103:~/rmanbak](mailto:oracle@mmsc103:~/rmanbak)> more everydaybak.rman
+```shell
+[oracle@mmsc103:~/rmanbak]> more everydaybak.rman
 #script.:fullbakup.rman
 # creater:wangyunzeng
 # date:2011-03-11
 # desc:backup all database datafile in archive with rman
 # connect database
 connect target rman/rman;
-connect catalog [rman/rman@mmsgdb](mailto:rman/rman@mmsgdb);
+connect catalog [rman/rman@mmsgdb];
 
 #start backup database
 run

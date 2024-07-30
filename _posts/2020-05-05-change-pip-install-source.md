@@ -3,10 +3,12 @@ layout:     post
 title:      "更改pip&easy_install默认安装源"
 subtitle:   "Change pip&easy_install installation source"
 date:       2020-05-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
-    - JBOD
+    - python
 ---
 
 # 概述
@@ -46,7 +48,7 @@ pip默认安装源来自国外，很多时候由于墙的原因，导致下载�
 
 阿里:
 
-```
+```shell
 root@pytest-70-97:~# ping -c 3 aliyun.com
 PING aliyun.com (140.205.60.46) 56(84) bytes of data.
 64 bytes from 140.205.60.46: icmp_seq=1 ttl=44 time=9.64 ms
@@ -61,7 +63,7 @@ root@pytest-70-97:~#
 
 豆瓣:
 
-```
+```shell
 root@pytest-70-97:~# ping -c 3 douban.com
 PING douban.com (154.8.131.171) 56(84) bytes of data.
 64 bytes from 154.8.131.171: icmp_seq=1 ttl=49 time=25.7 ms
@@ -77,7 +79,7 @@ root@pytest-70-97:~#
 
 清华大学:
 
-```
+```shell
 root@pytest-70-97:~# ping -c 3 tuna.tsinghua.edu.cn
 PING tuna.tsinghua.edu.cn (101.6.6.172) 56(84) bytes of data.
 64 bytes from 101.6.6.172: icmp_seq=1 ttl=47 time=33.8 ms
@@ -93,7 +95,7 @@ root@pytest-70-97:~#
 
 中国科学技术大学:
 
-```
+```shell
 root@pytest-70-97:~# ping -c 3 ustc.edu.cn
 PING ustc.edu.cn (202.38.64.246) 56(84) bytes of data.
 64 bytes from 202.38.64.246: icmp_seq=1 ttl=49 time=16.6 ms
@@ -108,7 +110,7 @@ root@pytest-70-97:~#
 
 华中理工大学:
 
-```
+```shell
 root@pytest-70-97:~# ping -c 3 hustunique.com
 PING hustunique.com (129.211.140.244) 56(84) bytes of data.
 64 bytes from 129.211.140.244: icmp_seq=1 ttl=53 time=10.4 ms
@@ -123,7 +125,7 @@ root@pytest-70-97:~#
 
 山东理工大学:
 
-```
+```shell
 root@pytest-70-97:~# ping -c 3 sdutlinux.org
 PING sdutlinux.org (170.178.168.203) 56(84) bytes of data.
 64 bytes from becrawl-show.flatreutic.com (170.178.168.203): icmp_seq=1 ttl=51 time=182 ms
@@ -149,7 +151,7 @@ root@pytest-70-97:~#
 
 创建或修改pip.conf文件，如果文件或目录不存在，创建之
 
-```
+```shell
 cd ~
 mkdir .pip
 cd .pip
@@ -158,7 +160,7 @@ vi pip.conf
 
 添加如下内容：
 
-```
+```shell
 [global]
 index-url=http://mirrors.aliyun.com/pypi/simple/
 
@@ -178,13 +180,13 @@ trusted-host=mirrors.aliyun.com
 
 这个主要是解决开篇提及到的pip安装有依赖包时没有使用指定的源问题。
 
-打开pydistutils.cfg
+打开`pydistutils.cfg`
 
 ```vi ~/.pydistutils.cfg ```
 
 写入以下内容
 
-```
+```shell
 [easy_install]
 index_url = https://mirrors.aliyun.com/pypi/simple
 ```
@@ -192,7 +194,7 @@ index_url = https://mirrors.aliyun.com/pypi/simple
 
 # 安装测试
 
-读取了requirements.txt(pip install -r requirements.txt)，安装效果如下：
+读取了`requirements.txt(pip install -r requirements.txt)`，安装效果如下：
 
 <img class="shadow" src="/img/in-post/pip_install_test.png" width="1200">
 

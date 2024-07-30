@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--RMAN常见问题总结"
 subtitle:   "Oracle troubleshoot--RMAN"
 date:       2011-03-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -19,7 +21,7 @@ tags:
 
 RMAN命令输入后终端无反应，一直处于等待状态，且长时间如此
 
-```
+```shell
 node1:oracle:mmsgdb > rman
 
 ```
@@ -33,7 +35,7 @@ node1:oracle:mmsgdb > rman
 
 Oracle用户登陆后，修改环境变量，在.bash_profile或者.profile文件中增加如下信息，重新source一下即可：
 
-```
+```shell
 export PATH=$ORACLE_HOME:$PATH
 ```
 
@@ -42,7 +44,7 @@ export PATH=$ORACLE_HOME:$PATH
 
 ## 表象
 
-```
+```shell
 oracle@mmsc103:~> rman target/
 
 恢复管理器: Release 11.1.0.6.0 - Production on 星期六 3月 5 09:27:48 2011
@@ -93,7 +95,7 @@ RMAN未注册。
 
 注册RMAN:
 
-```
+```shell
 RMAN> register database;
 
 注册在恢复目录中的数据库
@@ -132,7 +134,7 @@ RMAN>
 
 RMAN备份的文件存放在某个目录下，该文件没有通过rman命令delete删除，而是在操作系统侧执行rm操作，导致再去删除这个备份文件时无法删除掉。
 
-```
+```shell
 RMAN-06207: 警告: 由于状态不匹配, 所以不能删除 2 对象 (对于 DISK 通道)。
 RMAN-06208: 请用 CROSSCHECK 命令修正状态
 RMAN-06210: 不匹配对象的列表
@@ -147,7 +149,7 @@ RMAN-06214: Backup Piece    /opt/oracle/flash_recovery_area/MMSGDB/autobackup/20
 
 使用crosscheck backupset命令检查后再去执行delete操作。
 
-```
+```shell
 RMAN> list backupset by backup summary;
 
 
@@ -196,7 +198,7 @@ RMAN>     #无数据展示，说明已经删除完毕了.
 
 ## 表象
 
-```
+```shell
 oracle@mmsc103:~/rmanbak> rman target/
 
 恢复管理器: Release 11.1.0.6.0 - Production on 星期三 3月 16 17:57:10 2011
@@ -246,7 +248,7 @@ oracle@mmsc103:~/rmanbak>
 
 开通了闪回功能后，默认的备份存储区域为闪存区域，区域大小默认为2G。
 
-```
+```shell
 SQL> show parameter db_recovery_file_dest_size 
 
 NAME                                 TYPE        VALUE
@@ -261,7 +263,7 @@ SQL>
 
 通过修改闪回区域大小，重启数据库后解决问题。
 
-```
+```shell
 SQL> alter system set db_recovery_file_dest_size = 4G scope =spfile;
 
 系统已更改。

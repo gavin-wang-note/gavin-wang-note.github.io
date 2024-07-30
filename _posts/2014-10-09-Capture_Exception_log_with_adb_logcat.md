@@ -3,8 +3,10 @@ layout:     post
 title:      "adb logcat获取日常日志"
 subtitle:   "Capture Exception log with adb logcat"
 date:       2014-10-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -23,7 +25,7 @@ tags:
 # 代码示例
 
 
-```
+```python
 #!/usr/bin/env python
 #-*- coding:UTF-8 -*-
 

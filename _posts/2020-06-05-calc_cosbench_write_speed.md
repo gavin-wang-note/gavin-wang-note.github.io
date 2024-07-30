@@ -3,8 +3,12 @@ layout:     post
 title:      "统计cosbench写速度"
 subtitle:   "Statistics cosbech write speed"
 date:       2020-06-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [cosbench]
+    - [shell]
+    - [python]
 tags:
     - cosbench
     - shell
@@ -29,7 +33,7 @@ BTW，今天是24节气的芒种，因新型冠状病毒疫情影响，高考延
 <img class="shadow" src="/img/in-post/rgw_write_speed_v7.0_2.png" width="1200">
 
 环境信息与说明：
-  
+
 3节点集群，每个节点4块8T盘组RAID5（64K srip size），每个节点8组RAID5；
 每个节点有2块3.5T NVME SSD，和2块480G intel 4600 SSD
 
@@ -44,7 +48,7 @@ BTW，今天是24节气的芒种，因新型冠状病毒疫情影响，高考延
 
 目录结构如下:
 
-```
+```shell
 root@node244:~/henry# ll
 total 20
 drwxr-xr-x  2 root root 4096 Jun  4 16:16 ./
@@ -58,7 +62,7 @@ root@node244:~/henry#
 
 roundN_10K_10Mfiles_Write.xml.in 文件内容参考如下:
 
-```
+```shell
 root@node244:~/henry# cat roundN_10K_10Mfiles_Write.xml.in 
 <?xml version="1.0" encoding="UTF-8"?>
 <workload name="HM_round@@@ROUND@@@_10M_files_write_once" description="HM_round@@@ROUND@@@_10M_files_write_once">
@@ -104,7 +108,7 @@ root@node244:~/henry#
 
 cosbench.sh内容如下:
 
-```
+```shell
 root@node244:~/henry# cat cosbench.sh
 #!/bin/bash
 
@@ -153,7 +157,7 @@ root@node244:~/henry#
 终于到本文主题了，既然有了上面的测试script方便QA提交测试任务，那统计RGW写速度，以前写了一个python来统计，不是很通用，因为import了产品的function，一旦脱离产品环境运行cosbench，python脚本就没法执行了，今天重写了个统计cosbench写速度的shell脚本，内容如下：
 
 
-{% raw %}```
+```shell
 root@node244:~# cat calc_cosbench_speed.sh 
 #!/bin/bash
 
@@ -208,7 +212,7 @@ do
         fi
     fi
 done < ${HISTORY_FILE}
-``` {% endraw %}
+```
 
 执行效果如下:
 
@@ -220,7 +224,7 @@ done < ${HISTORY_FILE}
 今天（2020-06-18）使用python改写了一版，参考如下:
 
 
-{% raw %}```
+```python
 root@node244:~/75# cat calc_cosbench_speed.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -287,7 +291,7 @@ for each_line in his_content.strip().split("\n"):
 if __name__ == "__main__":
     pass
 
-``` {% endraw %}
+```
 
 执行效果如下:
 
@@ -303,7 +307,7 @@ if __name__ == "__main__":
 
 修改后的脚本内容如下：
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -373,5 +377,5 @@ for each_line in his_content.split("\n"):
 if __name__ == "__main__":
     pass
 
-``` {% endraw %}
+```
 

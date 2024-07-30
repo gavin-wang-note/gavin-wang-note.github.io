@@ -3,8 +3,10 @@ layout:     post
 title:      "自动化交互式格式化文件系统"
 subtitle:   "Auto format FS by expect"
 date:       2022-02-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -22,15 +24,15 @@ tags:
 
 ## 方法1
 
-```yes | mkfs.ext4 /dev/sdb```
+`yes | mkfs.ext4 /dev/sdb`
 
 
 ## 方法2
 
-```echo -e "y\n" | mkfs.ext4 /dev/sdx```
+`echo -e "y\n" | mkfs.ext4 /dev/sdx`
 
 ## 方法3
 
-```mkfs.ext4 -F /dev/sdb```
+`mkfs.ext4 -F /dev/sdb`
 
 

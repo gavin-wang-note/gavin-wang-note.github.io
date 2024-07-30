@@ -3,8 +3,20 @@ layout:     post
 title:      "MPS接口自动化测试指南"
 subtitle:   "MPS Interface automation test guide"
 date:       2014-11-15
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: true
+hide: false
+cover: true
+coverImg:
+password:
+toc: true
+img: "img/API/api1.jpg"
+summary: 基于Python Unittest，完成MPS 接口自动化
+categories:
+    - [Automation]
+    - [Jenkins]
+    - [python]
 tags:
     - interface
     - Automation
@@ -15,7 +27,7 @@ tags:
 
 # 需求描述
 
-## 基本要求:
+## 基本要求
 
 对服务后台一系列的HTTP接口功能测试，主要涉及POST、PUT、GET、DELETE等类型；
 用例与用例之间保持独立，即低耦合。
@@ -186,7 +198,7 @@ CI：
 
 ## 创建sqlite表相关语句
 
-```
+```ini
 CREATE TABLE [report_history] (
   [begintime] DATETIME NOT NULL, 
   [endtime] DATETIME NOT NULL, 
@@ -312,7 +324,7 @@ Jenkins缺省支持CVS，Subversion，Maven和SSH。依次进入"系统管理"--
 
 bat命令行代码如下：
 
-```
+```shell
 @echo off
 cd C:\Jenkins\workspace\interfaceAutotest\Testing\autotest\intefaceTest\src
 python interfaceRunner.py
@@ -329,7 +341,7 @@ python interfaceRunner.py
 
 Editable Email Notification中Default Content，内容信息如下：
 
-```
+```shell
 <html>
 
     <head>
@@ -472,7 +484,7 @@ Jenkins中Git仓库变更集中文注释显示乱码问题
 
 C:\Jenkins\jenkins.xml 新增蓝色粗体标记参数(-Dfile.encoding=utf-8)，然后重启Jenkins服务，完毕！
 
-```
+```shell
   <executable>%BASE%\jre\bin\java</executable>
   <arguments>-Xrs -Xmx256m  -Dfile.encoding=utf-8 -Dhudson.lifecycle=hudson.lifecycle.WindowsServiceLifecycle -jar "%BASE%\jenkins.war" --httpPort=8080</arguments>
 ```

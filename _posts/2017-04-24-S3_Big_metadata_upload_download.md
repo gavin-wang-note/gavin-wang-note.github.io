@@ -3,16 +3,27 @@ layout:     post
 title:      "Upload and download S3 Big metadata"
 subtitle:   "Upload and download S3 Big metadata"
 date:       2017-04-24
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
-    - shell
+    - python
 ---
 
 
-s3_big_meta_data_upload_download.py
 
-```
+# 概述
+
+因应标，要求支持64M大小的`metadata`，所以南京Office测试一下，如何给`ceph S3 Object`上传一个比较大的`metadata`。
+
+
+
+# 脚本内容
+
+`s3_big_meta_data_upload_download.py`
+
+```python
 #-*-coding:UTF-8-*-
 
 import io
@@ -85,9 +96,7 @@ def download_file_with_meta(bucket_handle, key_name):
             print "download mp4 and xml object finish"
     except Exception as e:
         print str(e)
-#
 
-#
 #建立连接
 print "createt connection BEGIN \n"
 conn = boto.connect_s3(

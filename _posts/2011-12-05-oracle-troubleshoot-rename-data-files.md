@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--重命名表空间"
 subtitle:   "Oracle troubleshoot--rename files name"
 date:       2011-12-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---

@@ -3,8 +3,11 @@ layout:     post
 title:      "显示ctdb VIP与物理IP映射关系"
 subtitle:   "Show the relationship between VIP and physical IP mapping"
 date:       2016-11-14
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - shell
 ---
@@ -19,7 +22,7 @@ tags:
 
 # 脚本内容
 
-```
+```shell
 #!/usr/bash
 
 ctdb_status=`ctdb status  |grep pnn |tr -d pnn:  |awk '{print $1,$2}'|sort -nk 1  > /tmp/ctdb_status.out 2>&1`

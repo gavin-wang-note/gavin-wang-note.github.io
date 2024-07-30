@@ -3,8 +3,10 @@ layout:     post
 title:      "Delay the first auto start VM in PVE"
 subtitle:   "How to delay the first auto start virtual machinevm guest system in proxmox ve pve"
 date:       2021-12-13
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [PVE]
 tags:
     - PVE
     - proxmox ve
@@ -29,7 +31,7 @@ https://dannyda.com/2020/06/24/how-to-delay-the-first-auto-start-virtual-machine
 
 UI展示VM开机自启动，这里的设置来自qm指令
 
-```
+```shell
 root@node165:/etc/systemd/system/multi-user.target.wants# qm list
       VMID NAME                 STATUS     MEM(MB)    BOOTDISK(GB) PID       
        100 Scaler186            stopped    4096              32.00 0         
@@ -57,7 +59,7 @@ root@node165:/etc/systemd/system/multi-user.target.wants#
 
 指令参考如下：
 
-```
+```shell
 pvenode config set --startall-onboot-delay XXX
 
 --startall-onboot-delay <integer> (0 - 300) ( default = 0 ) Initial delay in seconds, before starting all the Virtual Guests with on-boot enabled.
@@ -67,7 +69,7 @@ pvenode config set --startall-onboot-delay XXX
 
 这个参数的设定，上限是300秒，如果想调整成更大的数值，可以修改如下文件(示例设置为400秒):
 
-```
+```shell
 root@node165:/etc/pve# grep -nri 400
 nodes/node165/config:1:startall-onboot-delay: 400
 ```
@@ -78,7 +80,7 @@ nodes/node165/config:1:startall-onboot-delay: 400
 
 
 
-```
+```shell
 cat /etc/systemd/system/multi-user.target.wants/pve-guests.service pve-guests
 ```
 
@@ -88,7 +90,7 @@ cat /etc/systemd/system/multi-user.target.wants/pve-guests.service pve-guests
 
 
 
-```
+```shell
 [Service]
 Environment="PVE_LOG_ID=pve-guests"
 ExecStartPre=-/usr/share/pve-manager/helpers/pve-startall-delay
@@ -98,7 +100,8 @@ ExecStartPre=-/usr/share/pve-manager/helpers/pve-startall-delay
 
 
 在如上内容中，增加如下内容（注意两个ExecStartPre的顺序）：
-```
+
+```shell
 [Service]
 Environment="PVE_LOG_ID=pve-guests"
 ExecStartPre=/bin/sleep 400

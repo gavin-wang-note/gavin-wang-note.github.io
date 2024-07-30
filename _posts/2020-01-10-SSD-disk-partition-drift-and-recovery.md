@@ -3,8 +3,10 @@ layout:     post
 title:      "SSD盘符漂移导致OSD down场景模拟与恢复"
 subtitle:   "SSD disk partition drift and how to recovery it"
 date:       2020-01-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -31,7 +33,7 @@ tags:
 
 如下为node245上的data与cache 大致的map关系：
 
-```
+```shell
 root@node245:~# lsblk
 NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 sda                         8:0    0 447.1G  0 disk 
@@ -74,7 +76,7 @@ root@node245:~#
 
 重新拔插回去的SSD，此时节点的lsblk吐出信息是：
 
-```
+```shell
 root@node245:~# lsblk
 NAME                      MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
 sda                         8:0    0 447.1G  0 disk 
@@ -105,7 +107,7 @@ root@node245:~#
 
 此时，发现sdb已经不见了，出现了新的分区sdf：
 
-```
+```shell
 root@node245:~# gdisk /dev/sdf
 GPT fdisk (gdisk) version 0.8.8
 
@@ -147,7 +149,7 @@ Command (? for help):
 
 ## Step3. 确认当前dm信息
 
-```
+```shell
 root@node245:~# mount
 /dev/sde2 on / type ext4 (rw,errors=remount-ro)
 proc on /proc type proc (rw,noexec,nosuid,nodev)
@@ -186,7 +188,7 @@ root@node245:~#
 
 ## Step4.  接触dm设备里map关系
 
-```
+```shell
 root@node245:~# umount /dev/mapper/g-osd2-0-cache
 root@node245:~# dmsetup remove g-osd2-0-cache
 root@node245:~# umount /data/osd.1
@@ -203,7 +205,7 @@ root@node245:~#
 
 ## Step5.  重新挂载dm设备
 
-```
+```shell
 root@node245:~# bt-mount.py 
 root@node245:~# 
 root@node245:~# 
@@ -275,12 +277,11 @@ root@node245:~#
 * 经过上面的操作，对应dm map关系恢复，mount point也在
 
 ## Step6.  启动OSD
-```
+```shell
 root@node245:~# /etc/init.d/ceph start osd.1
 === osd.1 === 
 Starting Ceph osd.1 on 1.1.1.245...
 starting osd.1 at :/0 osd_data /data/osd.1 /dev/disk/by-partlabel/g-osd2-0-journal
 root@node245:~# 
-
 ```
 

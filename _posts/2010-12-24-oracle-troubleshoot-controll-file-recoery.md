@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--控制文件损坏如何恢复"
 subtitle:   "Oracle troubleshoot--controll file recovery"
 date:       2010-12-24
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -21,7 +23,7 @@ tags:
 
 ## 步骤一  启动数据库报错
 
-```
+```shell
 SQL> alter session set nls_language = american;
 
 Session altered.
@@ -44,10 +46,10 @@ ORA-00205: ?????????, ??????, ???????
 
 SQL>
 ```
- 
+
 ## 步骤二  查看错误码
 
-```
+```shell
 oracle@mmsg02:~> oerr ora 00205
 00205, 00000, "error in identifying control file, check alert log for more info"
 // *Cause:  The system could not find a control file of the specified name and
@@ -58,7 +60,7 @@ oracle@mmsg02:~> oerr ora 00205
 
 ## 步骤三  查看trace日志，获取更详细信息
 
-```
+```shell
 oracle@mmsg02:~/diag/rdbms/infoxdb/infoxdb/alert> vi /home/oracle/diag/rdbms/infoxdb/infoxdb/trace/infoxdb_m000_2951.trc
 
 Trace file /home/oracle/diag/rdbms/infoxdb/infoxdb/trace/infoxdb_m000_2951.trc
@@ -120,7 +122,7 @@ ORA-27048: skgfifi: ????????
 
 这里由于日志未报控制文件control03.ctl出错，可以推断控制文件3是好的，也可以检查一下：
 
-```
+```shell
 oracle@mmsg02:~/oradata/infoxdb> dbv file=control03.ctl  blocksize=16384
 
 DBVERIFY: Release 11.1.0.7.0 - Production on 星期五 12月 24 12:33:39 2010
@@ -167,7 +169,7 @@ dbv检查控制文件1和2，发现控制文件1和2被损坏，和日志正好�
 
 ## 步骤五  替换被损坏的控制文件，并启动数据库
 
-```
+```shell
 SQL> shutdown immediate
 ORA-01507: database not mounted
 
@@ -239,7 +241,7 @@ SQL> select * from dba_data_files;
 
 ## 步骤一 alter database backup controlfile to trace
 
-```
+```shell
 oracle@mmsc103:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 3月 9 09:05:25 2011
@@ -260,7 +262,7 @@ SQL>
 
 ## 步骤二 查看alter 和trace日志
 
-```
+```shell
 <msg time='2011-03-09T09:06:22.712+08:00' org_id='oracle' comp_id='rdbms'
  client_id='' type='UNKNOWN' level='16'
  module='sqlplus@mmsc103 (TNS V1-V3)' pid='12477'>
@@ -466,7 +468,7 @@ ALTER TABLESPACE RMAN_TMP ADD TEMPFILE '/opt/oracle/oradata/mmsgdb/rman_tmp.dbf'
 
 ## 步骤三 模拟控制文件全部丢失
 
-```
+```shell
 oracle@mmsc103:~> cd oradata/mmsgdb/
 oracle@mmsc103:~/oradata/mmsgdb> l
 total 2268880
@@ -508,7 +510,7 @@ drwxr-x--- 3 oracle oinstall       4096 2011-03-03 18:20 ../
 
 ## 步骤四  动数据库，报错
 
-```
+```shell
 oracle@mmsc103:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期三 3月 9 09:12:46 2011
@@ -530,7 +532,7 @@ ORA-00205: ?????????, ??????, ???????
 
 ## 步骤五  查看错误码和跟踪日志，获取详细信息
 
-```
+```shell
 SQL> host
 oracle@mmsc103:~> oerr ora 00205
 00205, 00000, "error in identifying control file, check alert log for more info"
@@ -566,7 +568,7 @@ Additional information: 3
 
 ### 修改trace日志中创建控制文件部分内容
 
-```
+```shell
 oracle@mmsc103:~> more control.sql 
 STARTUP NOMOUNT
 CREATE CONTROLFILE REUSE DATABASE "MMSGDB" NORESETLOGS  ARCHIVELOG
@@ -626,7 +628,7 @@ ALTER TABLESPACE RMAN_TMP ADD TEMPFILE '/opt/oracle/oradata/mmsgdb/rman_tmp.dbf'
 
 关闭数据库，修改trace文件中创建control文件部分
 
-```
+```shell
 SQL> @control.sql
 ORACLE 例程已经启动。
 
@@ -695,7 +697,7 @@ SQL>
 
 #### 1、关闭数据库
 
-```
+```shell
 SQL>shutdown immediate
 ```
 
@@ -705,19 +707,19 @@ SQL>shutdown immediate
 
 #### 4、脱机该数据文件
 
-```
+```shell
 SQL>alter database datafile ‘全路径+文件名’ offline drop;
 ```
 
 #### 5、打开数据库
 
-```
+```shell
 SQL>alter database open
 ```
 
 #### 6、删除该临时表空间
 
-```
+```shell
 SQL>drop tablespace temp(或其它临时表空间名称) including contents and datafiles;
 ```
 

@@ -3,8 +3,13 @@ layout:     post
 title:      "基于Robot Framework做VirtualStore的自动化"
 subtitle:   "Robot Framework automation for VirtualStore"
 date:       2016-04-11
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: true
+summary: 基于RF框架做存储软件的接口级自动化
+categories:
+    - [Automation]
+    - [Robot Framework]
 tags:
     - Robot Framework
     - Automation
@@ -34,7 +39,7 @@ tags:
 
 
 
-```
+```shell
 jenkins@jenkins:~$ wget -q -O - https://jenkins-ci.org/debian/jenkins-ci.org.key | sudo apt-key add -
 OK
 jenkins@jenkins:~$ sudo sh -c 'echo deb http://pkg.jenkins-ci.org/debian-stable binary/ > /etc/apt/sources.list.d/jenkins.list'
@@ -50,7 +55,7 @@ sudo apt-get install jenkins
 
 
 
-```
+```shell
 jenkins@jenkins:~$ sudo service jenkins status
 
 ● jenkins.service - LSB: Start Jenkins at boot time
@@ -73,7 +78,7 @@ jenkins@jenkins:~$ sudo service jenkins status
 
 
 
-```
+```shell
 Access path：http://localhost:8080 
 Installed path：/var/lib/jenkins 
 Log path：/var/log/jenkins
@@ -144,7 +149,7 @@ Login Jenkins UI
 
 
 
-```
+```shell
 sudo apt-get install python-pip
 sudo pip install --upgrade pip
 sudo pip install robotframework
@@ -156,7 +161,7 @@ sudo pip install robotframework
 
 
 
-```
+```shell
 sudo apt-get install python-wxgtk*
 sudo pip install robotframework-ride
 sudo pip install --upgrade robotframework-httplibrary
@@ -171,7 +176,7 @@ sudo pip install --upgrade robotframework-SSHLibrary
 
 
 
-```
+```shell
 sudo apt-get install sshpass
 sudo apt-get install open-iscsi
 sudo apt-get install fio
@@ -187,7 +192,7 @@ sudo apt-get install fio
 
 
 
-```
+```shell
   writing top-level names to src/cryptography.egg-info/top_level.txt
   writing dependency_links to src/cryptography.egg-info/dependency_links.txt
   writing entry points to src/cryptography.egg-info/entry_points.txt
@@ -227,7 +232,7 @@ Reference resources：
 ##### Linux
 
 
-```
+```shell
 vi /usr/local/lib/python2.7/dist-packages/HttpLibrary/__init__.py
 
 Increase the following records, global cancelled certificate verification：
@@ -241,7 +246,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 ##### Windows
 
 
-```
+```shell
   Modify file of C:\Python27\Lib\site-packages\HttpLibrary\__init__.py, increase the following records, global cancelled certificate verification：
 
 import ssl
@@ -258,7 +263,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 ### Case execution condition
 
-```
+```shell
 
 1. 3 nodes cluster, each node of disk space is greater than 8G
 
@@ -270,7 +275,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
  instructions:
 
-```
+```shell
  This part of the inspection is in test case of rf-automation\testcase\01_Create_Cluster\Prepare Cluster.robot\01_ENV_Check
 ```
 
@@ -281,7 +286,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 
 
-###### 1. SSL certificate verify failed
+###### SSL certificate verify failed
 
 
 
@@ -304,14 +309,14 @@ The solution：
 
 
 
-###### 2. Wait Until Keyword Succeeds occur CannotSendRequest
+###### Wait Until Keyword Succeeds occur CannotSendRequest
 
 
 
 <img class="shadow" src="/img/in-post/rf/clip_image020.jpg" width="1200">
 
 
-```
+```shell
 20160516 13:55:43.636 : INFO : ${osd_state} = OFFLINE
 
 20160516 13:55:43.637 : INFO : 
@@ -381,7 +386,7 @@ Ending test:  interfaceAuto.Testcase.02 Host Configuration.Add storage volume.Si
 The solution：
 
 
-```
+```shell
 root@host1:/# vi /etc/apache2/apache2.conf
 
 modify 
@@ -408,7 +413,7 @@ instructions：
 
  
 
-###### 3.  Forbidden root login
+###### Forbidden root login
 
 
 
@@ -423,7 +428,7 @@ The solution：
 Allow root login：
 
 
-```
+```shell
 1. modify /etc/ssh/sshd_config
 
 vi /etc/ssh/sshd_config
@@ -447,7 +452,7 @@ At last, restart ssh service.
 
 
 
-###### 4.  Client mount nfs return 32
+###### Client mount nfs return 32
 
 
 
@@ -461,7 +466,7 @@ The bellow is test case of "Create NFS share folder":
 
 when client mount nfs, the output is:
 
-```
+```shell
 Failed to restart nfs-kernel-server.service: Unit nfs-kernel-server.service not found.
 
 root@jenkins:~# mount -t nfs 10.10.0.127:/vol/nas01 /mnt/nfs
@@ -488,7 +493,7 @@ The solution：
 
 
 
-```
+```shell
 Install nfs-common and cifs-utils
 apt-get install nfs-common
 apt-get install cifs-utils
@@ -551,7 +556,7 @@ Click "OK"
 
 Input follow content in "Default Content":
 
-```
+```shell
 <html>
   <head>
 ​    <title></title>
@@ -738,7 +743,7 @@ https://issues.jenkins-ci.org/browse/JENKINS-32118
 
 Run the command in Script Console:
 
-```
+```shell
 system.setProperty("hudson.model.DirectoryBrowserSupport.CSP","sandbox allow-scripts; default-src 'none'; img-src 'self' data: ; style-src 'self' 'unsafe-inline' data: ; script-src 'self' 'unsafe-inline' 'unsafe-eval' ;")
 ```
 

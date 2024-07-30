@@ -3,11 +3,19 @@ layout:     post
 title:      "自动部署cosbench并提交任务与结果处理解析"
 subtitle:   "Auto deoloy cosbench, submit task and analyser result"
 date:       2022-01-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: true
+img: 
+categories:
+    - [cosbench]
+    - [Linux]
+    - [shell]
+    - [performance]
 tags:
     - cosbench
     - shell
+    - performance
 ---
 
 
@@ -22,7 +30,7 @@ tags:
 ## Script directory structure
 
 
-```
+```shell
 [root@node243 bak_cosbench]# tree ./
 ./
 ├── 00_run.sh
@@ -173,7 +181,7 @@ This action will not clean archive and log on each cosbench node by default, if 
 
 ### config/
 
-```
+```shell
 controller_template.conf --> Generate controller.conf then sync to the controller node
 dry_run.xml                                    --> For dry run
 1M_size_object_write_read_mix_files.xml.ini    --> Template of cosbench xml to generate cosbench task of xml files (Under xml_files)
@@ -199,7 +207,7 @@ Some internal functions used by scripts.
 # An example of script output
 
 
-```
+```shell
 root@node243:~/cosbench# ./06_analyser_cosbench_result.sh 
 
 ----------------------------------------------------------------------------------- 

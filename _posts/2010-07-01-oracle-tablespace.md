@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle SQL篇之表空间"
 subtitle:   "Oracle SQL -- Tablespace"
 date:       2010-07-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 有两种含义的表大小：一种是分配给一个表的物理空间数量，而不管空间是否被使用。可以这样查询获得字节数：
 
-```
+```shell
 select segment_name, bytes 
 from user_segments 
 where segment_type = 'TABLE'; 
@@ -21,13 +23,13 @@ where segment_type = 'TABLE';
 
 或者
 
-```
+```shell
 Select Segment_Name,Sum(bytes)/1024/1024 From User_Extents Group By Segment_Name
 ```
 
 另一种表实际使用的空间。这样查询：
 
-```
+```shell
 analyze table AREAINFO compute statistics; 
 
 select   TABLE_NAME,TABLESPACE_NAME, NUM_ROWS ,AVG_ROW_LEN,  NUM_ROWS*AVG_ROW_LEN   
@@ -41,13 +43,13 @@ where table_name = 'AREAINFO';
 
 # 查看每个表空间的大小
 
-```
+```shell
 Select Tablespace_Name,Sum(bytes)/1024/1024 From Dba_Segments Group By Tablespace_Name
 ```
 
 # 看数据库有多少个tablespace
 
-```
+```shell
 oracle@mmsg:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 7月 1 17:37:14 2010
@@ -81,7 +83,7 @@ SQL>
 
 # 如何查有多少个数据库实例
 
-```
+```shell
 SQL> select instance_number,instance_name,status from v$instance;
 
 INSTANCE_NUMBER INSTANCE_NAME    STATUS

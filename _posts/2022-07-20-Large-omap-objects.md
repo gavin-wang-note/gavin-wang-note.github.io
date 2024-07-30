@@ -3,8 +3,10 @@ layout:     post
 title:      "获取ceph large omap object"
 subtitle:   "Get Large omap Object"
 date:       2022-07-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -24,9 +26,9 @@ tags:
 
 # 过程
 
-网上找了个script，再此基础上完善了一下，获取到具体哪个Object omap较大，脚本内容参考如下：
+获取到具体哪个Object omap较大，脚本内容参考如下：
 
-```
+```python
 #!/usr/bin/env python
 
 import os
@@ -119,4 +121,4 @@ else:
 # 问题解决
 
 
-客户的这个问题解决，归根节点是RGW reshard 太小导致的（关闭了auto reshard功能），单个bucket中objects数量超过了20万(osd_deep_scrub_large_omap_object_key_threshold),放大这个告警阈值（ ceph daemon osd.\* injectargs "--osd_deep_scrub_large_omap_object_key_threshold 300000"）虽然能解决客户问题，但客户坚持不修改，说是要遵守规则，不能惯着业务端的人，至此唯一的解决方法就是迁移走bucket中的一部分数据，然后执行deep scrub来解决了（放大shard能解决，但部分index无法落到SSD上，影响整体性能）。
+客户的这个问题解决，归根结底是 RGW reshard 太小导致的（关闭了auto reshard功能），单个bucket中objects数量超过了20万(osd_deep_scrub_large_omap_object_key_threshold),放大这个告警阈值（ ceph daemon osd.\* injectargs "--osd_deep_scrub_large_omap_object_key_threshold 300000"）虽然能解决客户问题，但客户坚持不修改，说是要遵守规则，不能惯着业务端的人，至此唯一的解决方法就是迁移走bucket中的一部分数据，然后执行deep scrub来解决了（放大shard能解决，但部分index无法落到SSD上，影响整体性能）。

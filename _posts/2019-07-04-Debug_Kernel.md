@@ -3,8 +3,10 @@ layout:     post
 title:      "开启kernel debug"
 subtitle:   "Open Kernel Debug"
 date:       2019-07-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -15,7 +17,7 @@ tags:
 
 # 实践 
 
-```
+```shell
 echo 'module ceph +p' > /sys/kernel/debug/dynamic_debug/control
 echo 'module libceph +p' > /sys/kernel/debug/dynamic_debug/control
 ```

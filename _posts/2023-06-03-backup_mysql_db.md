@@ -3,8 +3,11 @@ layout:     post
 title:      "备份 TestLink MySQL数据库"
 subtitle:   "Backup TestLink MySQL database"
 date:       2023-06-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
+    - [mysql]
 tags:
     - shell
     - mysql
@@ -18,7 +21,7 @@ Lab 环境中有一套TestLink（测试用例管理平台）和一套 media wiki
 
 为了确保数据不丢失，需要每天备份一次mysql，目前的备份策略是全量备份，并同步到一台NAS服务器指定目录。
 
-设置的crontab job，每天凌晨1点执行备份，并sync。
+设置的crontab job，每天凌晨1点执行备份，并sync到一套NAS服务器，完成备份文件的备份，以及清理掉规定日期前的备份文件。
 
 
 # 实践
@@ -26,7 +29,7 @@ Lab 环境中有一套TestLink（测试用例管理平台）和一套 media wiki
 ## mysql_backup.sh
 
 
-```
+```shell
 #!/bin/bash
 #This script backup the mysql databases and attachments automatically.
  

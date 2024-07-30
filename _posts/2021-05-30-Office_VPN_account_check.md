@@ -3,8 +3,10 @@ layout:     post
 title:      "NJ Office OpenVPN 账号访问认证"
 subtitle:   "NJ Office of VPN Account Auth"
 date:       2021-05-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - VPN
 ---
@@ -24,7 +26,7 @@ NJ Office 开放了Open VPN，方便大家远程办公，但没有对访问者�
 
 增加用户名校验配置项，在尾部增加如下内容：
 
-```
+```shell
 username-as-common-name
 ```
 
@@ -32,7 +34,7 @@ username-as-common-name
 
 psw-file 文件内容片段参考如下：
 
-```
+```shell
 Gavin gUOl3h
 Kevin NJl3uQ
 Echo sHd4cQ
@@ -45,7 +47,7 @@ Echo sHd4cQ
 
 checkpsw.sh 内容如下：
 
-```
+```shell
 #!/bin/bash
 ###########################################################
 # checkpsw.sh (C) 2004 Mathias Sundman <mathias@openvpn.se>
@@ -87,7 +89,7 @@ exit 1
 
 脚本中定义了：
 
-```
+```shell
 PASSFILE="/etc/openvpn/psw-file"
 LOG_FILE="/etc/openvpn/openvpn-password.log"
 ```
@@ -96,7 +98,7 @@ LOG_FILE="/etc/openvpn/openvpn-password.log"
 
 ## 增加openvpn-password.log日志解析
 
-```
+```shell
 #!/bin/bash
 
 record_log='/etc/openvpn/vpn_login_time_check.log'
@@ -146,7 +148,7 @@ done
 
 当VPN账号认证失败后，会记录 vpn_login_time_check.log，内容格式如下：
 
-```
+```shell
 echo -e "\t您已长时间未访问南京VPN，账号(Howard)存在过期风险. \n\t您上次访问日期是: 2023-04-29 20:30:57\n\n此邮件为系统自动发出，请勿回复." | mail -s "NJ LAB of VPN account expiration notification" 
 echo -e "\t您已长时间未访问南京VPN，账号(Seven)存在过期风险. \n\t您上次访问日期是: 2023-04-30 09:48:44\n\n此邮件为系统自动发出，请勿回复." | mail -s "NJ LAB of VPN account expiration notification" seven.chen@bigtera.com.cn
 echo -e "\t您已长时间未访问南京VPN，账号(Wangbx)存在过期风险. \n\t您上次访问日期是: 2023-05-15 20:34:49\n\n此邮件为系统自动发出，请勿回复." | mail -s "NJ LAB of VPN account expiration notification" wangbx@bigtera.com.cn

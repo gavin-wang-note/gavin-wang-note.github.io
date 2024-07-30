@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle升级碰到的问题"
 subtitle:   "Oracle upgrade issue"
 date:       2009-03-16
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle 
 ---
@@ -13,7 +15,7 @@ tags:
 # 现象
 Oracle11g 11.1.0.6.0安装小补丁版本失败,安装小补丁：p6928169_111060_Linux-x86-64.zip
 
-```
+```shell
 opyright (c) 2007, Oracle Corporation.  All rights reserved.
 
 
@@ -47,7 +49,7 @@ oracle@expsmgw:/opt/oraInventory/6928169>
 
 正确安装信息显示如下：
 
-```
+```shell
 oracle@MMSGDS:/opt/oraInventory/6928169> export OBJECT_MODE=32_64
 oracle@MMSGDS:/opt/oraInventory/6928169> /opt/oracle/product/11g/db_1/OPatch/opatch apply
 Invoking OPatch 11.1.0.6.0
@@ -103,7 +105,7 @@ oracle@MMSGDS:/opt/oraInventory/6928169>
 
 ## 表象
 
-```
+```shell
 SQL> startup 
 ORACLE 例程已经启动。 
 
@@ -120,7 +122,7 @@ ORA-01092: ORACLE 实例终止。强制断开连接
 
 ### alert日志信息片段
 
-```
+```shell
 <txt>Errors in file /home/oracle/diag/rdbms/mmsgdb/mmsgdb/trace/mmsgdb_ora_438512.trc:
 ORA-00704: 引导程序进程失败
 ORA-39700: 必须用 UPGRADE 选项打开数据库
@@ -129,7 +131,7 @@ ORA-39700: 必须用 UPGRADE 选项打开数据库
 
 ### 查看错误码信息
 
-```
+```shell
 % oerr ora 01092
 01092, 00000, "ORACLE instance terminated. Disconnection forced"
 // *Cause:  The instance this process was connected to was terminated
@@ -166,7 +168,7 @@ product/11g/rdbms/admin/catupgrd.sql 和 product/11g/rdbms/admin/catalog.sql和c
 
 例如：
 
-```
+```shell
 /opt/oracle/product/11g/rdbms/admin/catupgrd.sql
 
 cat /opt/oracle/product/11g/rdbms/admin/catupgrd.sql | sqlplus / as sysdba
@@ -174,12 +176,12 @@ cat /opt/oracle/product/11g/rdbms/admin/catupgrd.sql | sqlplus / as sysdba
 
 如果还不行，再去刷一个catproc.sql
 
-```
+```shell
 cat /opt/oracle/product/11g/rdbms/admin/catproc.sql | sqlplus / as sysdba
 ```
 
 如果还不行，再去刷一个catlog.sql
 
-```
+```shell
  cat /opt/oracle/product/11g/rdbms/admin/catlog.sql | sqlplus / as sysdba
 ```

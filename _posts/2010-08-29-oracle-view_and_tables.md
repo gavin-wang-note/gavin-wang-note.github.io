@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle SQL篇之常用视图与表汇总"
 subtitle:   "Oracle SQL -- Views and tables of summary"
 date:       2010-08-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -12,7 +14,7 @@ tags:
 
 # DBA_
 
-```
+```shell
 DBA_2PC_NEIGHBORS                包含待处理事务进入连接和退出连接信息。
 DBA_2PC_PENDING                 包含等待恢复的分布式事务的信息。
 DBA_ALL_TABLES                 显示数据库中所有表（对象表和关系表）的描述。
@@ -187,7 +189,7 @@ DBA_WAITERS                           列出所有正在等待一个锁的会话
 
 # $(v$动态视图)
 
-```
+```shell
 V$ACCESS           显示当前被锁定的数据库中的对象及正在访问它们的会话。
 V$ACTIVE_INSTANCES  为当前安装的数据库中出现的所有实例建立从实例名到实例号码的
 映射
@@ -332,7 +334,7 @@ V$PX_SESSION            包含正运行并行操作的会话的信息。
 
 * 通过数据字典可查询更详细的视图数据
 
-```
+```shell
 SQL> desc dictionary
  名称                                      是否为空? 类型
  ----------------------------------------- -------- ----------------------------

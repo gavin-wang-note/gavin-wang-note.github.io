@@ -3,8 +3,10 @@ layout:     post
 title:      "彩信网关数据库自动升级与比对（QCC）"
 subtitle:   "MMSG Gateway auto upgrade and commpare"
 date:       2013-07-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
 tags:
     - Automation
 ---

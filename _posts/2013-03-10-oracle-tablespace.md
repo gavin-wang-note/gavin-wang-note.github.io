@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle表空间管理"
 subtitle:   "Manager Oracle tablespace"
 date:       2013-03-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -16,7 +18,7 @@ tags:
 |V$TABLESPACE 	|控制文件中保存的所有表空间的名称和数量 |
 |DBA_TABLESPACES 	|所有表空间的描述信息 |
 |USER_TABLESPACES 	|所有用户可访问表空间的描述信息 |
-|DBA_TABLESPACE_GROUPS 	|所有表空间组及其所属的表空间信息| 
+|DBA_TABLESPACE_GROUPS 	|所有表空间组及其所属的表空间信息|
 |DBA_SEGMENTS 	|所有表空间中的区间信息 |
 |USER_SEGMENTS 	|所有用户表空间中的区间信息 |
 |DBA_FREE_SPACE 	|所有表空间中的空闲区间信息 |
@@ -31,7 +33,7 @@ tags:
 
 # 创建表空间
 
-```
+```shell
 CREATE TABLESPACE tablespace_name 
 DATAFILE  '/path/filename' SIZE integer [K|M] REUSE 
 [，'/path/filename' SIZE integer [K|M] REUSE] 
@@ -55,7 +57,7 @@ DATAFILE  '/path/filename' SIZE integer [K|M] REUSE
 3、minimum
 
 4、default storeage 设置默认存储
-```
+```shell
         default storage(
         initial 192K
         next 192K
@@ -99,7 +101,7 @@ Bigfile与smallfile文件
 
 理论上的 BFT 可以达到下面所列的值：
 
-```
+```shell
 数据块大小(单位：K)   BFT 最大值(单位：T) 
          2k                    8T 
          4k                    16T 
@@ -110,12 +112,12 @@ Bigfile与smallfile文件
 
 # 查询网关默认数据文件类型
 
-```
+```shell
 select property_name,property_value from database_properties where property_name='DEFAULT_TBS_TYPE';
 ```
 修改数据库默认的表空间类型为smallfile,就可以为表空间创建多个数据文件了。
 
-```
+```shell
 SQL> alter database set default smallfile tablespace;
 
 Database altered
@@ -125,7 +127,7 @@ Database altered
 
 # 重命名表空间
 
-```
+```shell
 SQL> select * from v$tablespace;
        TS# NAME                           INC BIG FLA ENC
 ---------- ------------------------------ --- --- --- ---
@@ -173,7 +175,7 @@ SQL>
 
 在ALTER TABLESPACE语句中使用ADD DATAFILE子句，可以在本地管理表空间中增加数据文件，代码如下：
 
-```
+```shell
 SQL> alter tablespace wyztest 
 add datafile '/opt/oracle/oradata/mmsgdb/wyztest01.dbf‘
 size 10m
@@ -188,7 +190,7 @@ SQL>
 
 ## 改变数据文件大小
 
-```
+```shell
 SQL> alter database datafile '/opt/oracle/oradata/mmsgdb/wyztest01.dbf' resize 15m;
 数据库已更改。
 ```
@@ -199,16 +201,16 @@ SQL> alter database datafile '/opt/oracle/oradata/mmsgdb/wyztest01.dbf' resize 1
 
 ## 修改数据文件的增长方式
 
-```
+```shell
 SQL> alter database datafile  '/opt/oracle/oradata/mmsgdb/wyztest.dbf' 
  2  autoextend on next 15m maxsize 150m; 
 数据库已更改。
 SQL>
 ```
- 
+
 ## 关闭自动表空间自动扩展
 
-```
+```shell
 SQL> alter database datafile '/opt/oracle/oradata/mmsgdb/wyztest.dbf' 
   2  autoextend off;
 数据库已更改。
@@ -221,20 +223,20 @@ SQL>
 
 1；将包含数据文件的表空间置为脱机状态
 
-```
+```shell
 SQL> alter tablespace wyztest offline normal;
 表空间已更改。
 ```
 
 2：os level级重命名表空间下的数据文件名称
 
-```
+```shell
 oracle@mmsg37:~/oradata/mmsgdb> mv wyztest01.dbf wyztest00.dbf 
 ```
 
 3：在数据库内部修改数据文件的名称或者改变数据文件的位置
 
-```
+```shell
 alter tablespace tablespace_name 
 rename datafile  ‘xxxxx’ to ‘xxxx’;
 改变名称
@@ -258,7 +260,7 @@ SQL> /
 
 更改位置
 
-```
+```shell
  alter tablespace wyztest 
 Rename datafile '/opt/oracle/oradata/mmsgdb/wyztest01.dbf’ to
 ‘/home/oradata/mmsgdb/wyztest02.dbf’   //前提条件是/home/oradata/mmsgdb/目录存在，且oracle对该目录具有可操作权限
@@ -266,7 +268,7 @@ Rename datafile '/opt/oracle/oradata/mmsgdb/wyztest01.dbf’ to
 
 4：将表空间置为联机状态
 
-```
+```shell
 SQL> alter tablespace wyztest online;
 表空间已更改。
 SQL> 
@@ -295,7 +297,7 @@ ALTER TABLESPACE…READ ONLY语句设置只读表空间
 
 【例】将表空间wyztest设置为只读表空间：
 
-```
+```shell
 SQL> alter tablespace  wyztest read only;
 ```
 
@@ -303,7 +305,7 @@ ALTER TABLESPACE…READ WRITE语句可以将只读表空间设置为可读写状
 
 【例】将表空间wyztest设置为可读写状态：
 
-```
+```shell
 SQL> alter tablespace  wyztest read  write;
 ```
 
@@ -314,7 +316,7 @@ SQL> alter tablespace  wyztest read  write;
 适用情况 
 1：不小心给不需要的表空间增加了数据文件；
 2：设置的数据文件较大，想删除后重新创建；
-```
+```shell
    drop tablesapce tablespacename  including contents;
    drop tablespace tablespacename including contents and datafiles;
 ```
@@ -323,7 +325,7 @@ SQL> alter tablespace  wyztest read  write;
 
 只要简单地删除表空间即可：
 
-```
+```shell
 drop tablespace tablespace_name including contents;
 ```
 
@@ -339,7 +341,7 @@ Oracle不会再访问该表空间中的任何内容, 然后重新创建表空间
 
 必须首先export导出该表空间中的所有内容。为了确定表空间中包含哪些内容，运行：
 
-```
+```shell
 select owner,segment_name,segment_type 
 from dba_segments 
 where tablespace_name='<name of tablespace>'

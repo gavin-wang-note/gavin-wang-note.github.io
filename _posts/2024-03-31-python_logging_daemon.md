@@ -50,6 +50,9 @@ logging 执行时输出大于等于设置的日志级别的日志信息，如设
 * Formatter：格式化器, 指明了最终输出中日志记录的布局。
 
 
+<p><img class="shadow" src="/img/in-post/python_logging_flow.png" width="1200" /></p>
+
+
 说明：
 
 * 判断 Logger 对象执行方法（如图中的 info()）时对于设置的级别是否可用，如果可用，则往下执行，否则，流程结束。

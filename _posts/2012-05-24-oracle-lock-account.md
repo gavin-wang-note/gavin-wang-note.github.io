@@ -3,8 +3,10 @@ layout:     post
 title:      "关闭Oracle用户多次登录失败锁定账户的功能"
 subtitle:   "Disable feature of Oracle users to lock accounts after multiple login failures"
 date:       2012-05-24
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -24,13 +26,13 @@ tags:
 
 以oracle用户登录，连接数据库。
 
-```
+```shell
 $ sqlplus "/ as sysdba"
 ```
 
 查看系统允许用户登录失败的次数:
 
-```
+```shell
 SQL> select LIMIT from dba_profiles where PROFILE='DEFAULT' and RESOURCE_NAME='FAILED_LOGIN_ATTEMPTS';
 屏幕显示中有如下信息。（仅供参考）
 LIMIT
@@ -42,7 +44,7 @@ LIMIT
 
 修改系统允许用户登录失败的次数为不限制:
 
-```
+```shell
 SQL> ALTER PROFILE DEFAULT LIMIT FAILED_LOGIN_ATTEMPTS UNLIMITED;
 屏幕显示中有如下信息。（仅供参考）
 Profile altered.
@@ -52,7 +54,7 @@ Profile altered.
 
 查看修改后的允许用户登录失败的次数。
 
-```
+```shell
 SQL> select LIMIT from dba_profiles where PROFILE='DEFAULT' and RESOURCE_NAME='FAILED_LOGIN_ATTEMPTS';
 屏幕显示中有如下信息。（仅供参考）
 LIMIT

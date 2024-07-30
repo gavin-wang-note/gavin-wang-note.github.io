@@ -3,8 +3,11 @@ layout:     post
 title:      "nose进度条中展示执行用例数与总数"
 subtitle:   "nose progress bar"
 date:       2019-11-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [nose]
 tags:
     - nose
     - Automation
@@ -24,7 +27,7 @@ tags:
 
 由于只能看到一个进度条，无法知道当前要执行多少个用例，以及执行到了第几个用例，再次修改之。在进度条前面，显示已执行用例数（包含当前正在执行的用例）与总共要执行的用例数,于是对源码（nose-progressive-master/noseprogressive/bar.py）做了如下调整：
 
-```
+```python
     def update(self, test_path, number):
         """Draw an updated progress bar.
     

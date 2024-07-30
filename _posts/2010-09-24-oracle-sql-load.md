@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle数据导入之SQL Load"
 subtitle:   "Oracle SQL Load"
 date:       2010-09-24
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -14,7 +16,7 @@ tags:
 
 命令行输入sqlldr，显示sqlloader帮助信息：
 
-```
+```shell
 oracle@mmsg37:~> sqlldr 
 SQL*Loader: Release 11.1.0.7.0 - Production on 星期四 9月 30 23:55:39 2010
 Copyright (c) 1982, 2007, Oracle.  All rights reserved.
@@ -76,7 +78,7 @@ userid=scott/tiger'.位置指定参数的时间必须早于
 
 # 控制文件的格式
 
-```
+```shell
 OPTIONS （ { [SKIP=integer] [ LOAD = integer ]
 [ERRORS = integer] [ROWS=integer]
 [BINDSIZE=integer] [SILENT=(ALL|FEEDBACK|ERROR|DISCARD) ] )

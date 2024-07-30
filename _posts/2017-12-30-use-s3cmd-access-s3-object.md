@@ -3,8 +3,11 @@ layout:     post
 title:      "使用s3cmd操作对象"
 subtitle:   "use s3cmd to access S3 object"
 date:       2017-12-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [S3]
 tags:
     - s3cmd
     - S3
@@ -19,7 +22,7 @@ ceph 天然支持对象存储，经常使用XShell访问server，习惯了在con
 ceph提供radosg-admin命令，方便查询S3账号的属性信息，诸如ACL，quota，AKEY，SKEY等等一些信息，如下所示：
 
 
-```
+```shell
 root@auto-70-1:~# radosgw-admin --uid=user01 user info
 {
     "user_id": "user01",
@@ -76,7 +79,7 @@ root@auto-70-1:~#
 
 通过上面获取到的AKEY和SKEY，就可以进行s3cmd的配置操作了。
 
-```
+```shell
 root@auto-70-1:~# s3cmd --configure
 
 Enter new values or accept defaults in brackets with Enter.
@@ -120,7 +123,7 @@ root@auto-70-1:~#
 
 从上面可以看出，会生成用户的配置文件/root/.s3cfg,但是标准的s3是amazon提供的，因此：
 
-```
+```shell
 host_base = s3.amazonaws.com
 host_bucket = %(bucket)s.s3.amazonaws.com
 ```
@@ -138,7 +141,7 @@ host_bucket = %(bucket)s.s3.amazonaws.com
 
 ## 创建Bucket
 
-```
+```shell
 root@auto-70-1:~# s3cmd mb s3://bench
 Bucket 's3://bench/' created
 root@auto-70-1:~#
@@ -146,12 +149,12 @@ root@auto-70-1:~#
 
 
 ## 查看当前S3账号下有哪些bucket
-```
+```shell
 root@auto-70-1:~# s3cmd ls
 2017-12-30 06:54  s3://bench
 ```
 ## 上传对象
-```
+```shell
 root@auto-70-1:~# s3cmd put /var/log/syslog s3://bench
 /var/log/syslog -> s3://bench/syslog  [1 of 1]
  732743 of 732743   100% in    0s    10.42 MB/s  done
@@ -159,14 +162,14 @@ root@auto-70-1:~# s3cmd put /var/log/syslog s3://bench
 
 ## 列出bucket下有哪些对象
 
-```
+```shell
 root@auto-70-1:~# s3cmd ls s3://bench
 2017-12-30 08:09    732743   s3://bench/syslog
 ```
 
 ## 下载对象
 
-```
+```shell
 root@auto-70-1:~# mkdir download
 root@auto-70-1:~# cd download
 root@auto-70-1:~/download# s3cmd get s3://bench/syslog
@@ -189,7 +192,7 @@ root@auto-70-1:~/download#
 
 ## 获取bucket空间
 
-```
+```shell
 root@auto-70-1:~# s3cmd du s3://bench
 336277063 s3://bench/
 root@auto-70-1:~# 
@@ -201,7 +204,7 @@ root@auto-70-1:~#
 
 ## 获取bucket或者对象的stat信息
 
-```
+```shell
 root@auto-70-1:~# s3cmd info s3://bench/syslog
 s3://bench/syslog (object):
    File size: 732743
@@ -217,7 +220,7 @@ root@auto-70-1:~#
 
 ### copy object
 
-```
+```shell
 root@auto-70-1:~# s3cmd del s3://bench/benchmark_data_auto-70-1_839993_object9
 File s3://bench/benchmark_data_auto-70-1_839993_object9 deleted
 root@auto-70-1:~# 
@@ -225,7 +228,7 @@ root@auto-70-1:~#
 
 ### move object
 
-```
+```shell
 root@auto-70-1:~# s3cmd ls s3://bucket01;s3cmd mv s3://bench/benchmark_data_auto-70-1_839993_object8 s3://bucket01; s3cmd ls s3://bench | grep *839993_object8
 2017-12-30 08:21    732743   s3://bucket01/syslog
 File s3://bench/benchmark_data_auto-70-1_839993_object8 moved to s3://bucket01/benchmark_data_auto-70-1_839993_object8
@@ -234,7 +237,7 @@ root@auto-70-1:~#
 
 ## 删除S3 object
 
-```
+```shell
 root@auto-70-1:~# s3cmd mb s3://bucket01
 Bucket 's3://bucket01/' created
 root@auto-70-1:~# s3cmd cp s3://bench/syslog s3://bucket01
@@ -247,7 +250,7 @@ root@auto-70-1:~#
 
 # 更详细的信息与操作，可参看s3cmd操作手册
 
-```
+```shell
 root@auto-70-1:~# s3cmd -h
 Usage: s3cmd [options] COMMAND [parameters]
 

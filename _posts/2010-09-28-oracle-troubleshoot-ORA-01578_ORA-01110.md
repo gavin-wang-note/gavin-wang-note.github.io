@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01578,ORA-01110"
 subtitle:   "Oracle error code troubleshoot--ORA-01578,ORA-01110"
 date:       2010-09-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -16,7 +18,7 @@ tags:
 
 当Oracle数据库出现坏块时，Oracle会在警告日志文件(alert_SID.log)中记录坏块的信息: 
 
-```
+```shell
 ORA-01578: ORACLE data block corrupted (file # 7, block # ) 
 ORA-01110: data file : '/oracle1/oradata/V920/oradata/V816/users01.dbf' 
 ```
@@ -29,7 +31,7 @@ ORA-01110: data file : '/oracle1/oradata/V920/oradata/V816/users01.dbf'
 
 以下为引用的内容：
 
-```
+```shell
 SELECT tablespace_name, segment_type, owner, segment_name FROM dba_extents 
 WHERE file_id = 1
 AND block_id  between block_id AND block_id+blocks-1;
@@ -49,7 +51,7 @@ AND block_id  between block_id AND block_id+blocks-1;
 
 用Oracle提供的DBMS_REPAIR包标记出坏块: 
 
-```
+```shell
 exec DBMS_REPAIR.SKIP_CORRUPT_BLOCKS(' ',''); 
 ```
 
@@ -57,7 +59,7 @@ exec DBMS_REPAIR.SKIP_CORRUPT_BLOCKS(' ','');
 
 使用Create table as select命令将表中其它块上的记录保存到另一张表上以下为引用的内容：
 
-```
+```shell
 create table corrupt_table_bak as select * from corrupt_table; 
 ```
 

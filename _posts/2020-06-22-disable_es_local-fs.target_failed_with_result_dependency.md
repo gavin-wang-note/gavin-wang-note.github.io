@@ -3,8 +3,11 @@ layout:     post
 title:      "频繁启用&停用ES服务，出现local-fs.target failed with result dependency"
 subtitle:   "Loop enable&disable ES service occure 'local-fs.target failed with result dependency'"
 date:       2020-06-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [elasticsearch]
+    - [python]
 tags:
     - python
     - elasticsearch
@@ -15,7 +18,7 @@ tags:
 
 Ubuntu16.04，产品新增了Elasticsearch功能，在测试ES服务启用过程冲，选择240G 的Intel S4510 型号的SSD一块作为ES的data：
 
-```
+```shell
 Model Family:     Intel S4510/S4610/S4500/S4600 Series SSDs
 Device Model:     INTEL SSDSC2KG240G8
 ```
@@ -35,7 +38,7 @@ Device Model:     INTEL SSDSC2KG240G8
 
 使用 'journalctl -xb'，dump的信息中，未找到问题发生的原因，只有类似如下的片断信息：
 
-```
+```shell
 Jun 19 18:20:17 node76 kernel: ata2.00: Enabling discard_zeroes_data
 Jun 19 18:20:17 node76 multipath[829224]: sdf: using deprecated getuid callout
 Jun 19 18:20:18 node76 kernel: ata2.00: Enabling discard_zeroes_data
@@ -225,7 +228,7 @@ Jun 19 18:22:59 node76 systemd[1]: Stopping Ceph rados gateway...
 重新开机启动后，syslog日志片断如下:
 
 
-```
+```shell
 Jun 18 18:19:35 node75 kernel: [174076.635228] ata2.00: Enabling discard_zeroes_data
 Jun 18 18:19:35 node75 kernel: [174076.639312]  sdf:
 Jun 18 18:19:35 node75 multipath: sdf: using deprecated getuid callout
@@ -378,7 +381,7 @@ Jun 18 18:22:53 node75 systemd[1]: Started Session 3266 of user root
 # 问题复现使用的python脚本
 
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -725,13 +728,13 @@ if __name__ == '__main__':
         sys.exit(1)
 
     loop_run(int(loop_times))
-``` {% endraw %}
+```
 
 
 # 执行效果
 
 
-```
+```shell
 root@node75:~# python enable_disable_es.py 3
 
 ---------------------------------------------- 1 --------------------------------------------
@@ -808,7 +811,7 @@ root@node75:~#
 
 有提及到:
 
-```
+```shell
 If you search through the unit files, there are only a very few ways for the boot to fall back to emergency.target. It's usually when a .mount unit for a local filesystem fails, causing local-fs.target to fail. Or when your initramfs fails to mount the root filesystem, if your initramfs uses systemd.
 
 local-fs.target has OnFailure=emergency.target. And it gets failed because units for local filesystems are automatically added to the Requires list of local-fs.target (unless they have DefaultDependencies=no).
@@ -823,7 +826,7 @@ local-fs.target has OnFailure=emergency.target. And it gets failed because units
 
 使用systemctl show查看local-fs.target requires
 
-```
+```shell
 root@node76:/var/log# systemctl show --property Requires local-fs.target
 Requires=-.mount opt-datasearch-0.mount
 root@node76:/var/log#
@@ -850,7 +853,7 @@ root@node76:/var/log#
 
 options 选项是auto,部分journalctl -xb信息如下：
 
-```
+```shell
 Jun 19 18:30:02 node76 kernel: ata2.00: Enabling discard_zeroes_data
 Jun 19 18:30:02 node76 kernel:  sdf: sdf1
 Jun 19 18:30:02 node76 kernel: ata2.00: Enabling discard_zeroes_data
@@ -890,7 +893,7 @@ cal-fs.targetlocal-fs.target
 
 # 参考文档
 
-```
+```shell
 https://zhangguanzhang.github.io/2019/01/30/fstab/
 https://www.freedesktop.org/software/systemd/man/systemd.mount.html
 https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#

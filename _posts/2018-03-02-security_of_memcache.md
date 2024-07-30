@@ -3,8 +3,11 @@ layout:     post
 title:      "记一次memcache安全漏洞修复记录"
 subtitle:   "security of memcache"
 date:       2018-03-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [security]
 tags:
     - security
 ---
@@ -18,11 +21,11 @@ tags:
 
 ## 解决方法
 
-增加iptables过滤
+增加`iptables`过滤
 
 ## 操作步骤
 
-```
+```shell
 在/etc/rc.local中增加如下内容：
 iptables -I INPUT -p tcp --dport 11211 -j DROP
 iptables -I INPUT -s 127.0.0.1 -p tcp --dport 11211 -j ACCEPT

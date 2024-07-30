@@ -3,8 +3,10 @@ layout:     post
 title:      "利用gparted扩展根分区"
 subtitle:   "Use gparted to enlagre root partition"
 date:       2020-02-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -15,7 +17,7 @@ lab有一套Jenkins环境，是一台VM环境，最初安装系统的时候，�
 
 后台通过VMware vSphere Client扩大了这个分区空间（扩大到60G）：
 
-```
+```shell
 root@ubuntu-16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
@@ -36,7 +38,7 @@ root@ubuntu-16:~#
 
 安装Ubuntu16.04，系统分区是60G的容量：
 
-```
+```shell
 root@ubuntu16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
@@ -50,7 +52,7 @@ root@ubuntu16:~#
 
 成功安装后，关机，通过VMware vSphere Client扩大vdisk空间，从60G扩大到80G：
 
-```
+```shell
 root@ubuntu16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
@@ -64,7 +66,7 @@ root@ubuntu16:~#
 
 并在根目录下，创建了一个文件，计算md5值：
 
-```
+```shell
 root@ubuntu16:/# echo 'check' > test.txt 
 root@ubuntu16:/# md5sum test.txt 
 5e9b13ce8f6c99f3f510756be58d15fe  test.txt
@@ -150,7 +152,7 @@ VM重新开机后，会弹出如下界面：
 
 最终效果如下：
 
-```
+```shell
 root@ubuntu16:~# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 fd0      2:0    1    4K  0 disk 
@@ -194,7 +196,7 @@ root@ubuntu16:/#
 
 如果直接在终端执行gparted命令时，会出现如下错误：
 
-```
+```shell
 root@ubuntu16:/# gparted
 
 (gpartedbin:2462): Gtk-WARNING **: cannot open display:
@@ -210,7 +212,7 @@ root@ubuntu16:/# gparted
 
 #### 尝试swapoff
 
-```
+```shell
 root@ubuntu16:/# swapoff -a
 root@ubuntu16:/# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
@@ -233,7 +235,7 @@ root@ubuntu16:/#
 
 先还原环境吧，swapon回来；
 
-```
+```shell
 root@ubuntu16:/# swapon -a
 root@ubuntu16:/# lsblk
 NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT

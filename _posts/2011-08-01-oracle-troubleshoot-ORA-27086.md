@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-27086"
 subtitle:   "Oracle error code troubleshoot--ORA-27086"
 date:       2011-08-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -15,7 +17,7 @@ tags:
 
 静默式安装oracle11g数据库并创建实例，database安装在raw上，启动数据库时，alert日志给出如下信息：
 
-```
+```shell
 kcidr_process_controlfile_error:
 IO Check was called but no error was found
 ORA-00227: corrupt block detected in control file: (block 1, # blocks 1)
@@ -52,7 +54,7 @@ Additional information: 29924
 
 ## 原因
 
-```
+```shell
 oracle@mmsg:~> oerr ora 27086
 27086, 00000, "unable to lock file - already in use"
 // *Cause:  the file is locked by another process, indicating that it is
@@ -62,5 +64,5 @@ oracle@mmsg:~> oerr ora 27086
 
 ## 解决方法
 
-修改静默安装数据库使用的raw文件名称与map关系，避免这些raw占用现有环境上的其他raw文件.
+修改静默安装数据库使用的raw文件名称与map关系，避免这些raw占用现有环境上的其他raw文件。
 

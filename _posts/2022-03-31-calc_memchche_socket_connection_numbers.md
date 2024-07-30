@@ -3,8 +3,10 @@ layout:     post
 title:      "Get memchche socket connection numbers"
 subtitle:   "Get memchche socket connection numbers"
 date:       2022-03-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -19,7 +21,7 @@ So wrote a test script to run continuously in the cluster environment to monitor
 
 # Script of check_con-socket_numbers.py
 
-```
+```python
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 

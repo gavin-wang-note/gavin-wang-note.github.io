@@ -3,8 +3,10 @@ layout:     post
 title:      "ESXi常用命令"
 subtitle:   "ESXi commands"
 date:       2019-04-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ESXi]
 tags:
     - 虚拟化
     - ESXi
@@ -16,14 +18,16 @@ tags:
 本文摘抄ESXi的一些基本命令范例， mark下来备用。
 
 
+
+
 ###  看你的esx版本
 
-```
+```shell
 vmware -v                      #  看你的esx版本
 VMware ESXi 5.0.0 build-469512
 ```
- 
-```
+
+```shell
 esxcfg-info -a                 #  显示所有ESX相关信息
 esxcfg-info -w                 #  显示esx上硬件信息
 service mgmt-vmware restart    #  重新启动vmware服务
@@ -66,7 +70,7 @@ esxcli storage nmp satp set --default-psp VMW_PSP_RR --satp xxxx # 利用esxcli�
 
 查看FC WWN號信息：
 
-```
+```shell
 CLI ( SSH, vMA, vCLI)
 esxcfg-mpath -b |grep WWNN | sed 's/.*fc //;s/Target.*$//'
 ```

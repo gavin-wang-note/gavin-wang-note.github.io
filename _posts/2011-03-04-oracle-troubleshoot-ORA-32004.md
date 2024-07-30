@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-32004"
 subtitle:   "Oracle error code troubleshoot--ORA-32004"
 date:       2011-03-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -16,7 +18,7 @@ tags:
 
 启动数据库时，报错误码：ORA-32004
 
-```
+```shell
 SQL> startup
 ORA-32004: obsolete and/or deprecated parameter(s) specified
 ORACLE 例程已经启动。
@@ -37,7 +39,7 @@ SQL>
 
 错误码分析
 
-```
+```shell
 oracle@mmsc103:~> oerr ora 32004
 32004, 00000, "obsolete and/or deprecated parameter(s) specified"
 // *Cause:  One or more obsolete and/or parameters were specified in 
@@ -50,7 +52,7 @@ oracle@mmsc103:~>
 
 查看告警日志
 
-```
+```shell
 <msg time='2011-03-04T10:11:39.436+08:00' org_id='oracle' comp_id='rdbms'
  msg_id='kspdmp:13638:2661745733' type='WARNING' group='system_param'
  level='16' pid='5220'>
@@ -75,7 +77,7 @@ oracle@mmsc103:~>
 
 从spfile文件中清除过时的参数，重启数据库
 
-```
+```shell
 SQL> alter system reset log_archive_start scope=spfile sid='*';
 
 系统已更改。
@@ -99,9 +101,8 @@ SQL>
 
 查看当前版本不再使用的参数信息
 
-```
-select name,description from v$parameter where isdeprecated='TRUE'
- 
+```shell
+select name,description from v$parameter where isdeprecated='TRUE';
 ```
 <img class="shadow" src="/img/in-post/oracle-parameter.png" width="600">
 

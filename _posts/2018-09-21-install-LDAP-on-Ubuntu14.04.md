@@ -3,8 +3,10 @@ layout:     post
 title:      "Ubuntu 14.04 上部署LDAP&DNS Server"
 subtitle:   "Install LDAP$DNS Server on Ubuntu14.04"
 date:       2018-09-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - LDAP
 ---
@@ -18,7 +20,7 @@ tags:
 
 安装过程中会提示输入设置LDAP管理员账号密码：
 <img class="shadow" src="/img/in-post/ldap_password.png" width="1200">
- 
+
 这里输入了12345678。
 
 再次确认密码
@@ -28,7 +30,7 @@ tags:
 
 打开'/etc/ldap/ldap.conf'文件按照以下内容配置修改:
 
-```
+```shell
 sudo vi /etc/ldap/ldap.conf
 #
 # LDAP Defaults
@@ -65,7 +67,7 @@ TLS_CACERT      /etc/ssl/certs/ca-certificates.crt
 
 输入LDAP管理员的密码
 <img class="shadow" src="/img/in-post/ldap_input_passwd.png" width="1200">
- 
+
 再次确认输入LDAP管理员密码
 <img class="shadow" src="/img/in-post/ldap_input_confirm_passwd.png" width="1200"> 
 
@@ -86,7 +88,7 @@ TLS_CACERT      /etc/ssl/certs/ca-certificates.crt
 
 输入"ldapsearch -x"，会看到类似以下输出:
 
-```
+```shell
 wyz@LDAP:~$ ldapsearch -x
 # extended LDIF
 #
@@ -122,7 +124,7 @@ wyz@LDAP:~$
 
 ## 查看LDAP版本
 
-```
+```shell
 root@LDAP:~# slapd -V
 @(#) $OpenLDAP: slapd  (Ubuntu) (May 31 2017 21:52:16) $
 	buildd@lgw01-30:/build/openldap-tnOaja/openldap-2.4.31/debian/build/servers/slapd
@@ -149,7 +151,7 @@ root@LDAP:~# slapd -V
 
 ```sudo cp /etc/phpldapadmin/config.php /etc/phpldapadmin/bak_config.php ```
 
-```
+```shell
 $servers = new Datastore();
 $servers->newServer('ldap_pla');
 $servers->setValue('server','host','172.16.146.134');
@@ -164,7 +166,7 @@ $servers->setValue('login','bind_id','cn=admin,dc=bigtera-os,dc=com');
 
 
 ## 打开系统80,389端口
-```
+```shell
 wyz@LDAP:~$ sudo ufw allow 80
 Rules updated
 Rules updated (v6)
@@ -183,13 +185,13 @@ Rules updated (v6)
 
 输入密码后点击“认证”进入系统会看到下面的界面
 <img class="shadow" src="/img/in-post/ldap_login_success.png" width="1200">
- 
+
 至此LDAP的管理服务phpldapadmin算是搭建完成了。
 
 
 # LDAP简称对应
 
-```
+```shell
 o --  organization（组织-公司）
 ou -- organization unit（组织单元/部门）
 c --  countryName（国家）
@@ -210,23 +212,23 @@ dn -- distinguished name（专有名称）
 ### Create new entry here
 
 如下图所示，点击“Create new entry here”，创建一个新条目：
- 
+
 <img class="shadow" src="/img/in-post/ldap_create_new_entry.png" width="1200">
 
 ### Create Object
 如下图所示，选择“Generic： Organisational Unit”
- 
+
 <img class="shadow" src="/img/in-post/ldap_create_object.png" width="1200">
 
 ### 选择OU后，如下图所示：
- 
+
 <img class="shadow" src="/img/in-post/ldap_select_ou.png" width="1200">
 
 ### Create LDAP Entry
 
 输入OU名称，例如“IT”：
 <img class="shadow" src="/img/in-post/ldap_create_ou_entry.png" width="1200">
- 
+
 ### Save the created Entry
 
 点击“Commit”按钮：
@@ -239,7 +241,7 @@ dn -- distinguished name（专有名称）
 
 * 用phpldapadmin 时，不能添加UID号 和 GID 号，这是phpldapadmin的bug。解决办法是要先用ldapadd，添加用户的uidNumber，gidNumber如：
 
-```
+```shell
 root@LDAP:~# vi lduser1.ldif 
 # lduser1, IT, bigtera-os.com
 dn: uid=lduser1,ou=IT,dc=bigtera-os,dc=com
@@ -265,7 +267,7 @@ homeDirectory: /home/lduser1
 
 使用命令添加：
 
-```
+```shell
 root@LDAP:~# ldapadd -x -D "cn=admin,dc=bigtera-os,dc=com" -W  -f  lduser1.ldif
 Enter LDAP Password: 
 adding new entry "uid=lduser1,ou=IT,dc=bigtera-os,dc=com"
@@ -273,7 +275,7 @@ adding new entry "uid=lduser1,ou=IT,dc=bigtera-os,dc=com"
 
 查看：
 
-```
+```shell
 root@LDAP:~# ldapsearch -x  -b "dc=bigtera-os,dc=com"
 # extended LDIF
 #
@@ -329,7 +331,7 @@ root@LDAP:~#
 ```
 
 账号创建好后，如下图所示：
- 
+
 <img class="shadow" src="/img/in-post/ldap_show_account.png" width="1200">
 
 至此，就可以正常使用phpldapadmin添加用户和用户组了！
@@ -341,7 +343,7 @@ root@LDAP:~#
 
 如下图所示，选择cn=admin，对其创建子条目：
 <img class="shadow" src="/img/in-post/ldap_create_a_child_entry.png" width="1200">
- 
+
 
 ## Create Object
 
@@ -350,19 +352,19 @@ root@LDAP:~#
 
 输入组名称，如group1：
 <img class="shadow" src="/img/in-post/ldap_create_group.png" width="1200">
- 
+
 注意：
 * 不要选择已经存在的账号！
 
 ## Create LDAP Entry
 <img class="shadow" src="/img/in-post/ldap_create_ldap_entry.png" width="1200">
- 
+
 ## Save the entry
 
 点击“Commit”按钮，如下图所示：
 
 <img class="shadow" src="/img/in-post/ldap_save_entry.png" width="1200">
- 
+
 
 
 ## 新增账号
@@ -378,13 +380,13 @@ Create a child entry
     password加密算法，选择crypt.
 
 <img class="shadow" src="/img/in-post/ldap_crypt.png" width="1200">
- 
+
 ## Create LDAP Entry
- 
+
 <img class="shadow" src="/img/in-post/ldap_create_crypt_user.png" width="1200">
 
 ## Save entry
- 
+
 <img class="shadow" src="/img/in-post/ldap_save_ou_user.png" width="400">
 
 # Rename user
@@ -395,16 +397,16 @@ Create a child entry
 
 将cn=test01 修改为 uid=test01
 <img class="shadow" src="/img/in-post/ldap_rename02.png" width="1200">
- 
+
 点击“Rename”后：
 <img class="shadow" src="/img/in-post/ldap_rename03.png" width="1200">
- 
+
 修改loginShell，将/bin/sh修改为 /bin/bash：
 <img class="shadow" src="/img/in-post/ldap_shell.png" width="1200">
- 
+
 点击“Upgrade Object”后，账号信息发送了变化：
 <img class="shadow" src="/img/in-post/ldap_show_update.png" width="1200">
- 
+
 
 ## Add attribute
 
@@ -417,14 +419,14 @@ Create a child entry
 <img class="shadow" src="/img/in-post/ldap_attribute01.png" width="1200">
 
 Add DisplayName attribute
- 
+
 <img class="shadow" src="/img/in-post/ldap_attribute02.png" width="1200">
- 
+
 
 Add email attribute
 
 <img class="shadow" src="/img/in-post/ldap_attribute03.png" width="1200">
- 
+
 
 其他账号的创建，请参考“新增账号”章节。
 
@@ -459,7 +461,7 @@ Add email attribute
 <img class="shadow" src="/img/in-post/ldap_issue3.png" width="1200">
 <img class="shadow" src="/img/in-post/ldap_issue4.png" width="1200">
 
- 
+
 # 总结
 
 搭建的步骤按照文章的内容一步一步来操作，看似很简单，但是希望在看本教程的时候，看懂每一步再下手，不要盲目的去重复上面的事情，只有这样才能事半功倍。
@@ -468,7 +470,7 @@ Add email attribute
 
 # 参考文档
 
-```
+```shell
     https://my.oschina.net/u/2496664/blog/801996
     https://my.oschina.net/guol/blog/338362
     https://www.zhukun.net/archives/7980
@@ -487,7 +489,7 @@ https://help.ubuntu.com/14.04/serverguide/dns.html
 
 ### Caching Nameserver
 
-```
+```shell
 root@LDAP:~# cat /etc/bind/named.conf.options
 options {
 	directory "/var/cache/bind";
@@ -522,7 +524,7 @@ options {
 
 ### Primary Master
 
-```
+```shell
 root@LDAP:~# cat /etc/bind/named.conf.local
 //
 // Do any local configuration here
@@ -545,7 +547,7 @@ zone "146.16.172.in-addr.arpa" {
 root@LDAP:~#
 ```
 
-```
+```shell
 root@LDAP:~# cat /etc/bind/db.bigtera-os.com 
 ;
 ; BIND data file for local loopback interface
@@ -567,7 +569,7 @@ www	IN	A	172.16.146.134
 root@LDAP:~#
 ```
 
-```
+```shell
 root@LDAP:~# cat  /etc/bind/named.conf.local 
 //
 // Do any local configuration here

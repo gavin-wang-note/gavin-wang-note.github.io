@@ -3,8 +3,10 @@ layout:     post
 title:      "将megaraid卡磁盘改为JBOD模式"
 subtitle:   "Enable JBOD for megacli RAID Card"
 date:       2019-09-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [MegaRAID]
 tags:
     - JBOD
 ---
@@ -14,7 +16,7 @@ tags:
 
 目前lab里HDD基本上都是通过LSI RAID卡做RAID来使用，但有些时候也想测试单盘，但不想做RAID0，于是需要启用JBOD模式来识别每一块单盘。
 
-megaraid 卡使用 JBOD 模式，磁盘可以直接被系统识别，使用 smartctl 查看 SMART 信息（smartcl -d megaraid,N <device> 参数查看做过RAID磁盘的 SMART 信息）和 直连 SAS 卡一样。
+megaraid 卡使用 JBOD 模式，磁盘可以直接被系统识别，使用 smartctl 查看 SMART 信息（`smartcl -d megaraid,N <device> `参数查看做过RAID磁盘的 SMART 信息）和 直连 SAS 卡一样。
 
 如果 LSI megaraid 卡没有启用JBOD模式，磁盘必须做RAID操作，才能被系统识别到 。
 
@@ -23,7 +25,7 @@ megaraid 卡使用 JBOD 模式，磁盘可以直接被系统识别，使用 smar
 
 # 查看 JBOD 是否启用
 
-```
+```shell
 root@node244:~# /opt/MegaRAID/MegaCli/MegaCli64 -AdpGetProp -enablejbod -aALL
                                      
 Adapter 0: JBOD: Enabled
@@ -34,7 +36,7 @@ root@node244:~#
 
 ```Enabled ``` 表明已经启用了JBOD模式；如果没有开启，先启用该特性：
 
-```
+```shell
 root@node244:~# /opt/MegaRAID/MegaCli/MegaCli64 -h
 ......
 ......
@@ -54,13 +56,13 @@ root@node244:~#
 
 # 将对应盘设置为JBOD
 
-```
+```shell
 root@node244:~# /opt/MegaRAID/MegaCli/MegaCli64 -PDMakeJBOD -PhysDrv[E:S] -aALL
 ```
 
 如果想批量设置，类似如下：
 
-```
+```shell
 for i in {0..11}; do /opt/MegaRAID/MegaCli/MegaCli64 -PDMakeJBOD -PhysDrv[E:${i}] -aALL; done
 ```
 
@@ -68,7 +70,7 @@ for i in {0..11}; do /opt/MegaRAID/MegaCli/MegaCli64 -PDMakeJBOD -PhysDrv[E:${i}
 
 对于```Enclosure Device ID``` 和 ```Slot Number ```,可以通过```/opt/MegaRAID/MegaCli/MegaCli64 pdlist aall ```进行获取:
 
-```
+```shell
 root@node244:~# /opt/MegaRAID/MegaCli/MegaCli64 pdlist aall | grep -Ei "Enclosure Device ID|Slot Number"
 Enclosure Device ID: 9
 Slot Number: 0
@@ -99,7 +101,7 @@ root@node244:~#
 
 # 查看盘是否被设置为JBOD模式
 
-```
+```shell
 root@node244:~# /opt/MegaRAID/MegaCli/MegaCli64 -PDList -aALL -Nolog|grep '^Firm'
 Firmware state: Online, Spun Up
 Firmware state: JBOD

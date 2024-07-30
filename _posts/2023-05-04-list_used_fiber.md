@@ -3,8 +3,10 @@ layout:     post
 title:      "PowerCLI Scirpt: list_used_fiber.ps"
 subtitle:   "PowerCLI Scirpt: list_used_fiber"
 date:       2023-05-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [VCenter]
 tags:
     - VCenter
     - PowerCLI
@@ -22,7 +24,7 @@ Usage:
 
 # Scripts of list_used_fiber.ps
 
-```
+```shell
 # This script is used to find fibre card for each VM on vCenter.
 # Usage: pwsh list_used_fiber.ps -server 10.1.2.3 -user user1 -pwd password -fibre_name *Fibre*
 

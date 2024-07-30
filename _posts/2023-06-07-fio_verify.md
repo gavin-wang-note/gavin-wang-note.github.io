@@ -3,8 +3,12 @@ layout:     post
 title:      "fio 校验文件写完整性"
 subtitle:   "fio verify"
 date:       2023-06-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [python]
+    - [fio]
 tags:
     - ceph
     - python
@@ -24,7 +28,7 @@ tags:
 脚本分为三部分，一部分是fio写，一部分是 restart ceph-osd，最后一部分是校验fio写文件内容准确性。
 
 
-```
+```shell
 run_fio.py
 restart_osd.py
 check_fio.py
@@ -33,7 +37,7 @@ check_fio.py
 
 ## run_fio.py
 
-```
+```python
 import time
 
 from ezs3.command import do_cmd
@@ -51,7 +55,7 @@ for i in xrange(100):
 ## restart_osd.py
 
 
-```
+```python
 import time
 import random
 
@@ -110,7 +114,7 @@ if __name__ == "__main__":
 
 ## check_fio.py
 
-```
+```python
 import sys
 import time
 import logging

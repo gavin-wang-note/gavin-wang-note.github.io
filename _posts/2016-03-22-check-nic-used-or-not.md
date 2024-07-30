@@ -3,8 +3,10 @@ layout:     post
 title:      "查看网卡对应网口是否已使用"
 subtitle:   "Check NIC port user or not"
 date:       2016-03-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - network
 ---
@@ -16,7 +18,7 @@ tags:
 
 
 如下图所示，存在4个网卡，在配置IP地址时，需要事先确认要去配置哪个网卡。
- 
+
 <img class="shadow" src="/img/in-post/net_info.png" width="600">
 
 
@@ -24,7 +26,7 @@ tags:
 
 ## 查看所有网卡信息
 
-```
+```shell
 root@host181:~# ifconfig -a
 eth0      Link encap:Ethernet  HWaddr 0c:c4:7a:47:44:a4  
           BROADCAST MULTICAST  MTU:1500  Metric:1
@@ -69,7 +71,7 @@ lo        Link encap:Local Loopback
 
 ## 查看各个网卡的Link detected信息
 
-```
+```shell
 root@host181:~# ethtool eth0 | grep 'Link detected'
 	Link detected: no
 root@host181:~# ethtool eth1 | grep 'Link detected'

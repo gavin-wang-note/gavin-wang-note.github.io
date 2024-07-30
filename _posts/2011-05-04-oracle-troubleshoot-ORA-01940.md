@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01940"
 subtitle:   "Oracle error code troubleshoot--ORA-01940"
 date:       2011-05-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 现象
 
-```
+```shell
 SQL> drop user ufuser cascade;    
 drop user ufuser cascade
 *
@@ -31,7 +33,7 @@ Kill掉对应的session既可。
 
 1、	查询对应用户与当前数据库连接的session信息
 
-```
+```shell
 SQL> set wrap off    
 SQL> set lin 200
 SQL> set pagesize 0
@@ -52,7 +54,7 @@ UFUSER                                530      44970
 
 2、kill session操作
 
-```
+```shell
 alter system kill session'513,81';
 alter system kill session'515,62';
 alter system kill session'516,49583';

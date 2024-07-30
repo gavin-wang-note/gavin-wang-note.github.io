@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--非DBA用户连接oracle，报权限不允许"
 subtitle:   "Oracle troubleshoot--Permission denied for not oracle user"
 date:       2010-03-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -16,14 +18,14 @@ tags:
 在AIX操作系统，非DBA用户连接oracle，报权限不允许：
 
 
-```
+```shell
 2 p570flpar2 [nss] :/home/nss>sql      
 sqlplus startup unsuccessfully : Permission denied(13)
 ```
 
 在该用户下打开oracle安装目录：
 
-```
+```shell
 7 p570flpar2 [nss] :/home/nss/mms_home/cfg>cd $ORACLE_HOME
 /opt/oracle/oracle/app/product/11.1.0/db_1: 文件访问许可不允许执行指定的操作。
 ```
@@ -36,7 +38,7 @@ sqlplus startup unsuccessfully : Permission denied(13)
 
 查看权限，发现oracle目录没有执行权限
 
-```
+```shell
 % ll 
 total 4917192
 drwx--x--x    2 oracle   dba             256 Mar 18 10:00 Mail
@@ -61,14 +63,14 @@ drwxr-x---    3 oracle   dba             256 Mar  2 16:55 oradata
 
 然后到$ORACLE_HOME/bin目录下，给tnsping与sqlplus添加读与执行的权限：
 
-```
+```shell
 % chmod 755 tnsping
 % chmod 755 sqlplus
 ```
 
 修改权限，回到原用户执行命令，可以看到，数据库已经可以连上：
 
-```
+```shell
 10 p570flpar2 [nss] :/opt/oracle/oracle/app/product/11.1.0/db_1>tnsping mdsp 10
 
 TNS Ping Utility for IBM/AIX RISC System/6000: Version 11.1.0.6.0 - Production on 19-MAR-2010 16:05:38

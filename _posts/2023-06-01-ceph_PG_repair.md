@@ -3,8 +3,11 @@ layout:     post
 title:      "ceph PG 修复"
 subtitle:   "ceph PG repair"
 date:       2023-06-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [python]
 tags:
     - ceph
     - python
@@ -27,7 +30,7 @@ tags:
 
 脚本内容如下：
 
-```
+```python
 import os
 import sys
 import gzip

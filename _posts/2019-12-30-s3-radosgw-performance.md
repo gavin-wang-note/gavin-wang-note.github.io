@@ -3,8 +3,11 @@ layout:     post
 title:      "如何快速知道S3存储性能"
 subtitle:   "S3 Radosgw performance"
 date:       2019-12-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [S3]
 tags:
     - S3
 ---
@@ -33,7 +36,7 @@ tags:
 
 ## 安装rest-bench
 
-```
+```shell
 apt-get update
 apt-get install rest-bench
 ```
@@ -44,7 +47,7 @@ apt-get install rest-bench
 
 ### 准备测试脚本
 
-```
+```shell
 export RGW=localhost:7480
 export SECS=10
 export SIZE=$((1<<22)) # 4MB object size
@@ -61,7 +64,7 @@ rest-bench -t $CONCURRENCY -b $SIZE --seconds=$SECS --api-host=$RGW --bucket=$BU
 说明：
 * 下列结果，为VM的测试结果，仅做示例
 
-```
+```shell
  Maintaining 16 concurrent writes of 4194304 bytes for up to 10 seconds or 0 objects
  Object prefix: benchmark_data_auto-70-1_839993
    sec Cur ops   started  finished  avg MB/s  cur MB/s  last lat   avg lat
@@ -102,7 +105,7 @@ Min latency:            0.088134
 
 ## controller侧controller.conf内容
 
-```
+```shell
 [controller]
 drivers = 6
 log_level = INFO
@@ -138,7 +141,7 @@ url = http://10.0.26.96:18088/driver
 
 driver1的driver.conf内容：
 
-```
+```shell
 [driver]
 log_level = DEBUG
 name = driver1
@@ -153,7 +156,7 @@ url = http://10.0.26.91:18088/driver
 
 ### 示例1： 36Threads,运行900秒
 
-```
+```shell
 <?xml version="1.0" encoding="UTF-8"?>
 <workload name="Bigtera BT-H4400 HCI 1VM 36Threads" description="1GB tests. include writes, reads, mix tests">
 <storage type="s3" config="accesskey=EIP2ZTZO4EHL6A50I8FT;secretkey=GFLTkbyVUaisUuSF0g9QgkZUmkGEyp3hOt7W2tpT;endpoint=http://10.0.26.161" />
@@ -575,7 +578,6 @@ url = http://10.0.26.91:18088/driver
 
 	</workflow>
 </workload>
-
 ```
 
 说明:
@@ -585,7 +587,7 @@ url = http://10.0.26.91:18088/driver
 
 ### 示例2： 60Threads,顺序写固定数量的object
 
-```
+```shell
 <?xml version="1.0" encoding="UTF-8"?>
 <workload name="SEG_phyical_round1_60threads_ONLY_W" description="1VM 60threads w24work WR">
 <storage type="s3" config="accesskey=DJL9ZF20DDPEGYCCY902;secretkey=K7DMecYvlsfU9jf6K6bDTc3afnPwwnWmbQyZ1aK8;endpoint=http://10.10.172.63" />
@@ -721,7 +723,7 @@ container selector用 "s", object selector用 "r", 然后container数量跟objec
 
 示例:
 
-``` 
+``` shell
 <operation type="write" ratio="100" division="object" config="cprefix=tmo;oprefix=round2_10KB_;containers=s(8,10);objects=r(25001,50000);sizes=c(10240)B;createContainer=false;" id="none" />
 ```
 

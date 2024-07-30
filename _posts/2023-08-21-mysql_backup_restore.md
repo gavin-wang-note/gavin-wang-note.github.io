@@ -3,8 +3,11 @@ layout:     post
 title:      "mysql 备份与恢复详解"
 subtitle:   "MySQL backup and restore"
 date:       2023-08-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
+    - [mysql]
 tags:
     - python
     - mysql
@@ -26,7 +29,7 @@ MySQL是目前比较流行的关系型数据库管理系统之一，在企业级
 # 环境
 
 
-```
+```shell
 root@ubuntu:~# hostnamectl 
    Static hostname: ubuntu
          Icon name: computer-vm
@@ -46,7 +49,7 @@ root@ubuntu:~#
 
 并创建了一个名称为 'test'的数据库，存放一张表（user）和一个视图（user_view）：
 
-```
+```shell
 mysql> create table user (name VARCHAR(25), age INT(3));
 Query OK, 0 rows affected (0.02 sec)
 
@@ -156,7 +159,7 @@ mysql>
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 -A > /data/mysql_dump/mydb.sql
 ```
 
@@ -166,7 +169,7 @@ mysqldump -uroot -p123456 -A > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 -A -d > /data/mysql_dump/mydb.sql
 ```
 
@@ -176,7 +179,7 @@ mysqldump -uroot -p123456 -A -d > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 -A -t > /data/mysql_dump/mydb.sql
 ```
 
@@ -186,7 +189,7 @@ mysqldump -uroot -p123456 -A -t > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot-p123456 mydb > /data/mysql_dump/mydb.sql
 ```
 
@@ -196,7 +199,7 @@ mysqldump -uroot-p123456 mydb > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 mydb -d > /data/mysql_dump/mydb.sql
 ```
 
@@ -206,7 +209,7 @@ mysqldump -uroot -p123456 mydb -d > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 mydb -t > /data/mysql_dump/mydb.sql
 ```
 
@@ -220,7 +223,7 @@ mysqldump -uroot -p123456 mydb -t > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 mydb t1 t2 > /data/mysql_dump/mydb.sql
 ```
 
@@ -230,7 +233,7 @@ mysqldump -uroot -p123456 mydb t1 t2 > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysqldump -uroot -p123456 --databases db1 db2 > /data/mysql_dump/mydb.sql
 ```
 
@@ -250,7 +253,7 @@ mysqldump -uroot -p123456 --databases db1 db2 > /data/mysql_dump/mydb.sql
 
 ​                
 
-```arcade
+```shell
 mysql -uroot -p123456 < /data/mysql_dump/mydb.sql
 ```
 
@@ -308,7 +311,7 @@ MySQL有一种非常简单的备份方法，就是将MySQL中的数据库文件�
 
 下面是在Linux系统中使用命令行恢复MySQL数据库的一些命令：
 
-```
+```shell
 service mysql stop
 
 cp 备份文件名 目标目录
@@ -334,7 +337,7 @@ mysqldump 是属于逻辑备份，也是最常见的备份工具了，缺点在�
 
 语法：
 
-```
+```shell
 mysqldump [arguments] > dump.sql
 ```
 
@@ -344,7 +347,7 @@ mysqldump [arguments] > dump.sql
 
 
 
-```
+```shell
 --all-databases：  备份所有数据库
 --databases：      备份指定数据库
 --single-transaction：备份一致性
@@ -356,7 +359,7 @@ mysqldump [arguments] > dump.sql
 
 示例：
 
-```
+```shell
 mysqldump -uroot -pp@ssw0rd test > test.sql
 ```
 
@@ -370,7 +373,7 @@ mysqldump -uroot -pp@ssw0rd test > test.sql
 视图备份与恢复：
 
 
-```
+```shell
 root@ubuntu:~# mysql -uroot -pp@ssw0rd test
 mysql: [Warning] Using a password on the command line interface can be insecure.
 Reading table information for completion of table and column names
@@ -462,7 +465,7 @@ root@ubuntu:~#
 
 
 
-```
+```shell
 mysqldump -uroot -pp@ssw0rd test < test.sql
 ```
 
@@ -484,7 +487,7 @@ bin-log 是 Mysql 的日志文件。
 
 
 
-```javascript
+```text
 [mysqld]
 # 不赋值默认为主机名
 log-bin         = /var/log/mysql/mysql-binlog
@@ -495,7 +498,7 @@ server-id       = 1
 
 重启mysql service后，会在 /var/log/mysql 目录下产生从1 开始的binlog文件：
 
-```
+```shell
 root@ubuntu:/var/log/mysql# ll
 total 28
 drwxr-x---  2 mysql adm    4096 Aug 21 13:23 ./
@@ -517,7 +520,7 @@ root@ubuntu:/var/log/mysql#
 
 
 
-```
+```shell
 Aug 21 13:18:29 ubuntu mysql-systemd-start[2327]: Please take a look at https://wiki.debian.org/Teams/MySQL/FAQ for tips on fixing common upgrade issues.
 Aug 21 13:18:29 ubuntu mysql-systemd-start[2327]: Once the problem is resolved, restart the service.
 Aug 21 13:18:29 ubuntu systemd[1]: mysql.service: Control process exited, code=exited status=1
@@ -538,7 +541,7 @@ Aug 21 13:18:29 ubuntu mysql-systemd-start[2335]: 2023-08-21T20:18:29.151958Z 0 
 
 
 
-```
+```shell
 root@ubuntu:/var/log/mysql# mysqlbinlog mysql-binlog.000001 > backup.sql
 ```
 
@@ -554,7 +557,7 @@ root@ubuntu:/var/log/mysql# mysqlbinlog mysql-binlog.000001 > backup.sql
 
 
 
-```javascript
+```text
 root@ubuntu:~# mysqlbinlog [option] log_file
 --start-position：指定某个起始偏移量来恢复（事务区间）
 --stop-positon：指定某个结束偏移量来恢复（事务区间）
@@ -570,7 +573,7 @@ root@ubuntu:~# mysqlbinlog [option] log_file
 
 
 
-```
+```shell
 root@ubuntu:~# mysql -uroot -pp@ssw0rd test
 mysql: [Warning] Using a password on the command line interface can be insecure.
 Reading table information for completion of table and column names
@@ -609,7 +612,7 @@ mysql>
 
 在备份bin-log之前，先 FLUSH LOGS，会自动滚动文件，备份滚动后的文件即可：
 
-```
+```shell
 mysql> flush logs;
 Query OK, 0 rows affected (0.01 sec)
 
@@ -620,7 +623,7 @@ mysql>
 
 此后，会在目录下生成一个全新数字开始的bin-log文件：
 
-```
+```shell
 root@ubuntu:/var/log/mysql# ll
 total 40
 drwxr-x---  2 mysql adm    4096 Aug 21 13:50 ./
@@ -662,7 +665,7 @@ Innodb 冷备是最简单的，通常只需写个脚本来复制 MySQL 的文件
 
 #### 3.4.1.1 查看mysql数据存放的目录
 
-```javascript
+```shell
 # 	 /var/lib/mysql/data
 mysql> show variables like "%datadir%";
 +---------------+-----------------+
@@ -687,7 +690,7 @@ $tar -zcvf mysqlDataBacku.tar.gz  data/
 
 
 
-```
+```shell
 root@ubuntu:~# cd /var/lib/mysql/
 root@ubuntu:/var/lib/mysql# 
 root@ubuntu:/var/lib/mysql# tar -zcvf mysql_cool_backup.tar.gz  /data/
@@ -699,7 +702,7 @@ root@ubuntu:/var/lib/mysql# tar -zcvf mysql_cool_backup.tar.gz  /data/
 
 
 
-```javascript
+```shell
 # 1. 恢复只需将上面的包解压到对应数据库的数据存放目录下
 # 2. 恢复前将原数据备份一下
 # 3. 重启mysql即可
@@ -729,7 +732,7 @@ Innodb 官方有提供热备工具 ibbackup 的收费软件。
 
 
 
-```javascript
+```shell
 
 root@ubuntu:~# innobackupex 
 	--defaults-file=/etc/mysql/my.cnf  # 有数据存放地址
@@ -749,7 +752,7 @@ root@ubuntu:~# innobackupex
 
 
 
-```
+```shell
 root@ubuntu:~# innobackupex --apply-log /mysqlBackup/2023-08-20_20-39-19/
 ```
 
@@ -763,7 +766,7 @@ root@ubuntu:~# innobackupex --apply-log /mysqlBackup/2023-08-20_20-39-19/
 
 
 
-```
+```shell
 root@ubuntu:~# innobackupex 
 	--defaults-file=/etc/mysql/my.cnf 
 	--copy-back /mysqlBackup/2023-08-20_20-39-19/
@@ -794,7 +797,7 @@ root@ubuntu:~# innobackupex
 
 
 
-```
+```shell
 root@ubuntu:~# innobackupex 
 	--defaults-file=/etc/mysql/my.cnf
 	--user=root
@@ -810,7 +813,7 @@ root@ubuntu:~# innobackupex
 
 
 
-```
+```shell
 root@ubuntu:~# innobackupex 
  	--defaults-file=/etc/mysql/my.cnf 
  	--user=root 
@@ -829,7 +832,7 @@ root@ubuntu:~# innobackupex
 
 保证原数据目录为空
 
-```
+```shell
 root@ubuntu:~# innobackupex 
 	--apply-log /mysqlBackup/2023-08-20_22-09-29/
 	--incremental-dir=/mysqlBackup/2023-08-20_22-09-29/
@@ -851,7 +854,7 @@ root@ubuntu:~# innobackupex
 
 
 
-```
+```shell
 root@ubuntu:~# cat backup_mysql_db.sh 
 #!/bin/bash
 
@@ -902,7 +905,7 @@ root@ubuntu:~#
 
 
 
-```
+```shell
 root@ubuntu:~# bash backup_mysql_db.sh 
 mysqldump: [Warning] Using a password on the command line interface can be insecure.
 root@ubuntu:~# cd mysqlbackup/
@@ -925,7 +928,7 @@ root@ubuntu:~/mysql_backup#
 
 
 
-```
+```python
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 

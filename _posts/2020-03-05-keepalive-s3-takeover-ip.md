@@ -3,8 +3,10 @@ layout:     post
 title:      "基于Keepalive测试S3浮动IP切换对业务中断时间"
 subtitle:   "Base on keepalive to test S3"
 date:       2020-03-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [keepalive]
 tags:
     - keepalive
 ---
@@ -20,7 +22,7 @@ tags:
 
 # 测试代码
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*_
 
@@ -127,7 +129,7 @@ if __name__ == "__main__":
 
 这里由于import了产品的函数，脚本不具有通用性，修改了一下:
 
-```
+```python
 root@node244:~# cat s3_ha.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*_

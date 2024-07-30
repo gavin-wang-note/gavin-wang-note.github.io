@@ -3,17 +3,27 @@ layout:     post
 title:      "S3 boto set content from filename"
 subtitle:   "S3 boto set content from filename"
 date:       2019-02-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
 
 
 
-s3_boto_set_content_from_filename.py
+# 概述
 
-```
+自动化测试ceph S3 object时，需要上传不同的文件到不同的目录 与子目录下，并展示目录以及目录下子文件是否正确，为此先写了一个调试脚本，调试完毕后再集成到自动化测试框架中。
+
+
+
+# 脚本
+
+`s3_boto_set_content_from_filename.py`
+
+```python
 root@node244:~# cat s3_boto_set_content_from_filename.py 
 import os
 import boto

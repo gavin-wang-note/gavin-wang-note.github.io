@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-00845，ORA-01102"
 subtitle:   "Oracle error code troubleshoot--ORA-00845，ORA-01102"
 date:       2010-03-23
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 表象
 
-```
+```shell
 oracle@mmsg01:/home> sqlplus "/ as sysdba"
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Tue Mar 23 17:55:21 2010
@@ -47,7 +49,7 @@ oracle@mmsg01:/home>
 
 修改/dev/shm的大小可以通过修改/etc/fstab来实现
 
-```
+```shell
 mmsg01:/etc/init.d # df -k /dev/shm
 Filesystem           1K-blocks      Used Available Use% Mounted on
 shmfs                  4194304         0   4194304   0% /dev/shm                     
@@ -70,19 +72,19 @@ shmfs /dev/shm tmpfs size=8g 0  #新增加的一行
 
 解邦
 
-```
+```shell
 umount /dev/shm
 ```
 
 重新邦定
 
-```
+```shell
 mount /dev/shm
 ```
 
 查看邦定结果
 
-```
+```shell
 df -k
 mmsg01:/etc/init.d # df
 Filesystem           1K-blocks      Used Available Use% Mounted on
@@ -94,7 +96,7 @@ shm                    8388608         0   8388608   0% /dev/shm
 
 启动数据库
 
-```
+```shell
 oracle@mmsg01:~/oradata/mmsgdb> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Tue Mar 23 20:33:20 2010
@@ -129,21 +131,21 @@ SQL>
 
 具体解决ORA-01102问题的步骤：
 
-```
+```shell
 oracle@mmsg01:~/product/11g/dbs> /sbin/fuser -u lkMMSGDB
 lkMMSGDB:            24500(oracle) 24508(oracle) 24510(oracle) 24514(oracle) 24516(oracle) 24518(oracle) 24520(oracle) 24522(oracle) 24524(oracle) 24526(oracle) 24528(oracle) 24585(oracle) 24589(oracle) 24667(oracle) 24669(oracle) 24693(oracle)
 ```
 
 发现lkMMSGDB文件没有释放，使用fuser命令kill掉lkMMSGDB
 
-```
+```shell
 oracle@mmsg01:~/product/11g/dbs> /sbin/fuser -k lkMMSGDB 
 lkMMSGDB:            24500 24508 24510 24514 24516 24518 24520 24522 24524 24526 24528 24585 24589 24667 24669 24693
 ```
 
 再去检查lkMMSGDB文件是否释放
 
-```
+```shell
 oracle@mmsg01:~/product/11g/dbs> /sbin/fuser -u lkMMSGDB
 ```
 
@@ -151,7 +153,7 @@ oracle@mmsg01:~/product/11g/dbs> /sbin/fuser -u lkMMSGDB
 
 重新启动数据库
 
-```
+```shell
 oracle@mmsg01:~/product/11g/dbs> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Tue Mar 23 20:41:22 2010

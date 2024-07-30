@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux stat家族之vmstat"
 subtitle:   "Linux vmstat"
 date:       2023-01-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -13,7 +15,7 @@ tags:
 
 * Virtual Meomory Statistics，报告虚拟内存统计信息
 * 统计进程信息、内存、交换区、IO、磁盘、CPU 等数据
- 
+
 
 # vmstat主要能看什么性能指标
 
@@ -23,11 +25,11 @@ tags:
 * 内存、交换区、I/O、CPU 信息
 * 上下文切换次数、中断次数
 * 磁盘 I/O 的详细信息和概要信息
- 
+
 
 # 语法格式
 
-```
+```shell
 [root@node81 ~]# vmstat -h
 
 Usage:
@@ -58,7 +60,7 @@ For more details see vmstat(8).
 
 注意:
   若只传了 delay，则统计次数是无限次，结束统计后会打印本次所有数据的平均值.
- 
+
 
 ## 示例
 
@@ -93,7 +95,7 @@ For more details see vmstat(8).
 
 # 统计数据的字段说明 
 
-```
+```shell
 [root@node81 ~]# vmstat 2 2
 procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
@@ -113,7 +115,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 | ---- | ------------------------------ |
 | r    | 处于 Runnable状态的进程数量    |
 | b    | 处于不可中断睡眠状态的进程数量 |
- 
+
 
 ## memory：内存信息
 
@@ -126,7 +128,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 | cache  | 用于缓存的内存     |
 | inact  | 不活动的内存量(-a) |
 | active | 活动的内存量(-a)   |
- 
+
  
 
 ## swap：交换区
@@ -136,7 +138,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 | ---- | ------------------------------ |
 | si   | 每秒从交换区写到内存的大小     |
 | so   | 每秒写入交换区的内存大小       |
- 
+
  
 
 ## io：io 读写信息
@@ -180,14 +182,14 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 
 主要来自这三个文件:
 
-```
+```shell
 /proc/meminfo
 /proc/stat
 /proc/*/stat
 ```
 
 
-```
+```shell
 [root@node81 ~]# vmstat
 procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
@@ -204,7 +206,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 
  
 
-```
+```shell
 [root@node81 ~]# vmstat -s
      12295904 K total memory
       7668944 K used memory
@@ -239,7 +241,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 
  
 
-```
+```shell
 [root@node81 ~]# vmstat -d
 disk- ------------reads------------ ------------writes----------- -----IO------
        total merged sectors      ms  total merged sectors      ms    cur    sec
@@ -271,7 +273,7 @@ dm-2     525      0 1308576   11293      0      0       0       0      0      5
 ## 打印活动内存和不活动内存量
 
 
-```
+```shell
 [root@node81 ~]# vmstat -a 1 2
 procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  r  b   swpd   free  inact active   si   so    bi    bo   in   cs us sy id wa st
@@ -281,12 +283,12 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 ```
 
 这里有 'inact' & 'active'关键字。
- 
+
 
 ## 以 MB 单位输出结果
 
 
-```
+```shell
 [root@node81 ~]# vmstat -S M 1 2
 procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
@@ -298,7 +300,7 @@ procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
 
 ## 以 MB 单位输出各事件计数器和内存的统计信息
 
-```
+```shell
 [root@node81 ~]# vmstat -s -S M
         12007 M total memory
          7527 M used memory

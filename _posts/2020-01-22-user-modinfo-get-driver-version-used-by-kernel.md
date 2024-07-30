@@ -3,8 +3,10 @@ layout:     post
 title:      "利用modinfo查看kernel使用的driver版本"
 subtitle:   "Use modinfo to get driver version which used in kernel"
 date:       2020-01-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -16,7 +18,7 @@ Linux modinfo命令用于显示kernel模块的信息，确切讲，会显示kern
 
 # 语法
 
-```
+```shell
 root@node243:~# modinfo -h
 Usage:
 	modinfo [options] filename [args]
@@ -45,7 +47,7 @@ root@node243:~#
 
 使用的```lspci -vvv```命令，下面只截取片段信息:
 
-```
+```shell
 3f:00.0 Ethernet controller: QLogic Corp. Device 8070 (rev 02)
         Subsystem: Gigabyte Technology Co., Ltd Device 1000
         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx+
@@ -133,7 +135,7 @@ root@node243:~#
 
 ## 查看qede版本
 
-```
+```shell
 root@node150:~# lsmod | grep qede
 qede                  143360  0 
 qed                   880640  1 qede
@@ -164,5 +166,5 @@ parm:           rdma_lag_support: RDMA Bonding support enable - preview mode (ui
 root@node150:~# 
 ```
 
-从lsmod吐出信息可以看到，当前系统中QLogic driver版本是8.33.9.0，高于技嘉工程师提供的版本，所有不需要跟新
+从lsmod吐出信息可以看到，当前系统中QLogic driver版本是8.33.9.0，高于技嘉工程师提供的版本，所有不需要跟新。
 

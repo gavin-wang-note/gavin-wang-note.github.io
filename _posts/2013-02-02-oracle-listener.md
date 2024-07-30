@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle监听"
 subtitle:   "Oracle Listener"
 date:       2013-02-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -22,7 +24,7 @@ oracle监听器是Oracle服务器软件的一个组件，它负责管理Oracle�
 
 Oracle用户登陆终端，输入lsnrctl，如下：
 
-```
+```shell
 oracle@mmsg1:~> lsnrctl
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 11-8月 -2010 10:12:17
@@ -44,42 +46,42 @@ set*                   show*
 
 ## 启动指定的监听
 
-```
+```shell
 LSNRCTL>start
 ```
 或者
 
-```
+```shell
 oracle@mmsg1:~> lsnrctl start
 ```
 
 ## 停止指定的监听
 
-```
+```shell
 LSNRCTL>stop
 ```
 
 或者
 
-```
+```shell
 oracle@mmsg1:~> lsnrctl stop
 ```
 
 ## 查看监听状态
 
-```
+```shell
 LSNRCTL>status
 ```
 
 或者
 
-```
+```shell
 oracle@mmsg1:~> lsnrctl status
 ```
 
 显示监听器的状态。Status命令显示监听器是不是活动的，日志与跟踪文件的位置，监听器已经持续运行了多长时间，以及监听器所监听的任务。
 
-```
+```shell
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 11-8月 -2010 10:29:05
 
 Copyright (c) 1991, 2008, Oracle.  All rights reserved.
@@ -116,7 +118,7 @@ oracle@mmsg1:~>
 
 列出服务的一个汇总表及为每个协议服务处理程序所建立和拒绝的连接信息个数。
 
-```
+```shell
 LSNRCTL> service  
 正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.167)(PORT=1521)))
 服务摘要..
@@ -138,7 +140,7 @@ LSNRCTL>
 
 显示oracle net软件与协议适配器的版本
 
-```
+```shell
 LSNRCTL> version
 正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.167)(PORT=1521)))
 TNSLSNR for Linux: Version 11.1.0.7.0 - Production
@@ -176,7 +178,7 @@ LSNRCTL>
 
 # set*
 
-```
+```shell
 SNRCTL> set
 The following operations are available after set
 An asterisk (*) denotes a modifier or extended command:
@@ -192,7 +194,7 @@ save_config_on_stop          dynamic_registration
 LSNRCTL>
 ```
 
-### password
+**password**
 
 指定在lsnrctl命令行工具中执行管理任务所需要的密码
 
@@ -223,7 +225,7 @@ LSNRCTL>
 
 示例:
 
-```
+```shell
 LSNRCTL> set trc_level 1
 正在连接到 (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.114)(PORT=1521)))
 STRAYEAGLE 参数 "trc_level" 设为 off
@@ -299,7 +301,7 @@ STRAYEAGLE 参数 "trc_level" 设为 off
 
 # show*
 
-```
+```shell
 LSNRCTL> show     
 The following operations are available after show
 An asterisk (*) denotes a modifier or extended command:
@@ -330,7 +332,7 @@ dynamic_registration
 
 过滤规则
 
-```
+```shell
 LSNRCTL> show rules
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 No filtering rules currently in effect.
@@ -342,7 +344,7 @@ LSNRCTL>
 
 指定监听器跟踪信息的位置。默认设置是$ORACLE_HOME\network\trace\listener.trc
 
-```
+```shell
 LSNRCTL> show  trc_file   
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "trc_file" set to ora_4825_47881906824032.trc
@@ -352,7 +354,7 @@ LSNRCTL>
 
 ## trc_directory
 
-```
+```shell
 LSNRCTL> show trc_directory
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "trc_directory" set to /opt/oracle/diag/tnslsnr/node1/listener/trace
@@ -362,7 +364,7 @@ LSNRCTL>
 
 ## trc_level
 
-```
+```shell
 LSNRCTL> show trc_level
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "trc_level" set to off
@@ -374,7 +376,7 @@ LSNRCTL>
 
 指定一个监听器将把日志信息写到哪里。这个参数在默认的情况下是ON,并默认为%oracle_home%\network\log\listener.log
 
-```
+```shell
 LSNRCTL> show log_file
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "log_file" set to /opt/oracle/diag/tnslsnr/node1/listener/alert/log.xml
@@ -384,7 +386,7 @@ LSNRCTL>
 
 ## log_directory
 
-```
+```shell
 LSNRCTL> show log_directory
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "log_directory" set to /opt/oracle/diag/tnslsnr/node1/listener/alert
@@ -400,7 +402,7 @@ LSNRCTL>
 
 ## current_listener
 
-```
+```shell
 LSNRCTL> show current_listener
 Current Listener is LISTENER
 LSNRCTL>
@@ -410,7 +412,7 @@ LSNRCTL>
 
 定义监听器在一个会话得到启动时将等待的有效响应时间。默认设置为60秒。
 
-```
+```shell
 LSNRCTL> show inbound_connect_timeout
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "inbound_connect_timeout" set to 60
@@ -422,7 +424,7 @@ LSNRCTL>
 
 定义监听器在响应lsnrctl命令行工具中的一条status命令之前将等待多长时间。
 
-```
+```shell
 LSNRCTL> show startup_waittime
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "startup_waittime" set to 0
@@ -440,7 +442,7 @@ LSNRCTL>
 
 指定在一个lsnrctl会话期内所发生的修改在退出时是否应该被保存起来。
 
-```
+```shell
 LSNRCTL> show save_config_on_stop
 Connecting to (DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.119)(PORT=1521)))
 LISTENER parameter "save_config_on_stop" set to OFF
@@ -450,7 +452,7 @@ LSNRCTL>
 
 # 使用监听与数据库建立连接的另一种方式
 
-```
+```shell
 sqlplus mmsg/mmsg@10.137.49.119:1521/mmsgdb 
 ```
 
@@ -458,7 +460,7 @@ sqlplus mmsg/mmsg@10.137.49.119:1521/mmsgdb
 
 sqlnet.ora文件内容 
 
-```
+```shell
 NAMES.DIRECTORY_PATH= (TNSNAMES,HOSTNAME)
 ```
 
@@ -499,7 +501,7 @@ NAMES.DIRECTORY_PATH= (TNSNAMES,HOSTNAME)
 
 可以设置local_listener=listener，前提条件是将lsnrctl.ora文件中的listener信息添加到tnsnames.ora文件中，因为pmon进程动态注册监听时会通过读取tnsname.ora文件相关信息
 
-```
+```shell
 alter system set local_listener=listener;
 ```
 
@@ -509,7 +511,7 @@ alter system set local_listener=listener;
 
 可以设置local_listener参数为lister.ora文件中的address和address_list 
 
-```
+```shell
 alter system set local_listener = '(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.37)(PORT=1522))';
 ```
 
@@ -517,7 +519,7 @@ alter system set local_listener = '(ADDRESS=(PROTOCOL=TCP)(HOST=10.137.49.37)(PO
 
 通过查看监听当前状态，根据如下红色加粗部分信息判别：
 
-```
+```shell
 oracle@GW_8:~> lsnrctl status
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 01-2月 -2013 11:59:06

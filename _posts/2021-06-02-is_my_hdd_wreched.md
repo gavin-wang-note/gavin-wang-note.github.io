@@ -3,8 +3,10 @@ layout:     post
 title:      "HDD损坏了么？"
 subtitle:   "Is my hdd wrecked?"
 date:       2021-06-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -17,7 +19,7 @@ tags:
 
 由于是一个新安装OS的环境，对现有的HDD除了操作系统之外都可以做格式化处理，尝试格式化一下，出现了如下错误：
 
-```
+```shell
 root@scaler:/home/btadmin# sgdisk -z /dev/sdb
 GPT data structures destroyed! You may now partition the disk using fdisk or
 other utilities.
@@ -25,7 +27,7 @@ other utilities.
 
 上面是一个正常分区擦除分区信息的吐出信息，下面是一个异常的：
 
-```
+```shell
 root@scaler:/home/btadmin# sgdisk -z /dev/sdd
 Warning! Read error 5; strange behavior now likely!
 Warning! Read error 5; strange behavior now likely!
@@ -40,7 +42,7 @@ other utilities.
 
 尝试分区：
 
-```
+```shell
 root@scaler:~# gdisk /dev/sdd
 GPT fdisk (gdisk) version 1.0.1
 
@@ -101,7 +103,7 @@ Command (? for help):
 
 从上面可以明显看出sdd这个分区有异常，继续查看vd与pd信息：
 
-```
+```shell
 Virtual Drive: 3 (Target Id: 3)
 Name                :
 RAID Level          : Primary-0, Secondary-0, RAID Level Qualifier-0
@@ -232,7 +234,7 @@ Drive has flagged a S.M.A.R.T alert : No
 
 ## Step1. 获取RAID卡的Vendor Id和Device Id
 
-```
+```shell
 root@scaler:~# /opt/MegaRAID/MegaCli/MegaCli64 -adpallinfo -aall | grep -Ei 'Vendor Id|Device Id'
 Vendor Id       : 1000
 Device Id       : 005b
@@ -240,7 +242,7 @@ Device Id       : 005b
 
 ## Step2. 获取VD的Target Id
 
-```
+```shell
 root@scaler:~# /opt/MegaRAID/MegaCli/MegaCli64 -ldpdinfo  aall | grep 'Target Id'
 Virtual Drive: 0 (Target Id: 0)
 Virtual Drive: 1 (Target Id: 1)
@@ -252,7 +254,7 @@ Virtual Drive: 4 (Target Id: 4)
 
 ## Step3. 获取设备前缀信息
 
-```
+```shell
 root@scaler:~# lspci -nd 1000:005b
 02:00.0 0104: 1000:005b (rev 05)
 root@scaler:~# 
@@ -265,8 +267,8 @@ root@scaler:~#
 
 Linux 命令行操作如下：
 
-{% raw %}
-```
+
+```shell
 root@scaler:~# cd /dev/disk/by-path
 root@scaler:/dev/disk/by-path# ls -l |grep 'pci-0000:02:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
 sdc
@@ -300,7 +302,7 @@ root@scaler:/dev/disk/by-path#
 root@scaler:/dev/disk/by-path# ls -l |grep 'pci-0000:02:00.0-scsi-0:2:3:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
 sdd
 root@scaler:/dev/disk/by-path# 
-```{% endraw %}
+```
 
 出现坏盘的，对应RAID组为VD 3，正好是sdd这个分区，说明HDD有损坏了，需要进行更换。
 

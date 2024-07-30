@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--删除正在运行数据库的DBF文件导致数据库启动异常（ORA-01157，ORA-01110）"
 subtitle:   "Oracle troubleshoot of delete dbf which is in running status"
 date:       2009-06-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -15,7 +17,7 @@ tags:
 
 未通过正确渠道、直接删除了数据库正在使用的数据文件，导致数据库启动实例时出错。
 
-```
+```shell
 SQL> startup
 ORACLE instance started.
 Total System Global Area  320309728 bytes
@@ -34,7 +36,7 @@ ORA-01110: data file 14: '/opt/oracle/oradata/mmsgdb/mmsgdata01'
 
 ### 将该数据文件脱机
 
-```
+```shell
 SQL>alter database datafile '/opt/oracle/oradata/mmsgdb/mmsgdata01' offline drop;
 ```
 
@@ -42,7 +44,7 @@ SQL>alter database datafile '/opt/oracle/oradata/mmsgdb/mmsgdata01' offline drop
 
 drop相应的Tablespace释放资源
 
-```
+```shell
 SQL>drop tablespace MMSG including contents and datafiles;
 ```
 

@@ -3,8 +3,11 @@ layout:     post
 title:      "脚本统计ES写入速度"
 subtitle:   "Stastic ES write speed by shell script"
 date:       2020-06-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - Linux
     - shell
@@ -20,14 +23,14 @@ tags:
 
 这里介绍两种API,参考如下：
 
-```
+```shell
 _cat/count?v&format=json&pretty
 ```
 
 吐出信息参考如下：
 
 
-```
+```shell
 [
   {
     "epoch" : "1591598061",
@@ -39,14 +42,14 @@ _cat/count?v&format=json&pretty
 
 另外一种是
 
-```
+```shell
 index_name/_cat/indices?v&pretty
 ```
 
 输出示例参考如下:
 
 
-```
+```shell
 root@node248:/opt/datasearch# curl -XGET -s 'localhost:9200/_cat/indices?v&pretty'
 health status index                uuid                   pri rep docs.count docs.deleted store.size pri.store.size
 green  open   rgw-default-fb9bb242 fZDCxLRPRKS1hn6GD_PE-g  12   0    8796770         6075      3.3gb          3.3gb
@@ -64,7 +67,7 @@ root@node248:/opt/datasearch#
 先说```_cat/count?v&format=json&pretty ```， 它的吐出信息中，epoch其实就是时间戳，但精度只到秒级别，如果要计算ES写入速度：获取前后两个count的值，以及前后两个epoch的值，分别做差，使用前者的差值，除以后者的差值，得到当前ES的写入速度，效果如下：
 
 
-```
+```shell
 root@node76:~# python calc_es_write_speed.py 
 -------  Timestamp ----------- Total Counts ---------- Counts diff --------- Time diff ------- ES speed -------
 	 1591778958 	       4645564 		       1616  	        	3 		  538
@@ -95,7 +98,7 @@ root@node76:~#
 
 分别使用了 ```_cat/count?v&format=json&pretty``` 和 ```index_name/_cat/indices?v&pretty ``` 这两个API，写了统计脚本，本文只给出shell 使用```index_name/_cat/indices?v&pretty ```的示例,脚本内容如下:
 
-{% raw %}```
+```shell
 #!/bin/bash
 
 TOTAL_COUNTS=10000000
@@ -130,12 +133,12 @@ do
         sleep 2
     fi
 done
-``` {% endraw %}
+```
 
 
 输出内容示例如下:
 
-```
+```shell
 root@node76:~# bash speed_calc_es.sh 
 ------ Timestamp ------ Total Counts ------ Time Diff ------ Count Diff ------ AVG Speed ------
       1591781812805       6372650           60.043           44556             742.068

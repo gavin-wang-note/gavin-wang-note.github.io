@@ -3,8 +3,10 @@ layout:     post
 title:      "替换文件中空行"
 subtitle:   "Delete space line with awk/tr/sed/grep"
 date:       2014-06-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - awk
     - sed

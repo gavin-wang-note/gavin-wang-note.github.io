@@ -3,8 +3,11 @@ layout:     post
 title:      "Python下使用function timeout"
 subtitle:   "function timeout"
 date:       2023-02-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
+    - [Automation]
 tags:
     - python
     - Automation 
@@ -25,7 +28,7 @@ tags:
 如下，为多线程中的使用
 
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from func_timeout import func_set_timeout
@@ -45,31 +48,31 @@ if __name__ == '__main__':
     except func_timeout.exceptions.FunctionTimedOut:
         print('task func_timeout')
 
-``` {% endraw %}
+``` 
 
 Program output:
 
-{% raw %}```
+```shell
 hello world
 task func_timeout
-``` {% endraw %}
+``` 
 
 这样就可以不用中断主程序，可以继续执行后面的任务，也可以在超时后加上重试等功能，这就看自己需要了。
 
 
 对应的测试用例基类：
 
-{% raw %}```
+```python
     if option in ['upload']:
         try:
             self.upload_file_multipart(file_path, object_name, bucket, thread_cnt)
         except func_timeout.exceptions.FunctionTimedOut:
             logging.debug("--  Upload failed by FunctionTimedOut")
-``` {% endraw %}
+``` 
 
-被call function 头部增加装饰器func_set_timeout
+被 call function 头部增加装饰器 `func_set_timeout`
 
-{% raw %}```
+```python
 
     @func_set_timeout(5)
     def upload_file_multipart(self, file_path, object_name, bucket, thread_cnt):
@@ -82,7 +85,7 @@ task func_timeout
             t.start()
         q.join()
         mp.complete_upload()
-``` {% endraw %}
+``` 
 
 如上，完美解决掉thread hang死问题。
 

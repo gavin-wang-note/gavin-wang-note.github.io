@@ -3,8 +3,10 @@ layout:     post
 title:      "Fiddler使用总结"
 subtitle:   "Fiddler use guide"
 date:       2015-08-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Fiddler]
 tags:
     - Fiddler
 ---
@@ -31,7 +33,7 @@ tags:
 Fiddler处于后台运行中，使用如上键，可最大化fiddler窗口
 
  
- 
+
 
 ## 命令行
 
@@ -166,7 +168,7 @@ bpu /a.sext，拦截所有URL中包含 /a.sext内容的Request请求。
 功能说明：将Fiddler隐藏到系统状态栏中
 
 
- 
+
 
 ### urlreplace
 
@@ -287,7 +289,7 @@ FiddlerObject.UI.lvSessions.AddBoundColumn("ServerIP", 120, "X-HostIP");
 3. 保存CustomRules.js或者点击“Save Script”按钮，如下所示：
 
 
-```
+```shell
 static function Main() {
 
 var today: Date = new Date();
@@ -296,7 +298,7 @@ FiddlerObject.StatusText = " CustomRules.js was loaded at: " + today;
 
 FiddlerObject.UI.lvSessions.AddBoundColumn("ServerIP", 120, "X-HostIP");
 ```
- 
+
 
 4. 查看fiddler，此时IP会添加到所有数据的最后一列，拖到滚动条，即可看到，如下所示：
 
@@ -430,7 +432,7 @@ oSession["response-trickle-delay"] = "150";
 <img class="shadow" src="/img/in-post/fiddler_inspectors.png" width="1200">
 
 
- 
+
 ## 模拟http get操作
 
 

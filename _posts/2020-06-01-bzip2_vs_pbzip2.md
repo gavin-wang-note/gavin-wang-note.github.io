@@ -3,8 +3,11 @@ layout:     post
 title:      "bzip2 vs pbzip2 性能对比"
 subtitle:   "bzip2 vs pbzip2 performance"
 date:       2020-06-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [bzip2]
+    - [pbzip2]
 tags:
     - bzip2
     - pbzip2
@@ -21,7 +24,7 @@ tags:
 准备10万笔记录，看看压缩耗时如何：
 
 
-```
+```shell
 root@node244:/mnt/disk/esrally_data/test# time wc -l documents-2.json 
 100000 documents-2.json
 
@@ -39,7 +42,7 @@ root@node244:/mnt/disk/esrally_data/test#
 
 ## 使用默认的bzip2压缩指令
 
-```
+```shell
 root@node244:/mnt/disk/esrally_data/test# time bzip2 -k documents-2.json documents-2.json.bz2
 bzip2: Input file documents-2.json.bz2 already has .bz2 suffix.
 
@@ -57,7 +60,7 @@ root@node244:/mnt/disk/esrally_data/test#
 
 ## bzip2 使用 -1 参数
 
-```
+```shell
 root@node244:/mnt/disk/esrally_data/test# time bzip2 -k -1 documents-2.json documents-2.json.bz2
 bzip2: Input file documents-2.json.bz2 already has .bz2 suffix.
 
@@ -76,7 +79,7 @@ root@node244:/mnt/disk/esrally_data/test#
 
 ## bzip2 使用 -9 参数
 
-```
+```shell
 root@node244:/mnt/disk/esrally_data/test# time bzip2 -k -9 documents-2.json documents-2.json.bz2
 bzip2: Input file documents-2.json.bz2 already has .bz2 suffix.
 
@@ -94,7 +97,7 @@ drwxr-xr-x 5 root root     4096 Jun  2 15:55 ../
 
 ## pbzip2
 
-```
+```shell
 root@node244:/mnt/disk/esrally_data/test# time pbzip2 documents-2.json -z -k -1 -f  > documents-2.json.bz2
 
 real	0m0.449s

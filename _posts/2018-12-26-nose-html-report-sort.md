@@ -3,8 +3,11 @@ layout:     post
 title:      "nose-html-reporting plugin HTML报告排序"
 subtitle:   "nose html report sort"
 date:       2018-12-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [nose]
 tags:
     - nose
     - Automation

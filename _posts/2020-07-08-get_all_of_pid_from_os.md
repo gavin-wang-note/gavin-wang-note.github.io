@@ -3,8 +3,11 @@ layout:     post
 title:      "获取系统中所有的pid"
 subtitle:   "Get all of pid from OS"
 date:       2020-07-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - shell
 ---

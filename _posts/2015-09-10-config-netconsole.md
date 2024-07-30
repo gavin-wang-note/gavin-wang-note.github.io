@@ -3,11 +3,13 @@ layout:     post
 title:      "Netconsole ：输出kernel log到远端机器"
 subtitle:   "Netconsole config"
 date:       2015-09-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
-    - Netconsole
+    - netconsole
 ---
 
 # 为什么需要netconsole
@@ -26,7 +28,7 @@ Ubuntu的wiki给出了一个很好的页面，介绍netconsole介绍的很详细
 
 Netconsole can be loaded as one of?kernel modules? manually after boot or auto during boot depending on this module config. See?kernel modules?for configuring it to load at boot. For loading manually any time after boot:
 
-```
+```shell
 # set log level for kernel messages
 dmesg -n 7
 modprobe configfs
@@ -52,7 +54,7 @@ netconsole should now be configured. To verify, run ```dmesg |tail``` and you sh
 
 # 接收端配置（可以选择一台虚拟机）
 
-```
+```shell
 nc -u -l 6666
 or
 nc -u -l -p 6666

@@ -3,8 +3,10 @@ layout:     post
 title:      "esrally实战"
 subtitle:   "esrally practice"
 date:       2020-06-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [esrally]
 tags:
     - esrally
 ---
@@ -20,9 +22,7 @@ tags:
 
 # install
 
-
-
-```
+```shell
 pip install --upgrade pip
 pip3 install esrally
 esrally configure
@@ -34,7 +34,7 @@ esrally configure
 
 
 
-```
+```shell
 root@node244:~# esrally configure
 
     ____        ____
@@ -67,9 +67,7 @@ root@node244:~#
 执行pip3 install esrally时，报错：
 
 
-
-
-```
+```shell
 Successfully built py-cpuinfo thespian tabulate psutil pyrsistent
 ERROR: awscli 1.18.21 has requirement botocore==1.15.21, but you'll have botocore 1.13.50 which is incompatible.
 ERROR: awscli 1.18.21 has requirement s3transfer<0.4.0,>=0.3.0, but you'll have s3transfer 0.2.1 which is incompatible.
@@ -78,22 +76,18 @@ Installing collected packages: MarkupSafe, Jinja2, py-cpuinfo, elasticsearch, py
     Found existing installation: psutil 3.4.2
 ERROR: Cannot uninstall 'psutil'. It is a distutils installed project and thus we cannot accurately determine which files belong to it which would lead to only a partial uninstall.
 root@node244:~# 
-
 ```
 
 
 
 解决方法：
 
-
-
-```
+```shell
 root@node244:~# dpkg -l | grep psutil
 ii  python-psutil                   3.4.2-1ubuntu0.1                           amd64        module providing convenience functions for managing processes
 ii  python3-psutil                  3.4.2-1ubuntu0.1                           amd64        module providing convenience functions for managing processes (Python3)
 
-apt-get remove python3-psutil
-
+root@node244:~# apt-get remove python3-psutil
 ```
 
 
@@ -108,17 +102,11 @@ apt-get remove python3-psutil
 
 # 安装kibana
 
-
-
 由于ES版本是7.6.0，所以要使用7.6.0版本的kibana，两者版本一定要一一对应。
-
-
 
 直接从官网下载源码，放在ES集群的任意一个节点，或者非ES节点，进入config目录，修改kibana.yml
 
-
-
-```
+```shell
 root@node76:~/kibana-7.6.0-linux-x86_64/config# ll
 total 20
 drwxrwxr-x  2 root root 4096 May 28 17:00 ./
@@ -128,11 +116,9 @@ drwxr-xr-x 13 root root 4096 May 26 09:42 ../
 root@node76:~/kibana-7.6.0-linux-x86_64/config#
 ```
 
-
-
 增加如下内容：
 
-```
+```shell
 i18n.locale: "zh-CN"			                        # kibana默认文字是英文，变更成中文
 server.port: 5601		        		                # 浏览器访问端口
 server.host: "0.0.0.0"	                		        # 对外的服务地址
@@ -140,19 +126,11 @@ elasticsearch.hosts: ["http://10.16.172.75:9200"]       # 这里为你的elastic
 kibana.index: ".kibana"                                 # 开启此选项
 ```
 
-
-
 在tmux中，启动kibana：
-
-
 
 ```root@node76:~/kibana-7.6.0-linux-x86_64# ./bin/kibana --allow-root```
 
-
-
 看看output是否无异常，然后通过浏览器，可以正常访问5601端口了：
-
-
 
 <img class="shadow" src="/img/in-post/esrally/kibina-view.png" width="1200">
 
@@ -161,11 +139,7 @@ kibana.index: ".kibana"                                 # 开启此选项
 
 # 如何创建自定义的track
 
-
-
 ## 获取产品index信息
-
-
 
 由于产品在启用ES时，radosgw会创建出来一个index，命名格式如下：
 
@@ -173,11 +147,9 @@ kibana.index: ".kibana"                                 # 开启此选项
 
 其中，pool_name为当前S3 pool的名称，xxx为一串随机字母和数字组合体，比如：rgw-default-0185294c。
 
-
-
 知道了产品创建的index，通过Chrome插件elastic head，成功查询出该index的index information：
 
-```
+```shell
 {
     "state": "open",
     "settings": {
@@ -365,11 +337,9 @@ kibana.index: ".kibana"                                 # 开启此选项
 
 ## 根据产品index信息，构造自定义index.json
 
-
-
 有了上面的mappings信息，就可以自定义track所需要的index了：
 
-```
+```shell
 root@node244:~/my_esrally_data/tracks/bigtera# ll
 total 48
 drwxr-xr-x 4 root root  4096 May 27 18:28 ./
@@ -384,13 +354,9 @@ drwxr-xr-x 2 root root  4096 May 27 15:14 operations/
 root@node244:~/my_esrally_data/tracks/bigtera# 
 ```
 
-
-
 自定义的index信息如下：
 
-
-
-{% raw %}```
+```shell
 root@node244:~/my_esrally_data/tracks/bigtera# cat index.json 
 {
   "settings": {
@@ -526,7 +492,7 @@ root@node244:~/my_esrally_data/tracks/bigtera# cat index.json
     }
   }
 }
-``` {% endraw %}
+```
 
 
 
@@ -549,9 +515,7 @@ meta.custom-string.name 和 meta.custom-string.value, 这说明meta是一级key�
 
 分析到这里，就会知道，esrally工具需要什么样的数据结构的数据，一个完整的数据结构如下：
 
-
-
-```
+```shell
 {
     "bucket": "bucket01",
     "owner": {
@@ -593,9 +557,7 @@ meta.custom-string.name 和 meta.custom-string.value, 这说明meta是一级key�
 
 比如上面的custom-int 和custom-date，可以不需要，我只需要custom-string类型的信息，那就可以忽略掉这两个键值，只生成必须的字典信息即可，参考如下:
 
-
-
-```
+```shell
 root@node244:~/my_esrally_data/data/bigtera# cat documents-2.json | head -n 6
 {"name": "83_0916035289.68", "bucket": "bucket01", "instance": "null", "meta": {"custom-string": {"name": "2427603943521294", "value": "6309708009398746"}, "mtime": "2020-05-22T55:60:03.465Z", "etag": "e7b834f4a0650de9c7a070e5d8446ab1", "content_type": "application/octet-stream", "tail_tag": "a3a5cefd-376d-421b-2627-08b32656e7c1.4520.354058", "size": "315"}, "owner": {"display_name": "user01", "id": "user01"}, "versioned_epoch": "0"}
 {"name": "83_0916035289.68", "bucket": "bucket01", "instance": "null", "meta": {"custom-string": {"name": "2427603943521294", "value": "6309708009398746"}, "mtime": "2020-05-22T55:60:03.465Z", "etag": "e7b834f4a0650de9c7a070e5d8446ab1", "content_type": "application/octet-stream", "tail_tag": "a3a5cefd-376d-421b-2627-08b32656e7c1.4520.354058", "size": "315"}, "owner": {"display_name": "user01", "id": "user01"}, "versioned_epoch": "0"}
@@ -605,9 +567,7 @@ root@node244:~/my_esrally_data/data/bigtera# cat documents-2.json | head -n 6
 
 这里产生的数据，通过python script来生成，script 内容参考如下：
 
-
-
-```
+```python
 root@node244:~# cat write_json_data.py 
 #!/usr/bin/env python
 
@@ -704,19 +664,13 @@ if __name__ == '__main__':
 
 ## 修改esrally配置文件
 
-
-
 有构造数据的脚本了，通过修改esrally的配置文件以及track.json，读取指定目录下指定文件，共同完成一个rally job的运行。
-
-
 
 ### 修改track.json
 
-
-
-{% raw %}```
+```shell
 root@node244:~/my_esrally_data/tracks/bigtera# cat track.json 
-{% import "rally.helpers" as rally with context %}
+# {% import "rally.helpers" as rally with context %}
 {
   "version": 2,
   "description": "POIs from bigtera",
@@ -749,7 +703,7 @@ root@node244:~/my_esrally_data/tracks/bigtera# cat track.json
   ]
 }
 root@node244:~/my_esrally_data/tracks/bigtera#
-``` {% endraw %}
+```
 
 
 
@@ -768,9 +722,7 @@ root@node244:~/my_esrally_data/tracks/bigtera#
 
 ### 修改 .rally目录下rally.ini文件
 
-
-
-```
+```ini
 root@node244:~/.rally# cat rally.ini 
 [meta]
 config.version = 17
@@ -820,9 +772,7 @@ root@node244:~/.rally#
 
 [benchmarks]标签下，有个参数local.dataset.cache，这个路径是要运行当前track所需要的原始数据文件：
 
-
-
-```
+```shell
 root@node244:~/.rally# cd /mnt/sata/700million
 root@node244:/mnt/sata/700million# ls -lR
 .:
@@ -849,13 +799,9 @@ root@node244:/mnt/sata/700million#
 
 ### 修改challenges
 
-
-
 可以参考官方示例，构造自己需要的challenges，如下challenges为参考了genonames的示例:
 
-
-
-{% raw %}```
+```shell
 root@node244:~/my_esrally_data/tracks/bigtera/challenges# cat default.json 
     {
       "name": "append-no-conflicts",
@@ -944,7 +890,7 @@ root@node244:~/my_esrally_data/tracks/bigtera/challenges# cat default.json
       ]
     }
 root@node244:~/my_esrally_data/tracks/bigtera/challenges# 
-``` {% endraw %}
+```
 
 
 
@@ -956,13 +902,10 @@ root@node244:~/my_esrally_data/tracks/bigtera/challenges#
 
 ### 修改operations
 
-
-
 参考如下所示：
 
 
-
-{% raw %}```
+```shell
 root@node244:~/my_esrally_data/tracks/bigtera/operations# cat default.json 
     { 
       "name": "index-append",
@@ -1011,17 +954,13 @@ root@node244:~/my_esrally_data/tracks/bigtera/operations# cat default.json
         }
       }
     }
-`` {% endraw %}`
-
-
+```
 
 
 
 
 
 # 使用技巧
-
-
 
 ## 运行时携带参数
 
@@ -1031,27 +970,25 @@ root@node244:~/my_esrally_data/tracks/bigtera/operations# cat default.json
 
 比如下列这个示例：
 
-
-
-```esrally  --pipeline=benchmark-only --target-hosts=10.16.172.243:9200 --track=geonames  --challenge=append-no-conflicts-index-only --track-params="bulk_size:1,bulk_indexing_clients:2" ```
+```shell
+esrally  --pipeline=benchmark-only --target-hosts=10.16.172.243:9200 --track=geonames  --challenge=append-no-conflicts-index-only --track-params="bulk_size:1,bulk_indexing_clients:2"
+```
 
 
 
 指定了只跑append-no-conflicts-index-only这个challenge，同时指定了bulk_size和bulk_indexing_clients，当然，可以携带其他参数了，比如`number_of_replicas` 和 `number_of_shards`，参考如下：
 
-```esrally --pipeline=benchmark-only --track-path=/root/my_esrally_data/tracks/bigtera --target-hosts=10.16.172.76:9200 --offline --report-file=/root/my_esrally_data/report/427112_1Mmetadata_6shards_1rep.json --challenge=append-no-conflicts-index-only --track-params="number_of_shards:6,number_of_replicas:1" ```
+```shell
+esrally --pipeline=benchmark-only --track-path=/root/my_esrally_data/tracks/bigtera --target-hosts=10.16.172.76:9200 --offline --report-file=/root/my_esrally_data/report/427112_1Mmetadata_6shards_1rep.json --challenge=append-no-conflicts-index-only --track-params="number_of_shards:6,number_of_replicas:1"
+```
 
 
 
 ## esrally日志的查看
 
-
-
 在esrally运行时，可以查看日志文件，来帮助定位工具运行中碰到的问题。
 
-
-
-```
+```shell
 root@node244:~# cd .rally/logs/
 root@node244:~/.rally/logs# ll
 total 51520

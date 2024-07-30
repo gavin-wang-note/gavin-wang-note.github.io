@@ -3,8 +3,11 @@ layout:     post
 title:      "pyserial 使用指导"
 subtitle:   "pyserial use guide"
 date:       2023-07-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
+    - [Automation]
 tags:
     - python
     - serial
@@ -33,7 +36,7 @@ tags:
 
 
 
-```
+```python
 >>> import serial
 >>> ser = serial.Serial('COM7', 115200, timeout=1)
 ```
@@ -42,7 +45,7 @@ tags:
 
 不同平台连接不同类型串口，示例如下：
 
-```
+```python
 ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=0.5) # 使用USB连接串行口
 ser = serial.Serial("/dev/ttyAMA0", 9600, timeout=0.5) # 使用树莓派的GPIO口连接串行口
 ser = serial.Serial("com1", 9600, timeout=0.5)# winsows系统使用com1口连接串行口
@@ -59,7 +62,7 @@ ser = serial.Serial("/dev/ttyS1", 9600, timeout=0.5)# Linux系统使用com1口�
 
 
 
-```
+```python
 ser = serial.Serial(
 port=None,              # number of device, numbering starts at
 # zero. if everything fails, the user
@@ -82,7 +85,7 @@ interCharTimeout=None   # Inter-character timeout, None to disable
 
 
 
-### **对象属性**
+### 对象属性
 
 - name —— 设备名字
 - port —— 读或者写端口，比如示例中的'COM7'，这里只接受字符串类型内容
@@ -111,7 +114,7 @@ interCharTimeout=None   # Inter-character timeout, None to disable
 
 **name**
 
-```
+```shell
 >>> print ser.name
 COM7
 
@@ -121,7 +124,7 @@ COM7
 
 **port**
 
-```
+```shell
 >>> print ser.port
 COM7
 >>> print ser.portstr
@@ -133,7 +136,7 @@ COM7
 
 **baudrate**
 
-```
+```shell
 >>> print ser.baudrate
 115200
 >>>
@@ -143,7 +146,7 @@ COM7
 
 **bytesize**
 
-```
+```shell
 >>> print ser.bytesize
 8
 ```
@@ -152,7 +155,7 @@ COM7
 
 **parity**
 
-```
+```shell
 >>> print ser.parity
 N
 ```
@@ -161,7 +164,7 @@ N
 
 **stopbits**
 
-```
+```shell
 >>> print ser.stopbits
 1
 ```
@@ -170,7 +173,7 @@ N
 
 **timeout**
 
-```
+```shell
 >>> print ser.timeout
 None
 ```
@@ -179,7 +182,7 @@ None
 
 关于timeout：
 
-```
+```shell
 timeout=None            # wait forever
 timeout=0               # non-blocking mode (return immediately on read)
 timeout=x               # set timeout to x seconds (float allowed)
@@ -191,7 +194,7 @@ timeout=x               # set timeout to x seconds (float allowed)
 
 **writeTimeout**
 
-```
+```shell
 >>> print ser.writeTimeout
 None
 ```
@@ -200,7 +203,7 @@ None
 
 **xonxoff**
 
-```
+```shell
 >>> print ser.xonxoff
 False
 ```
@@ -209,7 +212,7 @@ False
 
 **rtscts**
 
-```
+```shell
 >>> print ser.rtscts
 False
 ```
@@ -218,7 +221,7 @@ False
 
 **dsrdtr**
 
-```
+```shell
 >>> print ser.dsrdtr
 False
 ```
@@ -227,7 +230,7 @@ False
 
 **interCharTimeout**
 
-```
+```shell
 >>> print ser.interCharTimeout
 None
 >>>
@@ -241,7 +244,7 @@ None
 
 
 
-```
+```shell
 >>> ser.getSettingsDict
 <bound method Serial.getSettingsDict of Serial<id=0x2cc3358, open=True>(port='com7', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=None, xonxoff=False, rtscts=False, dsrdtr=False)>
 >>>
@@ -257,7 +260,7 @@ None
 
 
 
-```
+```shell
 >>> import serial
 >>> ser = serial.Serial('COM7', 115200)
 >>> dir(ser)
@@ -316,7 +319,7 @@ None
 
 
 
-```
+```python
     @staticmethod
     def list_serial_ports():
         """
@@ -354,7 +357,7 @@ None
 
 
 
-```
+```python
 import serial
 ser = serial.Serial('COM7', 115200)
 writen = ser.write('Hello, i send a string command to serial')
@@ -380,7 +383,7 @@ print recevied
 
 ​    inWaiting()或者in_wating，使用如下：
 
-```
+```shell
 >>> ser.inWaiting()
 36L
 >>> ser.in_waiting
@@ -394,7 +397,7 @@ print recevied
 
 ​    read_all() 使用如下:
 
-```
+```shell
 >>> ser.read_all()
 'I received what you send, thanks.'
 >>>
@@ -416,7 +419,7 @@ print recevied
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*
 
@@ -450,7 +453,7 @@ ser.close()
 
 测试结果如下：
 
-```
+```shell
 C:\Users\Administrator>python C:\Users\Administrator\Desktop\hexShow.py
 Enter some words:hex shows test
 --  writen_str : (14)
@@ -478,7 +481,7 @@ hexShow: 68 65 78 20 73 68 6f 77 73 20 74 65 73 74
 
 
 
-```
+```shell
 >>> s ='aabbccddee'
 >>> s.decode('hex')
 '\xaa\xbb\xcc\xdd\xee'
@@ -489,7 +492,7 @@ hexShow: 68 65 78 20 73 68 6f 77 73 20 74 65 73 74
 
 需要注意一点，如果字符串 s 的长度为奇数，则decode会报错：
 
-```
+```shell
 >>> s ='aabbccdde'
 >>> s.decode('hex')
 Traceback (most recent call last):
@@ -508,13 +511,15 @@ TypeError: Odd-length string
 
 假如在串口助手以十六进制发送字符串"abc"，那么你在python中则这样操作：
 
-```serial.write(”\x61\x62\x63") ```
+```python
+serial.write(”\x61\x62\x63") 
+```
 
 
 
 当然，还有另外一个方法也可以达到相同目的：
 
-```
+```python
 s = "abc"
 strHex = binascii.b2a_hex(s)
 # print strHex
@@ -531,7 +536,7 @@ ser.write(strhex);
 
 
 
-```
+```python
     def read_last_line(self):
         """
         Read the last line of output of serial, if not match, return None
@@ -553,7 +558,7 @@ ser.write(strhex);
 
 
 
-```
+```python
     def has_buffer(self):
         """
         Get serial buffer
@@ -577,7 +582,7 @@ ser.write(strhex);
 
 
 
-```
+```python
     def write_serial_output_to_file(self, file_name):
         """
         Write serial output into a file
@@ -601,7 +606,7 @@ ser.write(strhex);
 
 
 
-```
+```python
     def read_until_matched(self, key_words):
         """
         Get some info when read from serial until match some key words

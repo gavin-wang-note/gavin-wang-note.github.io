@@ -3,8 +3,10 @@ layout:     post
 title:      "彻底删除Linux下md设备"
 subtitle:   "Delete Linux of md deivce"
 date:       2023-02-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
     - mdadm
@@ -23,7 +25,7 @@ Lab 2U4N设备上SSD盘有soft-raid存在，本文介绍如何清理掉这些md 
 
 当前OS中md设备信息：
 
-```
+```shell
 root@node123:~# lsblk
 NAME        MAJ:MIN RM    SIZE RO TYPE  MOUNTPOINT
 sda           8:0    0    3.5T  0 disk  
@@ -48,14 +50,14 @@ root@node123:~#
 ```
 
 
-```
+```shell
 root@node123:~# mdadm -Ds 
 ARRAY /dev/md/ddf0 metadata=ddf UUID=783f1a5c:5a361165:b27fff3b:c518b21a
 ARRAY /dev/md126 container=/dev/md/ddf0 member=2 UUID=926ae63a:c3cd5a73:93063a44:eda9c39f
 root@node123:~# 
 ```
 
-```
+```shell
 root@node123:~# mdadm -D /dev/md126
 /dev/md126:
          Container : /dev/md/ddf0, member 2
@@ -84,7 +86,7 @@ Consistency Policy : none
 root@node123:~#
 ```
 
-```
+```shell
 root@node123:/etc/mdadm# cat /proc/mdstat 
 Personalities : [raid0] [linear] [multipath] [raid1] [raid6] [raid5] [raid4] [raid10] 
 md127 : inactive sdf[0](S)
@@ -94,7 +96,7 @@ unused devices: <none>
 root@node123:/etc/mdadm# 
 ```
 
-```
+```shell
 root@node123:/etc/mdadm# mdadm -D /dev/md127
 /dev/md127:
            Version : ddf
@@ -116,7 +118,7 @@ root@node123:/etc/mdadm# mdadm -D /dev/md127
 root@node123:/etc/mdadm#
 ```
 
-```
+```shell
 root@node123:~# cat /etc/mdadm/mdadm.conf
 # mdadm.conf
 #
@@ -164,13 +166,13 @@ root@node123:~#
 
 # 删除md device
 
-```
+```shell
 root@node123:~# mdadm --stop -s /dev/md126
 mdadm: stopped /dev/md126
 root@node123:~# 
 ```
 
-```
+```shell
 root@node123:~# mdadm --misc --zero-superblock /dev/sdf
 mdadm: Couldn't open /dev/sdf for write - not zeroing
 root@node123:~# mdadm --zero-superblock /dev/sdf
@@ -188,7 +190,7 @@ root@node123:~#
 ## 从/proc/mdstat中获取当前OS下的所有md信息
 
 
-```
+```shell
 root@node122:/var/log/history# cat /proc/mdstat 
 Personalities : [raid0] [linear] [multipath] [raid1] [raid6] [raid5] [raid4] [raid10] 
 md120 : inactive sda[0]
@@ -206,7 +208,7 @@ root@node122:/var/log/history#
 
 根据/proc/mdstat中的md信息，逐一stop并清理掉metadata信息，如下：
 
-```
+```shell
 root@node123:/etc/mdadm# mdadm -S /dev/md127
 mdadm: stopped /dev/md127
 root@node123:/etc/mdadm# mdadm --zero-superblock /dev/sdf

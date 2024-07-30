@@ -2,7 +2,7 @@
 title: markdown文件实现标题缩一级功能
 date: 2024-04-09 21:03:19
 author: Gavin Wang
-img:
+img: "/img/markdown/markdown1.jpg"
 top: false
 hide: false
 cover: false

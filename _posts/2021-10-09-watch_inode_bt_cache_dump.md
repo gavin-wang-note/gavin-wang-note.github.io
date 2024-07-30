@@ -3,8 +3,11 @@ layout:     post
 title:      "监控BigteraStore cache中inode消耗状况"
 subtitle:   "Watch inode from BigteraStore cache"
 date:       2021-10-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - shell
     - Linux
@@ -21,10 +24,10 @@ S3性能测试， 向单一Bucket下持续灌入4K大下的对象，观察存储
 
 # Script
 
-watch_inode_bt_cach_dump.sh
+`watch_inode_bt_cach_dump.sh`
 
 
-{% raw %}```
+```shell
 #!/bin/bash
 
 osd_ids=`ps -ef |grep ceph-osd | grep -v grep | awk '{{print $13}}' | sort`
@@ -72,4 +75,4 @@ do
         sleep 600
     fi
 done
-``` {% endraw %}
+```

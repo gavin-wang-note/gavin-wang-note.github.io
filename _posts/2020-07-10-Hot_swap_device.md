@@ -3,8 +3,10 @@ layout:     post
 title:      "热插拔设备"
 subtitle:   "Hot swap device"
 date:       2020-07-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -22,19 +24,19 @@ tags:
 
 ## 移除设备
 
-{% raw %}```
+```shell
 echo 'scsi remove-single-device 0 0 17 0' > /proc/scsi/scsi
-```{% endraw %}
+```
 
 ## 添加设备
 
-{% raw %}```
+```shell
 echo 'scsi add-single-device 0 0 17 0' > /proc/scsi/scsi
-```{% endraw %}
+```
 
 其中，0 0 17 0 为对应磁盘的信息，参考如下：
 
-```
+```shell
 root@node75:~# lsscsi 
 [0:0:0:0]    enclosu GIGABYTE S451 series      000a  -        
 [0:0:1:0]    enclosu GIGABYTE S451 series      000a  -        
@@ -63,7 +65,7 @@ root@node75:~#
 分别对应着Vendor，Model， Rev，参考如下：
 
 
-```
+```shell
 root@node75:/proc/scsi# lsscsi -c
 Attached devices: 
 Host: scsi0 Channel: 00 Target: 00 Lun: 00
@@ -98,7 +100,7 @@ root@node75:/proc/scsi#
 
 热插拔磁盘后，对应的kern log信息片断参考如下:
 
-```
+```shell
 Jul  9 13:46:46 node75 kernel: [ 8752.867575] sd 0:0:17:0: SCSI device is removed
 Jul  9 13:46:46 node75 kernel: [ 8752.867895] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
 Jul  9 13:46:46 node75 kernel: [ 8752.868087] print_req_error: I/O error, dev sda, sector 0
@@ -137,7 +139,7 @@ Jul  9 13:46:57 node75 kernel: [ 8763.177604] sd 0:0:17:0: [sdh] Attached SCSI d
 BTW，本示例中，0:0:17:0: [sdh] 是一块SSD，做成JBOD模式，当JBOD对应盘正常在设备上运行时，是不支持Megacli/storcli下线磁盘指令的，一旦执行报错信息参考如下:
 
 
-```
+```shell
 root@node75:~# storcli64 /c0/e1/s17 set offline
 Controller = 0
 Status = Failure
@@ -161,7 +163,7 @@ root@node75:~#
 
 上文中的热插拔，和 'Rescan SCSI/SATA Host Bus' 有着异曲同工之处，毕竟方法都是多样的，，根据不同场合使用。
 
-{% raw %}```
+```shell
 #/bin/bash
 # ReScan all SCSI/SATA Hosts
 for SHOST in /sys/class/scsi_host/host*; do
@@ -169,5 +171,5 @@ for SHOST in /sys/class/scsi_host/host*; do
     echo "- - -" > ${SHOST}/scan
     echo Done
 done
-```{% endraw %}
+```
 

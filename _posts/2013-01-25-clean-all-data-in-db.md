@@ -3,8 +3,11 @@ layout:     post
 title:      "清除Oracle数据库中所有表、视图、触发器"
 subtitle:   "Clean all of tables/views/trigger"
 date:       2013-01-25
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
+    - [perl]
 tags:
     - perl
     - oracle
@@ -18,12 +21,12 @@ tags:
 
 # 清理脚本
 
-使用perl语言编写（那个时候，组内都用perl，初学，水平有限，望请海涵。。。）
+使用`perl`语言编写（那个时候，组内都用 `perl`，初学，水平有限，望请海涵。。。）
 
 直接上脚本
 
 
-```
+```shell
 #!/usr/bin/perl
 use warnings;
 use strict;

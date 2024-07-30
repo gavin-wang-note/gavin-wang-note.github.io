@@ -3,8 +3,10 @@ layout:     post
 title:      "wc统计为何少了一行"
 subtitle:   "wc lost one line"
 date:       2020-06-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -12,16 +14,16 @@ tags:
 
 # 概述
 
-使用wc统计文件时，发现文件数量总是少一行，原因何在？
+使用`wc`统计文件时，发现文件数量总是少一行，原因何在？
 
 # 实践
 
 ## 准备工作
 
-分布准备两个文件，一个是linux平台下通过vi写入的，一个文件是在windows平台，通过记事本写入的，内容如下：
+分布准备两个文件，一个是`Linux`平台下通过vi写入的，一个文件是在windows平台，通过记事本写入的，内容如下：
 
 
-```
+```shell
 root@node244:~/test# cat wins.txt 
 1
 2
@@ -53,21 +55,21 @@ root@node244:~/test#
 
 ## 统计效果
 
-```
+```shell
 root@node244:~/test# wc -l wins.txt 
 9 wins.txt
 root@node244:~/test# wc -l linux.txt 
 10 linux.txt
 root@node244:~/test# 
-``` 
+```
 
 明明文件记录是10条，为何windows平台生成的文件，统计少了？
 
 ## 原因分析
 
-wc -l 是按\n作为行结束符统计行数，所以最后一行如果没有\n的话会统计丢失。
+`wc -l` 是按\n作为行结束符统计行数，所以最后一行如果没有\n的话会统计丢失。
 
-```
+```shell
 root@node244:~/test# cat linux.txt | od -c
 0000000   1  \n   2  \n   3  \n   4  \n   5  \n   6  \n   7  \n   8  \n
 0000020   9  \n   0  \n
@@ -92,7 +94,7 @@ root@node244:~/test#
 
 # 解决方法
 
-Linux平台上，dos2unix一把 windows产生的文件即可。
+Linux平台上，`dos2unix`一把 windows产生的文件即可。
 
 
 

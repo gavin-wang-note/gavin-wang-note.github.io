@@ -1,10 +1,16 @@
 ---
-layout:     post
-title:      "Jenkins Email Template"
-subtitle:   "Jenkins of Email template"
-date:       2023-05-12
-author:     "Gavin"
-catalog:    true
+layout: post
+title: "Jenkins Email Template"
+subtitle: "Jenkins of Email template"
+date: 2023-05-12
+author: "Gavin Wang"
+catalog: true
+top: true
+img: "img/in-post/jenkins/jenkins.jpg"
+summary: 介绍自用的一款Jenkins Email模板
+categories:
+    - [Jenkins]
+    - [Automation]
 tags:
     - Jenkins 
     - Automation
@@ -17,7 +23,7 @@ Recently in organizing the documentation, I remembered that some time ago, I red
 
 # Script of email template
 
-```
+```javascript
 <STYLE>
   BODY, TABLE, TD, TH, P {
     font-family: Calibri, Verdana, Helvetica, sans serif;
@@ -334,16 +340,18 @@ coberturaResultsUrl = "${rooturl}${build.url}cobertura"
 
 Description:
 
-This file, placed in the email-templates directory in the Jenkins installation directory (if this directory does not exist, just create it manually, and note this directory's ownership information), for example: ${JENKINS_INSTALL_PATH}/email-templates/v1.1_allure-pipeline- report.groovy
+This file, placed in the email-templates directory in the Jenkins installation directory (if this directory does not exist, just create it manually, and note this directory's ownership information), for example: `${JENKINS_INSTALL_PATH}/email-templates/v1.1_allure-pipeline-report.groovy`
 
 
 # E-Mail shows info
 
-## Cell phone terminal display effect picture:
+## Cell phone terminal display effect picture
 
 <img class="shadow" src="/img/in-post/cell_phone_of_jenkins_email.jpg" width="1200">
 
-## All cases are in success stat
+## PC mailbox (example only)
+
+All cases are in success stat:
 
 <img class="shadow" src="/img/in-post/jenkins_build_success.png" width="1200" />
 

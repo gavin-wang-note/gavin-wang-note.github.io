@@ -3,8 +3,10 @@ layout:     post
 title:      "磁盘性能评估与实测"
 subtitle:   "Disk Performance Evaluation"
 date:       2023-03-10
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Disk]
 tags:
     - Disk
 ---
@@ -24,7 +26,7 @@ tags:
 
 因此，理论上可以计算出磁盘的最大IOPS，即IOPS = 1000 ms/ (Tseek + Troatation)，忽略数据传输时间。假设磁盘平均物理寻道时间为3ms, 磁盘转速为7200,10K,15K rpm，则磁盘IOPS理论最大值分别为，
 
-```
+```shell
 IOPS = 1000 / (3 + 60000/7200/2) = 140
 IOPS = 1000 / (3 + 60000/10000/2) = 167
 IOPS = 1000 / (3 + 60000/15000/2) = 200
@@ -40,34 +42,37 @@ IOPS = 1000 / (3 + 60000/15000/2) = 200
 
 <img class="shadow" src="/img/in-post/disk_performace-2.png" width="1200">
 
-												
+
 结论：
 
-1、Raid0：条带大小对读写性能影响不大；
-2、Raid0、Raid1 类型的阵列，增加 N 块盘，磁盘阵列读、写都有提升，效果相当于多了N块盘的性能；
-3、Raid5、Raid6 类型的阵列，增加磁盘，对 4K 随机写性能影响不大，对4K 随机读有略微提升
+* Raid0：条带大小对读写性能影响不大；
+* Raid0、Raid1 类型的阵列，增加 N 块盘，磁盘阵列读、写都有提升，效果相当于多了N块盘的性能；
+* Raid5、Raid6 类型的阵列，增加磁盘，对 4K 随机写性能影响不大，对4K 随机读有略微提升
 
 BBU和缓存策略对磁盘性能的影响:
-1.对randwrite影响最大，启用BBU的randwrite约为未启用的8倍左右
-2.未启用BBU的场景randread反而略有提升
-3.对1M顺序读写没有太大影响						
+* 对randwrite影响最大，启用BBU的randwrite约为未启用的8倍左右
+* 未启用BBU的场景randread反而略有提升
+* 对1M顺序读写没有太大影响						
 
-创建了OSD的磁盘读写性能略微有些下降，但是可以忽略不计		
+创建了OSD的磁盘读写性能略微有些下降，但是可以忽略不计。
 
+
+{% note success %}
 说明：
+{% endnote %}
 
 * 测试为先在路径/data/osd.x/下先写一个200G大小的文件，对该文件进行读写测试，文件大小对顺序读写无影响，对随机读写有影响，小文件随机读写性能随文件size增大而减小
 * OSD创建完成后会在后台进行ext4lazyinit，此进程会影响OSD的读写性能，大小越大43.661 TiB大小的OSD的ext4lazyinit会持续约一个小时10分钟左右
 
-									
-									
-									
-									
-									
-									
-									
-											
-											
-											
- 
+	
+	​								
+	​								
+	​								
+	​								
+	​								
+	​								
+	​										
+	​										
+	​										
+
 

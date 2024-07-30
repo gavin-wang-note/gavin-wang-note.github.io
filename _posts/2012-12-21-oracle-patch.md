@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle补丁"
 subtitle:   "Oracle Patch"
 date:       2012-12-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -12,9 +14,9 @@ tags:
 
 # 关于补丁
 
-金无足赤，人无完人，oralce也一样，补丁天天出，打补丁就成了日常工作中常做的事。对于给数据库打补丁，个人建议如下：
+金无足赤，人无完人，oracle也一样，补丁天天出，打补丁就成了日常工作中常做的事。对于给数据库打补丁，个人建议如下：
 
-1、大补丁（跨版本的补丁）---尽可能在安装oralce软件后，安装database前进行版本升级，实在不可避免，在有database的数据库上进行大补丁的升级操作，往往会破坏数据库的数据字典，详见博主的《Oracle升级碰到的问题》之ORA-01092。
+1、大补丁（跨版本的补丁）---尽可能在安装oracle软件后，安装database前进行版本升级，实在不可避免，在有database的数据库上进行大补丁的升级操作，往往会破坏数据库的数据字典，详见博主的《Oracle升级碰到的问题》之ORA-01092。
 
 2、小补丁—这个没影响，一般是在也只能在安装有database的数据库上进行升级操作，需要注意一点是：补丁的卸载，由于补丁与补丁之间有相互依赖关系，下载某补丁时，可能顺带卸载了其他的补丁。
 
@@ -24,7 +26,7 @@ tags:
 
 修改PATH行在该行添加如下内容：
 
-```
+```shell
 :$ORACLE_HOME/Opatch:
 %cd 6650132
 %opatch apply
@@ -32,7 +34,7 @@ tags:
 
 # 查看opatch版本
 
-```
+```shell
 oracle@GW_8:~> opatch version
 Invoking OPatch 11.1.0.6.2
 
@@ -43,7 +45,7 @@ OPatch succeeded.
 
 # 查看系统中已经打上的one-off补丁
 
-```
+```shell
 oracle@GW_8:~> opatch lsinventory
 Invoking OPatch 11.1.0.6.2
 
@@ -79,16 +81,16 @@ OPatch succeeded.
 
 执行该命令，如果报错
 
-```
+```shell
 oracle@GW_8:~> opatch lsinventory
 -bash: opatcher: command not found
 ```
 
 请oracle操作系统用户环境中做如下配置
 
-```
+```shell
 export PATH=$ORACLE_HOME/OPatch:$PATH
 ```
 
-source生效后重新执行opatch lsinventory命令。
+source生效后重新执行 `opatch lsinventory` 命令。
 

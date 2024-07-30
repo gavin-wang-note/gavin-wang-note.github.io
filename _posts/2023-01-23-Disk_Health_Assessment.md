@@ -3,8 +3,10 @@ layout:     post
 title:      "磁盘健康评估"
 subtitle:   "Disk Health Assessment"
 date:       2023-01-23
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Disk]
 tags:
     - Disk 
 ---
@@ -22,13 +24,13 @@ Scaler 产品中有一feature，关于DISK的健康健康。
 
 命令:
 
-``` 
+```shell 
 $ smartctl  -A -d megaraid,{1} {2} 
 ```
 
 参数：
 
-```
+```shell
 {1} --> raid卡上的VD会有一个Device ID
 {2} --> 磁盘设备的 disk name 形式是：/dev/sdX
 ```
@@ -37,7 +39,7 @@ $ smartctl  -A -d megaraid,{1} {2}
 
 获取设备的 SCSI NAA ID 
 
-```
+```shell
 $ udevadm info --query=symlink --name=sdc
 disk/by-id/scsi-36001485000764bd02b0e1956937eb1f8 
 disk/by-id/scsi-SAVAGO_Gigabyte_MR-3108_00f8b17e9356190e2bd04b7600504801 
@@ -46,7 +48,7 @@ disk/by-id/wwn-0x6001485000764bd02b0e1956937eb1f8 disk/by-path/pci-0000:af:00.0-
 
 再通过 storcli64 筛选符合该 ID 的 VD 组信息, 筛选对应VD信息 
 
-```
+```shell
 $ storcli64 /call/vall show all | grep -B100 6001485000764bd02b0e1956937eb1f8
 /c0/v2 :
 ======
@@ -95,7 +97,7 @@ SCSI NAA Id = 6001485000764bd02b0e1956937eb1f8        ----可以看到匹配的S
 
 查看磁盘健康信息 
 
-```
+```shell
 $ smartctl -A -d megaraid,73 /dev/sdc
 smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-202207281639.git553ed7f] (local build)
 Copyright (C) 2002-18, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -132,7 +134,7 @@ ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_
 
 重点关注几个 RAW_VALUE 
 
-```
+```shell
  5  Reallocated_Sector_Ct         ：  reallocated sectors count 重分配扇区计数：硬盘生产过程中，有一部分扇区是保留的。
                                                        当一些普通扇区读/写/验证错误，则重新映射到保留扇区，挂起该异常扇区，并增加计数。随着计数增加，io性能骤降。如果数值不为0，就需要密切关注硬盘健康状况；
                                                        如果持续攀升，则硬盘已经损坏；如果重分配扇区数超过保留扇区数，将不可修复
@@ -145,13 +147,13 @@ ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_
 
 命令 
 
-```
+```shell
 $ smartctl -A {1}
 ```
 
 参数：
 
-```
+```shell
 {1} --> 设备的 disk name，形式是 /dev/sdX
 
 ```
@@ -160,7 +162,7 @@ $ smartctl -A {1}
 
 直接获取磁盘健康状态 
 
-```
+```shell
 $ smartctl -A /dev/sdg
 smartctl 7.0 2018-12-30 r4883 [x86_64-linux-4.14.148-202207281639.git553ed7f] (local build)
 Copyright (C) 2002-18, Bruce Allen, Christian Franke, www.smartmontools.org
@@ -202,7 +204,7 @@ ID# ATTRIBUTE_NAME          FLAG     VALUE WORST THRESH TYPE      UPDATED  WHEN_
 
 扫描所有设备 
 
-```
+```shell
 $ smartctl --scan
 /dev/sda -d scsi # /dev/sda, SCSI device
 /dev/sdb -d scsi # /dev/sdb, SCSI device
@@ -226,7 +228,7 @@ $ smartctl --scan
 
 通过 storcli64 获取没有建立 Raid 盘的 DID，然后直接获取健康信息；传参时候，用 /dev/bus/0 代替 disk name,获取磁盘健康信息 
 
-```
+```shell
 $ smartctl -A -d megaraid,66 /dev/bus/0
 ......
 ```
@@ -245,7 +247,7 @@ JBOD磁盘，通过SN（Serial Number）来定位盘符
 
 #通过 smartctl 获取 /dev/sda 的 SN
 
-```
+```shell
 $ smartctl -a /dev/sda
 === START OF INFORMATION SECTION ===
 Device Model     :     TOSHIBA MG05ACA800E
@@ -260,7 +262,7 @@ Rotation Rate    :      7200 rpm
 查看Raid卡上该磁盘信息 
 
 
-```
+```shell
 $ storcli64 /call/eall/sall show all
 ......
 Drive /c0/e55/s1 Device attributes :
@@ -278,7 +280,7 @@ Firmware Revision = GX2A
 
 获取硬盘 scsi_id 
 
-```
+```shell
 $ udevadm info --query=symlink --name=sdc
 disk/by-id/scsi-36001485000764bd02b0e1956937eb1f8    ----取这个 scsi_3 后面内容(截取部分 grep过滤即可)    
 disk/by-id/scsi-SAVAGO_Gigabyte_MR-3108_00f8b17e9356190e2bd04b7600504801        
@@ -287,7 +289,7 @@ disk/by-id/wwn-0x6001485000764bd02b0e1956937eb1f8 disk/by-path/pci-0000:af:00.0-
 
 storcli64 获取对应 Raid 组信息 
 
-```
+```shell
 $ storcli64 /call/vall show all | grep -B100 6001485000764bd02b0e1956937eb1f8
 /c0/v2 :
 ======
@@ -336,13 +338,13 @@ SCSI NAA Id = 6001485000764bd02b0e1956937eb1f8             ----对应该 SCSI NA
 
 后台初始化相关命令:
 
-1、禁止后台初始化 /opt/MegaRAID/MegaCli/MegaCli64 -LDBI -dsbl -L0 -a0
+1、禁止后台初始化 `/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -dsbl -L0 -a0`
 
-2、结束正在进行的后台初始化 /opt/MegaRAID/MegaCli/MegaCli64 -LDBI -abort -L0 -a0
+2、结束正在进行的后台初始化 `/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -abort -L0 -a0`
 
-3、查看后台初始化的设置 /opt/MegaRAID/MegaCli/MegaCli64 -LDBI -getsetting -L0 -a0
+3、查看后台初始化的设置 `/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -getsetting -L0 -a0`
 
-4、显示后台初始化进度 /opt/MegaRAID/MegaCli/MegaCli64 -LDBI -progdsply -L0 -a0
+4、显示后台初始化进度 `/opt/MegaRAID/MegaCli/MegaCli64 -LDBI -progdsply -L0 -a0`
 
 
 

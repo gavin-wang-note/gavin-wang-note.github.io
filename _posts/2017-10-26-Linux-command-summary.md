@@ -3,8 +3,10 @@ layout:     post
 title:      "测试中常用的Linux命令汇总"
 subtitle:   "Linux command"
 date:       2017-10-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -93,14 +95,14 @@ tags:
 ## 查看物理CPU的个数
 
 ```cat /proc/cpuinfo |grep "physical id"|sort |uniq|wc -l```
- 
+
 ## 查看逻辑CPU的个数
 
 ```cat /proc/cpuinfo |grep "processor"|wc -l```
 
 或者使用nproc命令查看:
 
-```
+```shell
 root@host245:~# nproc
 32
 ```
@@ -151,7 +153,7 @@ root@host245:~# nproc
 
 输出示例如下：
 
-```
+```shell
 root@host245:~/tmp# lsblk -d -o name,rota
 NAME ROTA
 sda     0
@@ -176,7 +178,7 @@ sdl     1
 
 # 查看分区的uuid信息
 
-```
+```shell
 [root@nwos ~]# blkid  /dev/sdb1
 /dev/sdb1: UUID="9d7790c6-4fd9-47db-ad16-24d1025d4518" TYPE="ext4" 
 ```
@@ -207,7 +209,7 @@ sdl     1
 
 比如vi 一个文件，ctrl+z之后，进入后台, 或者在vi期间，session中断了（没有tmux）
 
-```
+```shell
 root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# vi ctdbManagerTestcaseBase.py 
 
 [1]+  Stopped  
@@ -216,7 +218,7 @@ root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# vi ctdbM
 
 ps查看：
 
-```
+```shell
 root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# ps -ef | grep -i vii
 root      393866  399030  0 11:35 pts/2    00:00:00 grep --color=auto -i vii
 root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# ps -ef | grep -i vi
@@ -230,14 +232,14 @@ root      412813  399030  0 10:58 pts/2    00:00:02 vi ctdbManagerTestcaseBase.p
 
 ## Step1、使用jobs命令
 `
-```
+```shell
 root@node01:/home/stability_testing/src/testCase/_03_ctdb/testcasebase# jobs
 [1]+  Stopped                 vi ctdbManagerTestcaseBase.py
 ```
 
 这里看到[1]+，如果有多个后台运行，展示类似如下：
 
-```
+```shell
 [root@pcmxexweb etc]# jobs
 
 [1]-  Stopped                 find / -name xml
@@ -256,11 +258,11 @@ X表示中括号里的数值，比如：
 
 # 查看所有网口的Link Detected 状态
 
-{% raw %}```ifconfig -a | grep 'Link encap:' | grep -v lo | awk '{{print $1}}' | xargs -I{} -t ethtool {} | grep 'Link detected' ``` {% endraw %}
+```ifconfig -a | grep 'Link encap:' | grep -v lo | awk '{{print $1}}' | xargs -I{} -t ethtool {} | grep 'Link detected' ``` 
 
 输出示例：
 
-```
+```shell
 ethtool bond0 
 	Link detected: yes
 ethtool bond1 
@@ -361,14 +363,14 @@ ethtool eth1
 
 输出示例:
 
-```
+```shell
 root@host245:~/tmp# date +"%Z %z"
 CST +0800
 ```
 
 或者 date -R
 
-```
+```shell
 root@host245:~/tmp# date -R
 Wed, 27 Nov 2019 16:59:38 +0800
 root@host245:~/tmp# 
@@ -382,7 +384,7 @@ root@host245:~/tmp#
 
 输出示例:
 
-```
+```shell
 root@host245:~/tmp# timedatectl | grep 'Timezone'
         Timezone: Asia/Shanghai (CST, +0800)
 ```
@@ -424,34 +426,34 @@ cache分3种：
 
 ## 清空内存缓存
 
-```
+```shell
 echo 1 > /proc/sys/vm/drop_caches
 ```
 
 ## 清空 pagecache
 
-```
+```shell
 sync
 echo 1 > /proc/sys/vm/drop_caches
 ```
 
 或者
 
-```
+```shell
 sync
 sysctl -w vm.drop_caches=1
 ```
 
 ## 清空 dentries 和 inodes
 
-```
+```shell
 sync
 echo 2 > /proc/sys/vm/drop_caches
 ```
 
 或者
 
-```
+```shell
 sync
 sysctl -w vm.drop_caches=2
 ```
@@ -459,14 +461,14 @@ sysctl -w vm.drop_caches=2
 
 ## 清空所有缓存（pagecache、dentries 和 inodes）
 
-```
+```shell
 sync
 echo 3 > /proc/sys/vm/drop_caches
 ```
 
 或者
 
-```
+```shell
 sync
 sysctl -w vm.drop_caches=3
 ```
@@ -478,14 +480,14 @@ sysctl -w vm.drop_caches=3
 
 然后 off  和 on 对应的网卡
 
-```
+```shell
 [root@localhost sbull]# ip link set arp off dev eth0
 [root@localhost sbull]# ip link set arp on dev eth0
 ```
 
 最后再查看下arp表信息
 
-```
+```shell
 [root@localhost sbull]# arp -n
 ```
 
@@ -497,7 +499,7 @@ sysctl -w vm.drop_caches=3
 
 物理服务器
 
-```
+```shell
 [root@JX-P-L-KVM-231 ~]# dmidecode -s system-product-name
 # SMBIOS implementations newer than version 2.7 are not
 # fully supported by this version of dmidecode.
@@ -507,21 +509,21 @@ PowerEdge R930
 
 KVM 虚拟主机
 
-```
+```shell
 [root@JX-V-L-PHP-237 ~]# dmidecode -s system-product-name
 KVM
 ```
 
 VMware vSphere 虚拟主机
 
-```
+```shell
 [root@ZE-T1 ~]# dmidecode -s system-product-name
 VMware Virtual Platform
 ```
 
 阿里云主机
 
-```
+```shell
 [root@zdc ~]# dmidecode -s system-product-name
 HVM domU
 ```

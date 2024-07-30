@@ -3,8 +3,10 @@ layout:     post
 title:      "获取Apache请求处理时间"
 subtitle:   "Get elapsed time for Apache"
 date:       2016-06-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Apache]
 tags:
     - Apache
 ---
@@ -23,7 +25,7 @@ tags:
 
 修改后，conf 内容如下：
 
-```
+```shell
 LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
 LogFormat "%h %l %u %t \"%r\" %>s %O %T.%D \"%{Referer}i\" \"%{User-Agent}i\"" combined
 LogFormat "%h %l %u %t \"%r\" %>s %O" common
@@ -33,7 +35,7 @@ LogFormat "%{User-agent}i" agent
 
 看下//var/log/apache2/access.log中的输出：
 
-```
+```shell
  10.16.17.43 - - [01/Jun/2016:13:41:51 +0800] "GET /cgi-bin/ezs3/json/list_shared_folder?gateway_group=virStorage&_=1464745951979 HTTP/1.1" 200 1322 0.932141 "https://10.16.17.11:8080/" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:46.0) Gecko/20100101 Firefox/46.0"
 ```
 

@@ -3,8 +3,10 @@ layout:     post
 title:      "如何查看端口是否被封"
 subtitle:   "How to check if a port is blocked"
 date:       2023-04-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -24,13 +26,13 @@ tags:
 
 例如：
 
-```
+```shell
 telnet 192.168.1.100 80
 ```
 
 如果能够连接上，则输出如下内容：
 
-```
+```shell
 Trying 192.168.1.100...
 Connected to 192.168.1.100.
 Escape character is '^]'.
@@ -39,7 +41,7 @@ Escape character is '^]'.
 
 如果无法连接，则输出如下内容：
 
-```
+```shell
 Trying 192.168.1.100...
 telnet: Unable to connect to remote host: Connection refused
 ```
@@ -50,20 +52,20 @@ telnet: Unable to connect to remote host: Connection refused
 
 例如：
 
-```
+```shell
 nc -vz 192.168.1.100 80
 ```
 
 如果能够连接上，则输出如下内容：
 
-```
+```shell
 Connection to 192.168.1.100 80 port [tcp/*] succeeded!
 ```
 
 
 如果无法连接，则输出如下内容：
 
-```
+```shell
 nc: connect to 192.168.1.100 port 80 (tcp) failed: Connection refused
 ```
 

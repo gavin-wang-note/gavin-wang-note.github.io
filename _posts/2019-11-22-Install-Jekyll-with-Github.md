@@ -2,9 +2,11 @@
 layout:     post
 title:      "Ununtu14.04 安装Jekyll及Github部署流程"
 subtitle:   "Install Jekyll with Github"
-date:       2019-11-20
-author:     "Gavin"
+date:       2019-11-22
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Jekyll]
 tags:
     - Jekyll
 ---
@@ -22,7 +24,7 @@ tags:
 
 从 Github 上 clone, 再添加路径 :
 
-```
+```shell
 git clone git://github.com/sstephenson/rbenv.git ~/.rbenv
 
 echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bashrc
@@ -34,7 +36,7 @@ source ~/.bashrc
 
 然后我们需要一个 rbenv 插件 ruby-build 来编译并安装 Ruby .
 
-```
+```shell
 git clone git://github.com/sstephenson/ruby-build.git ~/.rbenv/plugins/ruby-build
 
 echo 'export PATH="$HOME/.rbenv/plugins/ruby-build/bin:$PATH"' >> ~/.bashrc
@@ -44,7 +46,7 @@ source ~/.bashrc
 
 安装 rbenv-gem-rehash . 当使用 gem 安装或卸载 Ruby package 时，这个插件自动调用 rbenv rehash .
 
-```
+```shell
 git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/rbenv-gem-rehash
 ```
 
@@ -54,7 +56,7 @@ git clone https://github.com/sstephenson/rbenv-gem-rehash.git ~/.rbenv/plugins/r
 
 官网提供的方法是：
 
-```
+```shell
 curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
 
 apt-get install -y nodejs
@@ -72,9 +74,9 @@ npm 也会被安装.
 
 说明：
 
-**先跳过安装，如果没有****gem****，再来安装与设置环境变量**
+**先跳过安装，如果没有gem，再来安装与设置环境变量**
 
-```
+```shell
 apt-get install gem
 ```
 
@@ -82,7 +84,7 @@ apt-get install gem
 
 设置gem环境变量
 
-```
+```shell
 echo '# Install Ruby Gems to ~/gems' >> ~/.zshrc
 
 echo 'export GEM_HOME="$HOME/gems"' >> ~/.zshrc
@@ -100,7 +102,7 @@ source ~/.zshrc
 
 首先确定相关的依赖已经安装.
 
-```
+```shell
 apt-get update
 
 apt-get install build-essential libssl-dev libreadline-dev libyaml-dev libxml2-dev libxslt1-dev libffi-dev python-software-properties
@@ -108,7 +110,7 @@ apt-get install build-essential libssl-dev libreadline-dev libyaml-dev libxml2-d
 
 然后运行下面的语句：
 
-```
+```shell
 rbenv install 2.4.0
 
 rbenv global 2.4.0
@@ -118,13 +120,13 @@ rbenv global 2.4.0
 
 由于jekyll requires RubyGems version >= 2.7.0，需要更新gem
 
-```
+```shell
 gem update --system
 ```
 
 如果上面的命令不行，需要执行下面的命令：
 
-```
+```shell
 gem install rubygems-update
 
 update_rubygems
@@ -134,7 +136,7 @@ update_rubygems
 
 成功更新后，查看gem版本
 
-```
+```shell
 root@code80:~# gem -v
 3.0.6
 ```
@@ -143,7 +145,7 @@ root@code80:~# gem -v
 
 #### 开始安装jekyll
 
-```
+```shell
 gem install bundle
 
 gem install jekyll
@@ -156,7 +158,7 @@ gem install jekyll
 
 通过下面的方法检查安装是否成功.
 
-```
+```shell
 root@code80:~# jekyll -v
 jekyll 4.0.0
 ```
@@ -165,7 +167,7 @@ jekyll 4.0.0
 
 #### 使用Jekyll创建你的博客站点
 
-```
+```shell
 jekyll new blog
 ```
 
@@ -175,13 +177,13 @@ jekyll new blog
   执行“jekyll new blog”会卡住很久，耐心等待一下（或者tmux里执行），成功后会看到：
 
 <img class="shadow" src="/img/in-post/jeky_new_blog.jpg" width="1200">
- 
 
- 
+
+
 
 #### 启动jekyll服务
 
-```
+```shell
 cd blog
 
 jekyll serve
@@ -191,7 +193,7 @@ jekyll serve
 
 会看到如下效果：
 
-```
+```shell
 root@code80:~/blog# jekyll serve
 Configuration file: /root/blog/_config.yml
             Source: /root/blog
@@ -211,7 +213,7 @@ Configuration file: /root/blog/_config.yml
 
 由于jekyll将地址绑定到了127.0.0.1，导致局域网的其它机器并不能访问它的服务。但实际上只要改变运行jekyll的参数就可以了。
 
-```
+```shell
  root@code80:~/blog# jekyll serve -w --host=172.17.73.80
 Configuration file: /root/blog/_config.yml
             Source: /root/blog
@@ -259,7 +261,7 @@ Configuration file: /root/blog/_config.yml
 
 现在写两个新的md文档
 
-```
+```shell
 -rw-r--r-- 1 root root 3319 Nov 21 21:20 2019-11-20-nose-progress-bar.md
 
 -rw-r--r-- 1 root root 5018 Nov 21 21:20 2019-11-21-write-nose-test-case-role.md
@@ -272,13 +274,13 @@ Configuration file: /root/blog/_config.yml
 
 默认情况下，服务会以前台的方式挂起，如果希望用后台进程运行服务，我们可以使用 --detach参数，缩写参数为-B(应该是Background的首字母)
 
-```
+```shell
 jekyll serve build --detach -w --host=172.17.73.80
 ```
 
 或者
 
-```
+```shell
 jekyll serve build -B -w --host=172.17.73.80
 ```
 
@@ -294,7 +296,7 @@ jekyll serve build -B -w --host=172.17.73.80
 
 打开一个markdown,可以看见开头有如下几个东东。
 
-```
+```shell
 ---
 
 layout: post
@@ -314,7 +316,7 @@ layout表示使用的是post布局，title是文章标题，date是自动生成�
 
  
 
-```
+```shell
 task :default => :new
 
 require 'fileutils'
@@ -392,7 +394,7 @@ end
 
 输入一下命令：
 
-```
+```shell
 rake new
 ```
 
@@ -400,7 +402,7 @@ rake new
 
 rake会启动交互模式，让你依次输入title，subtitle，author，categories，tag等信息，并为你创建好具有头信息的markdown文件。如下一样:
 
-```
+```shell
 请输入要创建的 post URL：
 
 testurl
@@ -426,7 +428,7 @@ jekyll
 
 我们查看_post目录，发现已经有一篇2019-11-21-testurl.md文章，打开看下
 
-```
+```shell
 ---
 
 layout: post
@@ -454,7 +456,7 @@ tag: 技术
 
 ### 创建我们的仓库
 
- 
+
 <img class="shadow" src="/img/in-post/my_pro.jpg" width="1200">
 
  
@@ -472,7 +474,7 @@ tag: 技术
 <img class="shadow" src="/img/in-post/my_new_pro.jpg" width="1200">
 
 
- 
+
 
 ### 将本地jekyll代码部署到Github上的仓库
 
@@ -482,7 +484,7 @@ tag: 技术
 
 请确保本地安装了git客户端，克隆你的username.github.com仓库到本地。
 
-```
+```shell
 git clone https://github.com/username/username.github.com.git
 ```
 
@@ -492,31 +494,31 @@ git clone https://github.com/username/username.github.com.git
 
 删除username.github.com下面的示例文件(README.md,不要删除，绑定域名会用到):
 
-```
+```shell
 rm -rf _site index.html _config.yml
 ```
 
 拷贝本地blog(这个是前面本地搭建的blog，后续等同，不再说明)下的所有目录及文件到username.github.com
 
-```
+```shell
 cp -r /root/blog/* username.github.com
 ```
 
 此时你会看见当前存在username.github.com这个目录，我们启动jekyll服务（启动前确保其他目录下没有jekyll服务，可以`ps aux|grep jekyll`查看进程,有的话,用`kill -9 进程号`杀掉）:
 
-```
+```shell
 cd username.github.com
 
 jekyll serve -B -w --host=172.17.73.80
 ```
 
-现在我们打开http://172.17.73.80:4000,即可看见我们在Github上创建的主页，理论上和[http://username.github.com](https://link.jianshu.com?t=http:/username.github.com) 访问的应该是一模一样的。
+现在我们打开 'http://172.17.73.80:4000', 即可看见我们在Github上创建的主页，理论上和 'http://username.github.com' 访问的应该是一模一样的。
 
  
 
 ### 本地Jekyll站点部署到Github Pages上（相当于线上环境）
 
-```
+```shell
 git add --all       #添加到暂存区 
 
 git commit -m "提交jekyll默认页面" #提交到本地仓库
@@ -526,22 +528,22 @@ git push origin master     #线上的站点是部署在master下面的
 ```
 
 稍等10分钟左右，Github Pages有一定时间缓存,我们刷新username.github.io看看,已经ok了！
- 
 
- 
+
+
 
 ## 问题
 
 ### Jekyll因MissingDependencyException启动失败
 
 <img class="shadow" src="/img/in-post/jekyll_start_failed.jpg" width="1200">
- 
 
- 
+
+
 
 主要是这一句：
 
-```
+```shell
 The jekyll-theme-cayman theme could not be found
 ```
 
@@ -549,7 +551,7 @@ The jekyll-theme-cayman theme could not be found
 
 那就使用gem去安装它
 
-```
+```shell
 gem install jekyll-theme-cayman
 ```
 

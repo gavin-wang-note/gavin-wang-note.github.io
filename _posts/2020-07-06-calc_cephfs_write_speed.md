@@ -3,8 +3,11 @@ layout:     post
 title:      "利用oceanfile批量构造文件并统计cephfs速度"
 subtitle:   "Used oceanfile to generate lots of files and calc write speed for cephfs"
 date:       2020-07-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - shell
 ---
@@ -18,7 +21,7 @@ tags:
 
 直接上脚本，参考如下:
 
-```
+```shell
 root@node76:~/oceanfile# cat run_oceanfile.sh 
 #!/bin/bash
 

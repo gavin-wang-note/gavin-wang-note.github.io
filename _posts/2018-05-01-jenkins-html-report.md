@@ -3,8 +3,11 @@ layout:     post
 title:      "Jenkins Email发送HTML测试报告模板"
 subtitle:   "Jenkins send HTML report E-mail"
 date:       2018-05-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [Jenkins]
 tags:
     - Jenkins
     - Automation
@@ -24,7 +27,7 @@ Jenkins上设置变量信息如下图所示:
 
 ## 读取变量文件的脚本 
 
-```
+```shell
 #!/bin/bash
 
 scriptrootpath=/work/automation-test/nose_7.0/nose_framework
@@ -55,7 +58,7 @@ fi
 
 
 result_file="$scriptrootpath/report/result.txt"
-{% raw %}`cat ${report_file} | grep -A5 "<td><strong>Total</strong></td>" | grep -v strong | awk -F "td" '{{print $2}}' | sed 's/>//g' | sed 's/<\///g' > ${result_file}` {% endraw %}
+`cat ${report_file} | grep -A5 "<td><strong>Total</strong></td>" | grep -v strong | awk -F "td" '{{print $2}}' | sed 's/>//g' | sed 's/<\///g' > ${result_file}` 
 
 
 test_counts=`awk 'NR==5, NR==5 {print $1}' ${result_file}`
@@ -74,7 +77,7 @@ echo TEST_ERROR=${test_error} >> $scriptrootpath/build.properties
 
 
 ## html模板代码
-```
+```shell
 <html>
     <head>
         <title></title>

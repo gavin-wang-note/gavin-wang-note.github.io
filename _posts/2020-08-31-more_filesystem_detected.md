@@ -3,8 +3,10 @@ layout:     post
 title:      "因存在多文件系统导致OSD启用失败"
 subtitle:   "OSD mount failed by many filesystems"
 date:       2020-08-31
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -13,7 +15,7 @@ tags:
 
 今天在创建OSD并启用它的时候，出现了如下一个错误:
 
-```
+```shell
 [2020-08-31 10:23:32,948] [ERROR] [2163] [ezs3.storage_volume] [enable:816] enable osd fail
 Traceback (most recent call last):
   File "/usr/lib/python2.7/dist-packages/ezs3/storage_volume.py", line 803, in enable
@@ -48,7 +50,7 @@ DoCommandError: DoCommandError: errno 1 stdout '' stderr 'mount: /dev/mapper/g-o
 
 使用wipefs指令，查看文件系统信息:
 
-```
+```shell
 root@pytest-80-12:~# wipefs /dev/sdg2
 offset               type
 ----------------------------------------------------------------
@@ -77,8 +79,8 @@ offset               type
 
 只用wipefs -a -f /dev/sdX来抹掉信息即可，有时候可能要抹掉多次，参考如下：
 
-{% raw %}
-```
+
+```shell
 root@host248:/dev# wipefs /dev/sdc1
 offset               type
 ----------------------------------------------------------------
@@ -110,11 +112,11 @@ root@host248:/dev# wipefs /dev/sdc1 |grep zfs_member | awk '{{print $1}}' | xarg
 root@host248:/dev# wipefs /dev/sdc1 |grep zfs_member | awk '{{print $1}}' | xargs -I{} wipefs -o {} /dev/sdc1
 root@host248:/dev# wipefs /dev/sdc1
 root@host248:/dev#
-``` {% endraw %}
+```
 
 # 参考文档
 
-```
+```shell
 https://bbs.archlinux.org/viewtopic.php?id=202587
 https://wiki2.xbits.net:4430/hardware:lsi:wipefs%E6%B8%85%E9%99%A4raid%E4%BF%A1%E6%81%AF
 ```

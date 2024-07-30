@@ -3,8 +3,10 @@ layout:     post
 title:      "Disable core dump"
 subtitle:   "Disable core dump"
 date:       2017-02-17
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -19,13 +21,13 @@ tags:
 
 open /etc/security/limits.conf, enter:
 
-```
+```shell
 # vi /etc/security/limits.conf
 ```
 
 ## Make sure the following config directive exists
 
-```
+```shell
 * soft core 0
 * hard core 0
 ```
@@ -34,7 +36,7 @@ open /etc/security/limits.conf, enter:
 
 Once a hard limit is set in /etc/security/limits.conf, the user cannot increase that limit within his own session. Add fs.suid_dumpable = 0 to /etc/sysctl.conf file:
 
-```
+```shell
 # echo 'fs.suid_dumpable = 0' >> /etc/sysctl.conf
 # sysctl -p
 ```
@@ -46,6 +48,6 @@ This will make sure that core dumps can never be made by setuid programs.
 
 Finally, add the following to /etc/profile to set a soft limit to stop the creation of core dump files for all users (which is default and must be disabled):
 
-```
+```shell
 # echo 'ulimit -S -c 0 > /dev/null 2>&1' >> /etc/profile
 ```

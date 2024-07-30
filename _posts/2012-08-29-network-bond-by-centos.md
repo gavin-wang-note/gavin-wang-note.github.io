@@ -3,8 +3,10 @@ layout:     post
 title:      "手动对CentoOS6 or CentoOS7做网卡绑定"
 subtitle:   "Network bond for Centos"
 date:       2012-08-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -17,7 +19,7 @@ tags:
 
 ## 1、ifconfig查看网卡信息
 
-```
+```shell
 eth0      Link encap:Ethernet  HWaddr EC:38:8F:79:1B:F0  
           inet addr:172.18.112.11  Bcast:172.18.112.255  Mask:255.255.255.0
           inet6 addr: fe80::ee38:8fff:fe79:1bf0/64 Scope:Link
@@ -42,7 +44,7 @@ eth1      Link encap:Ethernet  HWaddr EC:38:8F:79:1B:F1
 
 进入 ```/etc/sysconfig/network-scripts```，创建backup目录，并将eth0和eth1网卡配置文件信息拷贝到新创建的backup目录下
 
-```
+```shell
 mkdir backup
 cp ifcfg-eth0 ifcfg-eth1 ./backup
 ```
@@ -53,7 +55,7 @@ cp ifcfg-eth0 ifcfg-eth1 ./backup
 
 ```/etc/sysconfig/network-scripts ```目录下，创建ifcfg-bond1文件，并添加如下内容：
 
-```
+```shell
 DEVICE=bond1
 BOOTPROTO=none
 ONBOOT=yes
@@ -74,7 +76,7 @@ USERCTL=no
 
 ifcfg-eth1内容
 
-```
+```shell
 DEVICE=eth1
 MASTER=bond1
 SLAVE=yes
@@ -86,7 +88,7 @@ USERCTL=no
 
 修改dist.conf文件,增加如下内容
 
-```
+```shell
 vi /etc/modprobe.d/dist.conf
 alias bond1 bonding
 options bond1 miimon=100 mode=1
@@ -94,7 +96,7 @@ options bond1 miimon=100 mode=1
 
 重启网卡服务
 
-```
+```shell
 /etc/init.d/network restart
 ```
 
@@ -106,7 +108,7 @@ options bond1 miimon=100 mode=1
 
 如果ifconfig查看，并没有发现有bond1网卡信息，可通过如下方法进行解决
 
-```
+```shell
 service NetworkManager stop
 service network restart
 ifconfig查看bond信息

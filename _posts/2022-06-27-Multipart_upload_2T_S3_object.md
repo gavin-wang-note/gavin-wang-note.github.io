@@ -3,8 +3,11 @@ layout:     post
 title:      "分片上传2T大小的一个S3对象"
 subtitle:   "Fragment Upload Object which size is 2T"
 date:       2022-06-27
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [S3]
+    - [ceph]
 tags:
     - S3
     - ceph
@@ -31,7 +34,7 @@ tags:
 ##  准备测试脚本
 
 
-```
+```python
 #!/usr/bin/env python
 
 import shutil
@@ -171,7 +174,7 @@ print "download %s with %d threads use %d seconds" % (keyname, threadcnt, time2-
 脚本output:
 
 
-```
+```shell
 root@node224:~# python s3_upload.py            
 --  enable rgw debug log                       
 {                                              
@@ -187,9 +190,4 @@ root@node224:~# python s3_upload.py
 }                                              
 upload 1T.file with 32 threads use 8907 seconds
 ```
-
-
-存储端对象信息：
-
-
 

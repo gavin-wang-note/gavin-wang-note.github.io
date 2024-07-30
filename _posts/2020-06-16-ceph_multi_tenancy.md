@@ -3,8 +3,10 @@ layout:     post
 title:      "ceph S3 多租户"
 subtitle:   "ceph multi-tenancy"
 date:       2020-06-16
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -18,7 +20,7 @@ tags:
 
 # 查看默认tenant中S3账号信息
 
-```
+```shell
 root@node76:/var/log/ezcloudstor# radosgw-admin metadata list user
 [
     "admin",
@@ -28,7 +30,7 @@ root@node76:/var/log/ezcloudstor# radosgw-admin metadata list user
 
 上述信息中，有两个S3账号，admin账号先忽略，此账号为超级管理员， user01为我创建的一个普通S3账号，此账号信息如下：
 
-```
+```shell
 root@node76:/var/log/ezcloudstor# radosgw-admin user info --uid=user01
 {
     "user_id": "user01",
@@ -97,7 +99,7 @@ root@node76:/var/log/ezcloudstor#
 
 直接指定tenant为空，再次查询一下这个S3账号
 
-```
+```shell
 root@node76:~# radosgw-admin user info --uid=user01 --tenant=''
 {
     "user_id": "user01",
@@ -168,12 +170,12 @@ root@node76:~# radosgw-admin user info --uid=user01 --tenant=''
 
 这里会预先创建两个租户下的同名账号，tenant1下的user01，和tenant2下的user01
 
-```
+```shell
 radosgw-admin user create --tenant tenant1 --uid user01 --display-name "tenant1_user01"
 radosgw-admin user create --tenant tenant2 --uid user01 --display-name "tenant2_user01"
 ```
 
-```
+```shell
 root@node76:~# radosgw-admin user list
 [
     "admin",
@@ -188,7 +190,7 @@ root@node76:~#
 
 通过user info，指定tenant，获取到这两个账号的access key 和 secret key，示例如下:
 
-```
+```shell
 root@node76:~# radosgw-admin --uid=user01 user info --tenant tenant1
 {
     "user_id": "tenant1$user01",
@@ -246,13 +248,13 @@ root@node76:~#
 
 node75上，使用tenant1的user01账号；node76上，使用tenant2的user01账号分别创建同名的bucket，以及上传对象到bucket中：
 
-```
+```shell
 root@node75:~# cat .s3cfg | grep _key | grep -v kms
 access_key = SSCBPW100ED03TI0MU51
 secret_key = Tnnjsw7e8A7Gu4qblQlHaka4uoOq5rVVR2cDEfOz
 ```
 
-```
+```shell
 root@node76:~# cat .s3cfg | grep _key | grep -v kms
 access_key = 22XOFAUIPFR11C45483R
 secret_key = vN5C1bNMcBbprfPm0v3ozKQ4rvvgsZeLuNRoVJ9B
@@ -261,20 +263,20 @@ root@node76:~#
 
 尝试创建同名bucket:
 
-```
+```shell
 root@node75:~# s3cmd mb s3://tenant-bucket01
 Bucket 's3://tenant-bucket01/' created
 root@node75:~# 
 ```
 
-```
+```shell
 root@node76:~# s3cmd mb s3://tenant-bucket01
 Bucket 's3://tenant-bucket01/' created
 root@node76:~# 
 ```
 
 
-```
+```shell
 root@node76:~# radosgw-admin bucket list
 [
     "tenant1/tenant-bucket01",
@@ -289,7 +291,7 @@ root@node76:~#
 
 开始上传对象到这两个bucket中，分别上传不同的对象:
 
-```
+```shell
 root@node75:~# s3cmd put tenant1.png s3://tenant-bucket01
 upload: 'tenant1.png' -> 's3://tenant-bucket01/tenant1.png'  [1 of 1]
  8 of 8   100% in    0s   610.87 B/s  done
@@ -297,7 +299,7 @@ root@node75:~#
 ```
 
 
-```
+```shell
 root@node76:~# s3cmd put tenant2.png s3://tenant-bucket01
 upload: 'tenant2.png' -> 's3://tenant-bucket01/tenant2.png'  [1 of 1]
  27 of 27   100% in    0s  2019.45 B/s  done
@@ -306,13 +308,13 @@ root@node76:~#
 
 查看对象上传效果：
 
-```
+```shell
 root@node75:~# s3cmd ls s3://tenant-bucket01
 2020-06-16 06:58         8   s3://tenant-bucket01/tenant1.png
 root@node75:~#
 ```
 
-```
+```shell
 root@node76:~# s3cmd ls s3://tenant-bucket01/
 2020-06-16 07:03        27   s3://tenant-bucket01/tenant2.png
 root@node76:~#

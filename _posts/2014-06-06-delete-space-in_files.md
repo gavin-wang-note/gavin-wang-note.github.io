@@ -3,8 +3,10 @@ layout:     post
 title:      "替换文件中空格"
 subtitle:   "Remove space with awk/tr/sed/grep"
 date:       2014-06-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - awk
     - sed
@@ -20,7 +22,7 @@ tags:
 
 使用shell脚本进行批量处理，示例如下：
 
-```
+```shell
 #!/usr/bin/bash
 
 ls|while read i;do  
@@ -54,7 +56,7 @@ done
 
 比如下面的文件a.txt，内容如下：
 
-```
+```shell
 root@cvm02:~/test# cat a.txt 
 1
 
@@ -73,7 +75,7 @@ root@cvm02:~/test# cat a.txt
 
 
 查看替换后的效果：
-```
+```shell
 root@cvm02:~/test# cat b.txt 
 1
 
@@ -91,7 +93,7 @@ root@cvm02:~/test# cat b.txt
 
 代码如下:
 
-```
+```shell
 sed 's/^[ \t]*//g'
 ```
 
@@ -112,7 +114,7 @@ sed 's/^[ \t]*//g'
 
 代码如下:
 
-```
+```shell
 sed 's/[ \t]*$//g'
 ```
 
@@ -128,7 +130,7 @@ sed 's/[ \t]*$//g'
 
 
 
-```
+```shell
 awk '{gsub(/^ +| +$/,"",$0);printf $0}'
 ```
 
@@ -136,7 +138,7 @@ awk '{gsub(/^ +| +$/,"",$0);printf $0}'
 
 效果：
 
-```
+```shell
 root@cvm02:~/test# cat a.txt | awk '{gsub(/^ +| +$/,"",$0);printf $0}'
 123  4567  89root@cvm02:~/test# 
 ```

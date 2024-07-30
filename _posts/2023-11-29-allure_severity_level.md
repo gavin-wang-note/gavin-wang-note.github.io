@@ -3,9 +3,15 @@ layout:     post
 title:      "Allure Severity Level"
 subtitle:   "Allure Severity Level"
 date:       2023-11-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+img: "/img/pytest/allure.jpg"
+summary: Modify Allure Severity Level
+categories: 
+    - [Automation]
+    - [Allure]
 tags:
+    - Automation
     - Allure
 ---
 
@@ -36,7 +42,15 @@ tags:
 
 说了这么多，马上到本文要探讨的核心问题了：
 
-allure支持的用例级别为："blocker", "critical", "normal", "minor", "trivial"，如何将各家自定义的用例级别与allure进行关联呢？
+allure支持的用例级别为:
+
+* blocker
+* critical
+* normal
+* minor
+* trivial
+
+如何将各家自定义的用例级别与allure进行关联呢？
 
 就是说，如何在allure中显示P0/P1/P2/P3 或者 RAT/FAST/TOFT/FET 之类的级别信息在allure html报告中？
 
@@ -46,9 +60,14 @@ allure支持的用例级别为："blocker", "critical", "normal", "minor", "triv
 
 搜索到一篇文章：``` https://github.com/allure-framework/allure-js/issues/428 ```
 
-这篇文章介绍了作者如上的想法，结果以失败而告终。
+这篇文章介绍了作者如上的想法，结果作者以失败而告终。所以：
 
-找到了allure的源码：
+* 修改js文件
+* 修改自己编写的测试用例中的自带级别
+
+上述两个方法，都是无法满足要求的。
+
+于是我找了allure的源码：
 
 ``` allure2-2.24.1/allure-generator/src/main/javascript/components/graph-severity-chart/SeverityChartView.js ```
 
@@ -58,7 +77,7 @@ allure支持的用例级别为："blocker", "critical", "normal", "minor", "triv
 
 在 ``` allure2-2.24.1/allure-generator/src/main/java/io/qameta/allure/severity/SeverityLevel.java ```文件中定义了一个枚举类型：
 
-```
+```shell
 public enum SeverityLevel implements Serializable {
 
     BLOCKER("blocker"),
@@ -76,9 +95,18 @@ public enum SeverityLevel implements Serializable {
 
 # 综述
 
-方法1： 修改 allure java源码重新生成jar
+{% note success %}
+方法一： 修改源码
+{% endnote %}
 
-方法2： 修改测试用例中用例级别，使之匹配allure，比如直接修改数据库。
+修改 allure java源码重新生成jar。
+
+
+{% note success %}
+方法二： 修改用例中级别
+{% endnote %}
+
+修改测试用例中用例级别，使之匹配allure，比如直接修改数据库。
 
 个人而言，看需要，对于一些无伤大雅的信息展示，无需花费过多时间，打磨更健壮的自动化测试框架才是重中之重，像更换allure默认logo，修改测试用例级别等等一些动作，都是锦上添花，有更好，无则也没啥损失。
 

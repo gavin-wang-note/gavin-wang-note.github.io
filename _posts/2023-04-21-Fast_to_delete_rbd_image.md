@@ -3,8 +3,10 @@ layout:     post
 title:      "快速清除rbd image"
 subtitle:   "Fast to delete rbd image"
 date:       2023-04-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -23,7 +25,7 @@ tags:
 在rbd进行删除的时候，即使内部没有对象数据，也一样需要一个个对象去发请求，即使对象不存在，这个可以开日志看到:
 在/etc/ceph/ceph.conf中添加
 
-```
+```shell
 [client]
 debug_ms=1
 log_file=/var/log/ceph/rados.log
@@ -32,7 +34,8 @@ log_file=/var/log/ceph/rados.log
 # 实践
 
 dd写，bs=1M,写了40G的数据：
-```
+
+```shell
 root@pytest-83-19:~# dd if=/dev/zero of=/dev/rbd0 bs=1M count=40960
 40960+0 records in
 40960+0 records out
@@ -42,7 +45,7 @@ root@pytest-83-19:~# dd if=/dev/zero of=/dev/rbd0 bs=1M count=40960
 ## rbd image 信息
 
 
-```
+```shell
 root@pytest-83-19:~# rbd ls
 889795de-fafb-4fca-9bf1-9b984e6124d2.img
 root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img
@@ -56,14 +59,12 @@ rbd image '889795de-fafb-4fca-9bf1-9b984e6124d2.img':
 	flags: 
 	create_timestamp: Fri Apr 21 14:26:48 2023
 root@pytest-83-19:~#
-
-
 ```
 
 ## 原始的快速删除方法
 
 
-```
+```shell
 root@pytest-83-19:~# time rados -p rbd ls | grep '^rbd_data.30dc419495cff' | xargs -n 200  rados -p rbd rm
 
 real	2m5.564s
@@ -88,7 +89,7 @@ root@pytest-83-19:~#
 
 ### 获取prifix
 
-```
+```shell
 root@pytest-83-19:~# rbd info rbd/889795de-fafb-4fca-9bf1-9b984e6124d2.img | grep prefix
 	block_name_prefix: rbd_data.30dc419495cff
 root@pytest-83-19:~# 
@@ -96,13 +97,13 @@ root@pytest-83-19:~#
 
 ### 获取列表
 
-```
+```shell
 root@pytest-83-19:~# rados -p rbd ls |grep rbd_data.30dc419495cff > delobject
 ```
 
 这里可以看下内容有没有问题，检查确认下:
 
-```
+```shell
 root@pytest-83-19:~# vim delobject 
 rbd_data.30dc419495cff.0000000000008e90
 rbd_data.30dc419495cff.00000000000047a4
@@ -113,7 +114,7 @@ rbd_data.30dc419495cff.000000000000063f
 
 删除的fast_remove.sh脚本如下：
 
-```
+```shell
 root@node161:~# cat fast_remove.sh 
 #!/bin/bash
 
@@ -161,8 +162,8 @@ root@node161:~#
 
 如下为Physical node的测试结果：
 
-```
-400 并发:
+```shell
+# 400 并发:
 root@node161:~# time rados -p san-pool ls | grep '^rbd_data.3bba6b8b4567' | xargs -n 400  rados -p san-pool rm
 
 real	0m55.853s
@@ -171,7 +172,7 @@ sys	0m1.949s
 root@node161:~# 
 
 
-1200 并发:
+# 1200 并发:
 root@node161:~# time rados -p san-pool ls | grep '^rbd_data.3bba6b8b4567' | xargs -n 1200  rados -p san-pool rm
 
 real	0m53.060s
@@ -180,10 +181,10 @@ sys	0m1.221s
 root@node161:~# 
 ```
 
-脚本删除结果（400并发）：
+脚本删除结果：
 
-```
-400 并发:
+```shell
+# 400 并发:
 2023-04-21 17:55:16
 -- current delete: [:delete 40960/40960  delete rbd_data.3bba6b8b4567.00000000000007b1 done]
 2023-04-21 17:55:16
@@ -195,7 +196,7 @@ sys	25m4.611s
 root@node161:~#
 
 
-1200 并发：
+# 1200 并发：
 
 real	1m30.148s
 user	24m40.103s
@@ -211,7 +212,7 @@ root@node161:~#
 
 # 改版(2023-04-28)
 
-{% raw %}```
+```shell
 #!/bin/bash
 
 LOG="del.log"
@@ -353,7 +354,7 @@ fi
 env_check $1 $2
 get_delete_object $1 $2
 clean_objects
-``` {% endraw %}
+```
 
 
 本文参考：

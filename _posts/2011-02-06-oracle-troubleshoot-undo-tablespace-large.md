@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--表空间--UNDO表空间膨胀"
 subtitle:   "Oracle tablespace troubleshoot--UNDO space collision"
 date:       2011-02-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -16,7 +18,7 @@ tags:
 
 ## 查看UNDO表空间名称
 
-```
+```shell
 SQL> show parameter undo_tablespace  
 
 NAME                                 TYPE        VALUE
@@ -27,7 +29,7 @@ SQL>
 
 ### 查看当前UNDO表空间大小
 
-```
+```shell
 SQL> select bytes/1024/1024 from dba_data_files where tablespace_name like 'UNDO%';
 
 BYTES/1024/1024
@@ -39,7 +41,7 @@ SQL>
 
 ### 检查UNDO Segment状态
 
-```
+```shell
 SQL> select usn,xacts,rssize/1024/1024/1024,hwmsize/1024/1024/1024,shrinks from v$rollstat order by rssize;
 
        USN      XACTS RSSIZE/1024/1024/1024 HWMSIZE/1024/1024/1024    SHRINKS
@@ -67,7 +69,7 @@ SQL>
 
 ### 重新创建新的UNDO表空间
 
-```
+```shell
 create undo tablespace undotbs1 
 datafile '/opt/oracle/oradata/mmsgdb/UNDOTBS2.dbf' size 1000m reuse 
 autoextend on next 800m maxsize unlimited;
@@ -78,28 +80,28 @@ autoextend on next 800m maxsize unlimited;
 
 ### 修改pfile文件
 
-```
+```shell
 SQL> alter system set undo_tablespace=undotbs2 scope=both;
 ```
 
 ### 等待原UNDO表空间所有UNDO SEGMENT OFFLIN
 
-```
+```shell
 SQL> select usn,xacts,rssize/1024/1024/1024,hwmsize/1024/1024/1024,shrinks from v$rollstat order by rssize;
 ```
- 
+
 注：
 * 创建好新的UNDO表空间后，不能立即删除原有的UNDO表空间，等到所有的回滚段offline或者达到undo_retention设定值后，方可执行drop掉旧的undo表空间。
 
 ### 删除旧的undo表空间
 
-```
+```shell
 SQL> drop tablespace undotbs1 including contents and datafiles;
 ```
 
 ### 确认删除是否成功
 
-```
+```shell
 SQL>select * from dba_data_files where tablespace_name like ‘UNDO%’;
 ```
 

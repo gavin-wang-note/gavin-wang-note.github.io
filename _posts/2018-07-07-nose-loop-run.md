@@ -3,8 +3,11 @@ layout:     post
 title:      "nose测试用例可指定循环次数"
 subtitle:   "loop run nose test case"
 date:       2018-07-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [nose]
 tags:
     - nose
     - Automation
@@ -13,10 +16,13 @@ tags:
 
 # 前言
 
+编写nose 自动化测试用例时，有些场景需要重复循环运行，才有可能踩到Bug，为了让nose 用例能够支持循环运行，特意写了一个装饰器，能够指定nose测试用例的循环次数。
 
-# 实践
 
-```
+
+# 代码
+
+```python
 def loop_run():
     """  
     loop run a test case
@@ -43,7 +49,7 @@ def loop_run():
 
 # 测试用例示例
 
-```
+```python
     @loop_run()
     def test_435_create_enable_folder(self):
         """  Sc-435:Enable share folder  """
@@ -56,7 +62,7 @@ def loop_run():
 
 # 用例执行示例
 
-```
+```shell
 root@nose-70-97:/home/nose_framework/src# nosetests -v --with-progressive --with-html --html-report=../report/nas.html testcase/Function_Test/case_4_Virtual_Storages/NAS/ --tc=runs:10
 ```
 

@@ -3,8 +3,10 @@ layout:     post
 title:      "Redis入门"
 subtitle:   "Getting Started with Redis"
 date:       2014-08-17
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Redis]
 tags:
     - Redis
 ---
@@ -121,7 +123,7 @@ Redis使用C语言开发的一个开源的高性能键值对（Key-Value）数�
 
 3、解压直接可以使用：
 
-```java
+```shell
 redis.windows.conf：配置文件
 redis-cli.exe：redis的客户端
 redis-server.exe：redis的服务器端
@@ -133,7 +135,7 @@ redis-server.exe：redis的服务器端
 
 <img class="shadow" src="/img/in-post/redis/redis-struct.png" width="1200">
 
-```java
+```shell
 redis存储的是key-value格式的数据，其中key都是字符串，value有5种不同的数据结构。
 
 value 的数据结构：
@@ -146,7 +148,7 @@ value 的数据结构：
 
 ## 3.2、字符串类型 string
 
-```java
+```shell
 1、存储：set key value
 2、获取：get key
 3、删除：del key
@@ -154,7 +156,7 @@ value 的数据结构：
 
 ## 3.3、哈希类型 hash
 
-```java
+```shell
 1、存储：hset key field value
 2、获取：
     hget key field：获取指定的field对应的value
@@ -166,7 +168,7 @@ value 的数据结构：
 
 列表类型list：可以添加一个元素到列表的头部（左边）或者尾部（右边）。
 
-```java
+```shell
 1、存储：
     lpush key value：将元素加入列表左边。
     rpush key value：将元素加入列表右边。
@@ -181,7 +183,7 @@ value 的数据结构：
 
 集合类型set：不允许重复元素。
 
-```java
+```shell
 1、存储：sadd key value
 2、获取：smembers key：获取set集合中所有元素
 3、删除：srem key value：删除set集合中的某个元素
@@ -191,7 +193,7 @@ value 的数据结构：
 
 有序集合类型sortedset：不允许重复元素，且元素有顺序。
 
-```java
+```shell
 1、存储：zadd key score value
 2、获取：zrange key start end
 3、删除：zrem key value
@@ -199,7 +201,7 @@ value 的数据结构：
 
 ## 3.7、通用命令
 
-```java
+```shell
 1、keys * ：查询所有的键
 2、type key：获取键对应的value的类型
 3、del key：删除指定的key value
@@ -213,7 +215,7 @@ value 的数据结构：
 
 - RDB：默认方式，不需要进行配置，默认就是用这种机制。在一定的间隔时间中，检测key的变化情况，然后持久化数据。
 
-  ```java
+  ```shell
   使用步骤：
   1、编辑redis.windows.conf文件；
       # after 900 sec (15 min) if at least 1 key changed
@@ -229,7 +231,7 @@ value 的数据结构：
 
 - AOF：日志记录的方式，记录每一条命令的操作。可以每一次命令操作后，持久化数据。
 
-  ```java
+  ```shell
   使用步骤：
   1、编辑redis.windows.conf文件
       appendonly on （关闭aof） --> appendonly yes （开启aof）

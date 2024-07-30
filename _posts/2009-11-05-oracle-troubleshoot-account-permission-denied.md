@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--应用用户登录数据库报没权限或找不到LIB库文件"
 subtitle:   "Oracle troubleshoot of not oracle account permission denied"
 date:       2009-11-05
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -15,7 +17,7 @@ tags:
 
 非oracle用户telnet登录终端，如mmsg终端用户登录，执行sqlplus命令查看应用数据库信息，报没权限。
 
-```
+```shell
 30 mmsg [mmsg] :/home/mmsg>p
 
 ===========华为 infoX IAG 系统运行状态 2009年11月05日 19:51:08=================

@@ -3,8 +3,10 @@ layout:     post
 title:      "Curl调用CGI完成UI操作"
 subtitle:   "Use curl call API"
 date:       2016-06-24
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [curl]
 tags:
     - curl
 ---
@@ -15,19 +17,19 @@ Web UI上的所有操作都对应一个CGI(大多是一个HTTP GET请求)，因�
 
 # 示例
 
-## Step1 记录下cookie文件test.cookie
+## Step1、记录下cookie文件test.cookie
 
 --cookie-jar可简化做-c，仅需要登录一次，除非会话过期
 
-```
+```shell
 curl --cookie-jar test.cookie --insecure "https://10.16.17.191:8080/cgi-bin/ezs3/json/login?user_id=admin&password=1"
 ```
 
-## Step2 调用对应的API
+## Step2、调用对应的API
 
 --cookie可简化做-b，该示例是创建一个叫pool01的pool
 
-```
+```shell
 curl --cookie ezstor.cookie --insecure "https://10.16.17.191:8080/cgi-bin/ezs3/json/poolcreate?poolname=pool01"
 ```
 
@@ -42,7 +44,7 @@ curl --cookie ezstor.cookie --insecure "https://10.16.17.191:8080/cgi-bin/ezs3/j
 * 说明:
 * * 本示例，用于创建集群
 
-```
+```shell
 #!/bin/bash
 
 public_ip=(

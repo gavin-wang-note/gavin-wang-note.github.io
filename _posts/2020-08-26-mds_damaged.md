@@ -3,8 +3,11 @@ layout:     post
 title:      "mds damaged test script"
 subtitle:   "mds damaged test script"
 date:       2020-08-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
+    - [ceph]
 tags:
     - mds
     - ceph
@@ -12,11 +15,19 @@ tags:
 ---
 
 
+
+# Overview
+
+The product introduces multiple mds, and each cephfs is allowed to set the upper limit to 6 mds number, i.e., under each cephfs, the maximum number of active-mds allowed to exist is 6.
+In order to verify the robustness of these forked ceph-mds, a test script was written to simulate the corruption of ceph-mds, in order to verify the robustness of the product under the scenario of mds corruption.
+
+
+
 # Scripts
 
-mds_damaged.sh
+`mds_damaged.sh`
 
-{% raw %}```
+```shell
 #!/bin/bash
 
 loop_cnt=1000
@@ -229,5 +240,5 @@ for ((i=1;i<=$loop_cnt;i++));do
     echo "Loop $i pass."
 done
 turn_off_debug
-``` {% endraw %}
+```
 

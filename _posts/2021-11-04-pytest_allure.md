@@ -3,8 +3,12 @@ layout:     post
 title:      "pytest allure详解"
 subtitle:   "pytest with allure"
 date:       2021-11-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [pytest]
+    - [Automation]
+    - [Allure]
 tags:
     - pytest
     - Automation
@@ -37,7 +41,7 @@ allure有如下特性：
 
 
 
-```
+```shell
 C:\Users\Wang>python
 Python 3.11.4 (tags/v3.11.4:d2340ef, Jun  7 2021, 05:45:37) [MSC v.1934 64 bit (AMD64)] on win32
 Type "help", "copyright", "credits" or "license" for more information.
@@ -62,12 +66,12 @@ Type "help", "copyright", "credits" or "license" for more information.
 | allure.dynamic()          | 动态指定标题和描述 | 在测试用例执行过程中动态指定标题和描述等标签的方法，主要指：allure.dynamic.description 和 allure.dynamic.title |
 | allure.epic()             | epic描述           | 敏捷里的概念，定义史诗，相当于module级的标签                 |
 | allure.feature()          | 模块名称           | 功能点的描述，往下是story                                    |
-| allure.id()               | 人为给用例添加id   | **貌似添加后没有看到效果，未在实际工作中使用过，尚不知应用场景** |
+| allure.id()               | 人为给用例添加id   | 这个标识符将显示在 Allure 报告中，使得识别和引用这个具体的测试更加方便。 |
 | allure.issue()            | 缺陷链接           | 对应缺陷管理系统里的链接，如将JIRA里Bug的URL展示在html报告中 |
-| allure.label()            | 给用例添加label    | **貌似添加后没有看到效果，未在实际工作中使用过，尚不知应用场景** |
+| allure.label()            | 给用例添加label    | 指定多种类型的标签，例如功能、故事、严重性级别、测试用例ID、发行版本等。 |
 | allure.link()             | 链接               | 定义一个链接，在html报告中展示                               |
-| allure.manual()           |                    | **尚不知具体用途**                                           |
-| allure.parameter_mode()   |                    | **尚不知具体用途**                                           |
+| allure.manual()           |指示一个测试用例是手动执行的，而不是自动化测试| 将手动测试用例纳入到自动生成的 Allure 测试报告中，从而在报告中提供一个更全面的测试覆盖视图|
+| allure.parameter_mode()   |处理多种输入条件    | 在测试用例中使用多组不同的输入参数，从而可以对同一个测试用例进行多次测试，每次使用不同的数据 |
 | allure.parent_suite()     | 测试套             | 测试套的三个级别，爷爷父亲儿子中的爷爷这个级别               |
 | allure.severity()         | 用例级别           | 测试用例的优先级别，blocker,critical,normal,minor,trivial 五个级别，使用方式：@allure.severity("BLOCKER") |
 | allure.severity_level()   | 用例级别           | 测试用例的优先级别，blocker,critical,normal,minor,trivial 五个级别，使用方式：@allure.severity(allure.severity_level.CRITICAL) |
@@ -119,7 +123,9 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 语法：
 
-``` allure.attach.file(source, name, attachment_type, extension) ```
+```shell
+allure.attach.file(source, name, attachment_type, extension)
+```
 
 
 
@@ -135,7 +141,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 #### allure.attachment_type的所有值
 
 
-```
+```shell
     TEXT = ("text/plain", "txt")
     CSV = ("text/csv", "csv")
     TSV = ("text/tab-separated-values", "tsv")
@@ -170,7 +176,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -202,7 +208,7 @@ def test_attachment_text(attach_for_text):
 
 
 
-```
+```python
 def test_mutiple_attachments():
     allure.attach.file(r"C:\Users\Wang\Pictures\OIP-C.jpg", attachment_type=allure.attachment_type.JPG)
 
@@ -249,7 +255,7 @@ allure提供的装饰器@allure.step()是allure测试报告框架非常有用的
 
 
 
-```
+```python
     def test_566_rollback_snapshot(self):
         """  Sc-566:Snapshot can be rollbacked correctly  """
         with allure.step("Clean unavailable link device"):
@@ -366,7 +372,7 @@ allure提供的装饰器@allure.step()是allure测试报告框架非常有用的
 
 
 
-```
+```python
     @allure.step("Delete snapshot")
     def delete_snapshot(self, gateway_group=None, target_id=None, iscsi_id=None, snap_name=None,
                         expected_return_code=None, delete_all_snap=None):
@@ -391,7 +397,7 @@ allure提供的装饰器@allure.step()是allure测试报告框架非常有用的
 
 allure.step也**支持添加描述且通过占位符传递参数**，示例代码如下：
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -428,7 +434,7 @@ def test_delete_volume():
 
 
 
-```
+```python
 @allure.step('这是一个带描述语的step，并且通过占位符传递参数：positional = "{0}",keyword = "{key}"')
 def step_title_with_placeholder(arg1, key=None):
     pass
@@ -467,7 +473,7 @@ def test_step_with_placeholder():
 
 
 
-```
+```python
     @allure.severity('RAT')
     @allure.link(testlink_url+'?tprojectPrefix='+testlink_prefix+'&item=testcase&id='+testlink_prefix+'-432')
     def test_432_create_nfs_folder_mode_async(self):
@@ -486,7 +492,7 @@ def test_step_with_placeholder():
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -568,7 +574,7 @@ allure效果图展示如下：
 
 
 
-```
+```python
 @allure.description("这是更新前的描述内容，在使用allure.dynamic.description后将会被更新成新的描述内容")
 def test_dynamic_description():
     assert True
@@ -617,7 +623,7 @@ allure html展示效果如下：
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -644,7 +650,7 @@ def test_case_with_title():
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -671,7 +677,7 @@ def test_with_parametrize_title(param1, param2, expected):
 
 
 
-```
+```python
 @allure.title("这个标题将会被成功执行的测试用例中的标题替所代替")
 def test_with_dynamic_title():
     assert True
@@ -703,7 +709,7 @@ allure测试报告框架提供了@allure.link、@allure.issue、@allure.testcase
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -803,9 +809,9 @@ Allure 则提供了 3 种类型的标记装饰器来标记测试，并且可以�
 
 
 
-    @allure.epic：敏捷里面的概念，定义史诗，相当于module级的标签
-    @allure.feature：功能点的描述，可以理解成模块，相当于class级的标签
-    @allure.story：故事，可以理解为场景，相当于method级的标签
+* @allure.epic：敏捷里面的概念，定义史诗，相当于module级的标签
+* @allure.feature：功能点的描述，可以理解成模块，相当于class级的标签
+* @allure.story：故事，可以理解为场景，相当于method级的标签
 
 
 
@@ -819,7 +825,7 @@ epic是feature父级，feature是story父级，是包含关系，效果跟书籍
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -880,9 +886,9 @@ def test_with_story_2_and_feature_2():
 
 与@pytest.mark.xxx相同，也可以通过命令行来运行指定epic、feature、story标记的用例：
 
-    –allure-epics
-    –allure-features
-    –allure-stories
+* –allure-epics
+* –allure-features
+* –allure-stories
 
 
 
@@ -948,7 +954,7 @@ allure划分用例等级为5个：
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -1047,7 +1053,7 @@ severity装饰器可以用在函数、方法和类上面。
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:GB2312 -*-
 
@@ -1147,7 +1153,7 @@ allure html report 显示效果如下：
 
 
 
-```
+```shell
 allure serve path
 ```
 
@@ -1157,7 +1163,7 @@ allure serve path
 
 
 
-```
+```shell
 C:\Users\Wang>allure serve report/json -o report/html
 Generating report to temp directory...
 -o does not exists
@@ -1177,7 +1183,7 @@ Server started at <http://192.168.2.178:2970/>. Press <Ctrl+C> to exit
 
 
 
-```
+```shell
 allure generate “存储结果的path” -c -o  “在path生成html报告”
 allure open “在path生成的html报告”
 ```
@@ -1188,7 +1194,7 @@ allure open “在path生成的html报告”
 
 
 
-```
+```shell
 C:\Users\Wang>allure generate report/json -o report/html
 Report successfully generated to report\html
 C:\Users\Wang>allure open report\html
@@ -1218,7 +1224,7 @@ Server started at <http://192.168.2.178:2999/>. Press <Ctrl+C> to exit
 
 
 
-```
+```shell
 PRODUCT_VERSION=VirtualStor Scaler V8.0-269
 START_TIME=2021-11-03 21:36:57
 END_TIME=2021-11-04 06:29:46
@@ -1237,7 +1243,7 @@ TIME_DURATION=31969
 
 
 
-```
+```shell
 <environment>
     <parameter>
         <key>PRODUCT_VERSION</key>
@@ -1299,7 +1305,7 @@ TIME_DURATION=31969
 
 
 
-```
+```shell
 [
   {
     "name": "Ignored tests", 

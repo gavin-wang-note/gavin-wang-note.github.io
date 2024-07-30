@@ -3,8 +3,10 @@ layout:     post
 title:      "评测USB接口速度"
 subtitle:   "How to get USB speed"
 date:       2023-02-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -13,7 +15,7 @@ tags:
 # 概述
 
 
-今天同事咨询硬件USB版本是多少，查询了下资料，发现lsusb这个指令可以捞到，mark it.
+今天同事咨询国产化设备某台硬件服务器上的`USB`版本是多少，查询了下资料，发现`lsusb`这个指令可以捞到，mark it.
 
 
 # 信息
@@ -28,7 +30,7 @@ or
 
 output:
 
-```
+```shell
 [root@bigtera etc]# hostnamectl 
    Static hostname: bigtera
          Icon name: computer-server
@@ -54,7 +56,9 @@ output:
 [root@bigtera etc]#
 ```
 
+{% note success %}
 说明:
+{% endnote %}
 
 * 12M --> USB V1.0
 * 480M --> USB V2.0

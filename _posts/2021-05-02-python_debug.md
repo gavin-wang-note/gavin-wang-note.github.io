@@ -3,8 +3,10 @@ layout:     post
 title:      "python debug with pysnooper/snoop"
 subtitle:   "python debug with pysnooper/snoop"
 date:       2021-05-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -19,7 +21,7 @@ python代码调测，早期的时候更多的是使用print加日志的方式，
 
 ## 安装 pysnooper
 
-``` pip install pysnooper ```
+`pip install pysnooper `
 
 ## 利用pysnooper调试
 
@@ -27,7 +29,7 @@ python代码调测，早期的时候更多的是使用print加日志的方式，
 示例代码
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
@@ -47,7 +49,7 @@ if __name__ == '__main__':
 
 输出结果：
 
-```
+```shell
 root@wyz-node1:~# python test_pysnooper.py
 Source path:... test_pysnooper.py
 Starting var:.. a_list = [10, 9, 1, 2, 2, 3, 3, 5, 6, 6, 7, 7, 8, 9]
@@ -64,7 +66,7 @@ Elapsed time: 00:00:00.000000
 
 如果代码执行过程比较长，输出到屏蔽不方便的话，可以输出到log文件中，在装饰器那行加上log文件路径即可：
 
-```
+```shell
 @pysnooper.snoop('/log/output.log')
 def remove_dup_element(a_list):
     return {}.fromkeys(a_list).keys()
@@ -72,14 +74,14 @@ def remove_dup_element(a_list):
 
 ## 安装 snoop
 
-``` pip install snoop ```
+`pip install snoop `
 
 ## 利用snoop调试
 
 
 示例代码：
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
@@ -100,7 +102,7 @@ if __name__ == '__main__':
 输出结果：
 
 
-```
+```shell
 root@wyz-node1:~# python test_snoop.py
 14:35:52.40 >>> Call to remove_dup_element in File "test_snoop.py", line 8
 14:35:52.40 ...... a_list = [10, 9, 1, 2, 2, 3, 3, 5, 6, 6, 7, 7, 8, 9]
@@ -115,5 +117,5 @@ root@wyz-node1:~#
 
 更高级的使用方法，参考：
 
-``` https://www.pypi.com.cn/project/snoop ```
-``` https://github.com/cool-RR/PySnooper/blob/master/ADVANCED_USAGE.md ```
+`https://www.pypi.com.cn/project/snoop`
+`https://github.com/cool-RR/PySnooper/blob/master/ADVANCED_USAGE.md`

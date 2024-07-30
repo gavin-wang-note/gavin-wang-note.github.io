@@ -3,8 +3,10 @@ layout:     post
 title:      "记一次根据epoch查找问题触发时间点"
 subtitle:   "Base on epoch to find when issue occured"
 date:       2022-07-11
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
@@ -14,7 +16,7 @@ tags:
 
 自动化用例执行期间，碰到crushmap中有一个Default pool，还有一个default pool，只是首字母大小写不一样，如下所示：
 
-```
+```shell
 root@pytest-83-12:~/workspace@2/src# ceph -s
   cluster:
     id:     5d8a5c28-48e7-4f2b-bab5-fd3d1f576b12
@@ -71,7 +73,7 @@ root@pytest-83-12:~/workspace@2/src#
 
 先获取当前epoch，如下文所示：
 
-```
+```shell
 root@pytest-83-12:~# ceph osd dump
 epoch 716
 fsid 5d8a5c28-48e7-4f2b-bab5-fd3d1f576b12
@@ -108,7 +110,7 @@ osd.2 up in weight 1 recovery_weight 1 up_from 403 up_thru 706 down_at 0 last_cl
 
 ## 查询epoch=716的crush map中是否存在Default
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=716;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt
 got osdmap epoch 716
 osdmaptool: osdmap file 'osdmap.716'
@@ -126,7 +128,7 @@ root@pytest-83-12:/home/btadmin#
 
 发现epoch716里含有；利用二分法，对半分，来查找：
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=358;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 358
 osdmaptool: osdmap file 'osdmap.358'
@@ -143,7 +145,7 @@ root@pytest-83-12:/home/btadmin#
 
 epoch 358里也含有，继续二分法找:
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=179;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 179
 osdmaptool: osdmap file 'osdmap.179'
@@ -158,7 +160,7 @@ pool Default {
 root@pytest-83-12:/home/btadmin# 
 ```
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=89;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 89
 osdmaptool: osdmap file 'osdmap.89'
@@ -170,7 +172,7 @@ root@pytest-83-12:/home/btadmin#
 
 发现epoch 89里并没有涵盖Default pool，说明在epoch 89~179之间的某个epoch，继续缩小范围(查找89~179的中间值，134)：
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=134;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 134
 osdmaptool: osdmap file 'osdmap.134'
@@ -186,7 +188,7 @@ root@pytest-83-12:/home/btadmin#
 
 epoch 134含有，说明在epoch 89~134之间的某个epoch，继续缩小范围（取89~134的中间值111）：
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=111;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 111
 osdmaptool: osdmap file 'osdmap.111'
@@ -197,7 +199,7 @@ root@pytest-83-12:/home/btadmin#
 
 epoch 111不含有，说明在epoch 111~134之间的某个epoch，继续缩小范围（取111~134的中间值122）：
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=122;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 122
 osdmaptool: osdmap file 'osdmap.122'
@@ -207,7 +209,8 @@ root@pytest-83-12:/home/btadmin#
 
 
 epoch 122不含有，说明在epoch 122~134之间的某个epoch，继续缩小范围（取122~134的中间值128）：
-```
+
+```shell
 root@pytest-83-12:/home/btadmin# i=128;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 128
 osdmaptool: osdmap file 'osdmap.128'
@@ -218,7 +221,7 @@ root@pytest-83-12:/home/btadmin#
 
 epoch 128含有了，说明在epoch 122~128之间的某个epoch，这样范围逐步缩小了，接下来就是挨个从(122,128)之间找123~127 epoch
 
-```
+```shell
 root@pytest-83-12:/home/btadmin# i=127;ceph osd getmap $i -o osdmap.$i;osdmaptool --export-crush crush.$i  osdmap.$i;crushtool -d crush.$i -o crush.$i.txt;cat crush.$i.txt |grep Default
 got osdmap epoch 127
 osdmaptool: osdmap file 'osdmap.127'
@@ -228,7 +231,7 @@ root@pytest-83-12:/home/btadmin#
 
 很巧，epoch 127不含，说明epoch 128是第一次出现Default pool，那就追epoch 128:
 
-```
+```shell
 root@pytest-83-12:/var/log/ceph# zgrep -n "osd crush link" ceph.audit.log.2.gz |grep 'Default'
 316910:2022-07-09 13:47:44.051329 mon.klavr mon.1 1.1.1.12:6789/0 208638 : audit [INF] from='client.5074 1.1.1.12:0/4225613905' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=Default"], "name": "Default_1.1.1.12"}]: dispatch
 316937:2022-07-09 13:47:44.130734 mon.gfbvr mon.0 1.1.1.11:6789/0 724 : audit [INF] from='client.5074 -' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=Default"], "name": "Default_1.1.1.12"}]: dispatch
@@ -244,7 +247,7 @@ root@pytest-83-12:/var/log/ceph#
 
 
 
-```
+```shell
 root@pytest-83-12:/var/log/ceph# zgrep -n "osd crush link" ceph.audit.log.2.gz |grep '13:47:'
 313387:2022-07-09 13:47:09.208853 mon.klavr mon.1 1.1.1.12:6789/0 206827 : audit [INF] from='client.5074 1.1.1.12:0/4225613905' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=pytest-sds-pool"], "name": "pytest-sds-pool_1.1.1.12"}]: dispatch
 313402:2022-07-09 13:47:09.286625 mon.gfbvr mon.0 1.1.1.11:6789/0 445 : audit [INF] from='client.5074 -' entity='client.admin' cmd=[{"prefix": "osd crush link", "args": ["pool=pytest-sds-pool"], "name": "pytest-sds-pool_1.1.1.12"}]: dispatch
@@ -270,7 +273,8 @@ root@pytest-83-12:/var/log/ceph#
 这里能够看出，13:47时，有创建一个Default pool.
 
 既然找到时间点了，找一下自动化用例，那个时刻在做什么：
-```
+
+```shell
 2022-07-09 13:47:42 [pool.py:67  ] [ INFO] [Success]  Get all OSD success which state is UP and IN, osd_up_in is : ([0, 1, 2])
 2022-07-09 13:47:42 [pool.py:169 ] [ INFO] [Action]   Assign osd : (0 1 2) into pool : (Default)
 2022-07-09 13:47:42 [connectionpool.py:243 ] [DEBUG] Resetting dropped connection: localhost
@@ -278,7 +282,7 @@ root@pytest-83-12:/var/log/ceph#
 
 在assign OSD into Default pool，找到这里，就找到那个时间点被执行到的用例：
 
-```
+```shell
 2022-07-09 13:47:00 [test_01_SDS_admin_account_settings.py:46  ] [ INFO] ------------------------  Testsuite setup  ------------------------
 2022-07-09 13:47:00 [test_01_SDS_admin_account_settings.py:47  ] [ INFO] [SetUp]     Class setup to create pool : (pytest-sds-pool), VS : (pytest-sds-vs)
 2022-07-09 13:47:00 [virtual_storage.py:306 ] [ INFO] [Action]   Start to get all nodes information

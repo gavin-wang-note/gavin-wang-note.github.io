@@ -1,10 +1,13 @@
 ---
-layout:     post
-title:      "python3 升级pip后找不到pip模块"
-subtitle:   "No module named 'pip' after upgrade pip"
-date:       2023-11-09
-author:     "Gavin"
-catalog:    true
+layout: post
+title: "python3 升级pip后找不到pip模块"
+subtitle: "No module named 'pip' after upgrade pip"
+date: 2023-11-09
+author: "Gavin Wang"
+catalog: true
+summary: 解决"python3 升级pip后找不到pip模块"问题 
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -32,24 +35,23 @@ tags:
 # 原因
 
 
-
 可能是新旧版本冲突或路径空格导致，尚未找到root cause。
-
-
 
 
 
 # 解决方法
 
 
-
+{% note success %}
 ## 方案1
-
+{% endnote %}
 
 
 适用于windows/Mac/Linux系统
 
-```python -m ensurepip```
+```shell
+python -m ensurepip
+```
 
 如下图所示(Windows下结果)：
 
@@ -58,31 +60,32 @@ tags:
 <img class="shadow" src="/img/in-post/pip_reinstall.png" width="1200">
 
 
+{% note success %}
 ## 方案2
+{% endnote %}
 
 输入如下命令：          
 
-```text
+```shell
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python get-pip.py --force-reinstall
 ```
 
 
 
+{% note success %}
 ## 方案3
+{% endnote %}
 
 
-
-```
+```shell
 apt install --fix-missing python3-pip
 ```
 
 
 
-
-
 # 验证安装
 
-```text
+```shell
 pip show pip
 ```

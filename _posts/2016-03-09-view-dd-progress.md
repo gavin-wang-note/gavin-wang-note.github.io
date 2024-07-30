@@ -3,8 +3,10 @@ layout:     post
 title:      "查看dd进度"
 subtitle:   "view dd progress"
 date:       2016-03-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
     - dd 
@@ -27,7 +29,7 @@ dd在GNU Coreutils 8.24+（Ubuntu 16.04及更高版本）中，有一个新statu
 
 输出信息：
 
-```
+```shell
 462858752 bytes (463 MB, 441 MiB) copied, 38 s, 12,2 MB/s
 ```
 
@@ -83,7 +85,7 @@ pv不仅仅有显示进度的功能，还有结合dd来限制dd读写速度， e
 
 在.bashrc中增加包装器,将下面内容放入.bashrc文件
 
-```
+```shell
 dd()
 {
     local dd=$(which dd); [ "$dd" ] || {
@@ -145,7 +147,7 @@ source一下.bashrc
 
 输出如下：
 
-```
+```shell
 root@host245:~/tmp# pv -cN source < /dev/zero | dd of=1g bs=100k count=10240
    source:  960MB 0:00:01 [ 627MB/s] [         <=>                                                                                                                                                                                                                           ]
 7680+2560 records in

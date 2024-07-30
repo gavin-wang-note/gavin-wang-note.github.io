@@ -3,15 +3,25 @@ layout:     post
 title:      "Put S3 objects with metadata"
 subtitle:   "Put S3 objects with metadata"
 date:       2020-04-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
 
 
 
-```
+# 概述
+
+产品引入`keepalive`，做了HA，在设置了浮动IP情况下，观察测试过程中浮动IP所在节点发生异常（如宕机，断网，`keepalived`服务挂掉等情况）业务中断时间，为此写了如下测试脚本，通过浮动IP，模拟并发/批量上传S3 对象文件。
+
+
+
+# 脚本
+
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*_
 

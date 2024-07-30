@@ -3,8 +3,11 @@ layout:     post
 title:      "Cosbench wirte speed scenario test script"
 subtitle:   "Cosbench wirte speed scenario test script"
 date:       2020-05-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
+    - [python]
 tags:
     - shell
     - python
@@ -20,7 +23,7 @@ Unify the write speed on the RGW side, and the write speed on the cosbench side,
 
 # Script directory structure
 
-```
+```shell
 root@scaler80:/mnt/code/cosbench_elastic_search# ls -lR
 .:
 total 16
@@ -46,9 +49,9 @@ run_cosbench                   --> Submit cosbench task
 
 # Script contents
 
-calc_cosbench_speed.py
+`calc_cosbench_speed.py`
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -114,11 +117,11 @@ for each_line in his_content.strip().split("\n"):
 if __name__ == "__main__":
     pass
 
-``` {% endraw %}
+```
 
-calc_rgw_write_speed.py
+`calc_rgw_write_speed.py`
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 
 import os
@@ -183,13 +186,13 @@ if __name__ == '__main__':
     # calc_rgw_speed()
     calc_rgw_speed(sleep_time=600, loop_times=300)
 
-``` {% endraw %}
+```
 
 
 
-write_json_data_for_esrally.py
+`write_json_data_for_esrally.py`
 
-{% raw %}```
+```
 #!/usr/bin/env python
 
 import os
@@ -266,12 +269,12 @@ if __name__ == '__main__':
         src = json_data()
         write_data(src)
 
-``` {% endraw %}
+```
 
 
 cosbench.sh
 
-{% raw %}```
+```
 #!/bin/bash
 
 INFILE=roundN_10K_10Mfiles_Write.xml.in
@@ -315,12 +318,12 @@ do
     ssh root@${EP1} ceph df
 
 done
-```{% endraw %}
+```
 
 
 roundN_10K_10Mfiles_Write.xml.in
 
-```
+```shell
 <?xml version="1.0" encoding="UTF-8"?>
 <workload name="Datasearch_round@@@ROUND@@@_10K_files_write_once" description="Datasearch_round@@@ROUND@@@_10K_files_write_once">
 <storage type="s3" config="accesskey=@@@ACCESS_KEY@@@;secretkey=@@@SECRET_KEY@@@;endpoint=http://@@@ENDPOINT_1@@@/" />
@@ -363,6 +366,4 @@ roundN_10K_10Mfiles_Write.xml.in
 
 	</workflow>
 </workload>
-
-
 ```

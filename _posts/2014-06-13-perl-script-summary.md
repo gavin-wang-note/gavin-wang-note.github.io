@@ -3,8 +3,10 @@ layout:     post
 title:      "Perl常用代码汇总"
 subtitle:   "Perl common code summary"
 date:       2014-06-13
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [perl]
 tags:
     - perl
 ---
@@ -22,7 +24,7 @@ tags:
 
 ### 查找指定目录下文件夹
 
-```
+```perl
 use File::Find;
 my @files;
 
@@ -40,7 +42,7 @@ print "\nfiles:@files\n";
 
 ### 找出目录下所有文件
 
-```
+```perl
 my @file_names=grep {-f and -T} glob '*';
 print "\nfile_names:@file_names\n";
 ```
@@ -49,7 +51,7 @@ print "\nfile_names:@file_names\n";
 
 ### 获取指定目录下所有文件
 
-```
+```perl
 #!/usr/bin/perl
 use warnings;
 use strict;
@@ -69,7 +71,7 @@ sub handle
 
 ## 获取脚本当前路径
 
-```
+```perl
 use File::Basename;
 my $dir = File::Basename::dirname($0);
 print $dir;
@@ -79,7 +81,7 @@ print $dir;
 
 ## 创建目录
 
-```
+```perl
   #文件存放路径
   unless (-d "$USER.load")
   {
@@ -93,7 +95,7 @@ print $dir;
 ## 文件句柄
 ​       
 
-```
+```perl
  for(my $i=1; $i<=$scalar;$i++)
          {                                                                                              
             open(SQLPLUS, "|sqlplus -S $USER/$USERPASS\@$SID >/dev/null") || die "Execute sqlplus error!\n";
@@ -112,7 +114,7 @@ print $dir;
 
 ## 从配置文件获取数据
 
-```
+```perl
 use FindBin qw ($Bin);                                                          #解决AIX未安装Config::IniFiles模块问题
 use lib "$Bin/syslib";
 use Config::IniFiles;
@@ -133,7 +135,7 @@ my $UPDATE_TO_VERSION=$cfg->val('COMPARE_DATA','UPDATE_TO_VERSION') || '';      
 
 ## 定义日志
 
-```
+```perl
 my $start_date = ostime(time);                                                  #时间，日志内容中使用，年月日时分秒
 my $logtime=shortTimeString(time);                                              #时间，日志文件命名使用,年月日时分
 my $script_log="$script_dir/update_db_$logtime.log";                            #定义脚本执行过程中日志记录信息
@@ -145,7 +147,7 @@ my $script_log="$script_dir/update_db_$logtime.log";                            
 
 ## 年月日小时分秒，用于日志文件内容中记录的时间
 
-```
+```perl
 sub ostime 
 {
  my ($tm) = @_;
@@ -158,7 +160,7 @@ sub ostime
 
 ## 年月日小时分，用于日志文件命名
 
-```
+```perl
 sub shortTimeString 
 {
  my ($tm) = @_;
@@ -171,7 +173,7 @@ sub shortTimeString
 
 ## 记录日志
 
-```
+```perl
 sub LOG {
  my ($text) = @_;
  my $time = ostime time;
@@ -187,7 +189,7 @@ sub LOG {
 
 ## 文件属性信息
 
-```
+```perl
 use warnings;
 use strict;
 
@@ -253,7 +255,7 @@ sub timeconv
 # 操作系统相关
 
 ## 获取操作系统名称
-```
+```perl
 use Sys::Hostname;
 print hostname,"\n";
 ```
@@ -262,17 +264,17 @@ print hostname,"\n";
 
 ### 操作系统类型
 
-```
+```perl
 chomp(my $OS_Type = $^O);
 ```
 
-$OS_Type打印结果为：linux/MSWin32/SUNOS等
+$OS_Type打印结果为：`linux/MSWin32/SUNOS`等
 
 
 
 ## 自动关机
 
-```
+```perl
 use Win32;
 
 my $machine = Win32::NodeName();
@@ -288,6 +290,8 @@ Win32::InitiateSystemShutdown($machine,$message,$timeout,1,1);
 ```
 
 说明：
+
+```perl
   Win32::InitiateSystemShutdown
    (MACHINE, MESSAGE, TIMEOUT, FORCECLOSE, REBOOT)
 
@@ -295,13 +299,14 @@ Win32::InitiateSystemShutdown($machine,$message,$timeout,1,1);
    MESSAGE, within the specified TIMEOUT interval. Forces closing of
    all documents without prompting the user if FORCECLOSE is true, and
    reboots the machine if REBOOT is true. This function works only on WinNT.
+```
 
 
 
 ## 生成随机密码
 
 ### 产生随机密码
-```
+```perl
 my @input=(1..9,'a'..'z');
 my $passwd= join '',map {$input[int rand @input]} 0..7;
 print "\n随机密码为:$passwd\n";
@@ -315,7 +320,7 @@ print "\n随机密码为:$passwd\n";
 
 ## 方法1
 
-```
+```perl
 #!/usr/bin/perl
 use warnings;
 use strict;
@@ -329,7 +334,7 @@ print "\ntest\n\n";
 
 ## 方法2
 
-```
+```perl
 my $file = $ARGV[0] or die "\n  [ERROR]   请脚本名称后面携带CSV文件!\n\n";
 ```
 
@@ -337,13 +342,13 @@ my $file = $ARGV[0] or die "\n  [ERROR]   请脚本名称后面携带CSV文件!\
 
 # 判断脚本是否已经有在运行
 
-```
+```perl
 exit if 2 == grep { /perl/ }  qx{ ps aux|grep $0 };
 ```
 
 具体示例如下述
 
-```
+```perl
 print "程序已运行，退出!\n" and exit if 2==grep {/$0/i} `ps -ef | grep $0 | grep -v grep`;
 ```
 
@@ -353,7 +358,7 @@ print "程序已运行，退出!\n" and exit if 2==grep {/$0/i} `ps -ef | grep $
 
 ## 文件内容放入数组
 
-```
+```perl
 my $FH;
 my @bug_array;
 

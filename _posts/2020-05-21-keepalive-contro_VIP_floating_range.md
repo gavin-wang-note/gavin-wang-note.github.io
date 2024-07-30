@@ -3,8 +3,10 @@ layout:     post
 title:      "控制keepalive VIP漂移范围"
 subtitle:   "keepalive contro VIP floating range"
 date:       2020-05-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [keepalive]
 tags:
     - keepalive
 ---
@@ -17,7 +19,7 @@ tags:
 
 == node243
 
-```
+```shell
 root@node243:/etc/keepalived# cat keepalived.conf 
 global_defs {
     vrrp_version 3
@@ -42,7 +44,7 @@ vrrp_instance VRRP0 {
 
 == node244
 
-```
+```shell
 root@node244:/var/log# cat /etc/keepalived/keepalived.conf 
 global_defs {
     vrrp_version 3
@@ -67,7 +69,7 @@ vrrp_instance VRRP0 {
 
 == node245
 
-```
+```shell
 root@node245:/etc/keepalived# cat keepalived.conf 
 global_defs {
     vrrp_version 3
@@ -106,7 +108,7 @@ vrrp_instance VRRP0 {
 
 == node243
 
-```
+```shell
 root@node243:/etc/keepalived# cat keepalived.conf 
 global_defs {
    notification_email {
@@ -169,7 +171,7 @@ virtual_server 12.7.3.89 80 {         #LVS配置段，VIP
 
 == node244
 
-```
+```shell
 root@node244:/etc/keepalived# cat keepalived.conf 
 global_defs {
    notification_email {
@@ -234,7 +236,7 @@ virtual_server 12.7.3.89 80 {
 
 == node245
 
-```
+```shell
 root@node245:/etc/keepalived# cat keepalived.conf 
 global_defs {}
 root@node245:/etc/keepalived# 
@@ -245,7 +247,7 @@ root@node245:/etc/keepalived#
 
 ### 重启所有节点的keepalive服务
 
-```
+```shell
 root@node245:/etc/keepalived# onnode -p all 'systemctl restart keepalived.service'
 root@node245:/etc/keepalived# 
 ```
@@ -256,7 +258,7 @@ root@node245:/etc/keepalived#
 
 ### 检查VIP落在哪个node上
 
-```
+```shell
 root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
     inet 12.7.3.89/32 scope global enp5s0f0
 root@node243:/etc/keepalived# 
@@ -267,7 +269,7 @@ root@node243:/etc/keepalived#
 
 ### 停用node243的keepalive服务
 
-```
+```shell
 root@node243:/etc/keepalived# systemctl stop keepalived.service 
 root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
 root@node243:/etc/keepalived# 
@@ -275,42 +277,42 @@ root@node243:/etc/keepalived#
 
 ### 再次检查VIP落在哪个node上
 
-```
+```shell
 root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
 root@node243:/etc/keepalived# 
 
 ```
 
-```
+```shell
 root@node244:/etc/keepalived# ip a | grep '12.7.3.89'
     inet 12.7.3.89/32 scope global enp5s0f0
 root@node244:/etc/keepalived# 
 ```
 
-```
+```shell
 root@node245:/etc/keepalived# ip a | grep '12.7.3.89'
 root@node245:/etc/keepalived# 
 ```
 
 ### 停用node244的keepalive服务
 
-```
+```shell
 root@node244:/etc/keepalived# systemctl stop keepalived.service 
 ```
 
 ### 再次检查VIP落在哪个node上
 
-```
+```shell
 root@node243:/etc/keepalived# ip a | grep '12.7.3.89'
 root@node243:/etc/keepalived# 
 ```
 
-```
+```shell
 root@node244:/etc/keepalived# ip a | grep '12.7.3.89'
 root@node244:/etc/keepalived# 
 ```
 
-```
+```shell
 root@node245:/etc/keepalived# ip a | grep '12.7.3.89'
 root@node245:/etc/keepalived# 
 ```

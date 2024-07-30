@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle 回收站介绍"
 subtitle:   "Oracle Recyclebin Desc"
 date:       2009-11-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -14,7 +16,7 @@ tags:
 
 实际上，Recycle Bin只是一个保存被drop的对象的一个数据字典表。所以，可以通过如下语句查询回收站中的信息：
 
-```
+```shell
 node1:oracle:mmsgdb > sqlplus /nolog 
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 11月 19 10:34:34 2009
@@ -49,7 +51,7 @@ SQL>
 
 ## 查询当前回收站中数据
 
-```
+```shell
 node1:oracle:mmsgdb > sqlplus /nolog
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期四 11月 19 10:45:32 2009
@@ -71,7 +73,7 @@ SQL>
 
 数据库用户wyz删除一条记录：
 
-```
+```shell
 
 SQL> urop table interfaceaccount_20091117;
 
@@ -80,7 +82,7 @@ SQL> urop table interfaceaccount_20091117;
 
 ## 查看回收站信息
 
-```
+```shell
 SQL> select object_name,original_name from recyclebin;
 
 OBJECT_NAME                    ORIGINAL_NAME
@@ -107,7 +109,7 @@ RecycleBin中的对象会被系统自动按照规则重命名，这是为了防�
 
 已经删除了表interfaceaccount_20091117，创建该表，再次删除一次。
 
-```
+```shell
 SQL> create table interfaceaccount_20091117 as select * from interfaceaccount_20091119 where 1=2;   #创建表interfaceaccount_20091117
 SQL> drop table interfaceaccount_20091117;    #再次删除表interfaceaccount_20091117
 
@@ -133,7 +135,7 @@ SQL>
 
 启用或禁用回收站，通过设置初始化参数recyclebin，可以控制是否启用回收站功能，默认是开启的。
 
-```
+```shell
 SQL> alter system set recyclebin=off;        #关闭回收站
 系统已更改。
 SQL> alter system set recyclebin=on;        #开启回收站
@@ -148,13 +150,13 @@ SQL>
 
 前面已经提及，即使用：
 
-```
+```shell
 SQL> select object_name,original_name from recyclebin;
 ```
 
 或（必须是sysdba用户）：
 
-```
+```shell
 SQL> select owner,synonym_name,table_owner,table_name from dba_synonyms where synonym_name='RECYCLEBIN';
 
 OWNER                          SYNONYM_NAME
@@ -170,7 +172,7 @@ SQL>
 
 或
 
-```
+```shell
 SQL> show recyclebin 
 ORIGINAL NAME    RECYCLEBIN NAME                OBJECT TYPE  DROP TIME
 ---------------- ------------------------------ ------------ -------------------
@@ -189,7 +191,7 @@ Oracle10g提供了回收站功能，回收站类似Windows的回收站，是个�
 
 purge table table_name可以清除指定的table，这里的table_name既可以是table原来的名字，也可以是回收站中按规则自动命名的名字。
 
-```
+```shell
 SQL> show recyclebin 
 ORIGINAL NAME    RECYCLEBIN NAME                OBJECT TYPE  DROP TIME
 ---------------- ------------------------------ ------------ -------------------
@@ -362,7 +364,7 @@ SQL> purge recyclebin;
 
 另外，purge index可以清除index对象。
 
-```
+```shell
 SQL> select object_name,original_name,type from recyclebin;
 
 OBJECT_NAME                    ORIGINAL_NAME
@@ -397,7 +399,7 @@ SQL>
 
 如果出现
 
-```
+```shell
 SQL> purge index IDX_I_20091103;
 第 1 行出现错误:
 ORA-00604: 递归 SQL 级别 1 出现错误
@@ -406,7 +408,7 @@ ORA-02429: 无法删除用于强制唯一/主键的索引
 
 这里由于IDX_I_20091103是table主键的索引，所以无法单独清除。可直接清除回收站：
 
-```
+```shell
 SQL> purge recyclebin;
 回收站已清空。
 ```
@@ -415,7 +417,7 @@ SQL> purge recyclebin;
 
 使用Flashback table来还原过被删除的table。
 
-```
+```shell
 SQL> flashback table  INTERFACEACCOUNT_20091117  to before drop rename to INTERFACEACCOUNT_wyztest;
 
 闪回完成。
@@ -450,7 +452,7 @@ SQL>
 
 如果多次删除同名的table，则使用上面的语句还原的是最后一个被删除的INTERFACEACCOUNT_20091117表，这里也可以使用RecycleBin给table的名字来做还原。
 
-```
+```shell
 SQL> flashback table " BIN$eLIogOtU7vDgQKjA3GRztA==$0" to before drop rename to wyz_test_2009-11-19;
 ```
 

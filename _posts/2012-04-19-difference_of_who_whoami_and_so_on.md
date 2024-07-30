@@ -3,10 +3,12 @@ layout:     post
 title:      "who与whoami与who an i与w的区别"
 subtitle:   "Difference of who, whoami, who am i and w"
 date:       2012-04-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
-    - Megacli
+    - Linux
 ---
 
 
@@ -20,7 +22,7 @@ tags:
 
 当前是root用户：
 
-```
+```shell
 root@node77:~# w
  18:20:21 up  7:57,  3 users,  load average: 1.06, 1.51, 1.82
 USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
@@ -45,7 +47,7 @@ root
 
 切换到test01用户：
 
-```
+```shell
 root@node77:~# su - test01
 test01@node77:~$ who am i
 root     pts/0        2012-04-19 10:28 (1.6.72.76)

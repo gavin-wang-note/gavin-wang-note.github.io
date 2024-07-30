@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--表空间--表空间使用率为负数"
 subtitle:   "Oracle tablespace troubleshoot--tablespace usage is negative"
 date:       2012-02-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -21,7 +23,7 @@ oracle的表空间的使用率主要是通过表dba_data_files 和 dba_free_spac
 
 ### 查询该表空间使用情况（dba_tablespace_usage_metrics）
 
-```
+```shell
 SQL> run
   1* select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH'
 
@@ -43,14 +45,14 @@ SQL>
 
 
 Web OEM查询结果如下：
- 
+
 <img class="shadow" src="/img/in-post/oracle-oem.png" width="1200">
 
 上图结果显示表空间YJH的使用率为10.5%
 
 OEM的SQL trace为：
 
-```
+```shell
 SELECT 
 /*+first_rows */ 
  d.tablespace_name,
@@ -155,7 +157,7 @@ and d.tablespace_name like 'YJH%' ORDER BY 1
 
 上述command查询结果如下：
 
-```
+```shell
 TABLESPACE_NAME  NVL(A.BYTES/1024/1024,0) DECODE(D.CONTENTS,'UNDO',NVL(U.BYTES,0)/1024/1024,NVL(A.BYTES-NVL(F.BYTES,0),0)/1024/1024) STATUS     COUNT CONTENTS  EXTENT_MAN SEGMEN
 ------------------------------ ------------------------ ------------------------------------------------------------------------------------------ --------- ---------- --------- ---------- ------
 YJH                                                 600                                                                            63 ONLINE              1 PERMANENT LOCAL      AUTO
@@ -168,7 +170,7 @@ SQL>
 
 ### 查询dba_free_space和dba_data_files
 
-```
+```shell
 SQL> select sum(bytes) from dba_data_files where tablespace_name = 'YJH';
 
 SUM(BYTES)
@@ -201,7 +203,7 @@ oracle从10g开始提供回收站功能，从11g提供闪回功能，回收站�
 
 #### 步骤一、回收站相关参数
 
-```
+```shell
 SQL> show parameter recyclebin
 
 NAME                                 TYPE        VALUE
@@ -229,7 +231,7 @@ SQL>
 
 #### 步骤二、dba用户清空当前回收站中所有记录
 
-```
+```shell
 SQL> purge dba_recyclebin;
 
 DBA Recyclebin purged.
@@ -237,7 +239,7 @@ DBA Recyclebin purged.
 
 #### 步骤三、再次查询表空间使用率
 
-```
+```shell
 SQL> select * from dba_tablespace_usage_metrics where tablespace_name = 'YJH';
 
 TABLESPACE_NAME                USED_SPACE TABLESPACE_SIZE USED_PERCENT
@@ -258,7 +260,7 @@ SQL>
 
 按照当前的现象，查询了当前表空间中表的可读写情况：
 
-```
+```shell
 select 
 b.segment_name ,
 b.BYTES,b.BLOCKS 

@@ -3,8 +3,10 @@ layout:     post
 title:      "Get filemap from OSD map"
 subtitle:   "Get filemap from OSD map"
 date:       2021-08-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -13,7 +15,7 @@ tags:
 
 # Script of get_fibmap.py
 
-{% raw %}```
+```python
 #!/usr/bin/env python
 import sys
 import argparse
@@ -50,5 +52,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-``` {% endraw %}
+```
 

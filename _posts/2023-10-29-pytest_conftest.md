@@ -3,8 +3,13 @@ layout:     post
 title:      "pytest 之 conftest.py"
 subtitle:   "pytest of conftest.py"
 date:       2023-10-29
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+img: "/img/pytest/pytest-4.png"
+summary: pytest conftest.py详解
+categories:
+    - [Automation]
+    - [pytest]
 tags:
     - Automation
     - pytest
@@ -64,8 +69,8 @@ tags:
 **其作用范围是当前目录包括子目录里的测试模块。**
 
 - 比如在测试框架的根目录创建`conftest.py`文件，文件中的fixture的作用范围是所有测试模块
--  比如在某个单独的测试文件夹里创建`conftest.py`文件，文件中fixture的作用范围，就仅局限于该测试文件夹里的测试模块；该测试文件夹外的测试模块，或者该测试文件夹外的测试文件夹，是无法调用到这个`conftest.py`文件中的fixture。
-- 如果测试框架的根目录和子包中都有`conftest.py`文件，并且这两个`conftest.py`文件中都有一个同名的fixture，实际生效的是测试框架中子包目录下的`conftest.py`文件中配置的fixture（即此场景下子目录下的conftest.py会覆盖父目录的conftest.py）
+- 比如在某个单独的测试文件夹里创建`conftest.py`文件，文件中fixture的作用范围，就仅局限于该测试文件夹里的测试模块；该测试文件夹外的测试模块，或者该测试文件夹外的测试文件夹，是无法调用到这个`conftest.py`文件中的fixture。
+- 如果测试框架的根目录和子包中都有`conftest.py`文件，并且这两个`conftest.py`文件中都有一个同名的fixture，实际生效的是测试框架中子包目录下的`conftest.py`文件中配置的fixture(即此场景下子目录下的`conftest.py`会覆盖父目录的`conftest.py`)
 
 
 
@@ -77,7 +82,7 @@ tags:
 
 
 
-```
+```shell
 root@Gavin:~/src# tree
 .
 ├── clear_pyc.py
@@ -104,7 +109,7 @@ root@Gavin:~/src#
 
 
 
-```
+```python
 root@Gavin:~/src# cat conftest.py 
 import os
 import pytest
@@ -148,7 +153,7 @@ root@Gavin:~/src#
 
 
 
-```
+```shell
 root@Gavin:~/src# cat ../report/pytest_autotest.log 
 2023-10-30 06:50:48 [conftest.py:8   ] [ INFO] ------------------------------------- Start to run test case ---------------------------------
 
@@ -181,8 +186,7 @@ root@Gavin:~/src#
 
 
 从测试log看：
-
-<img class="shadow" src="/img/in-post/conftest_scope.png" width="400" />
+<div style="display:inline-block;"><img width="100%" style="float:left; margin-right: 10px;" src="/img/in-post/conftest_scope.png"></div> 
 
 
 # 结语

@@ -3,8 +3,13 @@ layout:     post
 title:      "基于Cobbler自动部署OS与使用指南"
 subtitle:   "Cobbler-based automatic install OS and usage guide"
 date:       2020-10-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+summary: "使用Cobbler自动部署OS与使用指南"
+top: true
+categories:
+    - [cobbler]
+    - [Automation]
 tags:
     - cobbler
     - Automation
@@ -41,7 +46,7 @@ tags:
 
 
 
-```
+```shell
 [root@cobbler-236 ~]# cat /etc/redhat-release
 CentOS Linux release 7.6.1810 (Core) 
 [root@cobbler-236 ~]# uname -r
@@ -57,7 +62,7 @@ CentOS Linux release 7.6.1810 (Core)
 
 
 
-```
+```shell
 [root@cobbler-236 network-scripts]# pwd
 /etc/sysconfig/network-scripts
 [root@cobbler-236 network-scripts]# ls ifcfg-ens*
@@ -106,7 +111,7 @@ PREFIX=24
 重启网络服务，并查看ip地址:
 
 
-```
+```shell
 [root@cobbler-236 network-scripts]# systemctl restart network.service
 [root@cobbler-236 network-scripts]# ip a
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
@@ -138,7 +143,7 @@ PREFIX=24
 
 默认 ssh_config 启用了 DNS 解析，导致每次远程 ssh 时都特别慢
 
-```
+```shell
 [root@cobbler-236 ~]# sed -i 's%#UseDNS yes%UseDNS no%' /etc/ssh/sshd_config
 [root@cobbler-236 ~]# service sshd restart
 ```
@@ -153,7 +158,7 @@ PREFIX=24
 
 
 
-```
+```shell
 systemctl stop firewalld.service        # 停止firewall
 systemctl disable firewalld.service     # 禁止firewall开机启动
 ```
@@ -166,7 +171,9 @@ systemctl disable firewalld.service     # 禁止firewall开机启动
 
 编辑/etc/selinux/config文件，将SELINUX的值设置为disabled，下次开机SELinux就不会启动了。接着再执行如下命令,注意 setenforce 后面有空格:
 
-```setenforce 0 ```
+```shell
+setenforce 0
+```
 
 查看SELinux状态,执行getenforce命令, Disabled 表示已经关闭了。
 
@@ -174,7 +181,7 @@ systemctl disable firewalld.service     # 禁止firewall开机启动
 
 ## 安装wget
 
-```
+```shell
 yum -y install wget
 ```
 
@@ -204,7 +211,7 @@ cobbler由epel源提供，所以需要事先配置epel的yum源。
 
 用于/etc/fstab文件的编辑,比如：
 
-```
+```shell
 [root@cobbler-236 ~]# blkid 
 /dev/mapper/centos-root: UUID="f43b464c-78b9-4877-9c9b-72c5f01eb69d" TYPE="xfs" 
 /dev/sda2: UUID="bwMXPE-QMkC-gbwC-vCxn-q7W0-HCss-RBsmtK" TYPE="LVM2_member" 
@@ -215,7 +222,7 @@ cobbler由epel源提供，所以需要事先配置epel的yum源。
 [root@cobbler-236 ~]# 
 ```
 
-```
+```shell
 10.16.172.101:/vol/share/Builds/buildwindow/ /mnt/buildwindow nfs rsize=8192,wsize=8192,timeo=14,intr
 UUID=eaa27ae0-63bd-4d9e-a683-35d785269848  /var/www/cobbler        xfs     defaults        0 2
 ```
@@ -226,7 +233,9 @@ UUID=eaa27ae0-63bd-4d9e-a683-35d785269848  /var/www/cobbler        xfs     defau
 
 
 
-```yum -y install cobbler cobbler-web pykickstart debmirror httpd dhcp tftp-server xinetd syslinux ```
+```shell
+yum -y install cobbler cobbler-web pykickstart debmirror httpd dhcp tftp-server xinetd syslinux
+```
 
 
 
@@ -234,7 +243,7 @@ UUID=eaa27ae0-63bd-4d9e-a683-35d785269848  /var/www/cobbler        xfs     defau
 
 
 
-```
+```shell
 systemctl start httpd
 systemctl enable httpd
 systemctl start cobblerd
@@ -252,11 +261,13 @@ systemctl enable rsyncd
 
 通过cobbler自带的命令检查，而后逐一按提示解决。
 
-```cobbler check ```
+```shell
+cobbler check
+```
 
 出现如下提示信息：
 
-```
+```shell
 [root@cobbler-236 ~]# cobbler check
 The following are potential configuration items that you may want to fix:
 
@@ -311,14 +322,14 @@ Restart cobblerd and then run 'cobbler sync' to apply changes.
 
 执行  ```openssl passwd -1 -salt $(openssl rand -hex 4) ``` 生成密码，并用其替换/etc/cobbler/settings文件中default_password_crypted参数的值；
 
-```
+```shell
 [root@cobbler-236 ~]# openssl passwd -1 -salt $(openssl rand -hex 4)
 Password: 
 $1$2a25cee5$NK/O/uGlcl3tue7mc/Iy5/
 [root@cobbler-236 ~]# 
 ```
 
-```
+```shell
 vi /etc/cobbler/settings
 
 default_password_crypted: "$1$2a25cee5$NK/O/uGlcl3tue7mc/Iy5/"
@@ -330,7 +341,7 @@ default_password_crypted: "$1$2a25cee5$NK/O/uGlcl3tue7mc/Iy5/"
 
 
 
-```
+```shell
 yum -y install fence-agents
 yum -y install perl-JSON-PP
 ```
@@ -341,7 +352,7 @@ yum -y install perl-JSON-PP
 
 
 
-```
+```shell
 systemctl restart cobblerd
 cobbler sync
 cobbler check
@@ -350,7 +361,7 @@ cobbler check
 
 如果出现如下信息，表明check ok：
 
-```
+```shell
 [root@cobbler-236 ~]# cobbler check
 No configuration problems found.  All systems go.
 [root@cobbler-236 ~]# 
@@ -362,7 +373,7 @@ No configuration problems found.  All systems go.
 
 
 
-```
+```shell
 [root@cobbler-236 ~]# sed -i 's#manage_dhcp: 0#manage_dhcp: 1#' /etc/cobbler/settings
 ```
 
@@ -374,7 +385,7 @@ No configuration problems found.  All systems go.
 
 ```vi /etc/cobbler/dhcp.template ```
 
-```
+```shell
 subnet 172.10.0.0 netmask 255.255.255.0 {
      option routers             172.10.0.254;
      option domain-name-servers 172.10.0.1;
@@ -403,7 +414,7 @@ subnet 172.10.0.0 netmask 255.255.255.0 {
 
 然后重启cobbler服务并同步配置
 
-```
+```shell
 systemctl restart cobblerd
 cobbler sync
 ```
@@ -426,7 +437,7 @@ cobbler sync
 
 安装的版本为：
 
-```
+```shell
 [root@cobbler-236 ~]# nginx -v
 nginx version: nginx/1.16.1
 [root@cobbler-236 ~]# 
@@ -448,7 +459,7 @@ nginx version: nginx/1.16.1
 
 其他指令参考如下：
 
-``` 
+```shell
 service nginx start      # 启动 nginx 服务
 service nginx stop       # 停止 nginx 服务
 service nginx restart    # 重启 nginx 服务
@@ -467,7 +478,7 @@ service nginx reload     # 重新加载配置，一般是在修改过 nginx 配�
 
 默认是nginx这个账号启用nginx服务的，需要改成root
 
-```
+```shell
 user root;
 ```
 
@@ -477,7 +488,7 @@ user root;
 
 下面改成81：
 
-```
+```shell
         listen       81 default_server;
         listen       [::]:81 default_server;
 ```
@@ -486,7 +497,7 @@ user root;
 
 ### 3. 指定location
 
-```
+```shell
         location / {
             root /var/www/html;
             autoindex on;
@@ -497,7 +508,7 @@ user root;
 
 同时，执行如下命令：
 
-```
+```shell
 cd /var/www
 rm -rf html
 ln -s /var/lib/tftpboot /var/www/html
@@ -517,7 +528,7 @@ ln -s /var/lib/tftpboot /var/www/html
 autiinit.sh脚本，作用于通过PXE网络安装OS最后时刻，修改apache2.conf，修改ssh_config，重置avahi扫描网络所需的配置信息（避免节点avahi config中配置的IP是PXE网络的IP，而非预期设定的public或storage或class网络），内容参考如下：
 
 
-```
+```shell
 #!/bin/sh
 sed -i 's/KeepAlive On/KeepAlive Off/' /etc/apache2/apache2.conf;
 sed -i.bak 's/^#\ \ \ StrictHostKeyChecking ask/\ \ \ \ StrictHostKeyChecking no/' /etc/ssh/ssh_config
@@ -528,7 +539,7 @@ sed -i '/\/root\/autoinit.sh/d' /etc/rc.local
 
 将autoinit.sh脚本，复制到 /var/lib/tftpboot/netconf/目录下：
 
-```
+```shell
 cp autoinit.sh /var/lib/tftpboot/netconf/
 ```
 
@@ -552,7 +563,7 @@ cp autoinit.sh /var/lib/tftpboot/netconf/
 
 在导入期间，可以在后端查看导入进程信息：
 
-```
+```shell
 [root@cobbler-236 ~]# ps -ef |grep rsync
 root      4661     1  0 Sep13 ?        00:00:00 /usr/bin/rsync --daemon --no-detach
 root     14477 12531 21 23:09 ?        00:00:02 rsync -a /mnt/ /var/www/cobbler/ks_mirror/centos-7-x86_64 --progress
@@ -564,7 +575,7 @@ root     14497 12822  0 23:10 pts/3    00:00:00 grep --color=auto rsync
 
 如果rsync进程消失，表明import结束：
 
-```
+```shell
 [root@localhost network-scripts]# ps -ef | grep rsync
 root      4854     1  0 Sep16 ?        00:00:00 /usr/bin/rsync --daemon --no-detach
 root     11284  9927  0 11:12 pts/0    00:00:00 grep --color=auto rsync
@@ -573,7 +584,7 @@ root     11284  9927  0 11:12 pts/0    00:00:00 grep --color=auto rsync
 
 导入完成后生成的文件夹
 
-```
+```shell
 [root@cobbler-236 ks_mirror]# pwd
 /var/www/cobbler/ks_mirror
 [root@cobbler-236 ks_mirror]# ll
@@ -590,7 +601,7 @@ drwxr-xr-x. 2 root root  62 Sep 17 11:12 config
 vi /var/lib/cobbler/kickstarts/CentOS-7-x86_64.cfg
 
 
-```
+```shell
 # Centos7
 # This kickstart file should only be used with EL > 5 and/or Fedora > 7.
 # For older versions please use the sample.ks kickstart file.
@@ -672,7 +683,7 @@ cobbler profile edit --name=CentOS-7-x86_64 --kickstart=/var/lib/cobbler/kicksta
 
 用cobbler profile report查看，Kickstart前后信息已经改变
 
-```
+```shell
 [root@cobbler-236 kickstarts]# cobbler profile report
 Name                           : centos-7-x86_64
 TFTP Boot Files                : {}
@@ -757,7 +768,7 @@ systemctl restart xinetd
 
 ### 5. 安装系统系统后，自动设定IP地址
 
-```
+```shell
 [root@cobbler-236 ~]# cobbler system add --name=CentOS-7-x86_64 --mac=00:50:56:9e:ee:2e  --profile=CentOS-7-X86_64  --ip-address=172.17.73.76 --subnet=255.255.252.0 --gateway=172.17.75.254 --interface=eth0 --static=1 --hostname=wyz_au01 --name-servers="114.114.114.114 8.8.8.8"
 [root@cobbler-236 ~]# cobbler system list
    CentOS-7-x86_64
@@ -770,7 +781,7 @@ task started: 2020-09-17_165512_sync
 
 4个网口：
 
-```
+```shell
 cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface=eth0 --mac=00:50:56:9e:ee:2e --interface-type=bond_slave --interface-master=bond0
 cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface=eth1 --mac=00:50:56:9e:ee:2e --interface-type=bond_slave --interface-master=bond0
 cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip-address=172.17.73.76 --subnet=255.255.252.0 --gateway=172.17.75.254 --static=1
@@ -784,7 +795,7 @@ cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface
 
 2个网口：
 
-```
+```shell
 cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface=eth0 --mac=00:50:56:9e:ee:2e --interface-type=bond_slave --interface-master=bond0
 cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface=eth1 --mac=00:50:56:9e:cc:0c --interface-type=bond_slave --interface-master=bond1
 cobbler system edit --name=CentOS-7-x86_64 --profile=CentOS-7-X86_64 --interface=bond0 --interface-type=bond --bonding-opts="mode=active-backup miimon=100" --ip-address=172.17.73.76 --subnet=255.255.252.0 --gateway=172.17.75.254 --static=1
@@ -812,7 +823,7 @@ https://blog.csdn.net/admin_root1/article/details/84965608
 
 
 ### 1. 挂载镜像
-```
+```shell
 cd /var/www/cobbler/ks_mirror
 mkdir Scaler-8.0-latest
 mount /mnt/buildwindow/xenial/virtualstor_scaler_8.0/builds/2020-09-25_00_33_00/VirtualStor\ Scaler-v8.0-413-xenial~202009250033~5f910ea.iso /var/www/cobbler/ks_mirror/Scaler-8.0-latest
@@ -821,7 +832,7 @@ mount /mnt/buildwindow/xenial/virtualstor_scaler_8.0/builds/2020-09-25_00_33_00/
 
 
 ### 2. 导入镜像
-```
+```shell
 cobbler import --path=/var/www/cobbler/ks_mirror/Scaler-8.0-latest --name=Scaler-8.0-latest-x86_64  --arch=x86_64
 ```
 
@@ -862,7 +873,7 @@ cobbler import --path=/var/www/cobbler/ks_mirror/Scaler-8.0-latest --name=Scaler
 ## 必要的安装包
 
 
-```
+```shell
 yum -y install python3
 yum -y install python3-pip
 yum -y install vim
@@ -880,7 +891,7 @@ pip3 install pyVmomi
 
 对于Ubuntu Scaler，无需任何手工干预，其preseed文件目前是自动生成，存放于 ```/var/lib/tftpboot/netconf ```对应版本（安装脚本**PXE_MAP**处定义的版本信息）目录下，参考如下：
 
-```
+```shell
 [root@cobbler-236 netconf]# ls -l
 total 8
 drwxr-xr-x 2 root root 4096 Oct  3 18:15 8.0
@@ -941,7 +952,7 @@ total 16
 
 参考示例如下（可以在“vms”中以{}形式，增加其他节点信息）：
 
-```
+```shell
 {
     "ostype":"ubuntu",
     "version":"8.0",
@@ -996,7 +1007,7 @@ total 16
 
 
 
-```
+```shell
     "8.0": {
         "buildpath":     "xenial/virtualstor_scaler_8.0/",
         "pxeint":        ["ens160", "ens192", "ens224"]
@@ -1031,13 +1042,13 @@ total 16
 
 
 
-```
+```shell
 # yum install pykickstart
 ```
 
 After installing the package, you can validate a Kickstart file using the following command:
 
-```
+```shell
 $ ksvalidator /path/to/kickstart.ks
 ```
 

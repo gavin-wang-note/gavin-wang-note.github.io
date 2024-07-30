@@ -3,8 +3,11 @@ layout:     post
 title:      "快速获取Lab中哪些IPMI IP地址被使用"
 subtitle:   "Fast to get IPMI IPs which are in used"
 date:       2020-06-23
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [fping]
 tags:
     - fping
     - Linux
@@ -22,7 +25,7 @@ Lab里有一大批设备，每个设备都配置了IPMI地址，虽然Office提�
 
 ## 利用ping获取哪些地址被使用
 
-```
+```shell
 #!/bin/bash
 
 for ip in 1.72.5.{1..255};
@@ -37,7 +40,7 @@ done
 
 看看执行耗时：
 
-```
+```shell
 root@node77:~# time bash ping.sh 2>&1 >/dev/null
 
 real	12m47.366s
@@ -53,7 +56,7 @@ root@node77:~#
 
 改进上述脚本的操作，使用并发，要想并发，可将循环体放在()&中，将命令放在()，使其中的命令可作为shell的子shell来执行，而&脱离当前线程，在后台继续执行，改进后如下：
 
-```
+```shell
 #!/bin/bash
 
 for ip in 1.72.5.{1..255};
@@ -72,7 +75,7 @@ done
 
 看看执行耗时：
 
-```
+```shell
 root@node77:~# time bash ping2.sh 2>&1 >/dev/null
 
 real	12m31.581s
@@ -91,7 +94,7 @@ fping类似于ping，但比ping强大的多。与ping要等待某一主机连接
 
 看一下官方解释：
 
-```
+```shell
 NAME
        fping - send ICMP ECHO_REQUEST packets to network hosts
 
@@ -109,7 +112,7 @@ DESCRIPTION
 
 测试一下fping的效果：
 
-```
+```shell
 root@node77:~# time fping -s -a -q -g 1.72.5.0/24
 1.72.5.111
 1.72.5.114

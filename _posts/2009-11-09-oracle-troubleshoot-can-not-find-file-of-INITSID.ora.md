@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--找不到INITSID.ORA文件解决方法（ORA-01078）"
 subtitle:   "Oracle troubleshoot of can't find INITSID.ORA"
 date:       2009-11-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -14,7 +16,7 @@ tags:
 
 ## 表象
 
-```
+```shell
 node1:oracle:mmsgdb > sqlplus '/as sysdba'
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期一 11月 9 11:25:48 2009
 Copyright (c) 1982, 2008, Oracle.  All rights reserved.
@@ -31,7 +33,7 @@ SQL> exit
 
 ## 原因
 
-```
+```shell
 Failure during processing of INIT.ORA parameters during system startup.
 ```
 
@@ -51,7 +53,7 @@ Failure during processing of INIT.ORA parameters during system startup.
 
 （4） 启动数据库实例
 
-```
+```shell
 sqlplus '/as sysdba'  
 startup
 ```
@@ -62,7 +64,7 @@ startup
 
 Oracle最后检查的文件为initmmsgdb.ora,让我们创建这个文件,然后数据库实例即可创建:
 
-```
+```shell
 SQL> ! echo "db_name=mmsgdb" > /opt/oracle/product/11g/dbs/initmmsgdb.ora
 SQL> startup nomount;
 ```

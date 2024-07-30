@@ -3,8 +3,10 @@ layout:     post
 title:      "python字段反转去重"
 subtitle:   "revert dict then delete duplicate"
 date:       2020-10-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -20,19 +22,19 @@ tags:
 
 如下为测试示例获取到的profile与system的字典信息：
 
-```
+```shell
 {'test02': 'Scaler-8.0-latest-x86_64', 'Scaler-CentOS-8.0-latest-x86_64': 'Scaler-CentOS-8.0-latest-x86_64', 'Scaler-8.0-latest-x86_64': 'Scaler-8.0-latest-x86_64', 'test01': 'Scaler-8.0-latest-x86_64'}
 ```
 
 而我预期的映射关系是：
 
-```
+```shell
 {'Scaler-CentOS-8.0-latest-x86_64': ['Scaler-CentOS-8.0-latest-x86_64'], 'Scaler-8.0-latest-x86_64': ['test02', 'Scaler-8.0-latest-x86_64', 'test01']}
 ```
 
 # 解决方法
 
-```
+```shell
 from collections import defaultdict
 reversed_dict = defaultdict(list)
 for key,value in mydict.iteritems():

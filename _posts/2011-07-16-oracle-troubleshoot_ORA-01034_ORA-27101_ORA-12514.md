@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01034  ORA-27101，ORA-12514"
 subtitle:   "Oracle error code troubleshoot--ORA-01034  ORA-27101，ORA-12514"
 date:       2011-07-16
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 现象
 
-```
+```shell
 ORA-01034: ORACLE not available
 ORA-27101: shared memory realm does not exist
 ```
@@ -34,7 +36,7 @@ ORA-27101: shared memory realm does not exist
 
 解决方法就是压缩这个undo文件。
 
-```
+```shell
 SQL> startup   
 ORACLE instance started.   
   

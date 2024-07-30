@@ -3,8 +3,10 @@ layout:     post
 title:      "APP性能数据收集操作指南"
 subtitle:   "APP performance autotest"
 date:       2015-07-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
 tags:
     - APP
     - performance
@@ -18,9 +20,8 @@ tags:
 集成monkey功能， android测试工作中常用测试脚本，以及在手工测试app端功能时，自动收集相关数据，并生成HTML报告。
 
 ```需要源码的，请发我163邮箱```
- 
 
-**monkey****稳定性测试：**
+**monkey稳定性测试：**
 
   （1）monkey各参数从配置文件中读取，基本涵盖monkey所有参数，可随时调整/修改配置项值；
 
@@ -41,8 +42,6 @@ tags:
   （4）处理获取数据，写入文本文件，同时入库（SQLIte）
 
   （5）绘曲线图，并生成HTML测试报告
-
- 
 
  
 
@@ -127,7 +126,6 @@ tags:
 | matplotlib  | pip  install matplotlib     | 绘图使用     |
 | dateuti     | pip install python-dateutil | 绘图使用     |
 | numpy       | pip  install numpy          | 绘图使用     |
-|             |                             |              |
 
  
 

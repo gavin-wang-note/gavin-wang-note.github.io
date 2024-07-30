@@ -1,10 +1,14 @@
 ---
-layout:     post
-title:      "mysql 增量备份"
-subtitle:   "MySQL incremental backup"
-date:       2023-08-22
-author:     "Gavin"
-catalog:    true
+layout: post
+title: "mysql 增量备份"
+subtitle: "MySQL incremental backup"
+date: 2023-08-22
+author: "Gavin Wang"
+catalog: true
+summary: MySQL数据库增量备份
+categories: 
+    - [python]
+    - [mysql]
 tags:
     - python
     - mysql
@@ -23,7 +27,7 @@ tags:
 # 环境
 
 
-```
+```shell
 root@ubuntu:~# hostnamectl 
    Static hostname: ubuntu
          Icon name: computer-vm
@@ -43,7 +47,7 @@ root@ubuntu:~#
 
 并创建了一个名称为 'test'的数据库，存放一张表（user）和一个视图（user_view）：
 
-```
+```shell
 mysql> create table user (name VARCHAR(25), age INT(3));
 Query OK, 0 rows affected (0.02 sec)
 
@@ -125,7 +129,7 @@ mysql>
 
 
 
-```
+```python
 root@ubuntu:~# cat mysql_backup.py 
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
@@ -326,7 +330,7 @@ root@ubuntu:~#
 
 
 
-```
+```shell
 0 2 * * * python /usr/local/bin/mysql_backup.py 
 ```
 
@@ -344,7 +348,7 @@ root@ubuntu:~#
 
 建议手工进行恢复，参考命令如下：
 
-```
+```shell
 root@ubuntu:~# innobackupex 
 	--apply-log /mysql_backup/2023-08-21_23-19-39/
 	--incremental-dir=/mysql_backup/2023-08-21_23-19-39/

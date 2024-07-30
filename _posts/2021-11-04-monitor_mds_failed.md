@@ -3,8 +3,11 @@ layout:     post
 title:      "Monitor mds failed"
 subtitle:   "Monitor mds failed"
 date:       2021-11-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [shell]
 tags:
     - mds
     - ceph
@@ -14,9 +17,9 @@ tags:
 
 # Scripts
 
-monitor_mds_failed.sh
+`monitor_mds_failed.sh`
 
-{% raw %}```
+```shell
 #!/bin/bash
 
 if read -t 5 -p "WARN: Have you confirmed that the maximum number of active-mds has been set for VS? [y|n] :" yn
@@ -73,5 +76,5 @@ do
     done
 done
 
-``` {% endraw %}
+```
 

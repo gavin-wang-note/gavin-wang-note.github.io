@@ -3,8 +3,10 @@ layout:     post
 title:      "unittest,pytest,nose,robot framework简介"
 subtitle:   "unittest,pytest,nose,robot framework summary"
 date:       2020-02-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
 tags:
     - Automation
 ---
@@ -45,7 +47,4 @@ robot framework：一款基于Python语言的关键字驱动测试框架，有�
 总体来说，unittest比较基础，二次开发方便，适合高手使用；pytest/nose更加方便快捷，效率更高，适合小白及追求效率的公司；robot framework由于有界面及美观的报告，易用性更好，灵活性及可定制性略差。
 
 
-# 参考链接
-
-```https://www.cnblogs.com/bonelee/p/11122758.html ```
 

@@ -3,8 +3,11 @@ layout:     post
 title:      "API获取Jenkins构建信息"
 subtitle:   "Call API to get Jenkins build information"
 date:       2020-05-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Jenkins]
+    - [Automation]
 tags:
     - Jenkins
     - Automation
@@ -59,7 +62,7 @@ Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenk
 |buildable | String | 是否可构建|
 |builds | List<BuildInfo> | 构建记录|
 |lastBuild |BuildInfo | 上次构建记录|
-|...... |  |  |	
+|...... |  |  |
 
 ### build-info 获取构筑信息
 
@@ -69,11 +72,11 @@ Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenk
 
 |字段 | 类型 | 说明 |
 | ----------- | ----------------- | -------------|
-|artifacts | List<Artifact> | artifacts |
-|actions | Lis<Action> | actions | 
-|building | boolean	路径 |
+|artifacts | List | artifacts |
+|actions | Lis | actions |
+|building | boolean	路径 ||
 |description | String | 描述 |
-|...... | | | 
+|...... | | |
 
 ### create 使用 XML 文件创建任务
 
@@ -85,15 +88,15 @@ Jenkins 的 REST API 可以从外部调用 Jenkins 实例，一些库例如 jenk
 
 |key | value |
 | ---------- | ------------------|
-name	任务名称 |
-payload	XML配置文件 |
+|name|任务名称 |
+|payload|XML配置文件 |
 
 返回类型：RequestStatus
 
 |字段 | 类型 | 说明 |
 | ------- | -------------------- |
 | value | Boolean |
-| errors | List<Error> |
+| errors | List |
 
 ### get-config 获取任务配置文件
 
@@ -163,8 +166,8 @@ payload	XML配置文件 |
 
 |字段 | 类型 | 说明 |
 | ---------- | ------------------- | -----------------------|
-| value | Integer  |
-| errors | List<Error> | |
+| value | Integer  ||
+| errors | List | |
 
 ### build-with-params  使用参数创建任务
 
@@ -224,7 +227,7 @@ payload	XML配置文件 |
 | 字段 | 类型 |
 | ---------| ----------------------- |
 | value | String |
-| errors | List<Error> |
+| errors | List |
 
 ### PluginManager 插件管理（插件信息、安装插件）
 
@@ -246,7 +249,7 @@ payload	XML配置文件 |
 | downgradable | Boolean | |
 | enabled | Boolean | |
 | longName | String | |
-| ...... | | |	
+| ...... | | |
 
 ### installNecessaryPlugins 安装插件
 
@@ -258,7 +261,7 @@ payload	XML配置文件 |
 
 | 字段 | 说明 |
 | ------------ | --------------------- |
-| {pluginID} | 要安装的插件ID | 
+| {pluginID} | 要安装的插件ID |
 
 返回类型：RequestStatus
 
@@ -277,10 +280,10 @@ payload	XML配置文件 |
 | ------------ | ------------------- | ------------------------ |
 | blocked | Boolean | 是否阻塞 |
 | buildable | Boolean | 是否可构建 |
-| id | Integer	| | 
-| inQueueSince | Long | | 	
+| id | Integer	| |
+| inQueueSince | Long | |
 | params | Map<String, String> | 任务参数 |
-| task | Task | Task中包含任务名称和URL
+| task | Task | Task中包含任务名称和URL|
 | ...... | |  |
 
 ### item 任务队列信息
@@ -289,9 +292,9 @@ payload	XML配置文件 |
 
 #### 参数
 
-| 字段 | 说明 | 
+| 字段 | 说明 |
 | ------------ | ------------------------- |
-| {queueId} | 任务队列ID | 
+| {queueId} | 任务队列ID |
 
 返回类型：QueueItem
 
@@ -320,15 +323,15 @@ payload	XML配置文件 |
 
 | 字段 | 类型 | 说明 |
 | -------- | -------------- | -------------------- |
-| availableExecutors | Map<String, String> | |	
+| availableExecutors | Map<String, String> | |
 | busyExecutors | Map<String, String>  |  |
 | connectingExecutors | Map<String, String> |  |
-| definedExecutors | Map<String, String> | |  
+| definedExecutors | Map<String, String> | |
 | idleExecutors | Map<String, String> |  |
 | onlineExecutors | Map<String, String> |  |
 | queueLength | Map<String, String> | |
-| totalExecutors | Map<String, String> | | 
-| totalQueueLength | Map<String, String> | | 
+| totalExecutors | Map<String, String> | |
+| totalQueueLength | Map<String, String> | |
 
 #### System 系统信息
 
@@ -343,7 +346,7 @@ payload	XML配置文件 |
 | jenkinsSession | String | |
 | instanceIdentity | String | |
 | sshEndpoint | String | |
-| server | String | | 
+| server | String | |
 
 
 # 举几个例子
@@ -354,7 +357,7 @@ payload	XML配置文件 |
 
 结果示例如下:
 
-```
+```shell
 <freeStyleBuild _class='hudson.model.FreeStyleBuild'><action _class='hudson.model.CauseAction'><cause _class='hudson.model.Cause$UserIdCause'><shortDescription>Started by user jenkins</shortDescription><userId>jenkins</userId><userName>jenkins</userName></cause></action><action></action><action _class='hudson.plugins.git.util.BuildData'><buildsByBranchName><refsremotesoriginmaster _class='hudson.plugins.git.util.Build'><buildNumber>68</buildNumber><marked><SHA1>6388b644c4405a31611f179dca6c1e485ad92aa5</SHA1><branch><SHA1>6388b644c4405a31611f179dca6c1e485ad92aa5</SHA1><name>refs/remotes/origin/master</name></branch></marked><revision><SHA1>6388b644c4405a31611f179dca6c1e485ad92aa5</SHA1><branch><SHA1>6388b644c4405a31611f179dca6c1e485ad92aa5</SHA1><name>refs/remotes/origin/master</name></branch></revision></refsremotesoriginmaster></buildsByBranchName><lastBuiltRevision><SHA1>6388b644c4405a31611f179dca6c1e485ad92aa5</SHA1><branch><SHA1>6388b644c4405a31611f179dca6c1e485ad92aa5</SHA1><name>refs/remotes/origin/master</name></branch></lastBuiltRevision><remoteUrl>git@10.1.12.10:yunzeng_wang/pytest_framework.git</remoteUrl><scmName></scmName></action><action _class='hudson.plugins.git.GitTagAction'></action><action></action><action></action><action></action><action></action><action></action><action></action><action _class='hudson.plugins.violations.ViolationsBuildAction'></action><action></action><action></action><action></action><artifact><displayPath>allure-report.zip</displayPath><fileName>allure-report.zip</fileName><relativePath>allure-report.zip</relativePath></artifact><building>false</building><displayName>#68</displayName><duration>87155647</duration><estimatedDuration>85209450</estimatedDuration><fullDisplayName>pytest_7.0 #68</fullDisplayName><id>68</id><keepLog>false</keepLog><number>68</number><queueId>343</queueId><result>UNSTABLE</result><timestamp>1588762417068</timestamp><url>http://172.12.12.234:8080/job/pytest_7.0/68/</url><builtOn></builtOn><changeSet _class='hudson.plugins.git.GitChangeSetList'><kind>git</kind></changeSet><culprit><absoluteUrl>http://172.12.12.234:8080/user/shengdan061</absoluteUrl><fullName>shengdan061</fullName></culprit><culprit><absoluteUrl>http://172.12.12.234:8080/user/yunzeng_wang</absoluteUrl><fullName>yunzeng_wang</fullName></culprit></freeStyleBuild>root@node248:~#
 root@node248:~#
 ```

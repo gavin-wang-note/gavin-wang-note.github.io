@@ -3,8 +3,10 @@ layout:     post
 title:      "修改主机名"
 subtitle:   "Modify hostname"
 date:       2022-12-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -19,28 +21,28 @@ tags:
 
 ## 方法1： 热改
 
-```
- hostname new_host_name
+```shell
+hostname new_host_name
 ```
 
 简单粗暴有效，重启机器失效。
 
 
 
-方法2： 永久修改
+## 方法2： 永久修改
 
 
 方案1: 热改+静态配置文件的修改
 
-```
+```shell
 vim /etc/hosts
 vim /etc/hostname
 ```
 
 然后执行
 
-```
- hostname new_host_name
+```shell
+hostname new_host_name
 ```
 
 经过上述步骤后，下次重启永久生效
@@ -48,7 +50,7 @@ vim /etc/hostname
 
 方案2：hostnamectl 指令修改
 
-```
+```shell
 hostnamectl set-hostname {name}
 ```
 

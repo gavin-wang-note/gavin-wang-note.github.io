@@ -3,8 +3,10 @@ layout:     post
 title:      "Windows下python fnctl"
 subtitle:   "python fnctl under Windows OS"
 date:       2022-10-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -24,7 +26,7 @@ fcntl函数是linux下的一个文件锁函数，用以加密文件，给文件�
 
 # fnctl.py文件内容
 
-```
+```python
 F_GETFD = 0
 F_SETFD = 0
 FD_CLOEXEC = 0

@@ -3,8 +3,10 @@ layout:     post
 title:      "LV 扩容"
 subtitle:   "LV Capacity Expansion"
 date:       2023-03-16
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -19,7 +21,7 @@ tags:
 
 # 现象
 
-```
+```shell
 root@jenkins:~# df -Ph
 Filesystem                         Size  Used Avail Use% Mounted on
 tmpfs                              796M  1.2M  794M   1% /run
@@ -53,8 +55,8 @@ sr0                        11:0    1  1024M  0 rom
 # 实践
 
 1. 查看可用空间
- 
-```
+
+```shell
 root@jenkins:~# lvdisplay
   --- Logical volume ---
   LV Path                /dev/ubuntu-vg/ubuntu-lv
@@ -76,7 +78,7 @@ root@jenkins:~# lvdisplay
 root@jenkins:~# 
 ```
 
-```
+```shell
 root@jenkins:~# fdisk -l /dev/sda
 Disk /dev/sda: 100 GiB, 107374182400 bytes, 209715200 sectors
 Disk model: Virtual disk    
@@ -98,9 +100,9 @@ root@jenkins:~#
 
 2. 执行命令扩容
 
-lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+`lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv`
 
-```
+```shell
 root@jenkins:~# lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
   Size of logical volume ubuntu-vg/ubuntu-lv changed from <49.00 GiB (12543 extents) to <98.00 GiB (25087 extents).
   Logical volume ubuntu-vg/ubuntu-lv successfully resized.
@@ -109,11 +111,11 @@ root@jenkins:~#
 
 注意后面的逻辑分区名字使用lvdisplay命令获取到的
 
-3、执行 命令resize2fs /dev/ubuntu-vg/ubuntu-lv 刷新逻辑卷 
+3、执行 命令 `resize2fs /dev/ubuntu-vg/ubuntu-lv` 刷新逻辑卷 
 
 4、执行命令df -h查看效果
 
-```
+```shell
 root@jenkins:~# df -Ph
 Filesystem                         Size  Used Avail Use% Mounted on
 tmpfs                              796M  1.2M  794M   1% /run

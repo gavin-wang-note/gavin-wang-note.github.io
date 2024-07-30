@@ -3,10 +3,13 @@ layout:     post
 title:      "UID与EUID区别"
 subtitle:   "Difference of UID and EUID"
 date:       2012-03-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
-    - Megacli
+    - UID
+    - EUID
 ---
 
 
@@ -34,7 +37,7 @@ UID与EUID，两者之间有什么区别，本文介绍之。
 
 先来看一段perl脚本
 
-```
+```shell
 test01@node77:/home$ cat id.pl 
 #!/usr/bin/perl
 
@@ -54,7 +57,7 @@ perl里面的特殊变量$<、$>表示uid euid; $(、$)表示gid egid。只是�
 
 在root用户下执行，效果如下：
 
-```
+```shell
 root@node77:/home# perl id.pl 
 uid: 0                    euid: 0                   
 gid: 0 0                  egid: 0 0                 
@@ -64,7 +67,7 @@ root@node77:/home#
 
 非root用户下执行，效果如下：
 
-```
+```shell
 test01@node77:/home$ perl id.pl 
 uid: 1000                 euid: 1000                
 gid: 1000 1000            egid: 1000 1000           

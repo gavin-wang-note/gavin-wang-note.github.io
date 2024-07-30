@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux开机启动，进入welcome to emergency mode"
 subtitle:   "welcome to emergency mode after boot machine"
 date:       2020-05-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -14,7 +16,7 @@ tags:
 
 Ubuntu 18.04系统, 执行reboot -f后，网络不通，通过IPMI console查看，发现出现 ‘welcome to emergency mode!’，详细信息如下图所示：
 
-```
+```shell
 welcome to emergency mode! after logging in, type "journalctl -xb" to view system logs，
 "systemctl reboot" to reboot ，"systemctl default" to try again to boot into default mode.
 give root password for maintenance(Control-D)

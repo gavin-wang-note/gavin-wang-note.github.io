@@ -1,9 +1,13 @@
+---
 title:      "Oracle案例--变更数据库中数据文件位置"
 subtitle:   "Oracle troubleshoot--Change the location of data files"
 date:       2010-10-22
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
+
     - oracle
 ---
 
@@ -20,7 +24,7 @@ tags:
 
 ### 步骤一、查看磁盘空间使用情况
 
-```
+```shell
 mmsg:oracle:mmsgdb > df
 Filesystem           1K-blocks      Used Available Use% Mounted on
 /dev/sda2             20972152   3111364  17860788  15% /
@@ -32,7 +36,7 @@ shmfs                  4194304        88   4194216   1% /dev/shm
 
 ### 步骤二、查看原数据文件位置
 
-```
+```shell
 mmsg:oracle:mmsgdb > sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Fri Oct 22 11:54:54 2010
@@ -88,7 +92,7 @@ FILE_NAME
 
 关闭数据库
 
-```
+```shell
 SQL> shutdown immediate
 Database closed.
 Database dismounted.
@@ -98,7 +102,7 @@ SQL>
 
 启动数据库到mount状态
 
-```
+```shell
 SQL> startup mount
 ORACLE instance started.
 
@@ -116,7 +120,7 @@ Database mounted.
 
 ### 步骤四、OS Level mv数据文件到指定位置
 
-```
+```shell
 mv chyjdata01    /opt/oracle/oradata/mmsgdb/chyjdata01  
 mv zzzdata01     /opt/oracle/oradata/mmsgdb/zzzdata01
 mv skkdata01     /opt/oracle/oradata/mmsgdb/skkdata01 
@@ -131,7 +135,7 @@ mmsg:oracle:mmsgdb > mv lsjdata01 lxb01 lxb03 /opt/oracle/oradata/mmsgdb/
 
 ### 步骤五、执行修改操作
 
-```
+```shell
 SQL> alter database rename file '/home/oracle/admin/mmsgdb/mmsgdata/chyjdata01','/home/oracle/admin/mmsgdb/mmsgdata/zzzdata01',
   2  '/home/oracle/admin/mmsgdb/mmsgdata/skkdata01','/home/oracle/admin/mmsgdb/mmsgdata/zhuzhaozhongdata01',
   3  '/home/oracle/admin/mmsgdb/mmsgdata/ymdata01'
@@ -158,7 +162,7 @@ Database altered.
 
 ### 步骤六、查看修改后的数据文件位置
 
-```
+```shell
 SQL> select * from dba_data_files;
 
 FILE_NAME
@@ -202,7 +206,7 @@ mmsg:oracle:mmsgdb >
 
 ### 步骤七、查看更改数据文件路径后的空间使用情况
 
-```
+```shell
 256 mmsg [wyz] :/home >df
 文件系统               1K-块        已用     可用 已用% 挂载点
 /dev/sda2             20972152   3111392  17860760  15% /

@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle审计功能简介"
 subtitle:   "Oracle Audit"
 date:       2009-04-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -21,7 +23,7 @@ tags:
 
 ## 1、Audit_sys_operations
 
-```
+```shell
 SQL> show parameter Audit_sys_operations
 
 NAME                                 TYPE        VALUE
@@ -32,7 +34,7 @@ SQL>
 
 默认为false，当设置为true时，所有sys用户（包括以sysdba,sysoper身份登录的用户）的操作都会被记录。audit trail不会写在aud$表中，这个很好理解，如果数据库还未启动aud$不可用，那么像conn /as sysdba这样的连接信息，只能记录在其它地方。如果是windows平台，audti trail会记录在windows的事件管理中，如果是linux/unix平台则会记录在audit_file_dest参数指定的文件中。audit_file_dest参数实际是个路径信息：
 
-```
+```shell
 SQL> show parameter audit_file_dest
 
 NAME                                 TYPE        VALUE
@@ -109,7 +111,7 @@ Oracle 数据库审计以一种非常详细的级别捕获用户行为，它可�
 
 假定用户 Joe 具有更新那张表的权限，并按如下所示的方式更新了表中的一行数据：
 
-```
+```shell
 update SCOTT.EMP set salary = 12000 where empno = 123456;
 ```
 
@@ -122,7 +124,7 @@ update SCOTT.EMP set salary = 12000 where empno = 123456;
 
 ## 准备工作
 
-```
+```shell
 SQL> show parameter audit
 
 NAME                                 TYPE        VALUE
@@ -174,7 +176,7 @@ SQL>
 
 ## 开始审计
 
-```
+```shell
 SQL> create table wyz_test as select * from mmsg.vpncorp_300;
 
 表已创建。
@@ -213,7 +215,7 @@ sql> audit select table by u_test by access;
 
 # 撤销审计
 
-```
+```shell
 SQL> noaudit all on wyz_test;
 审计未成功。
 ```
@@ -228,7 +230,7 @@ SQL> noaudit all on wyz_test;
 
 以oracle用户登录，连接数据库。
 
-```
+```shell
 $ sqlplus "/ as sysdba"
 ```
 
@@ -236,7 +238,7 @@ $ sqlplus "/ as sysdba"
 
 检查是否进行审计。
 
-```
+```shell
 SQL> show parameter audit_trail
 NAME                                 TYPE        VALUE
 ------------------------------------ ----------- ------------------------------
@@ -245,7 +247,7 @@ audit_trail                          string      DB
 
 若audit_trail的值为DB表示进行审计，并将审计记录存储在数据库中，默认记录在sys.aud$表中。详细的审计记录信息可以查看DBA_AUDIT_TRAIL和DBA_COMMON_AUDIT_TRAIL这两个数据字典视图。
 
-```
+```shell
 SQL> select action_name, count(*) from dba_audit_trail group by action_name;
 ACTION_NAME                    COUNT(*)
 ---------------------------- ----------
@@ -263,7 +265,7 @@ ALTER DATABASE                        6
 
 从表中可以看出LOGOFF记录了数据库关闭的2137条相关记录。
 
-```
+```shell
 SQL> truncate table sys.aud$;
 SQL> alter system set audit_trail=none scope=spfile;
 重新启动数据库。

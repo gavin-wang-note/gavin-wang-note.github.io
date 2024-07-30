@@ -3,8 +3,12 @@ layout:     post
 title:      "fio benchmark"
 subtitle:   "fio benchmark"
 date:       2023-05-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories: 
+    - [shell]
+    - [performance]
+    - [fio]
 tags:
     - shell
     - performance
@@ -125,7 +129,7 @@ Some internal functions used by scripts.
 
 # Files list
 
-```
+```shell
 root@scaler80:/mnt/code/fio-benchmark# ls -l
 total 152
 -rw-r--r-- 1 root root  2082 May 28 04:13 00_run.sh

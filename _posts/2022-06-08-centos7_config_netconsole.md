@@ -3,8 +3,11 @@ layout:     post
 title:      "CentOS7设置netconsole"
 subtitle:   "Base on CentOS7 to config netconsole"
 date:       2022-06-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [netconsole]
 tags:
     - Linux
     - netconsole
@@ -36,7 +39,7 @@ tags:
 
 
 
-```
+```shell
 dmesg -n 7
 modprobe configfs
 modprobe netconsole
@@ -52,9 +55,9 @@ Server端，配置远程接收ip地址、远程接收端口（默认514）、远
 
 
 
-vi /etc/sysconfig/netconsole
+`vi /etc/sysconfig/netconsole`
 
-```
+```shell
 # 取消SYSLOGPORT、SYSLOGPORT、SYSLOGMACADDR注释并添加相关参数
 #--------------------------------------------------------
 #也可执行如下命令插入所需的ip、port、mac
@@ -69,7 +72,7 @@ echo -e "SYSLOGADDR=$ip\nSYSLOGPORT=514\nSYSLOGMACADDR=$(ping -c 1 $ip>/dev/null
 
 
 
-vi /etc/sysconfig/netconsole
+`vi /etc/sysconfig/netconsole`
 
 修改上述配置文件中的 DEV的值，如果配置了bond，需设置为bondX;否则设置为具体网口名称。
 
@@ -78,7 +81,7 @@ vi /etc/sysconfig/netconsole
 ## 重启netconsole服务
 
 
-```
+```shell
 systemctl restart netconsole
 ```
 
@@ -86,7 +89,7 @@ systemctl restart netconsole
 
 ## 启用netconsole自启动
 
-```
+```shell
 systemctl enable netconsole
 ```
 
@@ -100,9 +103,9 @@ systemctl enable netconsole
 
 
 
-vi /etc/rsyslog.conf
+`vi /etc/rsyslog.conf`
 
-```
+```shell
 #取消$ModLoad imudp和$UDPServerRun 514注释并修改514为需要监听接收udp的端口
 #或者执行如下命令
 sed -i 's/^#$Mod.*udp$/$ModLoad imudp/g;s/^#$UDP.*/$UDPServerRun 514/g' /etc/rsyslog.conf	#端口替换为自己所需要的
@@ -112,7 +115,7 @@ sed -i 's/^#$Mod.*udp$/$ModLoad imudp/g;s/^#$UDP.*/$UDPServerRun 514/g' /etc/rsy
 
 ## 重启rsyslog服务
 
-```
+```shell
 systemctl restart rsyslog
 
 ```
@@ -121,14 +124,14 @@ systemctl restart rsyslog
 
 ## 检查是否正常监听指定端口
 
-```
+```shell
 lsof -i:514
 ```
 
 
 如下所示即为正常监听中:
 
-```
+```shell
 [root@centos-7 ~]# lsof -i:514
 COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 rsyslogd 1735 root    3u  IPv4  43816      0t0  UDP *:syslog 
@@ -144,7 +147,7 @@ rsyslogd 1735 root    4u  IPv6  43817      0t0  UDP *:syslog
 
 在Client端，尝试down与up某个网口，然后在Server端，执行
 
-```
+```shell
 tail -f /var/log/messages
 ```
 

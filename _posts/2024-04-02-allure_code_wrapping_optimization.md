@@ -2,7 +2,8 @@
 layout:     post
 title:      "Allure报告常见封装代码优化"
 subtitle:   "Allure报告常见封装代码优化"
-date:       2024-04-02
+date:       2024-04-02 22:03:29
+img: "/img/pytest/allure2.jpg"
 author:     "Gavin Wang"
 catalog:    true
 summary: Allure报告常见封装之代码优化

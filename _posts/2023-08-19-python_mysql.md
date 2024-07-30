@@ -3,8 +3,11 @@ layout:     post
 title:      "python操作MySQL数据库基础操作"
 subtitle:   "python operation MySQL database basic operation"
 date:       2023-08-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
+    - [mysql]
 tags:
     - python
     - mysql
@@ -20,7 +23,7 @@ Recently in the revision mysql database, deployed a set of environments, review 
 
 # Code Example
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 

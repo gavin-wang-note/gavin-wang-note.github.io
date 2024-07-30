@@ -3,8 +3,11 @@ layout:     post
 title:      "CentOS下安装wareshark"
 subtitle:   "Install wireshark in CentOS"
 date:       2023-01-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [wireshark]
 tags:
     - Linux
     - wireshark
@@ -19,7 +22,7 @@ How to install wireshare in CentOS? This document briefly describes it.
 # Installation on CentOS
 
 
-```
+```shell
 yum install gcc gcc-c++ bison flex libpcap-devel qt-devel gtk3-devel rpm-build libtool c-ares-devel qt5-qtbase-devel qt5-qtmultimedia-devel qt5-linguist desktop-file-utils
 yum install wireshark wireshark-qt
 yum install wireshark-gnome
@@ -29,7 +32,7 @@ yum install wireshark-gnome
 
 启动后提示：
 
-```
+```shell
 Couldn't run /usr/sbin/dumpcap in child process: Permission denied
 
 Are you member of 'wireshark' group? Try running 'usermod -a -G wireshark <username>' as root.
@@ -46,7 +49,7 @@ Are you member of 'wireshark' group? Try running 'usermod -a -G wireshark <usern
 
 workaround
 
-```
+```shell
 [root@pool-100-0-1-54 windipv6]# sudo usermod -a -G wireshark windipv6
 
 setcap cap_net_raw,cap_net_admin+eip /usr/sbin/dumpcap

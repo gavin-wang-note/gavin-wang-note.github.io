@@ -3,8 +3,10 @@ layout:     post
 title:      "iSCSI多路径配置"
 subtitle:   "Config iSCSI multipath"
 date:       2019-12-27
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [iSCSI]
 tags:
     - Linux
     - iSCSI
@@ -21,7 +23,7 @@ tags:
 
 ## 未设置多路径之前
 
-```
+```shell
 root@host245:~# multipath -ll
 2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
 size=10T features='0' hwhandler='0' wp=rw
@@ -39,7 +41,7 @@ size=10T features='0' hwhandler='0' wp=rw
 
 ## 修改multipath.conf 
 
-```
+```shell
 root@host245:~# cat /etc/multipath.conf 
 blacklist {
         devnode "^(rbd)[0-9]*"
@@ -63,13 +65,13 @@ root@host245:~#
 
 ## 重启multipath-tool
 
-```
+```shell
 root@host245:~# /etc/init.d/multipath-tools restart
 ```
 
 ## 查看设置后效果
 
-```
+```shell
 root@host245:~# multipath -ll
 2ea63c7c4f3aa5c5d dm-0 Bigtera ,VirtualStor_Scal
 size=10T features='0' hwhandler='0' wp=rw
@@ -88,7 +90,7 @@ root@host245:~#
 
 比如下面的sdf
 
-```
+```shell
 root@host243:~# lsblk
 NAME                       MAJ:MIN RM   SIZE RO TYPE  MOUNTPOINT
 sda                          8:0    0  14.6T  0 disk  
@@ -117,7 +119,7 @@ sdh                          8:112  0     5T  0 disk
 
 step1、先获取 Host Number
 
-```
+```shell
 root@host243:~# multipath -ll
 26a53c128cb536936 dm-0 Bigtera ,VirtualStor_Scal
 size=5.0T features='0' hwhandler='0' wp=rw
@@ -133,7 +135,7 @@ size=5.0T features='0' hwhandler='0' wp=rw
 
 step2、根据Host Number，确认连接到哪个target
 
-```
+```shell
 root@host243:~# iscsiadm -m session -P 3
 iSCSI Transport Class version 2.0-870
 version 2.0-873

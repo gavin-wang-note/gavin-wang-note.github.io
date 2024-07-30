@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--OEM启动失败"
 subtitle:   "Oracle troubleshoot--start OEM failed"
 date:       2010-07-20
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -15,7 +17,7 @@ tags:
 
 # emca命令使用说明
 
-```
+```shell
 /opt/oracle/product/11g/bin/emca [operation] [mode] [dbType] [flags] [parameters]
 
 -h | --h | -help | --help: prints this help message 
@@ -165,7 +167,7 @@ Additional Parameters for cluster databases
 
 # 重新创建OEM 
 
-```
+```shell
 oracle@mmsg:~> emca -config dbcontrol db -repos recreate
 
 STARTED EMCA at Jul 20, 2010 2:46:53 PM

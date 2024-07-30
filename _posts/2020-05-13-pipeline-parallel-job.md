@@ -3,8 +3,11 @@ layout:     post
 title:      "Jenkins部署pipeline并发执行pytest自动化用例"
 subtitle:   "Jenkins pipeline parallel job for pytest automation"
 date:       2020-05-13
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [Jenkins]
 tags:
     - Jenkins
     - pipeline
@@ -68,7 +71,7 @@ Warnings，pipeline相关插件，具体安装本文忽略。
 
 新增了Jenlinsfile，具体内容示例参考如下：
 
-```
+```shell
 #!groovy
 
 ip_list = IPS.split(',')
@@ -370,7 +373,7 @@ pipeline {
 
 Jenkins server处，对应的email template内容参考如下:
 
-```
+```shell
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <style type="text/css">
 /*base css*/

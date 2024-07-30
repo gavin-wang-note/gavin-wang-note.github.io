@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle账号被锁--ORA-28000"
 subtitle:   "Oracle account lock--ORA-28000"
 date:       2009-11-18
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -18,7 +20,7 @@ Oracle数据库帐号被锁, oralce报ORA-28000错误。
 
 账户被锁：
 
-```
+```shell
 oracle@mmsg:~> oerr ora 28000
 28000, 00000, "the account is locked"
 // *Cause:   The user has entered wrong password consequently for maximum
@@ -29,7 +31,7 @@ oracle@mmsg:~> oerr ora 28000
 
 账号被锁主要原因：
 
-```
+```shell
 SQL> show parameter sec_max_failed_login_attempts
 
 NAME                                 TYPE        VALUE
@@ -44,7 +46,7 @@ oracle系统参数sec_max_failed_login_attempts默认值为10，即连续输入�
 
 Oracle系统用户登录数据库，对用户执行解锁操作。
 
-```
+```shell
 oracle@mmsg:~> sqlplus '/as sysdba'
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期三 11月 18 19:12:47 2009

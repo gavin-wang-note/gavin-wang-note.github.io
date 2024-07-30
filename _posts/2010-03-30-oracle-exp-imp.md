@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle导入导出之exp/imp"
 subtitle:   "Oracle exp/imp"
 date:       2010-03-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -28,7 +30,7 @@ EXP 将数据库部分或全部对象的结构和数据导出,并存储到OS文�
 
 ## exp命令行选项
 
-```
+```shell
 oracle@GW_8:~> exp help=y
 
 Export: Release 11.1.0.7.0 - Production on 星期五 2月 1 08:42:26 2012
@@ -115,7 +117,7 @@ Exp scott/tiger tables=dept,emp file=a.dmp buffer=81920
 
 该选项用于指定导出特定SCN时刻的表数据.FLASHBACK_SCN选项和FLASHBACK_TIME选项不能同时使用. 
 
-```
+```shell
 Exp system/manager tables=scott.dept,scott.emp file=a.dmp 
 Flashback_scn=941931 
 ```
@@ -124,7 +126,7 @@ Flashback_scn=941931
 
 指定导出特定时刻的数据 
 
-```
+```shell
 Exp system/manager tables=scott.dept,scott.emp file=a.dmp 
 Flashback_time="'2004-07-06 15:59:52'"
 ```
@@ -165,7 +167,7 @@ Flashback_time="'2004-07-06 15:59:52'"
 
 该选项用于指定WHERE条件子句,从而导出表的部分数据.需要注意,使用直接导出方式时不能指定该选项. 
 
-```
+```shell
 Exp scott/tiger tables=emp query=’WHERE depot=10’ 
 ```
 
@@ -222,7 +224,7 @@ Exp scott/tiger tables=emp query=’WHERE depot=10’
 IMP是将OS文件中的对象结构和数据装载到数据库中的过程。
 
 ## imp命令选项
-```
+```shell
 oracle@GW_8:~> imp help=y  
 
 Import: Release 11.1.0.7.0 - Production on 星期五 2月 1 08:54:04 2012
@@ -296,7 +298,7 @@ IMP命令行与EXP不一样的有:
 
 当设置选项TRANSPORT_TABLESPACE为Y时,该选项用于指定要被搬移到目标数据库的数据文件列表. 
 
-```
+```shell
 IMP ‘sys/admin as sysdba ‘ TRANSPORT_TABLESPACE=Y 
 DATAFILE=’g:testtools01.dbf’ 
 TTS_OWNERS=RMAN FROMUSER=RMAN TOUSER=SYSTEM 
@@ -350,25 +352,25 @@ TTS_OWNERS=RMAN FROMUSER=RMAN TOUSER=SYSTEM
 
 ## 导出一个完整数据库
 
-```
+```shell
 exp system/password file=XX.dmp log=XX.log full=y
 ```
-     
+
 ## 导出数据库定义而不导出数据
 
-```
+```shell
 exp system/password file=XX.dmp log=XX.log full=y rows=n
 ```
-      
+
 ## 导出一个或一组指定用户所属的全部表、索引和其他对象
 
-```
+```shell
 exp system/sys file=mmsg log=mmsg owner=mmsg 
 ```
-      
+
 ## 导出一个或多个指定表
 
-```
+```shell
 exp mmsg/mmsg file=vaspinfo.dmp log= vaspinfo.log tables= vaspinfo 
 exp mmsg/mmsg file=tables.dmp log= tables.log tables= vaspinfo,mmscinfo,miscinfo 
 ```
@@ -377,35 +379,35 @@ exp mmsg/mmsg file=tables.dmp log= tables.log tables= vaspinfo,mmscinfo,miscinfo
 
 ### 全部表总字节数
 
-```
+```shell
 SELECT sum(bytes) FROM dba_segments WHERE segment_type = 'TABLE';
 ```
 
 ### MMSG用户所属表的总字节数
 
-```
+```shell
 SELECT sum(bytes) FROM dba_segments WHERE owner = 'MMSG'
 AND segment_type = 'TABLE';
-``` 
+```
 
 ### MMSG用户下的aquatic_animal表的字节数
 
-```
+```shell
 SELECT sum(bytes)  FROM dba_segments 
 WHERE owner = 'MMSG'
 　　AND segment_type = 'TABLE'
 　　AND segment_name = 'AQUATIC_ANIMAL';
 ```
-        
+
 ## 导出表数据的子集(oracle8i以上)
 
-```
+```shell
 exp mmsg/mmsg@mmsgdb tables=mmscinfo query=\"where mmscid=910000\“
 ```
-        
+
 ## 用多个文件分割一个导出文件
 
-```
+```shell
 exp username/passwd 
 file=\(paycheck_1.dmp,paycheck_2.dmp,paycheck_3.dmp,paycheck_4.dmp \)
 log=XX.log, filesize=[K][M][G] tables=tables_name 
@@ -413,13 +415,13 @@ log=XX.log, filesize=[K][M][G] tables=tables_name
 
 操作如下：
 
-```
+```shell
 exp mmsg/mmsg file=\(1.dmp,2.dmp,3.dmp\) log=test.log filesize=25K tables= mmscinfo,miscinfo,vaspinfo,areainfo 
 ```
-        
+
 ## 使用参数文件（详见parfile使用方法）
 
-```
+```shell
 exp system/manager parfile=bible_tables.par
    bible_tables.par参数文件：
 　#Export the sample tables used for the Oracle8i Database Administrator's Bible.
@@ -437,7 +439,7 @@ amy.artist
 
 建立一个parfile文件，命名为svclogbak.par，内容是一些导出参数，如：
 
-```
+```shell
    file=svclogbak.dmp                   #导出的文件命名
    log=svclogbak.log                    #导出过程中产生的日志信息
    tables=(mmsgsvclog_0122_1_o_0,    #括号中存放要导出的相关表信息，以英文逗号分隔
@@ -445,7 +447,7 @@ amy.artist
      mmsgsvclog_0122_1_o_2,
      mmsgsvclog_20100122_1_s)         #如有需要，可增加其它参数，这里仅作示例
 ```
-                                   
+
 使用parfile文件，可以在不同的操作系统中执行，即是任何OS平台都适用的方法。
 
 ### 导出 
@@ -483,45 +485,45 @@ touser     该选项用于指定将特定方案对象导入到其他用户。
 
 ## 导入一个完整数据库
 
-```
+```shell
 imp system/manager file=bible_db log=dible_db full=y ignore=y
 ```
 
 ## 导入一个或一组指定用户所属的全部表、索引和其他对象
 
-```
+```shell
 imp system/manager file=seapark log=seapark fromuser=seapark 
 imp  system/manager file=seapark log=seapark fromuser=\(seapark,amy,amyc,Harold\)
 ```
 
 ## 将一个用户所属的数据导入另一个用户
 
-```
+```shell
 imp system/manager file=tank log=tank fromuser=seapark touser=seapark_copy 
 imp system/manager file=tank log=tank fromuser=mmsg touser=wyz 
 ```
 
 ## 导入一个表
 
-```
+```shell
 imp mmsg/mmsg file=mmscinfo.dmp log=mmscinfo.log fromuser=seapark TABLES=mmscinfo 
 ```
 
 ## 从多个文件导入
 
-```
+```shell
 imp system/manager file=\(paycheck_1,paycheck_2,paycheck_3,paycheck_4\) log=paycheck, filesize=1G full=y
 ```
 
 ## 使用参数文件
 
-```
+```shell
  imp system/manager parfile=bible_tables.parbible_tables.par fromuser=mmsg touser=wyz file=mmscinfo.dmp log=mmscinfo.log commit=y
 ```
 
 ## 增量导入
 
-```
+```shell
 imp system./manager inctype= RECTORE FULL=Y FILE=A
 ```
 
@@ -529,7 +531,7 @@ imp system./manager inctype= RECTORE FULL=Y FILE=A
 
 建立一个parfile文件，命名为svclogbak.par，内容是一些导出参数，如：
 
-```
+```shell
 file=svclogbak.dmp                  #导出的文件命名
 log=svclogbak.log                   #导出过程中产生的日志信息
 tables=(mmsgsvclog_0122_1_o_0,      #括号中存放要导出的相关表信息，以英文逗号分隔
@@ -543,7 +545,7 @@ mmsgsvclog_20100122_1_s)            #如有需要，可增加其它参数，这�
 
 ## 导出
 
-```
+```shell
 exp username/passwd@dbname parfile=svclogbak.par
 ```
 
@@ -559,13 +561,13 @@ touser  该选项用于指定将特定方案对象导入到其他用户。
 
 如果导入导出的用户名一致，可以直接使用如下命令进行导入：
 
-```
+```shell
 imp username/passwd@dbname  file=svclogbak.dmp ignore=y  commit=y
 ```
 
 或者
 
-```
+```shell
 imp username/passwd  file=svclogbak.dmp ignore=y commit=y
 ```
 
@@ -581,7 +583,7 @@ imp username/passwd  file=svclogbak.dmp ignore=y commit=y
 <img class="shadow" src="/img/in-post/oracle-dev-table.png" width="600" />
 
 （2）点击“名称”，在SQL窗口中显示所选中的MMSGSVCLOG_X表的名称：
- 
+
 <img class="shadow" src="/img/in-post/oracle-dev-table2.png" width="600" />
 
 （3）拷贝这些表名称，修改svclogbak.par文件
@@ -593,7 +595,7 @@ imp username/passwd  file=svclogbak.dmp ignore=y commit=y
 ## 查询表，从sqlplus中获取
 
 （1）数据库应用用户登录数据库，查询SVC日志表信息：
-```
+```shell
 select * from tab where tname like 'MMSGSVCLOG_%';
 ```
 
@@ -605,7 +607,7 @@ select * from tab where tname like 'MMSGSVCLOG_%';
 
 ## Parfile文件内容
 
-```
+```shell
 # cat svclogbak.par
 file=svclogbak.dmp
 log=svclogbak.log
@@ -690,7 +692,7 @@ mmsgsvclog_20100128_1_s)
 
 ## 导出
 
-```
+```shell
 129 node1 [yjh] :/home/yjh/>exp yjh/yjh@mmsgdb parfile=svclogbak.par
 
 Export: Release 11.1.0.7.0 - Production on Thu Jan 28 15:35:11 2010
@@ -711,7 +713,7 @@ Export terminated successfully without warnings.
 
 ## 文件信息
 
-```
+```shell
 130 node1 [yjh] :/home/yjh/>ll
 总计 150740
 -rw-r--r--  1 yjh users  15056896 2010-01-28 15:35 svclogbak.dmp  #导出的文件名称
@@ -721,7 +723,7 @@ Export terminated successfully without warnings.
 
 ## 导入
 
-```
+```shell
 155 node1 [mmsg] :/home/mmsg>imp mmsg/mmsg fromuser=yjh touser=mmsg file=svclogbak.dmp ignore=y commit=y
 
 Import: Release 11.1.0.7.0 - Production on Thu Jan 28 15:37:55 2010
@@ -750,7 +752,7 @@ Import terminated successfully without warnings.
 
 #### fullback_system.sh
 
-```
+```shell
 #!/bin/sh
 
 #定义备份时间
@@ -802,7 +804,7 @@ exp $ACCOUNT/$PASSWORD@$SID file=${ORACLE_BASE}/oracle_table_bak/fullbak_$backup
 
 ### 导出过程日志
 
-```
+```shell
 
 连接到: Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
@@ -1498,16 +1500,16 @@ With the Partitioning, OLAP, Data Mining and Real Application Testing options
 . 正在导出统计信息
 成功终止导出, 没有出现警告。
 ```
- 
+
 ## 数据库全表导入
 
-```
+```shell
 imp username/password@sid  file=XXX.dmp  ignore=y  commit=y  full=y
 ```
 
 例如：
 
-```
+```shell
 imp system/sys@mmsgdb  file=./fullbak_20100329_104203.dmp ignore=y  commit=y  full=y
 ```
 
@@ -1518,7 +1520,7 @@ imp system/sys@mmsgdb  file=./fullbak_20100329_104203.dmp ignore=y  commit=y  fu
 
 ### 脚本
 
-```
+```shell
 #!/bin/sh
 
 #定义备份时间
@@ -1567,10 +1569,10 @@ cd $APPHOME
 #执行导出操作
 exp $ACCOUNT/$PASSWORD@$SID file=${ORACLE_BASE}/oracle_table_bak/fullbak_$backupdate.dmp  log=${ORACLE_BASE}/oracle_table_bak/fullbak_$backupdate.log full=y
 ```
-           
+
 ### 导出过程日志
 
-```
+```shell
 oracle@mmsg:~> sh fullbak_mmsg.sh 
 Please input user name,password and SID to connect to oracle
 username(mmsg)
@@ -1643,13 +1645,13 @@ oracle@mmsg:~>
 
 ### 应用数据库全表导入
 
-```
+```shell
 imp  username/passwd@sid file=XXX.dmp ignore=y commit=y  full=y
 ```
 
 或者
 
-```
+```shell
 imp username/passwd@dbname fromuser=XXX touser=XXX file= XXX.dmp ignore=y commit=y full=y
 ```
 
@@ -1659,13 +1661,13 @@ imp username/passwd@dbname fromuser=XXX touser=XXX file= XXX.dmp ignore=y commit
 
 例如：
 
-```
+```shell
 imp mmsg/mmsg@mmsgdb fromuser=mmsg touser=yjh  file=./fullbak_20100329_104203.dmp ignore=y commit=y  full=y
 ```
 
 如果导入导出的用户名一致，可以直接使用如下命令进行导入：
 
-```
+```shell
 imp mmsg/mmsg@mmsgdb  file=./fullbak_20100329_104203.dmp ignore=y commit=y  full=y
 ```
 
@@ -1675,7 +1677,7 @@ imp mmsg/mmsg@mmsgdb  file=./fullbak_20100329_104203.dmp ignore=y commit=y  full
 
 ### 在AIX6.1上验证结果
 
-```
+```shell
 % imp mmsg/mmsg@iagw file=fullbak_20100329_115026.dmp  ignore=y commit=y  full=y
 
 Import: Release 11.1.0.6.0 - Production on 星期一 3月 29 23:33:09 2010

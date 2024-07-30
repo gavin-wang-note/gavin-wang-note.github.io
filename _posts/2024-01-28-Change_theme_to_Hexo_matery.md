@@ -981,3 +981,44 @@ menu:
         url: /goodpapers
         icon: fas fa-coffee
 ```
+
+
+## 屏蔽网页源码
+
+单纯的屏蔽鼠标右键和键盘事件。
+
+在 `themes/matery/layout/layout.ejs` 添加如下代码：
+
+```shell
+<script type="text/javascript">
+        window.onload = function(){
+            //屏蔽键盘事件
+            document.onkeydown = function (){
+                var e = window.event || arguments[0];
+                //F12
+                if(e.keyCode == 123){
+                    return false;
+                //Ctrl+Shift+I
+                }else if((e.ctrlKey) && (e.shiftKey) && (e.keyCode == 73)){
+                    return false;
+                //Shift+F10
+                }else if((e.shiftKey) && (e.keyCode == 121)){
+                    return false;
+                //Ctrl+U
+                }else if((e.ctrlKey) && (e.keyCode == 85)){
+                    return false;
+                }
+            };
+            //屏蔽鼠标右键
+            document.oncontextmenu = function (){
+                return false;
+            }
+        }
+</script>
+```
+可将上述代码内容，贴到这两行代码的下面：
+
+```shell
+    <script src="<%- theme.jsDelivr.url %><%- url_for(theme.libs.js.lightgallery) %>"></script>
+    <script src="<%- theme.jsDelivr.url %><%- url_for(theme.libs.js.matery) %>"></script>
+```

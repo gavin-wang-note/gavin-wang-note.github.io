@@ -3,8 +3,10 @@ layout:     post
 title:      "VD与RAID分区对应关系"
 subtitle:   "Correspondence between VD and RAID partition"
 date:       2020-06-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -20,7 +22,7 @@ tags:
 Step1. 获取RAID卡的Vendor Id和Device Id
 
 
-```
+```shell
 root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -adpallinfo -aall | grep -Ei 'Vendor Id|Device Id'
 Vendor Id       : 1000
 Device Id       : 005d
@@ -29,7 +31,7 @@ Device Id       : 005d
 Step2. 获取VD的Target Id
 
 
-```
+```shell
 root@ec-node3:~# /opt/MegaRAID/MegaCli/MegaCli64 -ldpdinfo  aall | grep 'Target Id'
 Virtual Drive: 0 (Target Id: 0)
 Virtual Drive: 1 (Target Id: 1)
@@ -46,7 +48,7 @@ root@ec-node3:~#
 Step3. 获取设备前缀信息
 
 
-```
+```shell
 root@ec-node3:~# lspci -nd 1000:005d
 af:00.0 0104: 1000:005d (rev 02)
 root@ec-node3:~# 
@@ -59,7 +61,7 @@ Step4. 根据设备前缀信息以及Target Id，获取对应分区信息
 
 Linux 命令行操作如下：
 
-```
+```shell
 root@ec-node3:~# cd /dev/disk/by-path
 root@ec-node3:/dev/disk/by-path# ls -l
 total 0
@@ -88,7 +90,7 @@ lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:7:0-part1 -> ..
 lrwxrwxrwx 1 root root  9 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0 -> ../../sdi
 lrwxrwxrwx 1 root root 10 Jun  8 16:54 pci-0000:af:00.0-scsi-0:2:8:0-part1 -> ../../sdi1
 root@ec-node3:/dev/disk/by-path#
-{% raw %}root@ec-node3:/dev/disk/by-path# ls -l |grep 'pci-0000:af:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' {% endraw %}
+root@ec-node3:/dev/disk/by-path# ls -l |grep 'pci-0000:af:00.0-scsi-0:2:2:0' | grep -v part | awk '{{print $NF}}' | awk -F'/' '{{print $NF}}' 
 sdc
 ```
 
@@ -99,7 +101,7 @@ sdc
 
 Python Code示例如下:
 
-```
+```shell
 root@ec-node3:~# python
 Python 2.7.12 (default, Oct  8 2019, 14:14:10) 
 [GCC 5.4.0 20160609] on linux2

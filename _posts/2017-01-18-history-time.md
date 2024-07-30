@@ -3,8 +3,10 @@ layout:     post
 title:      "History命令打印时间"
 subtitle:   "Record time in out put ot history"
 date:       2017-01-18
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -21,7 +23,7 @@ vim /etc/bash.bashrc 添加如下信息：
 
 重新登录后，执行history结果如下：
 
-```
+```shell
   409  2017-01-18-11:50:55: cp b c
   410  2017-01-18-11:50:55: ceph df
   411  2017-01-18-11:51:01: history

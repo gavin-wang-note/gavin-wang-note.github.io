@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle字符集"
 subtitle:   "Oracle LANG"
 date:       2012-09-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -40,7 +42,7 @@ Oracle字符集是一个字节数据的解释的符号集合,有大小之分,有
 
 有很多种方法可以查出oracle server端的字符集，比较直观的查询方法是以下这种:
 
-```
+```shell
 SQL> select userenv('language') from dual;
 AMERICAN _ AMERICA. ZHS16GBK
 ```
@@ -49,7 +51,7 @@ AMERICAN _ AMERICA. ZHS16GBK
 
 用oracle的exp工具导出的dmp文件也包含了字符集信息，dmp文件的第2和第3个字节记录了dmp文件的字符集。如果dmp文件不大，比如只有几M或几十M，可以用UltraEdit打开(16进制方式)，看第2第3个字节的内容，如0354，然后用以下SQL查出它对应的字符集:
 
-```
+```shell
 SQL> select nls_charset_name(to_number('0354','xxxx')) from dual;
 ZHS16GBK
 ```
@@ -72,7 +74,7 @@ ZHS16GBK
 
 在unix平台下，就是环境变量NLS_LANG。
 
-```
+```shell
 $echo $NLS_LANG
 AMERICAN_AMERICA.ZHS16GBK
 ```
@@ -86,14 +88,14 @@ oracle的字符集有互相的包容关系。如us7ascii就是zhs16gbk的子集,
 一旦数据库创建后，数据库的字符集理论上讲是不能改变的。因此，在设计和安装之初考虑使用哪一种字符集十分重要。如下图所示：
 
 <img class="shadow" src="/img/in-post/oracle_lang.png" width="1200">
- 
+
 根据Oracle的官方说明，字符集的转换是从子集到超集受支持,反之不行。如果两种字符集之间根本没有子集和超集的关系，那么字符集的转换是不受oracle支持的。对数据库server而言，错误的修改字符集将会导致很多不可测的后果，可能会严重影响数据库的正常运行，所以在修改之前一定要确认两种字符集是否存在子集和超集的关系。一般来说，除非万不得已，我们不建议修改oracle数据库server端的字符集。特别说明，我们最常用的两种字符集ZHS16GBK和ZHS16CGB231280之间不存在子集和超集关系，因此理论上讲这两种字符集之间的相互转换不受支持。
 
 (1)修改server端字符集(不建议使用)
 
 在oracle 8之前，可以用直接修改数据字典表props$来改变数据库的字符集。但oracle8之后，至少有三张系统表记录了数据库字符集的信息，只改props$表并不完全，可能引起严重的后果。正确的修改方法如下:
 
-```
+```shell
 　　$sqlplus /nolog
 　　SQL>conn / as sysdba;
 　　若此时数据库服务器已启动，则先执行SHUTDOWN IMMEDIATE命令关闭数据库服务器，然后执行以下命令:
@@ -114,7 +116,7 @@ oracle的字符集有互相的包容关系。如us7ascii就是zhs16gbk的子集,
 
 具体的修改方法比较多，最简单的就是直接用UltraEdit修改dmp文件的第2和第3个字节。比如想将dmp文件的字符集改为ZHS16GBK，可以用以下SQL查出该种字符集对应的16进制代码:
 
-```
+```shell
 SQL> select to_char(nls_charset_id('ZHS16GBK'), 'xxxx') from dual;
 
 TO_CH

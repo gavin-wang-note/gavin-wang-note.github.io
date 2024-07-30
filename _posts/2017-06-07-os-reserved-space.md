@@ -3,8 +3,10 @@ layout:     post
 title:      "操作系统空间预留"
 subtitle:   "OS partition reserved space"
 date:       2017-06-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -31,7 +33,7 @@ tags:
 
 看一下man手册：
 
-```
+```shell
 -m reserved-blocks-percentage
 Specify the percentage of the filesystem blocks reserved for the
 super-user.   This  avoids  fragmentation, and allows root-owned
@@ -51,7 +53,7 @@ filesystem.  The default percentage is 5%.
 
 关闭前：
 
-```
+```shell
 root@host244:/# df -PH
 Filesystem                                Size  Used Avail Use% Mounted on
 /dev/sdc3                                  99G  2.2G   92G   3% /
@@ -63,7 +65,7 @@ none                                       34G   37k   34G   1% /run/shm
 
 关闭后：
 
-```
+```shell
 root@host244:/# tune2fs -h 
 tune2fs 1.42 (29-Nov-2011)
 tune2fs: invalid option -- 'h'

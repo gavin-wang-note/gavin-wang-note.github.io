@@ -3,8 +3,10 @@ layout:     post
 title:      "WebBIOS里取消磁盘的JBOD设置"
 subtitle:   "Disable JBOD for disks in WebBIOS"
 date:       2021-06-15
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---

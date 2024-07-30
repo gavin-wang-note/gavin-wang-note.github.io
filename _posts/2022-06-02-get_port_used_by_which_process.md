@@ -3,8 +3,10 @@ layout:     post
 title:      "在linux中查看端口号是哪个进程在占用"
 subtitle:   "Get proccss which used port"
 date:       2022-06-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -30,7 +32,7 @@ Linux 上的 /etc/services 文件可以查看到更多关于保留端口的信�
 
 ## 方法1：使用 ss 命令
 
-```
+```shell
 root@node167:/var/log/ceph# ss -tlnp | grep ':80'
 LISTEN     0      128          *:8080                     *:*                   users:(("apache2",pid=2771,fd=3),("apache2",pid=2770,fd=3),("apache2",pid=2769,fd=3),("apache2",pid=2768,fd=3),("apache2",pid=2767,fd=3),("apache2",pid=2760,fd=3))
 LISTEN     0      128          *:80                       *:*                   users:(("haproxy",pid=2473,fd=4))
@@ -40,7 +42,7 @@ LISTEN     0      128          *:80                       *:*                   
 
 ## 方法2：使用 netstat 命令
 
-```
+```shell
 root@node167:/var/log/ceph# netstat -lntp | grep ':80'
 tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2760/apache2    
 tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2473/haproxy    
@@ -49,7 +51,7 @@ root@node167:/var/log/ceph#
 
 ## 方法3：使用 lsof 命令
 
-```
+```shell
 root@node167:/var/log/ceph# lsof -i:80
 COMMAND  PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 haproxy 2473 root    4u  IPv4   1766      0t0  TCP *:http (LISTEN)
@@ -63,7 +65,7 @@ root@node167:/var/log/ceph#
 
 Parts of ceph-client.radosgw.0.log:
 
-```
+```shell
 2022-06-02 17:05:38.709761 7fec78874040  0 deferred set uid:gid to 0:0 (root:root)
 2022-06-02 17:05:38.709778 7fec78874040  0 ceph version 12.2.10-903-g0149c5ceafe (0149c5ceafe1c541f0a5044e1c5c9e4fbc71c64e) luminous (stable), process radosgw, pid 104451
 2022-06-02 17:05:38.713450 7fec78874040  0 stack NetworkStack max thread limit is 24, switching to this now. Higher thread values are unnecessary and currently unsupported.
@@ -75,7 +77,7 @@ Parts of ceph-client.radosgw.0.log:
 
 Other log:
 
-```
+```shell
 root@node167:/var/log/ceph# netstat -tnlp | grep ':80'
 tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2760/apache2    
 tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      2473/haproxy    
@@ -103,13 +105,13 @@ root@node167:/var/log/ceph#
 
 这里可以清晰看到，haproxy占用了RGW的80端口， /etc/haproxy/haproxy.cfg中
 
-```
+```shell
 server localhost 127.0.0.1:7480 check
 ```
 
 是告知ceph.conf中的rgw，你要使用的是7480这个port，而不是/etc/ceph/ceph.conf使用的却是80 port
 
-```
+```shell
 rgw frontends = civetweb port=80+443s ssl_certificate=/etc/ezs3/ssl/ezs3_server.pem num_threads=1024 ssl_cipher_list=HIGH:!aNULL:!MD5:!3DES ssl_protocol_version=4
 ```
 

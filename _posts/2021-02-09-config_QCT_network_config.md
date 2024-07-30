@@ -3,8 +3,10 @@ layout:     post
 title:      "Config QCT switch port network"
 subtitle:   "Config QCT switch port network"
 date:       2021-02-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [switch]
 tags:
     - switch
 ---
@@ -17,7 +19,7 @@ QCT 100G switch, need to do port adaptation.
 
 # Action
 
-```
+```shell
 admin@Switch:~$ sudo qnos-cli
 [sudo] password for admin: 
 
@@ -52,7 +54,7 @@ interface 0/17
 
 ## SwtichA 操作
 
-```
+```shell
 admin@Switch:~$ sudo qnos-cli
 (Switch) #configure
 (Switch) (Config)#interface port-channel 64
@@ -71,7 +73,7 @@ admin@Switch:~$ sudo qnos-cli
 
 ## SwtichB 操作
 
-```
+```shell
 admin@Switch:~$ sudo qnos-cli
 (Switch) #configure
 (Switch) (Config)#interface port-channel 64

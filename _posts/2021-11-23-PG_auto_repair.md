@@ -3,8 +3,10 @@ layout:     post
 title:      "ceph PG auto repair"
 subtitle:   "ceph PG auto repair"
 date:       2021-11-23
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -16,9 +18,9 @@ From Nari, needs a script to help him to auto repair PG.
 
 # script
 
-inconsistent_pg_repair.py
+`inconsistent_pg_repair.py`
 
-```
+```python
 import os
 import sys
 import gzip

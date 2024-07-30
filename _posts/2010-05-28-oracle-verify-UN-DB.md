@@ -3,8 +3,10 @@ layout:     post
 title:      "联通数据库切换验证"
 subtitle:   "UN Database switch verification"
 date:       2010-05-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -28,14 +30,14 @@ tags:
 数据迁移流程图
 
 <img class="shadow" src="/img/in-post/un_db_change.png" width="600" />
- 
+
 # 操作过程
 
 ## 数据库A应用数据全表导出
 
 脚本:
 
-```
+```shell
 #!/bin/sh
 
 #定义备份时间
@@ -97,7 +99,7 @@ exp $ACCOUNT/$PASSWORD@$SID file=${ORACLE_BASE}/oracle_table_bak/fullbak_$backup
 
 3、导出过程日志信息片段如下
 
-```
+```shell
 Connected to: Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
 Export done in ZHS16GBK character set and UTF8 NCHAR character set
@@ -154,7 +156,7 @@ Export terminated successfully without warnings.
 
 在导出过程中如果出现如下错误：
 
-```
+```shell
 EXP-00008: ORACLE error 6550 encountered
 ORA-06550: line 1, column 19:
 PLS-00201: identifier 'SYS.DBMS_DEFER_IMPORT_INTERNAL' must be declared
@@ -192,14 +194,14 @@ ORA-06512: at line 1
 
 1、将DBMS_EXPORT_EXTENSION和DBMS_DEFER_IMPORT_INTERNAL执行权限赋予导出用户
 
-```
+```shell
 grant execute on DBMS_EXPORT_EXTENSION to 导出用户;
 grant execute on DBMS_DEFER_IMPORT_INTERNAL to 导出用户;
 ```
 
 2、成功赋予权限后，执行应用全表导出操作
 
-```
+```shell
 sh fullbak_mmsg.sh
 ```
 
@@ -219,7 +221,7 @@ sh fullbak_mmsg.sh
 
 新增一存储过程drop_tbl_table，sql脚本代码如下：
 
-```
+```shell
 create or replace procedure drop_tbl_table(tname in varchar)
 
 is
@@ -242,7 +244,7 @@ end drop_tbl_table;
 ```
 
 将上述脚本拷贝到文件中，以asc方式上传到oracle数据库某节点下，并将该文件命名为ora_proc_drop_tbl_tables.sql，如下：
- 
+
 注：
 * ```sql脚本中select * from all_tables where owner = 'MMSG'``` 的 MMSG为表的属主，请根据现网环境选择正确属主，否则会造成误删不相关的表，造成数据丢失。
 
@@ -250,7 +252,7 @@ end drop_tbl_table;
 
 oracle用户成功登录终端，以应用用户（如数据库应用用户mmsg）与数据库建立连接，执行ora_proc_drop_tbl_tables.sql脚本
 
-```
+```shell
 oracle@mmsg:~> cat ora_proc_drop_tbl_tables.sql | sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期一 7月 12 18:08:17 2010
@@ -274,7 +276,7 @@ oracle@mmsg:~>
 
 执行存储过程，删除所有应用表。
 
-```
+```shell
 oracle@mmsg:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期一 7月 12 17:52:44 2010
@@ -314,13 +316,13 @@ SQL>
 
 例如：
 
-```
+```shell
 imp wyz/wyz@iagw fromuser=mmsg touser=wyz file=./fullbak_20100507_091121.dmp ignore=y commit=y log= fullbak_20100506_194731.log
 ```
 
 如果导入导出的用户名一致，可以直接使用如下命令进行导入：
 
-```
+```shell
 imp mmsg/mmsg@mmsgdb  file=./ fullbak_20100507_091121.dmp  ignore=y commit=y  full=y
 ```
 
@@ -336,7 +338,7 @@ imp mmsg/mmsg@mmsgdb  file=./ fullbak_20100507_091121.dmp  ignore=y commit=y  fu
 
 如果在导入过程中出现IMP-00013错误，如下：
 
-```
+```shell
 % imp wyz/wyz@iagw fromuser=mmsg touser=wyz file=./fullbak_20100506_200334.dmp ignore=y commit=y
 
 Import: Release 11.1.0.6.0 - Production on 星期四 5月 6 20:13:59 2010
@@ -364,7 +366,7 @@ IMP-00000: Import terminated unsuccessfully
 
 操作如下:
 
-```
+```shell
 % sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期五 5月 7 09:54:40 2010
@@ -392,7 +394,7 @@ SQL> exit
 
 重新执行导入操作，如果在导入过程中出现如下错误
 
-```
+```shell
 IMP-00003: ORACLE error 1658 encountered
 ORA-01658: 无法为表空间 MMSG 中的段创建 INITIAL 区
 ```
@@ -428,7 +430,7 @@ datafile是针对一般表空间
 
 当表空间已经满时，执行数据库操作数据库会报错，例如：
 
-```
+```shell
 ORA-01653: 表 MMSG.TMP_BASE_RESULT 无法通过 8 (在表空间 MMSG 中) 扩展
 ORA-06512: 在 "MMSG.LOG2DB_UTIL", line 92
 ORA-06512: 在 line 1
@@ -445,20 +447,20 @@ node1:oracle:mmsgdb >
 
 扩展操作命令如下：
 
-```
+```shell
 alter database datafile '/opt/oracle/admin/mmsgdb/mmsgdata/mmsgdata01' AUTOEXTEND ON NEXT 50M MAXSIZE UNLIMITED;
 ```
 
 下面的两个命令也可以：
 
-```
+```shell
 alter tablespace mmsg add datafile '/opt/oracle/admin/mmsgdb/mmsgdata/mmsgdata01' size 1024M reuse;
 alter database datafile '/opt/oracle/admin/mmsgdb/mmsgdata/mmsgdata01' resize 2048M;
 ```
 
 扩展后重启实例，查看相关表空间是否已经扩展，
 
-```
+```shell
 select * from dba_tablespace_usage_metrics;
 ```
 
@@ -466,7 +468,7 @@ select * from dba_tablespace_usage_metrics;
 
 当前表空间为WYZ，但是提示信息显示无法为表空间 MMSG 中的段创建 INITIAL 区，说明数据虽然导入到了wyz用户下，但是使用的表空间依然是MMSG，而我们所需要的是表空间WYZ，而非MMSG，解决方法如下：
 
-```
+```shell
 % sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期五 5月 7 11:08:51 2010
@@ -506,7 +508,7 @@ SQL> exit
 
 ## 数据导入
 
-```
+```shell
 imp wyz/wyz@iagw fromuser=mmsg touser=wyz file=./fullbak_20100507_091121.dmp ignore=y commit=y log=imp_20100507_091121.log
 ```
 
@@ -514,7 +516,7 @@ imp wyz/wyz@iagw fromuser=mmsg touser=wyz file=./fullbak_20100507_091121.dmp ign
 
 日志信息
 
-```
+```shell
 
 Connected to: Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
 With the Partitioning, OLAP, Data Mining and Real Application Testing options
@@ -3439,7 +3441,7 @@ About to export the entire database ...
 . exporting default and system auditing options
 . exporting statistics
 Export terminated successfully without warnings.
-``` 
+```
 
 # 验证过程
 
@@ -3455,7 +3457,7 @@ Export terminated successfully without warnings.
 
 例如：
 
-```
+```shell
 vi $ORACLE_HOME/network/admin/tnsnames.ora
 
 MMSGDB62 =
@@ -3490,7 +3492,7 @@ MMSGDB62 =
 
 2、使用sqlplus命令验证
 
-```
+```shell
 sqlplus  username/passwd@dbname
 ```
 
@@ -3502,7 +3504,7 @@ sqlplus  username/passwd@dbname
 
 ### 验证如下
 
-```
+```shell
 69 mmsg [mmsg] :/home/mmsg>tnsping mmsgdb62 10
 
 TNS Ping Utility for Linux: Version 11.1.0.7.0 - Production on 07-MAY-2010 14:33:10
@@ -3996,20 +3998,20 @@ HOSTNAME                                                                PID
 
 ## 修改$MMS_HOME/cfg目录下下列文件信息
 
-```
+```shell
 cshrc
 mms.cfg
 log2db.cfg
 vpn.cfg
 ```
 
-```
+```shell
 vi cshrc
 #The SID for accessing the Oracle database must be consistent with the contents in the tnsname.ora configuration file of the Oracle client
 setenv ORACLE_SID mmsgdb62   //请根据实际情况进行修改，示例中TNS为mmsgdb62
 ```
 
-```
+```shell
 vi mms.cfg
 //Note: This configuration file is used for setting the database access mode of the MMSC. 
 //Other settings are stored in the database. You can set the configuration items on the Web management page.
@@ -4023,7 +4025,7 @@ DBJdbcClass=oracle.jdbc.driver.OracleDriver
 MMS_LOCAL_FLOATIP = 10.137.49.114
 ```
 
-```
+```shell
 vi log2db.cfg 
 //Log2db configuration file
 
@@ -4045,7 +4047,7 @@ DBDriver = oracle.jdbc.driver.OracleDriver
 //DBDriver = com.microsoft.jdbc.sqlserver.SQLServerDriver
 ```
 
-```
+```shell
 vi vpn.cfg
 [DataBase]
 #Database connection information. This parameter is valid only when VpnDbMode is set to 0 indicating to connect to the WEBSMS.
@@ -4069,7 +4071,7 @@ DBPassword=wyz
 
 如果出现如下错误（Get DB Connection is null），请检查cfg目录下相关配置文件（主要是cfg目录下cshrc、mms.cfg、log2db.cfg三个文件）是否正确修改。
 
-```
+```shell
 91 mmsg [mmsg] :/home/mmsg/mms_home/cfg>Get DB Connection is null
 Exception in thread "main" java.lang.NullPointerException
         at com.huawei.mms.common.conf.ModulesData.getModuleNameByID(ModulesData.java:83)
@@ -4090,7 +4092,7 @@ Exception in thread "main" java.lang.NullPointerException
 
 如果在启动过程中出现如下信息，请修改端口号，以server主调度模块为例
 
-```
+```shell
 [05-07 15:22:37 511][INFO][ServerApp][serverapp.cpp 263][-140986064]*****************  Initialize Static Data Successfully!!  ******
 **************
 
@@ -4104,7 +4106,7 @@ Exception in thread "main" java.lang.NullPointerException
 
 ### server模块启动失败
 
-```
+```shell
 144 mmsg [mmsg] :/home/mmsg/mms_home/log/server_1/run>netstat -an | grep 52233
 tcp        0      0 10.137.49.114:52277     10.137.49.114:52233     ESTABLISHED 
 tcp        0      0 10.137.49.114:52233     10.137.49.114:52277     ESTABLISHED
@@ -4114,13 +4116,13 @@ tcp        0      0 10.137.49.114:52233     10.137.49.114:52277     ESTABLISHED
 
 1、server端口信息
 
-```
+```shell
 update  modules  set listenport =52239 where MODULENAME='MMSServer';
 ```
 
 2、重启server模块
 
-```
+```shell
 mms start 1
 ```
 
@@ -4136,14 +4138,14 @@ mms start 1
 
 #### 计费话单
 
-```
+```shell
 0507155553800800011020000,008613810243001,,0,822000,008613810243001,,2,1,3,0,0,0,0,1,2,0,1000,800800,910000,822000,7800,121000,,2010
 0507155553,20100507155558,,00000,1,1,1,0,0,0,050708001402708220010,
 ```
 
 #### 统计话单
 
-```
+```shell
 0507155553800800011020000,008613810243001,,0,822000,008613810243001,,2,1,3,0,0,0,0,1,2,0,0100,800800,910000,822000,7800,121000,,2010
 0507155553,20100507155553,,00000,1,1,1,0,0,0,,,1,
 0507155553800800011020000,008613810243001,,0,822000,008613810243001,,3,1,3,0,0,0,0,1,2,0,1000,800800,910000,822000,7800,121000,,2010
@@ -4152,7 +4154,7 @@ mms start 1
 
 #### Vaspserver日志片段
 
-```
+```shell
 Begin to dispose message from SP!
 [2010-05-07 15:55:53.335] [FINEST] [vaspserver_1901] [Tools.java:615] [ ] [Receive SOAP Message] 
 HttpRequest Content:
@@ -4261,7 +4263,7 @@ StatusText = 发送成功
 
 #### SVC日志片段
 
-```
+```shell
 [2010-05-07 15:55:53 339][LgTp:FRSMSG][AfOrgn:][Sndr:7800121000][Rcvr:+8613810243001][FwdAddr:][SqncNum:2][SessID:0110000000001100507155553][MsgID:050715555380080001102][TransID:tid100000000][ExMsgID:][MPRP:MM7][MsgType:MM7_SUBMIT_REQ][AfrAtrbt:RCV][AfrStat:OK]; SV:NULL; MsgCls:NULL; DR:YES; RR:NULL; MsgSz:0 Byte(s); VASPID:822000; VASID:7800; SrvCd:121000; DispMsgID:;
 [2010-05-07 15:55:53 340][LgTp:SRVMSG][AfOrgn:][Sndr:7800121000][Rcvr:+8613810243001][FwdAddr:][SqncNum:2][SessID:0110000000001100507155553][MsgID:050715555380080001102][TransID:tid100000000][ExMsgID:][MPRP:MM7][MsgType:MM7_SUBMIT_RES][AfrAtrbt:SND][AfrStat:OK]; MM7RspStat:SUCCESS; DispMsgID:;
 [2010-05-07 15:55:53 345][LgTp:OFLWVR][Sndr:7800121000][Rcvr:+8613810243001][FwdAddr:][SessID:0110000000001100507155553][MsgID:050715555380080001102][ExMsgID:][FlwCls:NORMAL]; FlwOvrStat:SUBMIT_OK; FlwOvrStatCode:0100; DtlCd:STAT_SUBMIT_SUCCESS; DlvrTimer:0 Second(s);
@@ -4279,7 +4281,7 @@ StatusText = 发送成功
 
 #### CS日志片段
 
-```
+```shell
 m_ucAreaFlag  = 0 
 m_ucRoamingStatus  = 255 
 m_strIMSI =  
@@ -4299,7 +4301,7 @@ m_iAddressSendType = 0
 
 #### Mmscclient日志片段
 
-```
+```shell
 [2010-05-07 15:55:53.321] [FINER] [mmscclient_5401] [ConnectionManager.java:333] [ ] [Update SocketConnection's Load] 
 Update module[1]'s state to 0
 [2010-05-07 15:55:53.347] [FINEST] [mmscclient_5401] [SocketConnection.java:539] [ ] [Receive Message] 
@@ -4375,7 +4377,7 @@ StatusCode = 1000
 
 #### SVC日志片段
 
-```
+```shell
 [2010-05-07 16:00:16 177][LgTp:FRSMSG][AfOrgn:][Sndr:+8613810243001][Rcvr:7800121000][FwdAddr:][SqncNum:3][SessID:0120000000003100507160016][MsgID:050716001680080001203][TransID:tid00001004][ExMsgID:][MPRP:MM7][MsgType:MM7_DELIVER_REQ][AfrAtrbt:RCV][AfrStat:OK]; SV:NULL; MsgCls:NULL; DR:NULL; RR:NULL; Expiry:-1 Second(s); MsgSz:0 Byte(s); VASPID:; VASID:; SrvCd:; DlvrType:; SessType:Normal;
 [2010-05-07 16:00:16 177][LgTp:SRVMSG][AfOrgn:][Sndr:+8613810243001][Rcvr:7800121000][FwdAddr:][SqncNum:3][SessID:0120000000003100507160016][MsgID:050716001680080001203][TransID:tid00001004][ExMsgID:][MPRP:MM7][MsgType:MM7_DELIVER_RES][AfrAtrbt:SND][AfrStat:OK]; MM7RspStat:SUCCESS;
 [2010-05-07 16:00:16 182][LgTp:OFLWVR][Sndr:+8613810243001][Rcvr:7800121000][FwdAddr:][SessID:0120000000003100507160016][MsgID:050716001680080001203][ExMsgID:][FlwCls:NORMAL]; FlwOvrStat:SUBMIT_OK; FlwOvrStatCode:0400; DtlCd:STAT_SUBMIT_SUCCESS; DlvrTimer:0 Second(s);
@@ -4395,7 +4397,7 @@ StatusCode = 1000
 
 #### 工具日志片段
 
-```
+```shell
 [2010-05-08 16:19:54:447]  收到HTTP主动请求 AuthPriceReq, TransactionID=8008000000000007
 [2010-05-08 16:19:54:447]  返回响应 AuthPriceResp, hRet = 0
 [2010-05-08 16:19:59:447]  开始发送OnDemandReq
@@ -4404,14 +4406,14 @@ StatusCode = 1000
 
 #### 计费话单
 
-```
+```shell
 0507161533800800011060000,008613810243001,,0,008613810243001,822000,,5,1,4,0,3,0,0,1,2,0,1100,910000,800800,822000,7800,121000,,2010
 0507161533,20100507161538,,00000,1,6,0,0,0,0,,
 ```
 
 #### 统计话单
 
-```
+```shell
 0507161533800800011060000,008613810243001,,0,008613810243001,822000,,0,1,4,0,3,0,0,1,2,0,0400,910000,800800,822000,7800,121000,,2010
 0507161533,20100507161538,,00000,1,6,0,0,0,0,,1,1,
 0507161533800800011060000,008613810243001,,0,008613810243001,822000,,5,1,4,0,3,0,0,1,2,0,1100,910000,800800,822000,7800,121000,,2010
@@ -4424,7 +4426,7 @@ StatusCode = 1000
 
 #### Mmsclient日志片段
 
-```
+```shell
 [2010-05-07 16:18:18.985] [FINEST] [mmscclient_5401] [SocketConnection.java:539] [ ] [Receive Message] 
 Receive message from module[1], binary stream:
 16:18:18.985(Tools.java:374) byte[297] @15430449 {
@@ -4495,7 +4497,7 @@ StatusCode = 1000
 
 #### 要求包月计费
 
-```
+```shell
 [2010-05-08 17:04:28:277]  收到HTTP主动请求 AuthPriceReq, TransactionID=8008000000000003
 [2010-05-08 17:04:28:277]  返回响应 AuthPriceResp, hRet = 0
 [2010-05-08 17:04:28:480]  收到HTTP主动请求 RequireMonthFeeReq, TransactionID=8008000000000004
@@ -4504,14 +4506,14 @@ StatusCode = 1000
 
 #### 计费话单
 
-```
+```shell
 0507170006800800012030000,008613810243001,,0,822000,008613810243001,,2,1,3,0,3,0,0,1,2,0,1000,800800,910000,822000,7800,121000,,2010
 0507170006,20100507170007,,00000,1,1,1,0,0,0,042803088220010000035,
 ```
 
 #### 统计话单
 
-```
+```shell
 0507170006800800012030000,008613810243001,,0,822000,008613810243001,,2,1,3,0,3,0,0,1,2,0,0100,800800,910000,822000,7800,121000,,2010
 0507170006,20100507170006,,00000,1,1,1,0,0,0,,,1,
 0507170006800800012030000,008613810243001,,0,822000,008613810243001,,3,1,3,0,3,0,0,1,2,0,1000,800800,910000,822000,7800,121000,,2010

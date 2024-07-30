@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--迁移数据库控制文件、数据文件、重做日志文件"
 subtitle:   "Oracle troubleshoot--Migrate database control files, data files, redo log files"
 date:       2012-07-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -21,17 +23,17 @@ tags:
 
 ### 首先，移动控制文件
 
-```
+```shell
         sqlplus / as sysdba 
         create pfile from spfile;  
         shutdown immdiate 
 ```
 
-### 修改pfile文件中控制文件的位置
+### 接着，修改pfile文件中控制文件的位置
 
 如：原先控制文件在/opt/oracle/oradata/mmsgdb/目录下，修改为/home/oradata/mmsgdb/ (这个目录手工建立，并改变属主)
 
-(1) os level级去mv 控制文件 到 新的目录下
+(1) OS level级去mv 控制文件 到 新的目录下
 
 (2) startup pfile=‘pfile文件路径’
 
@@ -42,7 +44,7 @@ tags:
   
 ### 其次，数据文件
 
-```
+```shell
          shutdown immediate
          os level 级  mv操作
          startup mount
@@ -52,7 +54,7 @@ tags:
 
 ### 再者，重做日志文件
 
-```
+```shell
         shutdown immediate
         os level nv重做日志文件
         startup mount

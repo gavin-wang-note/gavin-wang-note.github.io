@@ -3,8 +3,11 @@ layout:     post
 title:      "API响应慢问题复现"
 subtitle:   "Reproduce Slow API response issue"
 date:       2020-06-12
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - Linux
     - shell
@@ -28,7 +31,7 @@ tags:
 
 ## shell
 
-```
+```shell
 root@node76:~# cat raid_api_elapsed.sh
 #!/bin/bash
 
@@ -85,7 +88,7 @@ done
 
 核心是-s -I -m 10 -w %{http_code}，解释一下携带的参数信息：
 
-```
+```shell
 -I 仅测试HTTP头
 
 -m 10 最多查询10s
@@ -99,7 +102,7 @@ done
 
 这里还有另外一个方法:
 
-```
+```shell
 root@node76:~# curl --insecure --cookie cookie --header 'Accept: application/json, text/javascript, */*; q=0.01' --header 'Content-Type: application/json' -o /dev/null -s -w "time_connect: %{time_connect}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n" https://7.73.7.76:8080/system/host/1.1.1.76/disk/raid
 time_connect: 0.000
 time_starttransfer: 8.435
@@ -109,7 +112,7 @@ root@node76:~#
 
 可以根据time_total时间来判断，此时间超过一定值，就退出。
 
-```
+```shell
 root@node76:~# cat raid_api_elapsed2.sh 
 #!/bin/bash
 
@@ -161,7 +164,7 @@ done
 
 ## python
 
-```
+```python
 root@node76:~# cat raid_api_elapsed.py 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
@@ -277,7 +280,7 @@ if __name__ == '__main__':
 
 ## shell
 
-```
+```shell
 root@node76:~# tailf raid_api_elapsed.log 
 2020-06-12 12:41:05  --> OK, elapsed time is : (8433 milliseconds), now sleep 2s
 2020-06-12 12:41:27  --> OK, elapsed time is : (8514 milliseconds), now sleep 2s
@@ -306,7 +309,7 @@ root@node76:~# tailf raid_api_elapsed.log
 
 ## python
 
-```
+```shell
 root@node76:~# python raid_api_elapsed.py 
 [2020-06-12 14:33:13.012]    URL response elapsed time : (8)
 [2020-06-12 14:33:22.012]    URL response elapsed time : (8)
@@ -339,7 +342,7 @@ root@node76:~# python raid_api_elapsed.py
 
 看了同事写的一个python版本，非常简洁，不过没有考虑session过期问题，脚本内容参考如下:
 
-```
+```python
 root@246:/home# cat c.py 
 # -*- coding: utf-8 -*-
 

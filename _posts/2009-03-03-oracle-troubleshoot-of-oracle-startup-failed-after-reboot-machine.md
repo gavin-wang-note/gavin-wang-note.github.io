@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--机器重启后数据库启动失败（ora-00205）"
 subtitle:   "Oracle troubleshoot of oracle startup failed after reboot machine"
 date:       2009-03-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -19,7 +21,7 @@ tags:
 
 查看一下00205是何种错误：
 
-```
+```shell
 oerr ora 00205
 00205, 00000, "error in identifying control file, check alert log for more info"
 // *Cause:  The system could not find a control file of the specified name and
@@ -30,7 +32,7 @@ oerr ora 00205
 
 去查看alert日志信息
 
-```
+```shell
 <msg time='2009-03-03T13:53:07.240+08:00' org_id='oracle' comp_id='rdbms'
  client_id='' type='UNKNOWN' level='16'
  module='' pid='6789'>
@@ -59,11 +61,11 @@ Additional information: 2
 
 （1）更改逻辑卷组激活方式，修改/etc/init.d/boot.lvm文件。
 
-```
+```shell
 #vi /etc/init.d/boot.lvm
 /sbin/vgchange -a y $LVM_VGS_ACTIVATED_ON_BOOT
 ```
-  
+
 （2）单板重启后，检测裸设备是否与逻辑卷自动绑定；
 
 （3）如果绑定，oracle用户启动数据库便可成功。

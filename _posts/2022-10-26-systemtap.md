@@ -3,8 +3,10 @@ layout:     post
 title:      "systemtap部署与实战"
 subtitle:   "Install systemtap and how to use it"
 date:       2022-10-26
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
     - shell
@@ -20,7 +22,7 @@ tags:
 
 挂载安装Virtual Scaler ISO到机器上，然后从后台运行以下命令：
 
-```
+```shell
 mkdir /mnt/cdrom
 mount /dev/cdrom /mnt/cdrom
 cd /mnt/cdrom/pools/extra
@@ -33,14 +35,14 @@ dpkg -i linux-image-4.14.148-dbg_4.14.148-202009221212.git33a12c4_amd64.deb
 
 直接运行安装包下的install_systemtap.sh:
 
-```
+```shell
 chmod a+x install_systemtap.sh;
 ./ install_systemtap.sh
 ```
 
 或
 
-```
+```shell
 dpkg -i zlib1g-dev_1%3a1.2.8.dfsg-2ubuntu4.3_amd64.deb;
 dpkg -i liblzma-dev_5.1.1alpha+20120614-2ubuntu2_amd64.deb;
 dpkg -i libelf1_0.170-0.4ubuntu0.1_amd64.deb;
@@ -55,14 +57,14 @@ dpkg -i elfutils_0.170-0.4ubuntu0.1_amd64.deb;
 
 Centos:
 
-```
+```shell
 yum install elfutils-devel
 https://sourceware.org/systemtap/wiki/SystemTapOnCentOS
 ```
 
 解压systemtap并编译安装
 
-```
+```shell
 tar zxvf systemtap-4.3.tar.gz
 cd systemtap-4.3/
 ./configure --prefix=/usr/;
@@ -73,7 +75,7 @@ make && make install
 
 如果安装成功，运行以下命令稍候会打印hello world: 
 
-```
+```shell
 stap -e 'probe kernel.function("sys_open") {log("hello world") exit()}'
 
 ```
@@ -82,7 +84,7 @@ stap -e 'probe kernel.function("sys_open") {log("hello world") exit()}'
 
 创建disk.stp文件，输入以下内容：
 
-```
+```shell
 #!/usr/bin/env stap 
 #
 # Copyright (C) 2007 Oracle Corp.
@@ -159,7 +161,7 @@ probe end{
 
 给该文件运行的权限并执行：
 
-```
+```shell
 chmod a+x disk.stp
 ./disk.stp
 
@@ -177,9 +179,9 @@ chmod a+x disk.stp
 使用oceanfile以512k的bs来写数据: ```oceanfile -d . -p 40 -a 8,20,100,100 -s 10M -b 512K  -i 1```
 
 创建以下systemtap文件inject_ka.stp, 并输入以下内容：
- 
 
-```
+
+```shell
 global cnt = 0 ;
 probe module("sd_mod").function("sd_init_command") !,
       kernel.function("sd_init_command")
@@ -209,28 +211,26 @@ probe begin{
 
 以如下格式运行：
 
-```
+```shell
 #stap -g -DMAXSKIPPED=99999999 inject_ka.stp sdb 10
 ```
 
 或
 
-```
+```shell
 #stap -p4 -DMAXSKIPPED=99999999 -m ik -g inject_ka.stp sdb 10
 #staprun ik.ko
 ```
 
 运行之后，sdc盘的svctm就会在当前数值基本上增加10.
 
- 
+
 <img class="shadow" src="/img/in-post/sdc_svctm.png" width="1200">
 
 参考：
 
 https://sourceware.org/systemtap/examples/io/iostat-scsi.stp
 https://sourceware.org/systemtap/examples/io/iostat-scsi.txt
-
-
 
 
 

@@ -3,8 +3,11 @@ layout:     post
 title:      "Testlink support Excel import/export test cases"
 subtitle:   "Testlink support Excel import/export test cases"
 date:       2023-05-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Testlink]
+    - [python]
 tags:
     - Testlink
     - python 
@@ -22,9 +25,9 @@ This article ignores the part that involves modifications to Testlink; this arti
 It includes two tools, one is to transfer xml to excel, the other is to do the opposite
 Testlink version using with this tool is TestLink 1.9.10(El D1eG0).
 
-*  **LIMITATION: excel2testlinkxml.py supports at most 2-layer hierarchy for now.**
+*  **LIMITATION: `excel2testlinkxml.py` supports at most 2-layer hierarchy for now.**
 
-```
+```shell
 TestSuite
  > Subsuite1 
    >> TestCase1
@@ -42,7 +45,7 @@ TestSuite
 
 ## excel2testlinkxml
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -122,7 +125,7 @@ f_out.write(s)
 
 ## testlinkxml2excel
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 

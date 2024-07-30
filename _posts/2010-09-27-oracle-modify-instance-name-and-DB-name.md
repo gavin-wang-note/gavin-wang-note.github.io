@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--修改数据库实例名和数据库名"
 subtitle:   "Oracle troubleshoot--modify instance name and DB name"
 date:       2010-09-27
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -46,7 +48,7 @@ tags:
 
 ### 步骤一、查看nid帮助信息以及nid使用方法
 
-```
+```shell
 SQL> host nid –help
 
 DBNEWID: Release 11.1.0.7.0 - Production on 星期一 9月 27 11:09:09 2010
@@ -73,7 +75,7 @@ SQL>
 
 ### 步骤二、启动数据库到mount状态
 
-```
+```shell
 SQL> startup mount
 ORACLE 例程已经启动。
 
@@ -88,7 +90,7 @@ SQL>
 
 ### 步骤三、创建pfile文件
 
-```
+```shell
 SQL> create pfile='/opt/oracle/product/11g/dbs/pfile2010wyz ' from spfile;
 
 文件已创建。
@@ -98,7 +100,7 @@ SQL>
 
 ### 步骤四、修改数据库名
 
-```
+```shell
 SQL> host nid target=sys/sys dbname=inomc
 
 DBNEWID: Release 11.1.0.7.0 - Production on 星期一 9月 27 11:10:23 2010
@@ -157,7 +159,7 @@ DBNEWID - 已完成, 但出现验证错误。
 
 按理这里应该是出现:
 
-```
+```shell
 数据库名已经改变为INOMC
 在重启数据库之前修改系统参数文件和创建新口令文件
 所以的回滚以及归档的重做日志对当前数据库已经无用
@@ -168,7 +170,7 @@ DBNEWID –成功完成
 
 对应英文如下：
 
-```
+```shell
 Database name changed to TESTDB.
 Modify parameter file and generate a new password file before restarting.
 Database ID for database TESTDB changed to 2321050327.
@@ -182,7 +184,7 @@ DBNEWID - Completed succesfully.
 
 #### 修改pfile
 
-```
+```shell
 inomc.__db_cache_size=1207959552   #"inomc"这个名称，原先是mmsgdb，这里凡是带“mmsgdb”字样的，全部被修改成inomc
 inomc.__java_pool_size=16777216
 inomc.__large_pool_size=16777216
@@ -220,7 +222,7 @@ ntrol03.ctl'
 
 ### 步骤六、以pfile文件启动数据库
 
-```
+```shell
 SQL> shutdown immediate     #停止数据库
 ORA-01507: ??????
 
@@ -301,7 +303,7 @@ SQL>
 
 #### 查看orapwd帮助信息
 
-```
+```shell
 oracle@mmsg:~/product/11g/network/admin> orapwd
 Usage: orapwd file=<fname> password=<password> entries=<users> force=<y/n> ignorecase=<y/n> nosysdba=<y/n>
 
@@ -318,7 +320,7 @@ Usage: orapwd file=<fname> password=<password> entries=<users> force=<y/n> ignor
 
 #### 创建口令文件
 
-```
+```shell
 oracle@mmsg:~/product/11g/dbs> orapwd  file=/opt/oracle/product/11g/dbs/orapwinomc password=sys entries=20
 ```
 
@@ -326,7 +328,7 @@ oracle@mmsg:~/product/11g/dbs> orapwd  file=/opt/oracle/product/11g/dbs/orapwino
 
 #### 查看实例信息
 
-```
+```shell
 SQL> select instance_name from v$instance;
 
 INSTANCE_NAME
@@ -338,7 +340,7 @@ SQL>
 
 #### 修改tnsnames.ora文件信息
 
-```
+```shell
 INOMC =
   (DESCRIPTION =
       (ADDRESS = (PROTOCOL = TCP)(HOST = mmsg)(PORT = 1521))
@@ -354,7 +356,7 @@ INOMC =
 
 #### reload监听信息
 
-```
+```shell
 racle@mmsg:~/product/11g/network/admin> lsnrctl reload
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 27-9月 -2010 15:20:02
@@ -382,7 +384,7 @@ Copyright (c) 1991, 2008, Oracle.  All rights reserved.
 
 数据库连接与启动失败，与数据库建立连接时报ORA-00838错误。
 
-```
+```shell
 racle@mmsg:~> sqlplus / as sysdba
 Copyright (c) 1982, 2008, Oracle.  All rights reserved.
 ORA-00838: Specified value of MEMORY_TARGET is too small, needs to be at least 7968M
@@ -417,7 +419,7 @@ SQL>
 
 ### 以指定pfile文件方式启动数据库
 
-```
+```shell
 SQL> startup pfile='/opt/oracle/product/11g/dbs/pfile2010wyz.ora'
 ORACLE 例程已经启动。
 
@@ -432,7 +434,7 @@ Redo Buffers               10768384 bytes
 
 ### 以pfile文件创建spfile文件
 
-```
+```shell
 SQL> create spfile='/opt/oracle/product/11g/dbs/spfileinomc.ora' from pfile ='/opt/oracle/product/11g/dbs/pfile2010wyz.ora'
   2  ;
 
@@ -441,7 +443,7 @@ SQL> create spfile='/opt/oracle/product/11g/dbs/spfileinomc.ora' from pfile ='/o
 
 ### 重启数据库
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。

@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例之监听"
 subtitle:   "Oracle troubleshooting of listener"
 date:       2011-10-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -21,7 +23,7 @@ listener，主要用来监听客户端向数据库服务器端提出的连接请
 
 显而易见，服务器端的监听器没有启动，另外检查客户端IP地址或端口填写是否正确。启动监听器：
 
-```
+```shell
 $ lsnrctl start
 ```
 
@@ -31,7 +33,7 @@ $ lsnrctl start
 
 # ORA-12535: TNS: 操作超时
 
-```
+```shell
 TNS-12154 (ORA-12154)：TNS:could not resolve service name
 ```
 
@@ -60,12 +62,12 @@ TNS-12154 (ORA-12154)：TNS:could not resolve service name
 创建监听错误
 
 <img class="shadow" src="/img/in-post/oracle-listener-create-error.png" widtgh="1200">
- 
+
 这个问题的解决方法如下：
 
 在ORACLE_HOME/network/admin/listener.ora文件中增加"SID_LIST_LISTENER = "这部分内容。
 
-```
+```shell
 LISTENER =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
@@ -85,7 +87,7 @@ SID_LIST_LISTENER =
 
 Oracle System Identifier (SID)
 
-```
+```shell
 A name that identifies a specific instance of a running pre-release 8.1 Oracle
 database. For any database, there is at least one instance referencing the database.
 For pre-release 8.1 databases, SID is used to identify the database. The SID is
@@ -99,7 +101,7 @@ listener in the listener.ora file.
 
 正确创建监听后，启动监听时监听启动异常，报12514错误。
 
-```
+```shell
 oerr ora 12514
 12514, 00000, "TNS:listener does not currently know of service requested in connect descriptor"
 // *Cause:  The listener received a request to establish a connection to a
@@ -130,7 +132,7 @@ oerr ora 12514
 
 启动数据库监听，报如下警告：
 
-```
+```shell
 LSNRCTL> start
 Starting /opt/oracle/product/11g//bin/tnslsnr: please wait...
 TNSLSNR for Linux: Version 11.1.0.7.0 - Production
@@ -157,14 +159,14 @@ TCP监听正常，IPC监听失败，由TNS-12555和TNS-12560错误确定是IPC�
 
 修改如下文件夹的权限
 
-```
+```shell
 /tmp/.oracle的权限 
 /var/tmp/.oracle的权限 
 ```
 
 oracle应该有这些目录的权限，用oinstall 
 
-```
+```shell
 chown -R  oracle:oinstall /tmp/.oracle 
 chown -R  oracle:oinstall /var/tmp/.oracle 
 ```
@@ -177,7 +179,7 @@ AIX下ORACLE11G（版本：Oracle Database 11g Enterprise Edition Release 11.1.0
 
 停止监听
 
-```
+```shell
 % lsnrctl stop
 LSNRCTL for IBM/AIX RISC System/6000: Version 11.1.0.6.0 - Production on 17-6月 -2009 19:22:34
 Copyright (c) 1991, 2007, Oracle.  All rights reserved.
@@ -187,7 +189,7 @@ TNS-01190: The user is not authorized to execute the requested listener command
 
 启动监听
 
-```
+```shell
 % lsnrctl start
 LSNRCTL for IBM/AIX RISC System/6000: Version 11.1.0.6.0 - Production on 17-6月 -2009 19:51:21
 Copyright (c) 1991, 2007, Oracle.  All rights reserved.
@@ -208,7 +210,7 @@ Listener failed to start. See the error message(s) above...
 
 修改ORACLE_HOME目录下lintener.ora文件，例如修改为：
 
-```
+```shell
 LISTENER =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
@@ -237,13 +239,13 @@ oracle版本为Version 11.1.0.6.0的，几乎都会遇见上述监听相关问�
 
 在服务器测试，示例如下：
 
-```
+```shell
 tnsping mmsgdb（这里的mmsgdb是数据库的实例名） 
 ```
 
 客户端测试如下：
 
-```
+```shell
 tnsping 10.164.75.220/mmsgdb
 ```
 
@@ -253,7 +255,7 @@ tnsping 10.164.75.220/mmsgdb
 
 表象:
 
-```
+```shell
 oracle@mmsg01:~/product/11g/network/admin> lsnrctl status
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 31-3?? -2010 18:09:47
@@ -290,7 +292,7 @@ oracle@mmsg01:~/product/11g/network/admin>
 
 修改/etc/hosts文件，增加小网段和外网段信息，例如：
 
-```
+```shell
 192.168.100.106 mmsg01
 10.164.75.102    mmsg01
 ```
@@ -299,7 +301,7 @@ oracle@mmsg01:~/product/11g/network/admin>
 
 日志
 
-```
+```shell
 <msg time='2010-04-20T09:56:43.897+08:00' org_id='oracle' comp_id='tnslsnr'
  type='UNKNOWN' level='16' host_id='mmsg'
  host_addr='10.164.74.222'>
@@ -350,7 +352,7 @@ TIMESTAMP * CONNECT DATA [* PROTOCOL INFO] * EVENT [* SID] * RETURN CODE
 
 表象
 
-```
+```shell
 oracle@mmsg1:~> lsnrctl stop
 
 LSNRCTL for Linux: Version 11.1.0.7.0 - Production on 11-8月 -2010 08:49:50
@@ -365,7 +367,7 @@ TNS-01190: 用户无权执行所请求的监听程序命令
 
 Oracle用户未设置监听密码等信息，导致其他用户停止了oracle的监听，并重新启动了监听。
 
-```
+```shell
 oracle@mmsg1:~/product/11g/network/admin> ps -ef | grep oracle
 oracle   26896 25801  0 Aug10 pts/2    00:00:00 su oracle
 oracle   26897 26896  0 Aug10 pts/2    00:00:00 bash
@@ -388,7 +390,7 @@ root用户kill掉相关进程id，oracle用户重新启动linstner，并设置�
 
 启动监听时候，报TNS-01201错
 
-```
+```shell
 oracle@mmsc101:~/product/11g/network/admin> lsnrctl start
 
 LSNRCTL for Linux: Version 11.1.0.6.0 - Production on 08-OCT-2011 15:38:38
@@ -410,7 +412,7 @@ Listener failed to start. See the error message(s) above...
 
 1、查询错误码信息
 
-```
+```shell
 oracle@mmsc101:~/product/11g/network/admin> oerr TNS 01201
 01201, 00000, "Listener cannot find executable %s for SID %s"
 // *Cause:  The executable for the Oracle dedicated server process cannot be
@@ -424,14 +426,14 @@ oracle@mmsc101:~/product/11g/network/admin>
 
 2、确定一下当前ORACLE_HOME目录
 
-```
+```shell
 oracle@mmsc101:~> echo  $ORACLE_HOME
 /opt/oracle/product/11g
 ```
 
 3、 检查下监听配置文件
 
-```
+```shell
 oracle@mmsc101:~/product/11g/bin> more  /opt/oracle/product/11g/network/admin/listener.ora
 # listener.ora Network Configuration File: /home/oracle/product/11g/network/admin/listener.ora
 # Generated by Oracle configuration tools.
@@ -471,7 +473,7 @@ LISTENER_RM =
 
 4、修改监听配置文件
 
-```
+```shell
 oracle@mmsc101:~/product/11g/bin> 
 
 
@@ -514,7 +516,7 @@ LISTENER_RM =
 
 5、报错后启动监听                                                                              
 
-```
+```shell
 oracle@mmsc101:~/product/11g/network/admin> lsnrctl start
 
 LSNRCTL for Linux: Version 11.1.0.6.0 - Production on 08-OCT-2011 15:42:42

@@ -3,8 +3,10 @@ layout:     post
 title:      "绑定与还原网卡配置文件"
 subtitle:   "Bond and restore NIC interface"
 date:       2013-05-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [perl]
 tags:
     - perl
 ---
@@ -15,7 +17,7 @@ tags:
 
 # 直接上脚本
 
-```
+```perl
 #!/usr/bin/perl
 use warnings;
 use strict;

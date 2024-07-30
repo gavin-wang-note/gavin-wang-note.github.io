@@ -3,8 +3,11 @@ layout:     post
 title:      "Nose html report 模板调整"
 subtitle:   "Adjust nose html report template"
 date:       2020-02-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [nose]
 tags:
     - Automation
 ---

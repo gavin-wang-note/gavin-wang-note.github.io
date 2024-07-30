@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle 管理篇之表空间"
 subtitle:   "Manager of oracle tablespace"
 date:       2012-02-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -14,7 +16,7 @@ tags:
 
 在做报表性能测试的时候，我们一般都需要去查看表空间。如果表空间已经满了，话单文件就堆积了，无法入库了。
 
-```
+```shell
 SQL> select * from v$tablespace;
 
        TS# NAME                           INC BIG FLA ENC
@@ -66,13 +68,13 @@ SQL> select * from v$tablespace;
 
 oracle用户登录服务器，执行如下命令：
 
-```
+```shell
 emctl start dbconsole
 ```
 
 如果服务已经起来了，显示信息如下：
 
-```
+```shell
 oracle@linux:~> emctl start dbconsole
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
@@ -91,7 +93,7 @@ Logs are generated in directory /home/oracle/product/11g/linux_infoxdb/sysman/lo
 
 停止DBCONSOLE服务：
 
-```
+```shell
 oracle@linux:~> emctl stop dbconsole
 perl: warning: Setting locale failed.
 perl: warning: Please check that your locale settings:
@@ -112,7 +114,7 @@ all attemps to stop oc4j failed... now trying to kill 9
 
 启动失败会出现类似如下信息：
 
-```
+```shell
 OC4J Configuration issue. /opt/oracle/app/product/11.1.0/db_1/oc4j/j2ee/OC4J_DBConsole_expsmgw_ora11g not found.
 ```
 
@@ -121,7 +123,7 @@ OC4J Configuration issue. /opt/oracle/app/product/11.1.0/db_1/oc4j/j2ee/OC4J_DBC
 （如果IE登录失败，可以在Internet选项中添加可信任站点，将上述服务器的URL地址添加为可信任站点）
 
 ## 3、以系统管理员身份登录
- 
+
 <img class="shadow" src="/img/in-post/oracle_oem.png" width="800" />
 
 4、查看表空间信息
@@ -129,12 +131,12 @@ OC4J Configuration issue. /opt/oracle/app/product/11.1.0/db_1/oc4j/j2ee/OC4J_DBC
 主目录 --> 服务器 --> 存储下 表空间
 
 查看各个表空间的详细信息。
- 
+
 <img class="shadow" src="/img/in-post/oracle_oem-1.png" width="800" />
 
 # 其他方法查看表空间
 
-```
+```shell
 dba_tablespace_usage_metrics
 select tablespace_name,tablespace_size/128 as tablespace_size_Mb from dba_tablespace_usage_metrics;
 ```
@@ -146,7 +148,7 @@ select tablespace_name,tablespace_size/128 as tablespace_size_Mb from dba_tables
 
 ## dba_data_files
 
-```
+```shell
 select  tablespace_name,bytes/1024/1024 as tablespace_size_Mb from dba_data_files;
 ```
 
@@ -157,7 +159,7 @@ select  tablespace_name,bytes/1024/1024 as tablespace_size_Mb from dba_data_file
 
 ## dba_temp_files
 
-```
+```shell
 select  tablespace_name,bytes/1024/1024 as tablespace_size_Mb from  dba_temp_files;
 ```
 
@@ -167,17 +169,17 @@ select  tablespace_name,bytes/1024/1024 as tablespace_size_Mb from  dba_temp_fil
 
 
 ## dba_free_space
-```
+```shell
 select sum(bytes)/1024/1024 from dba_free_space where tablespace_name='WYZ';
 ```
 
 说明：
 
 * dba_free_space是视图，该视图只能查询永久性表空间相关信息。
- 
+
 ## dba_temp_free_space
 
-```
+```shell
 select tablespace_name,tablespace_size/1024/1024 from dba_temp_free_space;
 ```
 
@@ -207,7 +209,7 @@ datafile是针对一般表空间
 
 当表空间已经满时，执行数据库操作数据库会报错，例如：
 
-```
+```shell
 ORA-01653: 表 MMSG.TMP_BASE_RESULT 无法通过 8 (在表空间 MMSG 中) 扩展
 ORA-06512: 在 "MMSG.LOG2DB_UTIL", line 92
 ORA-06512: 在 line 1
@@ -230,14 +232,14 @@ alter database datafile '/opt/oracle/admin/mmsgdb/mmsgdata/mmsgdata01' AUTOEXTEN
 
 下面的两个命令也可以：
 
-```
+```shell
 alter tablespace mmsg add datafile '/opt/oracle/admin/mmsgdb/mmsgdata/mmsgdata01' size 1024M reuse;
 alter database datafile '/opt/oracle/admin/mmsgdb/mmsgdata/mmsgdata01' resize 2048M;
 ```
 
 扩展后重启实例，查看相关表空间是否已经扩展，
 
-```
+```shell
 select * from dba_tablespace_usage_metrics;
 ```
 
@@ -283,7 +285,7 @@ SYSTEM回滚段是创建在系统表空间中，主要用于系统级的事务�
 
 # 相关参数
 
-```
+```shell
 SQL> show parameter undo
 
 NAME                            TYPE          VALUE
@@ -314,7 +316,7 @@ Oracle推荐使用撤销表空间管理回滚段，当undo_management设置为AU
 
 ## 查询回退率
 
-```
+```shell
 SELECT NAME, VALUE FROM v$sysstat WHERE NAME IN ('user commits', 'transaction rollbacks');
 ```
 
@@ -332,7 +334,7 @@ UNDO TABLESPACE变的很大，我们不能缩小，这个时候我们需要考�
 
 通过如下命令可以检查表空间的碎片，可以检查在指定的表空间中有多少自由空间段，以及它们的大小。
 
-```
+```shell
 select A.TABLESPACE_NAME,B.FILE_NAME,A.BYTES
 from dba_free_space A,dba_data_files B
 where A.TABLESPACE_NAME = '&tablespace_name' and
@@ -345,7 +347,7 @@ order by bytes desc;
 输入 tablespace_name 的值:  
 
 终端上显示如下：
- 
+
 <img class="shadow" src="/img/in-post/oracle_sql.png" width="600" />
 
 PLSQL Developer工具显示如下：
@@ -362,7 +364,7 @@ PLSQL Developer工具显示如下：
 
 如下sql代码查询哪些对象具有多于5个区间：
 
-```
+```shell
 select owner,segment_name, extents from dba_segments
 where extents > 5 
 and owner not in ('SYS','SYSTEM')
@@ -383,10 +385,10 @@ order BY EXTENTS;
 笔者接到一个做开发上线的兄弟电话，说正在试运行的系统存储过程突然变慢，而且偶然发现数据库的Temp表空间突然增加到20多G。这位兄弟不知道是不是与存储过程突然变慢有关，而且应该如何处理。----转载
 
 ## 1、从Temporary Tablespace谈起
- 
+
 表空间（Tablespace）、段对象（Segment）、分区（Extent）和数据块（Block）是Oracle逻辑层面上最重要的几个概念。其中，表空间是各个逻辑层面顶层概念，也是与Oracle物理结构文件可以建立关系的重要环节。
 
-```
+```shell
 SQL> select tablespace_name, contents, logging from dba_tablespaces;
 
 TABLESPACE_NAME               CONTENTS LOGGING
@@ -412,7 +414,7 @@ Temporary临时表空间是Oracle一种内部空间调控的产物。根据Oracl
 
 临时表空间对应的文件就是临时文件temp file，在Oracle中可以使用dba_temp_files视图进行查询。
 
-```
+```shell
 SQL> col file_name for a50;
 SQL> select file_name, bytes/1024/1024, AUTOEXTENSIBLE from dba_temp_files;
  

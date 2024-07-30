@@ -3,8 +3,12 @@ layout:     post
 title:      "统计cosbench每个任务的IOPS和耗时"
 subtitle:   "Calc cosbench task IOPS and elapsed time"
 date:       2019-11-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
+    - [cosbench]
+    - [S3]
 tags:
     - cosbench
     - S3
@@ -18,7 +22,7 @@ tags:
 
 # 脚本内容
 
-```
+```python
 root@fireware:~# cat calc_cosbench_task_time.py 
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
@@ -36,8 +40,8 @@ def get_start_end_time():
     all_csv_file = do_cmd("find {} -iname *WRITEJOB.csv -print".format(archive_home), 30).strip()
     for each_csv in all_csv_file.split('\n'):
         work_id = each_csv.split('/')[-2].split('-')[0]
-        {% raw %}start_time = do_cmd("cat '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' |  sed '/^$/d' | head -n 1".format(each_csv), 30).strip()
-        end_time = do_cmd("tac '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' | head -n 1".format(each_csv), 30).strip() {% endraw %}
+        start_time = do_cmd("cat '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' |  sed '/^$/d' | head -n 1".format(each_csv), 30).strip()
+        end_time = do_cmd("tac '{}' | awk -F ',' '{{print $1}}' | grep -v 'Timestamp' | head -n 1".format(each_csv), 30).strip() 
         all_work_dict[work_id] = [start_time, end_time]
 
     sorted(all_work_dict.items(), lambda x, y: cmp(x[0], y[0]))
@@ -71,7 +75,7 @@ def get_start_end_time():
 #     for each_csv in all_csv_file.split('\n'):
 #         cur_work_op_list = []
 #         work_id = each_csv.split('/')[-2].split('-')[0]
-#         {% raw %}ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip() {% endraw %}
+#         ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip() 
 #         ops_dict[work_id] = sum(map(float, ops_info.split("\n")))
 # 
 #     return ops_dict
@@ -85,7 +89,7 @@ def calc_elapsed_time_ops(all_work_dict):
     for each_csv in all_csv_file.split('\n'):
         cur_work_op_list = []
         work_id = each_csv.split('/')[-2].split('-')[0]
-        {% raw %}ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip() {% endraw %}
+        ops_info = do_cmd("cat '{}' | awk '{{print $1}}' | awk -F ',' '{{print $14}}' | grep -v Throughput".format(each_csv), 30).strip() 
         sum_ops = sum(map(float, ops_info.split("\n")))
         
         ops_dict[work_id] = sum(map(float, ops_info.split("\n")))
@@ -133,7 +137,7 @@ if __name__ == '__main__':
 
 # 输出信息
 
-```
+```shell
 root@fireware:~# python calc_cosbench_task_time.py 
 OPS and elapsed time is : ({'w11': '2504.92/4070', 'w10': '2514.82/4060', 'w7': '2519.07/4050', 'w6': '2579.88/3960', 'w5': '2593.13/3940', 'w4': '2606.27/3910', 'w3': '2636.37/3870', 'w2': '2623.56/3890', 'w1': '5387.47/1890', 'w9': '2540.3/4010', 'w8': '2524.32/4050'})
 

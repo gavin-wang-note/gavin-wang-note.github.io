@@ -3,8 +3,10 @@ layout:     post
 title:      "Excel数据导入到oracle数据库中"
 subtitle:   "Import excel data into oracle"
 date:       2010-06-03
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -27,7 +29,7 @@ tags:
 
 用记事本创建SQL*Loader控制文件，网上说的文件名后缀为ctl，其实我自己发现就用txt后缀也行。比如命名为control.ctl，内容如下：(--后面的为注释，实际不需要）   
 
-```
+```shell
      　　load      data　　　　　　　　　　         --控制文件标识   
      　　infile      '/opt/oracle/test.csv'　　--要输入的数据文件名为test.csv   
      　　append  into  table  test　　　　       --向表test中追加记录   
@@ -47,7 +49,7 @@ tags:
 
 在命令行提示符下使用SQL*Loader命令实现数据的输入
 
-```
+```shell
      sqlldr  userid=system/manager    control='/opt/oracle/control.ctl'   
 ```
 
@@ -57,7 +59,7 @@ tags:
 
 在单个文件不大的情况下(少于100000行)，并且目的表结构已经存在的情况下——对于excel而言肯定不会超过了，因为excel文件的最大行为65536—— 可以全选数据复制，然后用PLSQL  Developer工具。   
 
-* 1、在PLSQL     Developer的sql      window里输入select      *      from      test      for      update;   
+* 1、在PLSQL     Developer的sql      window里输入`select      *      from      test      for      update;   `
 * 2、按F8执行   
 * 3、打开锁,      再按一下加号.      鼠标点到第一列的列头，使全列成选中状态，然后粘贴，最后commit提交即可.
 

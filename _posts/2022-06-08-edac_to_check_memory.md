@@ -3,8 +3,10 @@ layout:     post
 title:      "使用edac工具来检测服务器内存故障"
 subtitle:   "Use edac to check memory"
 date:       2022-06-08
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
     - edac
@@ -31,7 +33,7 @@ tags:
 
 在使用edac-utils 工具之前，需要先了解服务器的硬件架构，以DELL R620为例，(其它如HP DL360P G8，IBM X3650 M4 机型都使用了 E5-2600 系列CPU，C600 系列芯片组.大致相同)  其CPU内存控制器对应通道，内存槽关系，如下所示。
 
-```
+```shell
 处理器0 (对应一个内存控制器)
 通道0：内存插槽A1、A5 和A9
 通道1：内存插槽A2、A6 和A10
@@ -48,7 +50,7 @@ tags:
 
 ## 安装 edac-utils 工具
 
-```
+```shell
 yum install -y libsysfs edac-utils
 ```
 
@@ -60,7 +62,7 @@ yum install -y libsysfs edac-utils
 
 
 
-```
+```shell
 [root@dbhost ~]# edac-util -v
 mc0: 0 Uncorrected Errors with no DIMM info
 mc0: 0 Corrected Errors with no DIMM info
@@ -106,7 +108,7 @@ DIMM#0 标示内存槽0，Corrected Errors 代表已经纠错的次数，根据�
 
 如果没有侦测到错误，显示信息如下：
 
-```
+```shell
 [root@node163 ~]# edac-util -v
 mc0: 0 Uncorrected Errors with no DIMM info
 mc0: 0 Corrected Errors with no DIMM info

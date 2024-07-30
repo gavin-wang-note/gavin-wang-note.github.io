@@ -3,8 +3,10 @@ layout:     post
 title:      "Slow to open CIFS"
 subtitle:   "Slow to open CIFS"
 date:       2016-04-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -16,7 +18,7 @@ I encountered a scenario where the client feedback that the client side is slow 
 
 # Script of monitor_cifs_open_time.py
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8  -*-
 

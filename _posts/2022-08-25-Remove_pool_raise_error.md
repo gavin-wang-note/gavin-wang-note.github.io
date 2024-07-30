@@ -3,13 +3,15 @@ layout:     post
 title:      "移除pool时提示'must unset nodelete flag'"
 subtitle:   "Remove pool raise 'you must unset nodelete flag for the pool first'"
 date:       2022-08-25
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [ceph]
 tags:
     - ceph
 ---
 
-#概述
+# 概述
 
 UI移除pool时没有发生报错，执行ceph df时却发现有一个pool残留，没有被清理掉，但UI上已经不显示这个pool了。尝试手工删除之，发生错误，如下文所述。
 
@@ -17,7 +19,7 @@ UI移除pool时没有发生报错，执行ceph df时却发现有一个pool残留
 
 # 现象
 
-```
+```shell
 [root@node224 ~]# ceph df
 GLOBAL:
     SIZE        AVAIL       RAW USED     %RAW USED 
@@ -44,7 +46,7 @@ Error EPERM: pool deletion is disabled; you must first set the mon_allow_pool_de
 
 修改参数后：
 
-```
+```shell
 [root@node224 ~]# ceph tell mon.* injectargs '--mon_allow_pool_delete true'
 Error EINVAL: injectargs: failed to parse arguments: true
 mon_allow_pool_delete = 'true' (not observed, change may require restart) 
@@ -68,7 +70,7 @@ Error EPERM: pool deletion is disabled; you must unset nodelete flag for the poo
 
 解决方法：
 
-```
+```shell
 [root@node224 ~]# ceph osd pool set pool-vs0fs1-data nodelete false
 set pool 44 nodelete to false
 [root@node224 ~]# ceph osd pool rm pool-vs0fs1-data pool-vs0fs1-data --yes-i-really-really-mean-it

@@ -3,8 +3,10 @@ layout:     post
 title:      "如何知道CPU降频了呢"
 subtitle:   "How do I know that the CPU frequency is down"
 date:       2021-06-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -30,7 +32,7 @@ tags:
 
 如上图所示：
 
-```
+```shell
 CPU MHz:               2579.700
 CPU max MHz:           3000.0000
 CPU min MHz:           800.0000

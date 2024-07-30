@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux录屏与回放"
 subtitle:   "Linux srcipt&scriptreplay"
 date:       2013-05-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -59,7 +61,7 @@ script 和 scriptreplay命令在绝大多数GNU/Linux发行版本上都可以找
 
 开始录制终端会话：
 
-```
+```shell
 root@host245:~/tmp# script -t 2> timeing.log -a output.session
 Script started, file is output.session
 root@host245:~/tmp# ls -l
@@ -80,7 +82,7 @@ Script done, file is output.session
 
 借助这两个文件：timeing.log（存储时序信息） 和 output.session（存储命令输入信息），我们可以按照下面的方法回放命令的执行过程：
 
-```
+```shell
 root@host245:~/tmp# scriptreplay timeing.log output.session 
 ```
 
@@ -96,7 +98,7 @@ script命令同样可以用于建立可在多个用户之间进行广播的视�
 
 在Terminal1中输入如下命令：
 
-```
+```shell
 root@host244:~# mkfifo scriptfifo
 
 ```
@@ -105,7 +107,7 @@ root@host244:~# mkfifo scriptfifo
 
 在Terminal2中输入如下命令：
 
-```
+```shell
 root@host244:~# cat scriptfifo
 ```
 
@@ -113,7 +115,7 @@ root@host244:~# cat scriptfifo
 
 返回Terminal1，输入以下命令：
 
-```
+```shell
 root@host244:~# script -f scriptfifo
 root@host244:~# some other linux command, such as ls, cd, mkdir and so on
 ```

@@ -3,8 +3,10 @@ layout:     post
 title:      "kerberos安装与客户端配置"
 subtitle:   "Deploy kerberos"
 date:       2023-02-17
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [kerberos]
 tags:
     - kerberos
 ---
@@ -33,7 +35,7 @@ tags:
 
 多节点集群每个节点都应当配置好hosts，否则不能在集群配置界面配置kerberos服务器为全称域名
 
-```
+```shell
 172.17.75.240   kadminkdc.njqa.com      kadminkdc
 172.17.75.241   kclient241.njqa.com     kclient241
 172.17.75.242   kclient242.njqa.com     kclient242
@@ -47,7 +49,9 @@ tags:
 
 Kerberos服务器对时间较为敏感，可以在KDC和kerberos client上配置NTP同步时间,Scaler集群自带NTP服务
 
-```apt-get install ntp -y```
+```shell
+apt-get install ntp -y
+```
 
 另外若有防火墙需要先将防火墙关闭ufw disable,或者让防火墙允许Kerberos服务通过
 
@@ -55,7 +59,9 @@ Kerberos服务器对时间较为敏感，可以在KDC和kerberos client上配置
 
 ## 安装相关组件 
 
-```apt-get install krb5-kdc krb5-admin-server```
+```shell
+apt-get install krb5-kdc krb5-admin-server
+```
 
 安装完成后会弹出Kerberos的配置界面，该配置界面也可以使用命令dpkg-reconfigure krb5-kdc来打开
 
@@ -63,24 +69,24 @@ Kerberos服务器对时间较为敏感，可以在KDC和kerberos client上配置
 ### 填写Realm，Kerberos的Realm为大写，我们使用NJQA.COM
 
 <img class="shadow" src="/img/in-post/kerberos/kerberos-1.png" width="1200">
- 
+
 设置Kerberos server，为我们的Kerberos主机名，按照规划应当填入kadminkdc.njqa.com，图中仅作参考
 
 <img class="shadow" src="/img/in-post/kerberos/kerberos-2.png" width="1200">
- 
+
 设置Administrative server，因为我们只有一台KDC服务器，所以设置为这台Kerberos的主机名，按照规划应当填入kadminkdc.njqa.com ，图中仅作参考
- 
+
 <img class="shadow" src="/img/in-post/kerberos/kerberos-3.png" width="1200">
- 
+
 ### 创建Kerberos数据库，里面维护着认证系统中所有主机的密码
 
 krb5_newrealm 按照提示设置密码即可
- 
+
 <img class="shadow" src="/img/in-post/kerberos/kerberos-4.png" width="1200">
- 
+
 ### 为Kerberos添加一个管理员帐号，以管理认证系统中的principal，再添加三个principals，两个用于client，另一个用于scaler集群
 
-```
+```shell
 root@kdc:~# kadmin.local
 Authenticating as principal root/admin@NJQA.COM with password.
 kadmin.local:  ank root/admin@NJQA.COM                                                           #管理员账号
@@ -112,7 +118,7 @@ Principal "nfs/scaler.njqa.com@NJQA.COM" created.
 
 此命令序列创建一个包含 kadmin/<FQDN> 和 kadmin/changepw 的主体项的特殊密钥表文件。kadmind 服务需要使用这些主体，要更改口令也需要使用这些主体。请注意，当主体实例为主机名时，无论 /etc/resolv.conf 文件中的域名是大写还是小写，都必须以小写字母指定FQDN。
 
-```
+```shell
 kadmin.local: ktadd -k /etc/krb5/kadm5.keytab kadmin/kadminkdc.njqa.com@NJQA.COM
 Entry for principal kadmin/kadminkdc.example.com@NJQA.COM with kvno 3, encryption type AES-256 CTS mode
           with 96-bit SHA-1 HMAC added to keytab WRFILE:/etc/krb5/kadm5.keytab.
@@ -141,7 +147,7 @@ kadmin.local:
 
 ### 运行以下命令（这两个deamon需要保持运行状态）
 
-```
+```shell
 krb5kdc
 kadmind
 ```
@@ -149,7 +155,7 @@ kadmind
 ### 编辑配置文件
 
 
-```
+```shell
 vim /etc/krb5.conf
 
 [logging]
@@ -211,7 +217,7 @@ vim /etc/krb5kdc/kdc.conf
 将步骤3中添加的3个principal添加进acl文件中
 
 
-```
+```shell
 vim /etc/krb5kdc/kadm5.acl
 
 # This file Is the access control list for krb5 administration.
@@ -231,7 +237,7 @@ nfs/admin@NJQA.COM        *
 
 在ReadWriteDirectories项添加路径/etc/krb5kdc /var/log以增加权限
 
-```
+```shell
 vim /lib/systemd/system/krb5-admin-server.service
 
 [Unit]
@@ -289,7 +295,7 @@ WantedBy=multi-user.target
 ```apt-get install krb5-user```，在配置界面填写的内容与Kerberos主机填写内容相同，即Server、Client与Kerberos的krb5.conf是相同的
 可以将KDC的krb5.conf拷贝到Client端
 
-```
+```shell
 root@kclient241:/etc/apt# scp 172.17.75.240:/etc/krb5.conf /etc/krb5.conf
 The authenticity of host '172.17.75.240 (172.17.75.240)' can't be established.
 ECDSA key fingerprint is SHA256:LnlXsXoJenNd6t5MXyebncsPsgRHJwsHrd+nMt4AHNE.
@@ -303,7 +309,7 @@ krb5.conf                                                                       
 
 如下
 
-```
+```shell
 root@kclient241:~# kadmin
 Authenticating as principal root/admin@NJQA.COM with password.
 Password for root/admin@NJQA.COM: 
@@ -317,7 +323,7 @@ kadmin:  q
 
 ## 使用kinit申请TGT验证认证配置是否成功，kinit执行完成后使用klist查看凭证已拿到
 
-```
+```shell
 root@kclient241:~# kinit -kt /etc/krb5.keytab host/kclient241.njqa.com@NJQA.COM
 root@kclient241:~# klist
 Ticket cache: FILE:/tmp/krb5cc_0
@@ -344,16 +350,16 @@ Valid starting       Expires              Service principal
 
 
 <img class="shadow" src="/img/in-post/kerberos/kerberos-5.png" width="1200">
- 
- 
+
+
 配置好Kerberos后添加principal
- 
+
 <img class="shadow" src="/img/in-post/kerberos/kerberos-6.png" width="1200">
- 
+
 <img class="shadow" src="/img/in-post/kerberos/kerberos-7.png" width="1200">
- 
+
 在虚拟存储器的NAS页面中创建共享文件夹，在NFS菜单中选择krb5、krb5i或krb5p，创建基于Kerberos认证的共享文件夹
- 
+
 <img class="shadow" src="/img/in-post/kerberos/kerberos-8.png" width="1200">
 
 然后在Kerberos client端mount共享文件夹
@@ -362,7 +368,7 @@ Valid starting       Expires              Service principal
 
 mount时使用主机名、ip地址或全称域名均可
 
-```
+```shell
 root@kclient241:~# mount -t nfs -o vers=4.2 node111:/vol/folder01 /mnt/folder01/
 root@kclient241:~# mount |grep node111
 node111:/vol/folder01 on /mnt/folder01 type nfs4 (rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=krb5,clientaddr=172.17.75.241,local_lock=none,addr=172.17.72.111)
@@ -371,7 +377,7 @@ root@kclient241:~#
 
 使用nfs3挂载krb5i的共享文件夹
 
-```
+```shell
 root@kclient241:~# mount -t nfs -o vers=3 node111:/vol/folder02 /mnt/folder02/
 root@kclient241:~# mount |grep node111
 node111:/vol/folder01 on /mnt/folder01 type nfs4 (rw,relatime,vers=4.2,rsize=1048576,wsize=1048576,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=krb5,clientaddr=172.17.75.241,local_lock=none,addr=172.17.72.111)

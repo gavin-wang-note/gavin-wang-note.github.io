@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle Shared Pool与Processes参数的关系"
 subtitle:   "Shared Pool and Processes"
 date:       2011-02-25
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -23,14 +25,14 @@ tags:
 
 ## 测试环境
 
-```
+```shell
 OS: SUSE Linux Enterprise Server 10 SP1 (x86_64) Kernel 2.6.16.46-0.12-smp (1)
 ORACLE VERSION: Release 11.1.0.6.0
 ```
 
 ## 修改processes
 
-```
+```shell
 SQL> alter system set processes=20000 scope=spfile;
 
 系统已更改。
@@ -64,7 +66,7 @@ SQL>
 
 修改process为300，重启数据库，查看shared pool  中processes值
 
-```
+```shell
 SQL> show parameter processes
 
 NAME                                 TYPE        VALUE
@@ -97,7 +99,7 @@ shared pool  processes                        2400  --300个进程要在共享�
 
 修改process为100，重启数据库，查看shared pool  中processes值
 
-```
+```shell
 SQL> alter system set processes = 100 scope=spfile;
 
 系统已更改。
@@ -135,7 +137,7 @@ shared pool  processes                         800  --100个进程要在共享�
 
 我们查看如下的v$process视图
 
-```
+```shell
 SQL>  desc v$process;
  名称                                      是否为空? 类型
  ----------------------------------------- -------- ----------------------------
@@ -205,7 +207,7 @@ db_cache与pga之间走的是数据流；shared pool保存的一些信息，可�
 
 刚才查看了64位AIX 6.1操作系统
 
-```
+```shell
 SQL> show parameter processes
 
 NAME                                 TYPE        VALUE
@@ -236,7 +238,7 @@ shared pool  process group array             66448
 
 AIX5.3
 
-```
+```shell
 % sqlplus "/ as sysdba"
 
 SQL*Plus: Release 9.2.0.8.0 - Production on Fri Jun 24 12:01:48 2011

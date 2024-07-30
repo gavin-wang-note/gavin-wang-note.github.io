@@ -3,8 +3,20 @@ layout:     post
 title:      "Linux下部署HDFS"
 subtitle:   "Deploy HDFS"
 date:       2023-04-09
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+top: false
+hide: false
+cover: false
+coverImg:
+password:
+theme: flip
+toc: true
+mathjax: false
+summary: Linux下部署HDFS详细安装过程
+categories:
+    - [HDFS]
+    - [HadoopFS]
 tags:
     - HDFS
     - HadoopFS
@@ -48,7 +60,7 @@ DataNode（数据节点）：
 
 5、在hdfs下创建文件夹备HDFS的namenode、datanode、jornalnode使用
 
-```
+```shell
 root@host11:/var/share/ezfs/shareroot/hdfs# mkdir host11 host12 host13
 root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host11/name host11/data host11/jn
 root@host11:/var/share/ezfs/shareroot/hdfs# mkdir -p host12/name host12/data host12/jn
@@ -75,7 +87,7 @@ root@host11:/var/share/ezfs/shareroot/hdfs# tree
 
 ### 1、hadoop下载
 
-```
+```shell
 wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar.gz
 ```
 
@@ -83,7 +95,7 @@ wget https://archive.apache.org/dist/hadoop/common/hadoop-3.3.2/hadoop-3.3.2.tar
 
 在所有节点上解压hadoop包， 命令如下
 
-```
+```shell
 tar -zxvf hadoop-3.3.2.tar.gz -C /usr/local/
 ```
 
@@ -91,7 +103,7 @@ tar -zxvf hadoop-3.3.2.tar.gz -C /usr/local/
 
 在所有节点上重命名hadoop
 
-```
+```shell
 onnode all mv /usr/local/hadoop-3.3.2 /usr/local/hadoop
  
 ```
@@ -102,7 +114,7 @@ Hadoop安装时需要配置一些环境变量，如指定HADOOP_HOME位置，指
 
 修改/etc/profile配置
 
-```
+```shell
 vim /etc/profile
 # 添加如下配置
 export HADOOP_HOME=/usr/local/hadoop
@@ -115,9 +127,8 @@ export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
 
 加载环境变量
 
-source /etc/profile
 
-```
+```shell
 source /etc/profile
 ```
 
@@ -127,7 +138,7 @@ source /etc/profile
 
 hadoop-env.sh为hadoop运行环境定义hadoop运行环境相关的配置信息
 
-```
+```shell
 vim /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 # 添加如下配置
 export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre/
@@ -146,7 +157,7 @@ export HDFS_SECONDARYNAMENODE_OPTS="-Dhadoop.security.logger=INFO,RFAS"
 
 修改dev_env.sh配置
 
-```
+```shell
 vim /etc/profile.d/dev_env.sh
 # 添加如下配置
 export HADOOP_HOME=/usr/local/hadoop
@@ -160,14 +171,14 @@ export PATH=.:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$JAVA_HOME/bin:$PATH
 
 用户名及用户组
 
-```
+```shell
 chown -R root /usr/local/hadoop
 chgrp -R root /usr/local/hadoop
 ```
 
 ### 6、验证
 
-```
+```shell
 root@host12:/usr/local/hadoop/etc/hadoop#  hadoop version
 Hadoop 3.3.2
 Source code repository git@github.com:apache/hadoop.git -r 0bcb014209e219273cb6fd4152df7df713cbac61
@@ -191,7 +202,7 @@ core-site.xml：集群全局参数，用于定义系统级别的参数，如HDFS
 
 ·    hadoop.tmp.dir：Hadoop临时文件的存放目录，可自定义。
 
-```
+```shell
 vim /usr/local/hadoop/etc/hadoop/core-site.xml
 
 <configuration>
@@ -215,7 +226,7 @@ vim /usr/local/hadoop/etc/hadoop/core-site.xml
 
 hdfs-site.xml HDFS 如名称节点和数据节点的存放位置、文件副本的个数、文件的读取权限等
 
-```
+```shell
 vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml
 
 <configuration>
@@ -322,7 +333,7 @@ vim /usr/local/hadoop/etc/hadoop/hdfs-site.xml
 
 修改启动的配置文件：start-dfs.sh
 
-```
+```shell
 vim /usr/local/hadoop/sbin/start-dfs.sh
 # 添加如下配置
 HDFS_DATANODE_USER=root
@@ -336,7 +347,7 @@ HDFS_JOURNALNODE_USER=root
 
 修改停用的配置文件：stop-dfs.sh
 
-```
+```shell
 vim /usr/local/hadoop/sbin/stop-dfs.sh
 # 添加如下配置
 HDFS_DATANODE_USER=root
@@ -350,7 +361,7 @@ HDFS_JOURNALNODE_USER=root
 
 #### 7.4、workers 设置
 
-```
+```shell
 vim /usr/local/hadoop/etc/hadoop/workers
 host11
 host12
@@ -363,7 +374,7 @@ host13
 
 服务器端host配置
 
-```
+```shell
 vim /etc/hosts
 172.17.73.11 host11
 172.17.73.12 host12
@@ -375,7 +386,7 @@ vim /etc/hosts
 
 #### 7.6、创建软件链接
 
-```
+```shell
 onnode all ln -s /usr/share/elasticsearch/jdk/bin/jps /bin/jps
  
 ```
@@ -384,27 +395,27 @@ onnode all ln -s /usr/share/elasticsearch/jdk/bin/jps /bin/jps
 
 ### 1、解压
 
-```
+```shell
 tar -zxvf /home/btadmin/zookeeper.tar.gz -C /usr/local
  
 ```
 
 ### 2、创建文件夹
 
-```
+```shell
 mkdir -p /usr/local/zookeeper/zkData
  
 ```
 
 ### 3、修改文件名
 
-```
+```shell
 mv /usr/local/zookeeper/conf/zoo_sample.cfg /usr/local/zookeeper/conf/zoo.cfg
 ```
 
 ### 4、修改文件zoo.cfg
 
-```
+```shell
 vim /usr/local/zookeeper/conf/zoo.cfg
 
 #添加如下配置
@@ -422,7 +433,7 @@ admin.serverPort=8085
 
 用户名及用户组
 
-```
+```shell
 chown -R root /usr/local/zookeeper
 chgrp -R root /usr/local/zookeeper
 ```
@@ -433,21 +444,21 @@ chgrp -R root /usr/local/zookeeper
 
 在第一个节点值为1
 
-```
+```shell
 vim /usr/local/zookeeper/zkData/myid
 1
 ```
 
 在第二个节点值为2
 
-```
+```shell
 vim /usr/local/zookeeper/zkData/myid
 2
 ```
 
 在第三个节点值为3
 
-```
+```shell
 vim /usr/local/zookeeper/zkData/myid
 3
 ```
@@ -458,7 +469,7 @@ HDFS HA配置完成后，下面我们将集群启动
 
 ### 1、先启动zookeeper集群
 
-```
+```shell
 # 在所有节点分别执行如下命令：
 /usr/local/zookeeper/bin/zkServer.sh start
  
@@ -471,7 +482,7 @@ hdfs --daemon start zkfc
 
 执行成功后可看：
 
-```
+```shell
 root@host13:/home/btadmin# jps
 180491 Jps
 154684 DFSZKFailoverController
@@ -485,14 +496,14 @@ root@host13:/home/btadmin# jps
 
 在各个节点分别执行下面命令，启动三台JournalNode ：
 
-```
+```shell
 hdfs --daemon start journalnode
 ```
 
 
  启动结果如下
 
-```
+```shell
 root@host11:/usr/local/hadoop/sbin# jps
 494797 JournalNode
  
@@ -505,14 +516,14 @@ root@host11:/usr/local/hadoop/sbin# jps
 
 注意：如果没有启动JournalNode，格式化将失败
 
-```
+```shell
 hdfs namenode -format
  
 ```
 
 出现如下输出代表格式化成功：
 
-```
+```shell
 2023-04-21 13:51:54,909 INFO util.GSet: 0.25% max memory 1.7 GB = 4.4 MB
 2023-04-21 13:51:54,909 INFO util.GSet: capacity      = 2^19 = 524288 entries
 2023-04-21 13:51:54,927 INFO metrics.TopMetrics: NNTop conf: dfs.namenode.top.window.num.buckets = 10
@@ -546,7 +557,7 @@ SHUTDOWN_MSG: Shutting down NameNode at host11/127.0.0.1
 
 在第一个节点启动namenode， 启动namenode后会生成images元数据
 
-```
+```shell
 hdfs --daemon start namenode
 ```
 
@@ -554,19 +565,19 @@ hdfs --daemon start namenode
 
 在启动第二，三节点的namenode之前 ，需要先执行同步数据操作，将第一个节点上的NameNode元数据拷贝到第二个，第三个节点上。命令如下：
 
-```
+```shell
 hdfs namenode -bootstrapStandby
 ```
 
 输出以下信息代表拷贝成功：
 
-```
+```shell
 18/03/15 14:28:01 INFO common.Storage: Storage directory /opt/modules/hadoop-2.7.1/tmp/dfs/name has been successfully formatted.
 ```
 
 启动第二，三节点namenode，命令如下
 
-```
+```shell
 hdfs --daemon start namenode
 ```
 
@@ -574,23 +585,23 @@ hdfs --daemon start namenode
 
 在所有节点上启动datanode
 
-```
+```shell
 hdfs --daemon start datanode
 ```
 
  
 
-7、切换nn1为namenode active
+### 7、切换nn1为namenode active
 
-```
+```shell
 hdfs haadmin -transitionToActive nn1
 ```
 
  
 
-8、确认服务状态
+### 8、确认服务状态
 
-```
+```shell
 onnode all jps
  
 >> NODE: 10.10.10.11 <<
@@ -626,7 +637,7 @@ onnode all jps
 
 打开文件c:\Windows\System32\drivers\etc\hosts
 
-```
+```shell
 172.17.73.11 host11
 172.17.73.12 host12
 172.17.73.13 host13
@@ -638,7 +649,7 @@ onnode all jps
 
 使用浏览器打开HDFS 客户端
 
-```
+```shell
 http://172.17.73.11:50070/
 ```
 
@@ -664,7 +675,7 @@ http://172.17.73.11:50070/
 
 问题1、第二或第三个节点执行BootstrapStandby 格式无法成功。 显示如下
 
-```
+```shell
 2023-04-21 13:55:00,314 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 0 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
 2023-04-21 13:55:01,315 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 1 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
 2023-04-21 13:55:02,316 INFO ipc.Client: Retrying connect to server: host11/172.17.73.11:9000. Already tried 2 time(s); retry policy is RetryUpToMaximumCountWithFixedSleep(maxRetries=10, sleepTime=1000 MILLISECONDS)
@@ -690,7 +701,7 @@ SHUTDOWN_MSG: Shutting down NameNode at host12/172.17.73.12
 
 查看端口的使用情况，发现请求的9000端口使用情况如下：
 
-```
+```shell
 root@host11:/tmp# lsof -i:9000
 COMMAND    PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 java    498909 root  330u  IPv4 689923      0t0  TCP 127.0.1.1:9000 (LISTEN)
@@ -705,7 +716,7 @@ java    498909 root  330u  IPv4 689923      0t0  TCP 127.0.1.1:9000 (LISTEN)
 
 再次查看
 
-```
+```shell
 root@host11:/usr/local/hadoop/sbin# lsof -i:9000
 COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
 java 
@@ -720,7 +731,7 @@ java
 
 解决方法：
 
-```
+```shell
 root@host11:/usr/local/hadoop/sbin# hdfs haadmin -getServiceState nn2
 active
  
@@ -730,7 +741,7 @@ active
 
 
 <img class="shadow" src="/img/in-post/HDFS-6.png" width="1200">
- 
+
 问题三：上传文件失败
 
 <img class="shadow" src="/img/in-post/HDFS-7.png" width="1200">
@@ -743,7 +754,7 @@ active
 
 添加三个节点的host
 
-```
+```shell
 172.17.73.11 host11
 172.17.73.12 host12
 172.17.73.13 host13
@@ -766,7 +777,7 @@ bug现象：
 
 log：
 
-```
+```shell
 2023-04-24 14:37:11,952 [myid:] - WARN  [main:ConstraintSecurityHandler@759] - ServletContext@o.e.j.s.ServletContextHandler@1b68ddbd{/,null,STARTING} has uncovered http methods for path: /*
 2023-04-24 14:37:11,961 [myid:] - INFO  [main:ContextHandler@915] - Started o.e.j.s.ServletContextHandler@1b68ddbd{/,null,AVAILABLE}
 2023-04-24 14:37:11,970 [myid:] - ERROR [main:ZooKeeperServerMain@86] - Unable to start AdminServer, exiting abnormally
@@ -807,4 +818,3 @@ Unable to start AdminServer, exiting abnormally
 
 在zoo.cfg中增加admin.serverPort=没有被占用的端口号
 
- 

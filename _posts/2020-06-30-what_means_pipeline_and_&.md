@@ -3,8 +3,11 @@ layout:     post
 title:      "shell中|&含义"
 subtitle:   "What's the '|&' means in shell"
 date:       2020-06-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [shell]
 tags:
     - Linux
     - shell
@@ -16,24 +19,24 @@ tags:
 
 今天细看了同事Henry编写的一个shell脚本，看到如下片断内容：
 
-{% raw %}
-```
+
+```shell
     while (( $(${CLI} info |& grep PROCESSING | wc -l) >= 1 )); do
         sleep 60
     done
-``` {% endraw %}
+```
 
-这里有一个{% raw %}```'|&' ``` {% endraw%}，不明觉厉~  {% raw %}(#^.^#) {% endraw%}
+这里有一个```'|&' ```，不明觉厉~  (#^.^#)
 
 # 我的疑惑
 
-{% raw %}```'|&' ``` {% endraw%} 是什么意思？
+```'|&' ``` 是什么意思？
 
 
 man了下bash，得到如下信息：
 
 
-{% raw %}```
+```shell
    Pipelines
        A pipeline is a sequence of one or more commands separated by one of the control operators | or |&.  The format for a pipeline is:
 
@@ -53,16 +56,16 @@ man了下bash，得到如下信息：
        When the shell is in posix mode, time may be followed by a newline.  In this case, the shell displays the total user and system time consumed by the shell and its children.  The TIMEFORMAT variable may be used to specify the format of the time information.
 
        Each command in a pipeline is executed as a separate process (i.e., in a subshell).
-``` {% endraw %}
+```
 
-这里解释的非常清楚了，{% raw %}```'|&' ``` {% endraw%} 等价于 {% raw %} ```'2>&1|' ``` {% endraw%}，前者是后者的简写方式，将标准错误输出(stderr)隐式重定向到标准输出(stdout)是在命令指定的任何重定向之后执行的。
+这里解释的非常清楚了，```'|&' ``` 等价于  ```'2>&1|' ```，前者是后者的简写方式，将标准错误输出(stderr)隐式重定向到标准输出(stdout)是在命令指定的任何重定向之后执行的。
 
 
 # 其他信息
 
-最早是csh/tcsh里有这个特性，被bash和zsh学过来了，ksh里{% raw %}```'|&' ``` {% endraw%} 是另外一种用法，表示的是协同处理。
+最早是csh/tcsh里有这个特性，被bash和zsh学过来了，ksh里```'|&' ``` 是另外一种用法，表示的是协同处理。
 
-如果你的shell不支持这种特性，一旦脚本中含有{% raw %}```'|&' ``` {% endraw%}，执行时报错：
+如果你的shell不支持这种特性，一旦脚本中含有```'|&' ```，执行时报错：
 
 ```Syntax error: "&" unexpected ```
 

@@ -3,8 +3,10 @@ layout:     post
 title:      "Shell和Perl调用sqlplus的几种操作"
 subtitle:   "Call sqlplus by Shell and Perl"
 date:       2012-08-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -14,7 +16,7 @@ tags:
 
 ## 1、最简单的shell里调用sqlplus
 
-```
+```shell
 $ vi test1.sh
 
 #!/bin/bash
@@ -33,7 +35,7 @@ $ ./test1.sh
 
 注意sqlplus段使用老板键`了, 赋变量的等号两侧不能有空格.
 
-```
+```shell
 $ vi test2.sh
 
 #!/bin/bash
@@ -58,7 +60,7 @@ $ ./test2.sh
 
 注意sqlplus段使用 col .. new_value .. 定义了变量并带参数exit, 然后自动赋给了shell的$?
 
-```
+```shell
 $ vi test3.sh
 
 #!/bin/bash
@@ -80,7 +82,7 @@ $ ./test3.sh
 
 $1表示第一个参数, sqlplus里可以直接使用, 赋变量的等号两侧不能有空格不能有空格.
 
-```
+```shell
 $ vi test4.sh
 
 #!/bin/bash
@@ -96,7 +98,7 @@ $ ./test4.sh ttt
 
 ## 5、为了安全要求每次执行shell都手工输入密码
 
-```
+```shell
 $ vi test5.sh
 
 #!/bin/bash
@@ -116,7 +118,7 @@ $ ./test5.sh
 
 对密码文件设置权限, 只有用户自己才能读写.
 
-```
+```shell
 $ echo 'iamwangnc' > u_test.txt
 $ chmod g-rwx,o-rwx u_test.txt
 $ vi test6.sh
@@ -137,13 +139,13 @@ $ ./test6.sh
 
 ## 1、最简单的perl调用sqlplus
 
-```
+```shell
 system(“sqlplus $user/$passwd\@$sid”);
 ```
 
 ## 2、通过文件句柄
 
-```
+```shell
     open(SQLPLUS, "|sqlplus -S $USER/$USERPASS\@$SID >/dev/null") || die "Execute sqlplus loging error!\n";
     print SQLPLUS "set feedback off\nset sqlnumber off\n";
     print SQLPLUS "set pagesize 0\n";

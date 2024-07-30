@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux下统计行数性能对比"
 subtitle:   "Performance compare when get line numbers from file"
 date:       2020-05-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -20,7 +22,7 @@ tags:
 
 准备一个100million行数的文件：
 
-```
+```shell
 root@host75:~/tmp# ll
 total 3018132
 drwxr-xr-x 2 root root       4096 May 28 17:39 ./
@@ -39,7 +41,7 @@ root@host75:~/tmp#
 
 ## 使用wc统计
 
-```
+```shell
 root@host75:~/tmp# time wc -l documents-2.json 
 100000000 documents-2.json
 
@@ -52,7 +54,7 @@ root@host75:~/tmp#
 ## awk
 
 
-```
+```shell
 root@host75:~/tmp# time awk '{print NR}' documents-2.json | tail -n1
 100000000
 
@@ -63,7 +65,7 @@ root@host75:~/tmp#
 ```
 
 
-```
+```shell
 root@host75:~/tmp# time awk 'END{print NR}' documents-2.json 
 100000000
 
@@ -76,7 +78,7 @@ root@host75:~/tmp#
 
 ## grep & awk 结合
 
-```
+```shell
 root@host75:~/tmp# time grep -n "" documents-2.json | awk '{{print }}' | tail -n1
 100000000:{"name": "23_1479119854.64", "bucket": "bucket01", "instance": "null", "meta": {"custom-string": {"name": "6389993698492958", "value": "9869611550099604"}, "mtime": "2020-05-29T13:24:30.042Z", "etag": "e7b195f4a3730de9c7a070e5d5762ab1", "content_type": "application/octet-stream", "tail_tag": "a3a5cefd-376d-421b-7964-08b62339e7c1.4520.381771", "size": "819"}, "owner": {"display_name": "user01", "id": "user01"}, "versioned_epoch": "0"}
 
@@ -87,7 +89,7 @@ sys	2m8.774s
 
 ## sed
 
-```
+```shell
 root@host75:~/tmp# time sed -n '$=' documents-2.json 
 100000000
 
@@ -100,7 +102,7 @@ root@host75:~/tmp#
 
 ## cat 
 
-```
+```shell
 root@host75:~/tmp# time cat documents-2.json | wc -l
 100000000
 

@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle闪回"
 subtitle:   "Oracle flashback"
 date:       2012-02-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -35,7 +37,7 @@ tags:
 
 ### 确认是否启用闪回功能
 
-```
+```shell
 SQL> select flashback_on from v$database;
 
 FLASHBACK_ON
@@ -51,7 +53,7 @@ SQL>
 
 ### 确认当前日志归档模式
 
-```
+```shell
 SQL> archive log list
 Database log mode              Archive Mode
 Automatic archival             Enabled
@@ -65,7 +67,7 @@ SQL>
 说明：
 * 如果非归档模式下，启用闪回失败：
 
-```
+```shell
 SQL> alter database flashback on;
 alter database flashback on
 *
@@ -88,7 +90,7 @@ oracle@mmsc101:~> oerr ora 38707
 
 ### 检查/修改恢复区设置
 
-```
+```shell
 SQL> show parameter db_recovery_file_dest
 
 NAME                                 TYPE        VALUE
@@ -103,7 +105,7 @@ SQL>
 
 ### 检查/修改闪回时间设置
 
-```
+```shell
 SQL> show parameter db_flashback_retention_target
 
 NAME                                 TYPE        VALUE
@@ -122,7 +124,7 @@ alter system set db_flashback_retention_target=1440;
 
 ### 检查闪回区域大小
 
-```
+```shell
 SQL> show parameter DB_RECOVERY_FILE_DEST_SIZE
 
 NAME                                 TYPE        VALUE
@@ -145,7 +147,7 @@ db_recovery_file_dest_size           big integer 0
 
 ### 步骤2 修改闪回数据存放路径
 
-```
+```shell
 SQL> alter system set db_recovery_file_dest_size  = 2048M scope=both;
 
 System altered.
@@ -155,7 +157,7 @@ SQL>
 
 ### 步骤3 重新启动数据库到Mount状态
 
-```
+```shell
 SQL> shutdown immediate
 Database closed.
 Database dismounted.
@@ -175,7 +177,7 @@ SQL>
 
 ### 步骤4 启动flashback database选项
 
-```
+```shell
 SQL> alter system set db_recovery_file_dest='/opt/oracle/flash_recovery' scope=both;
 
 System altered.
@@ -192,7 +194,7 @@ SQL>
 
 ### 步骤5 检查闪回进程是否启动
 
-```
+```shell
 SQL> ho ps -ef | grep rvwr 
 oracle   23486     1  0 17:09 ?        00:00:00 ora_rvwr_sdp
 oracle    1634 14984  0 17:26 pts/6    00:00:00 /bin/bash -c ps -ef | grep rvwr
@@ -231,7 +233,7 @@ buffer cache<-->flashback cache<-->rvwr<-->闪回日志【日志只记录修改�
 
 下面查看闪回区分配的大小为大约32M，闪回1440分钟以内的数据则需要46M左右的空间
 
-```
+```shell
 SQL> select oldest_flashback_scn old_flhbck_scn,oldest_flashback_time old_flhbck_tim,
   2  retention_target rete_trgt,flashback_size/1024/1024 flhbck_siz,
   3  estimated_flashback_size/1024/1024 est_flhbck_size
@@ -249,7 +251,7 @@ SQL>
 
 ## 查看闪回
 
-```
+```shell
 SQL> set wrap off
 SQL> select * from v$flashback_database_stat;
 truncating (as requested) before column ESTIMATED_FLASHBACK_SIZE
@@ -264,7 +266,7 @@ SQL>
 
 ## 查看闪回中sga分配的空间大小
 
-```
+```shell
 SQL> select * from v$sgastat where name like 'flashback%';
 
 POOL         NAME                            BYTES
@@ -277,7 +279,7 @@ SQL>
 
 ## 查看生成的闪回日志
 
-```
+```shell
 SQL> ho ls -hlt $ORACLE_BASE/flash_recovery/SDP/flashback
 total 33M
 -rw-r----- 1 oracle oinstall 33M 2012-02-09 17:59 o1_mf_7m739k3t_.flb
@@ -304,25 +306,25 @@ SQL>
 
 #### 基于SCN闪回
 
-```
+```shell
 FLASHBACK [STANDBY] DATABASE [<database_name>]  TO [BEFORE] SCN <system_change_number>
 ```
 
 #### 基于时间戳闪回
 
-```
+```shell
 FLASHBACK [STANDBY] DATABASE [<database_name>]  TO [BEFORE] TIMESTMP <system_timestamp_value>
 ```
 
 #### 基于时点闪回
 
-```
+```shell
 FLASHBACK [STANDBY] DATABASE [<database_name>]  TO [BEFORE] RESTORE POINT <restore_point_name>
 ```
 
 如下面的示例：
 
-```
+```shell
 SQL> flashback database to timestamp('2010-10-24 13:04:30','yyyy-mm-dd hh24:mi:ss'); 
 
 SQL> flashback database to scn 5813199;
@@ -334,7 +336,7 @@ SQL> flashback database ro restore point wyz_test;
 
 ##### 步骤1、 创建测试表，并插入数据
 
-```
+```shell
 oracle@mmsc101:~> sqlplus mmsg/mmsg@sdp
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 18:14:31 2012
@@ -375,7 +377,7 @@ SQL>
 
 ##### 步骤2、获取系统当前时间
 
-```
+```shell
 SQL> select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss')  time from dual; 
 
 TIME
@@ -387,7 +389,7 @@ SQL>
 
 ##### 步骤3、删除表scn_test
 
-```
+```shell
 SQL> drop table scn_test;
 
 Table dropped.
@@ -401,7 +403,7 @@ SQL>
 
 ##### 步骤4、新创建表tmp
 
-```
+```shell
 SQL> create table tmp as select * from modules;
 
 Table created.
@@ -419,7 +421,7 @@ SQL>
 
 ##### 步骤5、启动数据库到mount状态
 
-```
+```shell
 oracle@mmsc101:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 18:24:49 2012
@@ -437,7 +439,7 @@ SQL> startup mount
 
 ##### 步骤6、dba用户实施闪回
 
-```
+```shell
 SQL> flashback database to timestamp to_timestamp('2012-02-09 18:39:30','yyyy-mm-dd hh24:mi:ss');  
 
 Flashback complete.
@@ -451,7 +453,7 @@ SQL>
 
 ##### 步骤7、闪回结果查看
 
-```
+```shell
 SQL> connect mmsg/mmsg@sdp
 Connected.
 SQL> select count(0) from scn_test;
@@ -476,7 +478,7 @@ SQL>
 
 ##### 步骤1 获取当前SCN
 
-```
+```shell
 SQL> select current_scn from v$database;
 
 CURRENT_SCN
@@ -486,7 +488,7 @@ CURRENT_SCN
 
 ##### 步骤2 删除mmsg用户下的scn_test表
 
-```
+```shell
 SQL> connect mmsg/mmsg@sdp
 Connected.
 SQL> drop table scn_test;
@@ -500,7 +502,7 @@ Commit complete.
 
 ##### 步骤3 手动执行检查点
 
-```
+```shell
 SQL> alter system checkpoint;
 
 System altered.
@@ -510,7 +512,7 @@ SQL>
 
 ##### 步骤4 实施闪回
 
-```
+```shell
 SQL> shutdown immediate
 Database closed.
 Database dismounted.
@@ -537,7 +539,7 @@ SQL>
 
 ##### 步骤5 查询闪回结果
 
-```
+```shell
 SQL> connect mmsg/mmsg@sdp
 Connected.
 SQL> select count(0) from scn_test;
@@ -553,7 +555,7 @@ SQL>
 
 ##### 步骤1 创建测试表
 
-```
+```shell
 SQL> create table test(id int,describe varchar2(20));
 
 Table created.
@@ -581,7 +583,7 @@ SQL>
 
 ##### 步骤2 创建闪回点
 
-```
+```shell
 oracle@mmsc101:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 18:54:11 2012
@@ -602,7 +604,7 @@ SQL>
 
 ##### 步骤3 再次插入记录
 
-```
+```shell
 SQL> insert into test values(3,'GHI');
 
 1 row created.
@@ -624,7 +626,7 @@ SQL>
 
 ##### 步骤4闪回实施
 
-```
+```shell
 SQL> shutdown immediate
 Database closed.
 Database dismounted.
@@ -651,7 +653,7 @@ SQL>
 
 ##### 步骤5 查看闪回结果
 
-```
+```shell
 SQL> connect mmsg/mmsg@sdp
 Connected.
 SQL> select * from test;
@@ -671,7 +673,7 @@ SQL>
 
 使用RMAN进行闪回数据库的几种常用办法
 
-```
+```shell
 RMAN> flashback database to scn=918987;
 
 RMAN> flashback database to sequence=85  thread=1;
@@ -681,7 +683,7 @@ RMAN> flashback database to sequence=85  thread=1;
 
 #### 步骤1 创建测试表
 
-```
+```shell
 oracle@mmsc101:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on Thu Feb 9 19:02:24 2012
@@ -706,7 +708,7 @@ SQL> select count(0) from mmsg.tmp;
 
 #### 步骤2 获取数据库当前时间
 
-```
+```shell
 SQL> select to_char(sysdate,'yyyy-mm-dd hh24:mi:ss') tm from dual;
 
 TM
@@ -716,7 +718,7 @@ TM
 
 #### 步骤3 删除测试表
 
-```
+```shell
 SQL> drop table mmsg.tmp;
 
 Table dropped.
@@ -728,7 +730,7 @@ Commit complete.
 
 #### 步骤4 闪回实践
 
-```
+```shell
 SQL> shutdown immediate
 Database closed.
 Database dismounted.
@@ -786,7 +788,7 @@ Database altered.
 
 #### 步骤5 查看闪回结果
 
-```
+```shell
 SQL> select count(0) from mmsg.tmp;
 
   COUNT(0)
@@ -808,12 +810,12 @@ SQL>
 
 就是将表里的数据推回到过去的某个时间点，是利用undo表空间里记录的数据被改变前的值，如果闪回表所需要的undo数据，由于保留的时间超过了初始化参数undo_retention所指定的值，从而导致该undo数据块被其他事务覆盖，就不能恢复到指定的时间点了。
 
- 
+
 闪回表的局限：当前的时间点到要闪回到的时间点之间不允许有ddl操作，否则闪回无法成功。
 
 示例：
 
-```
+```shell
 SQL> select count(0) from mmsg.tmp;
 
   COUNT(0)
@@ -840,7 +842,7 @@ SQL>
 说明：
 * 闪回表，需要在数据库启用回收站条件下才能进行表的闪回，否则报错：
 
-```
+```shell
 SQL> FLASHBACK TABLE mmsg.TEST TO BEFORE DROP;
 FLASHBACK TABLE mmsg.TEST TO BEFORE DROP
 *
@@ -862,7 +864,7 @@ ORA-38305: object not in RECYCLE BIN
 
 4、查看对应的该表中的闪回版本信息
 
-```
+```shell
 select versions_starttime, versions_endtime, versions_xid,
     versions_operation, moduleid
     from modules versions between timestamp minvalue and maxvalue
@@ -894,7 +896,7 @@ select versions_starttime, versions_endtime, versions_xid,
 
 ## 查看闪回区使用情况
 
-```
+```shell
 SQL> select name,space_limit/1024/1024 sp_limt,space_used/1024/1024 sp_usd,
   2  space_reclaimable/1024/1024 sp_recl,
   3  number_of_files num_fils from v$recovery_file_dest;
@@ -912,7 +914,7 @@ SQL>
 
 ## 将某些表空间排除在闪回之外
 
-```
+```shell
 SQL> alter tablespace MMSG flashback off;
 
 SQL> select name,flashback_on from v$tablespace where ts#=4;

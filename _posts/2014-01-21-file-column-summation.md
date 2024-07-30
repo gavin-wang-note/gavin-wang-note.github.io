@@ -3,8 +3,10 @@ layout:     post
 title:      "根据文件列求和"
 subtitle:   "file column summation"
 date:       2014-01-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - awk
     - sum 
@@ -19,7 +21,7 @@ tags:
 
 示例:
 
-```
+```shell
 198 MMSGSUSE11 [wyz] :/home/wyz/perl/testcase>more tmp.txt
 testAddCountryCode.AddCountryCode 5 0 0 796.28
 testChcekSAGipNormal.ChcekSAGIPNormalTest 3 0 0 418.28
@@ -37,7 +39,7 @@ testGiveOndemandAbnormal.GiveOndemandAbnormal 2 0 0 115.75
 
 求和操作：
 
-```
+```shell
 200 MMSGSUSE11 [wyz] :/home/wyz/perl/testcase>awk '{m+=$2} END{print m}' tmp.txt
 59
 ```
@@ -46,7 +48,7 @@ testGiveOndemandAbnormal.GiveOndemandAbnormal 2 0 0 115.75
 
 示例：
 
-```
+```shell
 201 MMSGSUSE11 [wyz] :/home/wyz/perl/testcase>more t.txt
 00|M00a|0A|a00|0.00|15.00
 00|M00a|0A|a00|0.00|15.00
@@ -59,7 +61,7 @@ testGiveOndemandAbnormal.GiveOndemandAbnormal 2 0 0 115.75
 
 求和操作：
 
-```
+```shell
 202 MMSGSUSE11 [wyz] :/home/wyz/perl/testcase>awk -F '|' '{m+=$5;n+=$6} END {print m,n}' t.txt
 25.92 31.48
 ```

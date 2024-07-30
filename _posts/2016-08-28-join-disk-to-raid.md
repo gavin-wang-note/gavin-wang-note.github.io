@@ -3,8 +3,10 @@ layout:     post
 title:      "磁盘加入RAID组"
 subtitle:   "HDD join RAID5"
 date:       2016-08-28
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [RAID]
 tags:
     - RAID
 ---
@@ -34,7 +36,7 @@ tags:
 ```/opt/MegaRAID/MegaCli/MegaCli64 -LdPdInfo -aALL```
 
 <img class="shadow" src="/img/in-post/hdd_join_raid.png" width="800">
- 
+
 （2）标记磁盘为unconfig（good）状态
 
 如上图所示，坏了的磁盘，状态应该是unconfig（good），这里截图仅供参考。

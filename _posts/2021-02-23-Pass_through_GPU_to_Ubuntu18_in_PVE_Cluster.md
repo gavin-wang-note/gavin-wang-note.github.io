@@ -3,8 +3,11 @@ layout:     post
 title:      "PVE集群给Ubuntu18.04直通GPU"
 subtitle:   "Pass through GPU in PVE clusteri to Ubuntu18.04 VM"
 date:       2021-02-23
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
+    - [PVE]
 tags:
     - Linux
     - PVE
@@ -32,7 +35,7 @@ tags:
 
 在 quiet后面，增加“**intel_iommu=on video=efifb:off,vesafb:off**”，完整内容如下所示：
 
-```
+```shell
 GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on video=efifb:off,vesafb:off 915.modeset=0 nomodeset net.ifnames=1 biosdevname=0"
 
 GRUB_CMDLINE_LINUX="video=VGA-1:800x600"
@@ -54,7 +57,7 @@ GRUB_GFXPAYLOAD_LINUX=keep
 
 保存后，执行如下指令更新grub：
 
-```
+```shell
 update-grub
 ```
 
@@ -66,7 +69,7 @@ update-grub
 
 编辑 /etc/modules，直接添加以下几个模块：
 
-```
+```shell
 vfio
 vfio_iommu_type1
 vfio_pci
@@ -90,11 +93,11 @@ vfio_virqfd
 
 编辑/etc/modprobe.d/pve-blacklist.conf
 
-vi /etc/modprobe.d/pve-blacklist.conf 
+`vi /etc/modprobe.d/pve-blacklist.conf`
 
 添加以下内容
 
-```
+```shell
 # block AMD driver
 
 blacklist radeon
@@ -119,7 +122,7 @@ blacklist i915
 
 
 
-```
+```shell
   echo "blacklist radeon" >> /etc/modprobe.d/blacklist.conf 
   echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf 
   echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
@@ -135,13 +138,13 @@ blacklist i915
 
 查看所有pci设备。
 
-```
+```shell
 lspci
 ```
 
 由于我们已经知道了当前设备用的是什么型号的GPU卡，这里直接过滤：
 
-```
+```shell
 root@gpu01:~# lspci |grep -i Tesla
 02:00.0 3D controller: NVIDIA Corporation GP102GL [Tesla P40] (rev a1)
 root@gpu01:~# 
@@ -151,7 +154,7 @@ root@gpu01:~#
 
 
 
-```
+```shell
 root@gpu01:~# lspci -n -s 02:00
 02:00.0 0302: 10de:1b38 (rev a1)
 root@gpu01:~# 
@@ -162,19 +165,19 @@ root@gpu01:~#
 找到显卡后记下硬件id，形式是`xxxx:xxxx`，比如上面的Tesla P40的核心显卡的硬件id是**`10de:1b38`**。
 编辑`/etc/modprobe.d/vfio.conf`
 
-```
+```shell
 vi /etc/modprobe.d/vfio.conf
 ```
 
 添加以下内容注意！把**10de:1b38**换成你的显卡的硬件id：
 
-```
+```shell
 echo "options vfio-pci ids=10de:1b38 disable_vga=1" > /etc/modprobe.d/vfio.conf
 ```
 
 然后查看内容是否正确：
 
-```
+```shell
 root@gpu01:~# cat /etc/modprobe.d/vfio.conf
 options vfio-pci ids=10de:1b38 disable_vga=1
 root@gpu01:~# 
@@ -218,7 +221,7 @@ VM OS成功 安装后进行配置文件的修改操作（以下操作以root用�
 
 
 
-```
+```shell
 echo "options kvm ignore_msrs=1 report_ignored_msrs=0" > /etc/modprobe.d/kvm.conf
 ```
 
@@ -236,7 +239,7 @@ echo "options kvm ignore_msrs=1 report_ignored_msrs=0" > /etc/modprobe.d/kvm.con
 
 ### 编辑黑名单
 
-```
+```shell
 vi /etc/modprobe.d/blacklist-nouveau.conf
 ```
 
@@ -244,7 +247,7 @@ vi /etc/modprobe.d/blacklist-nouveau.conf
 
 添加两行语句：
 
-```
+```shell
 blacklist nouveau
 options nouveau modeset=0
 ```
@@ -253,7 +256,7 @@ options nouveau modeset=0
 
 ### 更新initramfs
 
-```
+```shell
 update-initramfs -u
 ```
 
@@ -263,7 +266,7 @@ update-initramfs -u
 
 
 
-```
+```shell
 root@vmgpu:~# update-initramfs -u
 update-initramfs: Generating /boot/initrd.img-4.15.0-55-generic
 root@vmgpu:~# 
@@ -273,7 +276,7 @@ root@vmgpu:~#
 
 ### 重启 VM
 
-```
+```shell
 reboot
 ```
 
@@ -285,7 +288,7 @@ reboot
 
 终端执行如下指令：
 
-```
+```shell
 lsmod | grep nouveau
 ```
 
@@ -299,7 +302,7 @@ lsmod | grep nouveau
 
 由于安装NVIDIA driver需要7.4版本的gcc和make指令，需进行gcc与make的安装。
 
-```
+```shell
 apt-get update
 apt-get install gcc 7.4.0
 apt-get install make
@@ -330,7 +333,7 @@ apt-get install make
 
 1、不要勾选主GPU，否则VM启动报错：
 
-```
+```shell
 /dev/rbd0
 kvm: failed to find file '/usr/share/qemu-server/bootsplash.jpg'
 kvm: -device vfio-pci,host=0000:02:00.0,id=hostpci0,bus=pci.0,addr=0x10,rombar=0,x-vga=on: vfio 0000:02:00.0: failed getting region info for VGA region index 8: Invalid argument
@@ -355,7 +358,7 @@ TASK ERROR: start failed: command '/usr/bin/kvm -id 100 -name vm100 -chardev 'so
 
 
 
-```
+```shell
 root@vmgpu:~# chmod a+x NVIDIA-Linux-x86_64-460.32.03.run 
 root@vmgpu:~# ./NVIDIA-Linux-x86_64-460.32.03.run 
 ```
@@ -402,7 +405,7 @@ install NVIDIA Accolerated Graphics Driver：
 
 
 
-```
+```shell
 root@vmgpu:~# lsmod | grep nvidia
 nvidia_drm             49152  0
 nvidia_modeset       1220608  1 nvidia_drm
@@ -416,7 +419,7 @@ root@vmgpu:~#
 
 
 
-```
+```shell
 root@vmgpu:~# nvidia-smi 
 Tue Feb 23 16:40:19 2021       
 +-----------------------------------------------------------------------------+
@@ -473,7 +476,7 @@ Tue Feb 23 16:40:19 2021
 
 对应log内容：
 
-```
+```shell
    /tmp/selfgz19048/NVIDIA-Linux-x86_64-460.32.03/kernel/nvidia-drm/nvidia-drm-modeset.c: In function '__will_generate_flip_event':
    /tmp/selfgz19048/NVIDIA-Linux-x86_64-460.32.03/kernel/nvidia-drm/nvidia-drm-modeset.c:96:23: warning: unused variable 'primary_plane' [-Wunused-variable]
         struct drm_plane *primary_plane = crtc->primary;
@@ -517,7 +520,7 @@ Tue Feb 23 16:40:19 2021
 
 对应VM kern.log片断信息如下：
 
-```
+```shell
 Feb 23 08:23:46 gpu01 kernel: [   12.954627] [drm] [nvidia-drm] [GPU ID 0x00000010] Loading driver
 Feb 23 08:23:46 gpu01 kernel: [   12.954628] [drm] Initialized nvidia-drm 0.0.0 20160202 for 0000:00:10.0 on minor 1
 Feb 23 08:23:46 gpu01 kernel: [   13.025196] EXT4-fs (sda2): mounted filesystem with ordered data mode. Opts: (null)

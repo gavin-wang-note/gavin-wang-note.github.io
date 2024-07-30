@@ -3,8 +3,11 @@ layout:     post
 title:      "一键安装 docker 的 shell 脚本"
 subtitle:   "Linux shell to install Docker"
 date:       2023-01-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
+    - [Docker]
 tags:
     - Linux
     - shell 
@@ -13,14 +16,13 @@ tags:
 
 # 概述
 
-一键安装Docker的shell脚本.
-脚本比较粗糙，将就用
+一键安装Docker的shell脚本，脚本比较粗糙，将就用。
 
 
 # Script Content
 
 
-{% raw %}```
+```shell
 yum remove docker \
                   docker-client \
                   docker-client-latest \
@@ -86,4 +88,4 @@ sudo systemctl restart docker
 echo -e "=========== 5.配置国内镜像加速 ================\n\n"
 
 docker ps -a
-``` {% endraw %}
+```

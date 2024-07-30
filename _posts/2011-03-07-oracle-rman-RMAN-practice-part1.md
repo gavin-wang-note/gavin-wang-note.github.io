@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle RMAN实践篇1"
 subtitle:   "Oracle RMAN Practice Part1"
 date:       2011-03-07
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -23,7 +25,7 @@ tags:
 
 rman备份脚本如下（运行日志）：
 
-```
+```shell
 RMAN> #script:fullbakup.rcv
 2> # creater:wangyunzeng
 3> # date:3.1.2011
@@ -53,7 +55,7 @@ RMAN> #script:fullbakup.rcv
 
 ### 步骤一 创建测试表
 
-```
+```shell
 oracle@mmsc103:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 10:30:57 2011
@@ -109,7 +111,7 @@ SQL>
 
 ### 步骤二 关闭数据库，模拟数据文件损坏或丢失
 
-```
+```shell
 oracle@mmsc103:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 10:44:24 2011
@@ -138,7 +140,7 @@ oracle@mmsc103:~/oradata/mmsgdb>
 
 ### 步骤三 启动数据库，并脱机数据文件
 
-```
+```shell
 SQL> startup
 ORACLE 例程已经启动。
 
@@ -165,7 +167,7 @@ SQL> alter database open;
 
 拷贝过程省略。
 
-```
+```shell
 SQL> recover datafile 5
 ORA-00279: 更改 427060 (在 03/05/2011 09:46:20 生成) 对于线程 1 是必需的
 ORA-00289: 建议:
@@ -250,7 +252,7 @@ SQL>
 
 ### 步骤五   查询数据，检查恢复效果
 
-```
+```shell
 oracle@mmsc103:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 11:04:52 2011
@@ -286,7 +288,7 @@ SQL>
 
 ### 步骤一  表中插入记录
 
-```
+```shell
 oracle@mmsc103:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 11:51:31 2011
@@ -322,7 +324,7 @@ SQL> select * from sybex;
 
 ### 步骤二  备份表空间
 
-```
+```shell
 RMAN> backup tablespace MMSG;
 
 启动 backup 于 07-3月 -11
@@ -346,7 +348,7 @@ RMAN>
 
 ### 步骤三  再次向表中插入记录
 
-```
+```shell
 SQL> insert into sybex values(6);
 
 已创建 1 行。
@@ -374,7 +376,7 @@ SQL>
 
 ### 步骤四  切换relog日志记录
 
-```
+```shell
 SQL> alter system switch logfile;
 
 系统已更改。
@@ -386,7 +388,7 @@ SQL> /
 
 ### 步骤五  关闭数据库，模拟数据文件丢失
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -400,7 +402,7 @@ exit
 
 ### 步骤六  启动数据库，并脱机数据文件
 
-```
+```shell
 SQL> startup
 ORACLE 例程已经启动。
 
@@ -429,7 +431,7 @@ SQL>
 
 恢复脚本可以是恢复单个数据文件
 
-```
+```shell
 RMAN> run
 2> {
 3> allocate channel c1 type disk;
@@ -442,7 +444,7 @@ RMAN> run
 
 也可以是表空间
 
-```
+```shell
 RMAN> run
 2> {
 3> allocate channel c1 type disk;
@@ -455,7 +457,7 @@ RMAN> run
 
 过程如下：
 
-```
+```shell
 使用目标数据库控制文件替代恢复目录
 分配的通道: c1
 通道 c1: SID=293 设备类型=DISK
@@ -487,7 +489,7 @@ RMAN>
 
 ### 步骤八 检查恢复效果
 
-```
+```shell
 SQL> select * from sybex;
 
         ID
@@ -515,7 +517,7 @@ SQL> select * from sybex;
 
 ### 步骤一  表中插入记录
 
-```
+```shell
 SQL> insert into sybex values(7);
 
 已创建 1 行。
@@ -542,7 +544,7 @@ SQL> select * from sybex;
 
 ### 步骤二  关闭数据库，删除除临时文件外的所有数据文件
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -575,7 +577,7 @@ exit
 
 ### 步骤三 启动数据库，并查看告警日志
 
-```
+```shell
 SQL> startup
 ORACLE 例程已经启动。
 
@@ -594,7 +596,7 @@ SQL>
 
 查看告警日志
 
-```
+```shell
 <msg time='2011-03-07T12:41:50.153+08:00' org_id='oracle' comp_id='rdbms'
  client_id='' type='UNKNOWN' level='16'
  module='' pid='22906'>
@@ -661,7 +663,7 @@ Additional information: 3
 
 通过查询视图v$recover_file可以发现
 
-```
+```shell
 SQL> select * from v$recover_file;
 
      FILE# ONLINE  ONLINE_ ERROR                                                                CHANGE# TIME
@@ -679,7 +681,7 @@ SQL>
 
 ### 步骤四   拷贝数据文件到目录，着手恢复
 
-```
+```shell
 oracle@mmsc103:~> cd bak_oradata/mmsgdb/
 oracle@mmsc103:~/bak_oradata/mmsgdb> l
 total 2206832
@@ -706,7 +708,7 @@ oracle@mmsc103:~/bak_oradata/mmsgdb>
 
 恢复过程如下：
 
-```
+```shell
 SQL> recover database;
 ORA-00279: 更改 427060 (在 03/05/2011 09:46:20 生成) 对于线程 1 是必需的
 ORA-00289: 建议: /opt/oracle/flash_recovery_area/MMSGDB/archivelog/2011_03_05/o1_mf_1_29_6q3jw83d_.arc
@@ -781,7 +783,7 @@ SQL>
 
 ### 步骤五  检查数据完整性
 
-```
+```shell
 oracle@mmsc103:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 12:48:35 2011
@@ -823,7 +825,7 @@ rman备份归档模式下数据库，损坏或丢失多个数据文件，可进�
 
 ### 步骤一  表中插入记录
 
-```
+```shell
 SQL> insert into sybex values(8);
 
 已创建 1 行。
@@ -853,7 +855,7 @@ SQL> select * from sybex;
 
 备份日志如下：
 
-```
+```shell
 恢复管理器: Release 11.1.0.6.0 - Production on 星期一 3月 7 13:52:27 2011
 
 Copyright (c) 1982, 2007, Oracle.  All rights reserved.
@@ -934,7 +936,7 @@ sql 语句: alter system archive log current
 
 ### 步骤三   表中再次插入记录
 
-```
+```shell
 SQL> insert into sybex values(9);
 
 已创建 1 行。
@@ -954,7 +956,7 @@ SQL>
 
 ### 步骤四  关闭数据库，模拟多个数据文件丢失或损坏
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -1000,7 +1002,7 @@ ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
 SQL>
 ```
 
-```
+```shell
 SQL> select * from v$recover_file;
 
      FILE# ONLINE  ONLINE_ ERROR                                                                CHANGE# TIME
@@ -1016,7 +1018,7 @@ SQL>
 
 ### 步骤五  恢复数据库
 
-```
+```shell
 RMAN> run
 2> {
 3> allocate channel c1 type disk;
@@ -1062,7 +1064,7 @@ RMAN>
 
 ### 步骤六  恢复结果检查
 
-```
+```shell
 oracle@mmsc103:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 14:00:33 2011
@@ -1098,7 +1100,7 @@ SQL>
 
 ### 步骤一  创建表
 
-```
+```shell
 SQL> select * from sybex;
 
         ID
@@ -1139,7 +1141,7 @@ SQL>
 
 #### 应用用户创建表并插入数据。
 
-```
+```shell
 SQL> insert into time values(1);
 
 已创建 1 行。
@@ -1159,7 +1161,7 @@ SQL> select count(0) from time;
 
 #### sysdba用户切换日志归档
 
-```
+```shell
 SQL> alter system archive log current;
 
 系统已更改。
@@ -1175,7 +1177,7 @@ SQL> alter system archive log current;
 
 #### 应用用户执行如下操作
 
-```
+```shell
 SQL> select to_char(sysdate,'yyyy-mm-dd HH24:MI:SS') from dual;
 
 TO_CHAR(SYSDATE,'YY
@@ -1195,7 +1197,7 @@ SQL>
 
 ### 步骤四  关闭数据库，拷贝回之前备份的数据文件（这个数据文件中无数据记录）
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -1207,7 +1209,7 @@ oracle@mmsc103:~>
 
 ### 步骤五  mount数据库，执行不完全恢复
 
-```
+```shell
 SQL> startup mount    
 ORACLE 例程已经启动。
 
@@ -1234,13 +1236,13 @@ SQL>
 
 ### 步骤六  数据验证
 
-```
+```shell
 SQL> select * from time;
 ```
 
 说明：
 * 1、不完全恢复最好备份所有的数据，冷备份亦可，因为恢复过程是从备份点往后恢复的，如果因为其中一个数据文件的时间戳(SCN)大于要恢复的时间点，那么恢复都是不可能成功的（报错，例如：
-```
+```shell
 SQL> recover database until time '2011-03-07 15:06:07';
 ORA-01547: 警告: RECOVER 成功但 OPEN RESETLOGS 将出现如下错误
 ORA-01152: 文件 1 没有从过旧的备份中还原
@@ -1257,7 +1259,7 @@ ORA-01110: 数据文件 1: '/opt/oracle/oradata/mmsgdb/system01.dbf'
 
 ### 步骤一  创建表，表中插入记录
 
-```
+```shell
 SQL> create table scn(id int);
 
 表已创建。
@@ -1281,7 +1283,7 @@ SQL>
 
 ### 步骤二  rman备份整个数据库
 
-```
+```shell
 RMAN> run
 2> {
 3> allocate channel c1 type disk;
@@ -1355,7 +1357,7 @@ RMAN>
 
 #### 应用用户执行
 
-```
+```shell
 SQL> insert into scn values(1);
 
 已创建 1 行。
@@ -1375,7 +1377,7 @@ SQL> select * from scn;
 
 #### dba用户执行
 
-```
+```shell
 SQL> alter system switch logfile;
 
 系统已更改。
@@ -1404,7 +1406,7 @@ SQL>
 
 ### 步骤四  删除表
 
-```
+```shell
 SQL> drop table scn;
 
 表已删除。
@@ -1416,7 +1418,7 @@ SQL> commit;
 
 ### 步骤五  基于SCN恢复
 
-```
+```shell
 SQL> shutdown immediate 
 数据库已经关闭。
 已经卸载数据库。
@@ -1482,7 +1484,7 @@ RMAN>
 
 ### 步骤六 数据检查
 
-```
+```shell
 oracle@mmsc103:~> sqlplus mmsg/mmsg@mmsgdb
 
 SQL*Plus: Release 11.1.0.6.0 - Production on 星期一 3月 7 16:23:01 2011
@@ -1507,7 +1509,7 @@ SQL>     #两条记录，数据未丢失
 说明：
 * 1、RMAN也可以实现不完全恢复，方法比OS备份恢复的方法更简单可靠
 * 2、RMAN可以基于时间，基于改变与基于日志序列的不完全恢复，基于日志序列的恢复可以指定恢复到哪个日志序列，如
-```
+```shell
 run { 
 allocate channel ch1 type disk; 
 allocate channel ch2 type 'sbt_tape'; 

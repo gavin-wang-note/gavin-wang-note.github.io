@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle案例--错误码之ORA-01031"
 subtitle:   "Oracle error code troubleshoot--ORA-01031"
 date:       2011-03-04
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 ## 表象
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 16:44:47 2011
@@ -29,7 +31,7 @@ Enter user-name:
 
 报错，ORA-01031，用户权限不足导致，官方参考解决方法信息如下：
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> oerr ora 01031
 01031, 00000, "insufficient privileges"
 // *Cause: An attempt was made to change the current username or password
@@ -51,7 +53,7 @@ oracle@mmsc101:~/product/11/network/admin>
 
 尝试赋权限
 
-```
+```shell
 grant create session to sys with admin option;
 grant dba to sys;
 alter user sys default role all;
@@ -59,7 +61,7 @@ alter user sys default role all;
 
 赋权限后尝试登陆，结果：失败
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 16:59:57 2011
@@ -75,7 +77,7 @@ Enter user-name:
 
 之后，查询视图
 
-```
+```shell
 SQL> select * from v$pwfile_users;
 
 no rows selected
@@ -87,7 +89,7 @@ SQL>
 
 dbs目录下，删除原来的口令文件，尝试重新创建新的口令文件。
 
-```
+```shell
 oracle@mmsc101:~/product/11/dbs> orapwd
 Usage: orapwd file=<fname> password=<password> entries=<users> force=<y/n> ignorecase=<y/n> nosysdba=<y/n>
 
@@ -101,16 +103,16 @@ Usage: orapwd file=<fname> password=<password> entries=<users> force=<y/n> ignor
     
   There must be no spaces around the equal-to (=) character.
 ```
-  
+
 创建新的口令文件
 
-```
+```shell
 oracle@mmsc101:~/product/11/dbs> orapwd file=/opt/oracle/product/11/dbs/orapwmmsgdb password=sys
 ```
 
 重启数据库
 
-```
+```shell
 oracle@mmsc101:~/product/11/dbs> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 17:08:23 2011
@@ -138,7 +140,7 @@ SQL>
 
 尝试登陆，还是报错，继续定位
 
-```
+```shell
 oracle@mmsc101:~/product/11/dbs> sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 17:08:54 2011
@@ -165,7 +167,7 @@ oracle@mmsc101:~/product/11/dbs>
 
 再次查询视图
 
-```
+```shell
 SQL> select * from v$pwfile_users;
 
 no rows selected
@@ -177,7 +179,7 @@ SQL>
 
 查看tns文件信息
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> more tnsnames.ora 
 MMSGDB =
   (DESCRIPTION =
@@ -209,7 +211,7 @@ $ORACLE_SID是什么
 
 都不是，确切的讲，这个东西是环境变量值。证据如下：
 
-```
+```shell
 oracle@mmsc101:~> more .bash_profile 
 
 export ORACLE_BASE=/opt/oracle
@@ -236,7 +238,7 @@ export NLS_LANG=AMERICAN_AMERICA.AL32UTF8
 
 重新创建正确的口令文件：
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> orapwd file=/opt/oracle/product/11/dbs/orapwora11 password=sys
 ```
 
@@ -244,7 +246,7 @@ oracle@mmsc101:~/product/11/network/admin> orapwd file=/opt/oracle/product/11/db
 
 查询视图
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 18:05:49 2011
@@ -272,7 +274,7 @@ SQL>
 
 已经有数据了，尝试sys用户登陆试试：
 
-```
+```shell
 oracle@mmsc101:~/product/11/network/admin> sqlplus sys/sys@mmsgdb as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on Sun May 15 17:45:21 2011

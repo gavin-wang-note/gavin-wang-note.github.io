@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle pfile和spfile"
 subtitle:   "Oracle pfile and spfile"
 date:       2012-05-02
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -13,7 +15,7 @@ tags:
 
 oracle数据库通过一系列参数来对数据库进行配置。这些参数是以键－值对的形式来表 示的，如：
 
-```
+```shell
 MAXLOGFILES=50
 BACKGROUND_DUMP_DEST=C:\DUMP
 ```
@@ -53,7 +55,7 @@ oracle实例在启动时，会去读取参数文件中的配置，这个过程�
 
 对于LINUX，可以通过show parameter spfile。
 
-```
+```shell
 SQL> show parameter spfile
 
 NAME                                 TYPE        VALUE
@@ -71,7 +73,7 @@ spfile                               string      /opt/oracle/product/11g/dbs/sp
 手动修改用于修改pfile，直接用文本编辑打开pfile修改。要使用修改生效，须重启数据库。
 在线修改是在数据库运行时，用alter system命令进行修改，命令如下：
 
-```
+```shell
 sql>alter system set job_queue_processed=50 scope=MEMORY;
 ```
 

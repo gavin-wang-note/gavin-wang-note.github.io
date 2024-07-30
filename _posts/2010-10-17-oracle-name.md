@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle管理篇之几种name"
 subtitle:   "Oracle different name"
 date:       2010-10-17
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -18,7 +20,7 @@ tags:
 
 # Oracle中几种name信息
 
-```
+```shell
 oracle@mmsg37:~> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期日 10月 17 01:37:10 2010
@@ -61,7 +63,7 @@ SQL>
 
 有很多Oracle安装文件目录是与数据库名相关的，如：
 
-```
+```shell
 $ORACLE_BASE /oradata/DB_NAME/
 $ORACLE_BASE/admin/DB_NAME/
 $ORACLE_BASE/cfgtoollogs/dbca/DB_NAME/

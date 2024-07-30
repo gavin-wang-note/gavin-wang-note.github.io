@@ -3,8 +3,10 @@ layout:     post
 title:      "修改默认shell"
 subtitle:   "Change shell for Ubuntu/kali"
 date:       2023-07-16
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [shell]
 tags:
     - shell
 ---
@@ -16,7 +18,7 @@ tags:
 
 今天在Ubuntu22环境下安装LANMP，执行`sh lanmp.sh`命令运行LANMP，如果出现如下错误：
 
-```
+```shell
 root@ubuntu22:~# sh lanmp.sh 
 lanmp.sh: 49: lib/common.conf: function: not found
 lanmp.sh: 76: lib/common.conf: Syntax error: "}" unexpected
@@ -37,7 +39,7 @@ root@ubuntu22:~#
 
 输入命令dpkg-reconfigure dash ，然后选择\<NO\>选项：
 
-```js
+```shell
 dpkg-reconfigure dash 
 ```
 
@@ -50,7 +52,7 @@ dpkg-reconfigure dash
 
 
 
-```
+```shell
 [[ -L /bin/sh ]] && mv /bin/sh /tmp/.sh$(date +%s)
 [[ -f /bin/sh ]] || ln -s /bin/bash /bin/sh
 [[ -L /usr/share/man/man1/sh.1.gz ]] && mv /usr/share/man/man1/sh.1.gz /tmp/.sh.1.gz$(date +%s)

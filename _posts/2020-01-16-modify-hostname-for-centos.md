@@ -3,8 +3,10 @@ layout:     post
 title:      "三种方式修改CentOS hostname"
 subtitle:   "Modify hostname for Centos with different method"
 date:       2020-01-16
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -19,7 +21,7 @@ tags:
 
 通过hostnamectl来修改主机名，hostnamectl吐出来的示例信息如下：
 
-```
+```shell
 [root@localhost ~]# hostnamectl
    Static hostname: localhost.localdomain
          Icon name: computer-vm
@@ -36,14 +38,14 @@ tags:
 
 修改主机名
 
-```
+```shell
 [root@localhost ~]# hostnamectl set-hostname host76 --static
 [root@localhost ~]# 
 ```
 
 查看修改后的效果：
 
-```
+```shell
 [root@localhost ~]# 
 [root@localhost ~]# hostnamectl
    Static hostname: host76
@@ -66,11 +68,11 @@ host76
 
 直接修改/etc/hostname文件，将里面的内容删掉，直接替换成自己需要的主机名称：
 
-```
+```shell
 [root@localhost ~]# vi /etc/hostname
 ```
 
-```
+```shell
 [root@localhost ~]# cat /etc/hostname 
 host76
 ```

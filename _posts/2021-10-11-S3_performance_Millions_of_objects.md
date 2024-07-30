@@ -3,8 +3,11 @@ layout:     post
 title:      "S3 单一Bucket下写4K数据性能衰减验证"
 subtitle:   "Downsite of S3 4K Objects performance to one Bucket"
 date:       2021-10-11
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [performance]
+    - [Linux]
 tags:
     - performance
     - Linux
@@ -44,7 +47,7 @@ tags:
 
 
 
-```
+```shell
 [root@centos-1 ~]# hostnamectl 
    Static hostname: centos-1
          Icon name: computer-vm
@@ -66,7 +69,7 @@ tags:
 
 内容参考如下：
 
-```
+```shell
 <?xml version="1.0" encoding="UTF-8"?>
 <workload name="5" description="1200million_4k_data_filling">
 <storage type="s3" config="accesskey=YGWTYZEPDQVCPX44F6BA;secretkey=ze7bpgdY81wbHYehpzAaM2Y5RyO5rOh99YbH9NCj;endpoint=http://10.16.172.161/" />
@@ -122,7 +125,7 @@ tags:
 
 ### 修改bucket shards，默认128，改成1000
 
-```
+```shell
 radosgw-admin bucket reshard --bucket=bigtera1 --num-shards=1000
 ```
 
@@ -136,7 +139,7 @@ radosgw-admin bucket reshard --bucket=bigtera1 --num-shards=1000
 
  
 
-```
+```shell
 rgw ecsoc bundle shards = 512
 rgw gc max objs = 32
 rgw gc obj min wait = 300
@@ -151,7 +154,7 @@ rgw init timeout = 3000
 
 默认100万，调整成1000万，尽量避免bigterastore flush cache
 
-```
+```shell
 be_cache_max_objs = 10000000
 ```
 
@@ -169,7 +172,7 @@ be_cache_max_objs = 10000000
 
 ### 避免inode耗尽
 
-```
+```shell
 ceph tell osd.* injectargs '--bigterastore_obj_meta_size 1024'
 ```
 
@@ -197,7 +200,7 @@ s3-data-pool启用PG split；
 
  
 
-```
+```shell
 crush_reweight_tool -p 10 -o 10_crush.bin -t 1
 ceph osd setcrushmap -i 10_crush.bin
 ```
@@ -208,14 +211,14 @@ ceph osd setcrushmap -i 10_crush.bin
 
 如果-t 1中无法达到预期调整效果，特别是在现有PG分布非常不均衡状态下，放大这个数值，先从差值较大来做调整，然后缩小范围，示例如下：
 
-```
+```shell
 crush_reweight_tool -p 10 -o 10_crush.bin -t 30；
 ceph osd setcrushmap -i 10_crush.bin
 ```
 
 apply下去后：
 
-```
+```shell
 crush_reweight_tool -p 10 -o 10_crush.bin -t 10；
 ceph osd setcrushmap -i 10_crush.bin
 ```
@@ -224,7 +227,7 @@ ceph osd setcrushmap -i 10_crush.bin
 
 然后
 
-```
+```shell
 crush_reweight_tool -p 10 -o 10_crush.bin -t 4；
 ceph osd setcrushmap -i 10_crush.bin
 
@@ -243,7 +246,7 @@ ceph osd setcrushmap -i 10_crush.bin
 
 3个Pool的PG调整好后，检查一下PG分布，确保没有问题，具体检查方法，请执行附件提供的脚本：pg_allocate.py，输出参考如下：
 
-```
+```shell
 root@node166:~# ./pg_allocate.py 
 dumped all
 
@@ -716,16 +719,16 @@ node166
 
 放大metadata 和 s3-data-pool的PG numbers
 
-{% raw %}```
+```shell
 root@node166:~# ceph osd pool get s3-data-pool pg_num
 pg_num: 2048
 root@node166:~# ceph osd pool get metadata pg_num
 pg_num: 8192
-``` {% endraw %}
+``` 
 
 
 
-{% raw %}```
+```shell
 root@node166:~# cat enlarge_pg.sh 
 # pool_name='s3-data-pool'
 pool_name='metadata'
@@ -743,7 +746,7 @@ for i in {1..256}; do
     fi
 done
 root@node166:~# 
-``` {% endraw %}
+``` 
 
 
 
@@ -758,7 +761,7 @@ root@node166:~#
 
 
 
-```
+```shell
 root@node163:~# ceph daemon osd.48 perf dump bigterastore
 {
     "bigterastore": {
@@ -1107,7 +1110,7 @@ cosbench统计信息：
 
 
 
-```
+```shell
 root@node166:~# ./pg_allocate.py 
 dumped all
 

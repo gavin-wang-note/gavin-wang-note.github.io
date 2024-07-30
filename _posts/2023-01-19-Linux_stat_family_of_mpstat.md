@@ -3,8 +3,10 @@ layout:     post
 title:      "Linux stat家族之mpstat"
 subtitle:   "Linux mpstat"
 date:       2023-01-19
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -13,16 +15,16 @@ tags:
 
 此指令输出 CPU 负载相关信息。
 
- 
+
 ## mpstat 主要能看什么性能指标
 
 * 每个 CPU 的不同类型 CPU 使用率、不同软中断类型次数统计、总中断次数
 * 上述所有 CPU 的平均数据
- 
+
 
 # 语法格式
 
-```
+```shell
 mpstat [ -A ] [ -n ] [ -u ] [ -V ] [ -I { keyword [,...] | ALL } ] [ -N { node_list | ALL } ] [ -o JSON] [ -P { cpu_list | ON | ALL } ] [ interval [ count ] ]
 ```
 
@@ -31,7 +33,7 @@ mpstat [ -A ] [ -n ] [ -u ] [ -V ] [ -I { keyword [,...] | ALL } ] [ -N { node_l
 
 注意：
 * 若只传了 interval ，则统计次数是无限次，结束统计后会打印本次所有数据的平均值.
- 
+
 
 ## 例子
 
@@ -51,7 +53,7 @@ mpstat [ -A ] [ -n ] [ -u ] [ -V ] [ -I { keyword [,...] | ALL } ] [ -N { node_l
 
 最基础的命令
 
-```
+```shell
 [root@node81 ~]# mpstat 1 2
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -84,7 +86,7 @@ Average:     all    0.69    0.00    1.57    0.00    0.00    0.00    0.00    0.00
 
 # 命令行参数
 
- 
+
 | 字  段  | 字段说明                    |
 | ------- | --------------------------- |
 | -V      | 版本信息                    |
@@ -102,7 +104,7 @@ Average:     all    0.69    0.00    1.57    0.00    0.00    0.00    0.00    0.00
 * cpu_list：是用 , 分隔的值或值范围的列表（例如 0,2,4-7,0-1 ）
 * ON：将为每个联机 CPU 报告统计信息
 * ALL：将为所有 CPU 报告统计信息
- 
+
 
 ### cpu_list 的例子
 
@@ -110,7 +112,7 @@ Average:     all    0.69    0.00    1.57    0.00    0.00    0.00    0.00    0.00
 
 ```mpstat -P 1 1 2```
 
-```
+```shell
 [root@node81 ~]# mpstat -P 1 1 2
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -126,7 +128,7 @@ Average:       1    0.50    0.00    5.50    0.00    0.00    0.00    0.00    0.00
 
 ```mpstat -P 0,1 1 2```
 
-```
+```shell
 [root@node81 ~]# mpstat -P 0,1 1 2
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -144,7 +146,7 @@ Average:       1    0.00    0.00    0.00    0.00    0.00    0.00    0.00    0.00
 
 ```mpstat -P ON 1 2```
 
-```
+```shell
 [root@node81 ~]# mpstat -P ON 1 2
 .Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -186,8 +188,8 @@ Average:       7    0.50    0.00    0.50    0.00    0.00    0.00    0.00    0.00
 
 ### ALL 的例子
 ```mpstat -P ALL 1 2```
- 
-```
+
+```shell
 [root@node81 ~]# mpstat -P ALL 1 2
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -230,7 +232,7 @@ Average:       7    0.00    0.00    0.50    0.00    0.00    0.00    0.00    0.00
 
 * 0 是第一个 CPU
 * all 是所有处理器之间的全局平均值
- 
+
 
 ## ```-I { keyword [,...] | ALL }```
 
@@ -242,7 +244,7 @@ Average:       7    0.00    0.00    0.50    0.00    0.00    0.00    0.00    0.00
 * SCPU：显示每秒软中断数量，从 /proc/softirqs 读取数据
 * SUM：显示每个处理器的中断总数
 * ALL：输出上面三个关键字的所有内容
- 
+
 
 ### SCPU 的例子
 
@@ -250,7 +252,7 @@ Average:       7    0.00    0.00    0.50    0.00    0.00    0.00    0.00    0.00
 
 
 
-```
+```shell
 [root@node81 ~]# mpstat -I SCPU 1 2 -P ALL
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -292,7 +294,7 @@ Average:       7       0.00     105.00       0.00      15.00       0.00       0.
 
 ```mpstat -I SUM 1 2```
 
-```
+```shell
 [root@node81 ~]# mpstat -I SUM 1 2
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 
@@ -308,7 +310,7 @@ Average:     all   2754.50
 ```mpstat -I SCPU 1 2 -P ALL```
 
 
-```
+```shell
 [root@node81 ~]# mpstat -I SCPU 1 2 -P ALL
 Linux 4.14.148-202207281639.git553ed7f (node81) 	01/19/2023 	_x86_64_	(8 CPU)
 

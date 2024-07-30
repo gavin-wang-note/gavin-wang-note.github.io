@@ -3,8 +3,10 @@ layout:     post
 title:      "Python文件操作：大文件的读"
 subtitle:   "Python open big file"
 date:       2018-02-06
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
@@ -50,7 +52,7 @@ tags:
 
 
 
-```
+```shell
 root@scaler80:/mnt/code# du -m ./big_file.txt 
 2067	./big_file.txt
 ```
@@ -61,7 +63,7 @@ root@scaler80:/mnt/code# du -m ./big_file.txt
 
 
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -110,7 +112,7 @@ if __name__ == "__main__":
 
 
 
-```
+```shell
 root@scaler80:/mnt/code# python time_diff.py
 Memory diff : 1.0151 GB
 Time diff : 6.3894 s
@@ -126,7 +128,7 @@ root@scaler80:/mnt/code#
 
 
 
-```
+```python
 @time_diff
 @get_memory_usage
 def open_file_test():
@@ -142,7 +144,7 @@ def open_file_test():
 
 
 
-```
+```shell
 root@scaler80:/mnt/code# python time_diff.py
 Memory diff : 0.0000 GB
 Time diff : 0.1323 s
@@ -156,7 +158,7 @@ Time diff : 0.1323 s
 
 
 
-```
+```python
 def chunked_file_reader(file, block_size=1024 * 1024):
     for chunk in iter(partial(file.read, block_size), ''):
         yield chunk
@@ -176,7 +178,7 @@ def open_file_test():
 
 
 
-```
+```shell
 root@scaler80:/mnt/code# python time_diff.py
 Memory diff : 0.0000 GB
 Time diff : 0.1168 s

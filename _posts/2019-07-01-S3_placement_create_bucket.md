@@ -1,18 +1,29 @@
-i---
+---
 layout:     post
 title:      "S3 placement to create bucket"
 subtitle:   "S3 placement to create bucket"
 date:       2019-07-01
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [python]
 tags:
     - python
 ---
 
 
-s3_placement_create_bucket.py
 
-```
+# 概述
+
+最近存储产品开始支持多个S3 Placement了，即上传S3 Object，默认存放到Default S3 Placement，如果有其他S3 Placement的存在，需要指定具体的S3 Placement名称，为此写了一测试脚本方便测试验证此功能。
+
+
+
+# 脚本
+
+`s3_placement_create_bucket.py`
+
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 

@@ -3,8 +3,10 @@ layout:     post
 title:      "Monkey详解"
 subtitle:   "Monkey"
 date:       2015-08-21
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Monkey]
 tags:
     - Monkey
 ---

@@ -3,8 +3,10 @@ layout:     post
 title:      "blocktrace跟踪磁盘"
 subtitle:   "Monitor disk by blocktrace"
 date:       2023-01-30
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Linux]
 tags:
     - Linux
 ---
@@ -15,6 +17,6 @@ tags:
 
 # 示例
 
-```
+```shell
 blktrace -d /dev/sdX -o - |blkparse -i -
 ```

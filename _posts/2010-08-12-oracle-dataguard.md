@@ -3,8 +3,10 @@ layout:     post
 title:      "Oracle Dataguard"
 subtitle:   "Oracle Dataguard"
 date:       2010-08-12
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [oracle]
 tags:
     - oracle
 ---
@@ -48,7 +50,7 @@ Oracle Database 11g Enterprise Edition Release 11.1.0.7.0 - 64bit Production
 
 #### 1、 确认primary数据库处于归档模式 
 
-```
+```shell
 SQL> archive log list
 数据库日志模式             非存档模式
 自动存档             禁用
@@ -57,10 +59,10 @@ SQL> archive log list
 当前日志序列           2
 SQL>
 ```
- 
+
 如果为非归档模式，请执行下列命令修改
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -87,7 +89,7 @@ SQL>
 
 #### 2、 设置归档日志路径
 
-```
+```shell
 SQL> show parameter log_archive_dest
 
 NAME                                 TYPE        VALUE
@@ -131,7 +133,7 @@ SQL>
 
 通过下列语句： 
 
-```
+```shell
 SQL> alter database force logging; 
 
 数据库已更改。
@@ -145,7 +147,7 @@ SQL>
 
 #### 4、 primary数据库创建standby数据库控制文件 
 
-```
+```shell
 SQL> shutdown immediate
 SQL> startup mount
 SQL> alter database create standby controlfile as '/opt/oracle/oradata/mmsgdb/backupctl.ctl';  
@@ -168,7 +170,7 @@ SQL>
 注：
 * 主要此处修改项较多，为了方便，我们首先创建并修改pfile，然后再通过pfile重建spfile，你当然也可以通过alter system set命令直接修改spfile内容，不过，麻烦。 
 
-```
+```shell
 SQL> create pfile from spfile;
 
 文件已创建。
@@ -176,21 +178,21 @@ SQL> create pfile from spfile;
 
 将该初始化参数文件复制一份，做为standby数据库的客户端初始化参数文件 
 
-```
+```shell
 SQL> host
 oracle@mmsg:~> cp /opt/oracle/product/11g/dbs/initmmsgdb.ora  /opt/oracle/product/11g/dbs/bakinitmmsgdb.ora
 ```
 
 备份已有的spfile文件
 
-```
+```shell
 oracle@mmsg:~> cd $ORACLE_HOME/dbs
 oracle@mmsg:~/product/11g/dbs> cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 ```
 
 修改客户端初始化参数文件，增加下列内容 
 
-```
+```shell
 *.DB_UNIQUE_NAME=uqn_primary              //自定义一个unique_name名字
 *.LOG_ARCHIVE_CONFIG='DG_CONFIG=(uqn_primary,uqn_standby)'  //此处为主备服务器的unique_name
 *.LOG_ARCHIVE_DEST_2='SERVICE=standby ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=uqn_standby'
@@ -209,7 +211,7 @@ oracle@mmsg:~/product/11g/dbs> cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 初始化参数参考 
 
 对于primary数据库，需要定义几个primary角色的初始化参数控制redo传输服务，还有几个附加的standby角色的参数需要添加以控制接收redo数据库并应用(switchover/failover后primary/standby角色可能互换，所以建议对于两类角色 相关的 初始化参数都进行配置)。
- 
+
 下列参数为primary角色相关的初始化参数： 
 
 |参数 | 说明|
@@ -241,7 +243,7 @@ oracle@mmsg:~/product/11g/dbs> cp spfilemmsgdb.ora bak_spfilemmsgdb.ora
 
 通过pfile重建spfile 
 
-```
+```shell
 SQL> shutdown immediate
 数据库已经关闭。
 已经卸载数据库。
@@ -271,7 +273,7 @@ SQL> shutdown immediate
 注:
 * 要先停止primary和standby服务器上的oracle数据库，然后复制所有数据文件，备份的控制文件及客户端初始化参数文件（数据文件、口令文件、pfile文件、控制文件）到standby数据库（同时，建议先备份一下standby数据库侧的数据文件、控制文件、参数文件和口令文件） ，具体文件列表信息如下：
 
-```
+```shell
 #控制文件
 backupctl.ctl
 control01.ctl
@@ -295,7 +297,7 @@ initmmsgdb.ora
 
 还需要到STANDBY服务器上执行下面的操作。
 
-``` 
+``` shell
 oracle@mmsg1:~> cd /opt/oracle/oradata/ora11g
 oracle@mmsg1:~/oradata/ora11g> rm -rf control0*
 oracle@mmsg1:~/oradata/ora11g> mv backupctl.ctl  control01.ctl
@@ -359,7 +361,7 @@ ftp> by
 
 #### 7、 修改standby数据库参数文件
 
-```
+```shell
 *.DB_UNIQUE_NAME=uqn_standby
 *.LOG_ARCHIVE_CONFIG='DG_CONFIG=(uqn_primary,uqn_standby)'
 *.LOG_ARCHIVE_DEST_2='SERVICE=primary ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE) DB_UNIQUE_NAME=uqn_primary'
@@ -377,7 +379,7 @@ ftp> by
 
 配置primary数据库和standby数据库的listener及net service names(方式多样，不详述)
 
-```
+```shell
 SID_LIST_LISTENER =
 (SID_LIST =
    (SID_DESC =
@@ -406,7 +408,7 @@ LISTENER =
 
 配置primary数据库和standby数据库的tnsnames.ora文件，修改成如下信息
 
-```
+```shell
 PRIMARY =
   (DESCRIPTION =
     (ADDRESS = (PROTOCOL = TCP)(HOST = 10.137.49.114)(PORT = 1521))
@@ -428,7 +430,7 @@ STANDBY =
 
 完成之后重启primary数据库和standby数据库的listener，并测试监听: 
 
-```
+```shell
 oracle@mmsg:~/product/11g/network/admin> lsnrctl stop
 oracle@mmsg:~/product/11g/network/admin> lsnrctl start
 oracle@mmsg:~/product/11g/network/admin> tnsping primary 10
@@ -481,7 +483,7 @@ oracle@mmsg:~/product/11g/network/admin>
 
 #### 9、 启动standby数据库
 
-```
+```shell
 oracle@mmsg1:~/product/11g/dbs> sqlplus / as sysdba
 
 SQL*Plus: Release 11.1.0.7.0 - Production on 星期二 8月 10 14:47:21 2010
@@ -519,7 +521,7 @@ SQL>
 
 ##### 首先连接到primary数据库
 
-```
+```shell
 SQL> show parameter instance_name
 
 NAME                                 TYPE        VALUE
@@ -540,7 +542,7 @@ SQL>
 
 ##### 连接到standby数据库 
 
-```
+```shell
 SQL> alter database recover managed standby database disconnect from session; 
 
 数据库已更改。
@@ -564,7 +566,7 @@ MAX(SEQUENCE#)值一致，同步成功。
 
 在standby服务器，执行如下操作：
 
-```
+```shell
 SQL> SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
 
  SEQUENCE# FIRST_TIME     NEXT_TIME
@@ -577,7 +579,7 @@ SQL> SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUEN
 
 在primary服务器，执行归档操作：
 
-```
+```shell
 SQL> ALTER SYSTEM SWITCH LOGFILE; 
 
 系统已更改。
@@ -587,7 +589,7 @@ SQL>
 
 返回standby服务器
 
-```
+```shell
 SQL> SELECT SEQUENCE#, FIRST_TIME, NEXT_TIME FROM V$ARCHIVED_LOG ORDER BY SEQUENCE#;
 
  SEQUENCE# FIRST_TIME     NEXT_TIME
@@ -620,13 +622,13 @@ SQL>
 
 primary数据库
 
-```
+```shell
 SQL> shutdown immediate
 ```
 
 standby数据库
 
-```
+```shell
 SQL> alter database recover managed standby database cancel;
 
 数据库已更改。
@@ -643,7 +645,7 @@ SQL> shutdown immediate
 
 在primary数据库做如下操作
 
-```
+```shell
 SQL> startup
 ORACLE 例程已经启动。
 
@@ -688,7 +690,7 @@ SQL>
 
 #### 2、 standby 切换到 primary
 
-```
+```shell
 SQL> startup mount
 ORACLE 例程已经启动。
 
@@ -733,7 +735,7 @@ SQL>
 
 #### 1、 首先应当在standby数据库创建standby redolog
 
-```
+```shell
 SQL> startup mount
 SQL> alter  database recover managed standby database cancel;
 alter  database recover managed standby database cancel
@@ -774,7 +776,7 @@ SQL>
 
 检查standby redolog是否已经添加成功
 
-```
+```shell
 SQL> select group#,thread#,sequence#,archived,status from v$standby_log;
 
     GROUP#    THREAD#  SEQUENCE# ARC STATUS
@@ -789,7 +791,7 @@ SQL>
 
 #### 2、 standby数据库重新启动恢复管理模式
 
-```
+```shell
 SQL> alter database recover managed standby database disconnect from session;
 alter database recover managed standby database disconnect from session
 *
@@ -804,7 +806,7 @@ SQL>
 
 设置standby数据库为最大性能模式（primary库优先）
 
-```
+```shell
 SQL> alter system set log_archive_dest_2='SERVICE=STANDBY SYNC LGWR AFFIRM NET_TIMEOUT=10' SCOPE=SPFILE;
 
 系统已更改。
@@ -836,7 +838,7 @@ SQL>
 
 #### 4、 primary数据库侧，查看保护模式
 
-```
+```shell
 SQL> select protection_mode ,protection_level from v$database;
 
 PROTECTION_MODE      PROTECTION_LEVEL

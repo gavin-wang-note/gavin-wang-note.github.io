@@ -3,8 +3,11 @@ layout:     post
 title:      "给nose写一个类似Robot Framework的Wait Until Keyword Succeeds"
 subtitle:   "Write a function same as `Wait Until Keyword Succeeds` in Robot Framework for nose"
 date:       2018-06-18
-author:     "Gavin"
+author:     "Gavin Wang"
 catalog:    true
+categories:
+    - [Automation]
+    - [nose]
 tags:
     - nose
     - Automation
@@ -21,7 +24,7 @@ tags:
 
 # 实践
 
-```
+```python
 #!/usr/bin/env python
 # -*- coding:UTF-8 -*-
 
@@ -73,7 +76,7 @@ def assert_check(func):
 
 对应测试用例基类的检查操作示例如下：
 
-```
+```python
     @assert_check
     def check_snapshot(self, gateway_group, target_id, iscsi_id, snap_name, op_type):
         """
