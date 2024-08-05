@@ -460,25 +460,25 @@ root@Gavin:~/code/chapter1-6/xunit-stype#
 
 * 前置准备工作代码和后置清理工作代码，都写在一个函数里面。
 
-* 通过yeild关键字，区分前置代码和后置代码 。
+* 通过yield关键字，区分前置代码和后置代码 。
 
-    yeild之前的代码为前置代码，yeild之后的代码为后置代码。
+    yield之前的代码为前置代码，yield之后的代码为后置代码。
 
     在实际应用场景当中，可以只有前置准备工作代码，也可以只有后置清理工作代码。
 
-* fixture有4个作用域
+* fixture有5个作用域
 
-  测试会话(session)、测试模块(module)、测试类(class)、测试用例(function)
+  测试会话(session)、测试包(Package)、测试模块(module)、测试类(class)、测试用例(function)
 
   测试会话：pytest执行测试用例的整个过程，称为会话。比如pytest收集到了20条用例并执行完成，这个过程称为测试会话。
   
   设置fixture的作用域：通过@pytest.fixture(scope=作用域)来设置。默认情况下，scope=function
   
-* fixture的返回值设置：yeild 返回值
+* fixture的返回值设置：yield 返回值
 
    当测试用例当中，要使用fixture里生成的数据时，则需要fixture返回数据。
    
-   若有数据返回则：yeild 返回值
+   若有数据返回则：yield 返回值
 
 ## 6.7.2 调用fixture
 
