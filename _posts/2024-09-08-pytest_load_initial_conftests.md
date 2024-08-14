@@ -35,8 +35,8 @@ tags:
 
 # 参数
 
-* early_config: 一个`Config`对象，包含 `pytest`最早的配置和命令行选项。
-* args: 命令行参数列表，可以用来决定如何加载`conftest.py`文件。
+* `early_config`: 一个`Config`对象，包含 `pytest`最早的配置和命令行选项。
+* `args`: 命令行参数列表，可以用来决定如何加载`conftest.py`文件。
 
 
 # 示例代码
@@ -128,7 +128,7 @@ def pytest_configure(config):
 
 我们创建一个测试文件，验证测试环境变量是否被正确设置。
 
-文件路径: 项目根目录/tests/test_example.py
+文件路径: 项目根目录`/tests/test_example.py`
 
 ```python
 import os

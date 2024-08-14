@@ -41,7 +41,7 @@ def pytest_assertrepr_compare(config, op, left, right):
     pass
 ```
 
-- `config`：pytest 的配置对象，包含有关当前测试会话的所有信息。
+- `config`：`pytest` 的配置对象，包含有关当前测试会话的所有信息。
 - `op`：比较操作符，表示比较的类型（如 '==', '!=', '<', '>', '<=', '>='）。
 - `left`：比较操作符左侧的值。
 - `right`：比较操作符右侧的值。

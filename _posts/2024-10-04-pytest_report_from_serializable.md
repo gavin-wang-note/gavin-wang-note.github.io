@@ -39,7 +39,7 @@ def pytest_report_from_serializable(config, data):
     pass
 ```
 
-- `config`：pytest 配置对象，可以获取一些配置相关的信息。
+- `config`：`pytest` 配置对象，可以获取一些配置相关的信息。
 - `data`：可序列化的测试报告数据，通常是一个字典。
 
 # 示例代码

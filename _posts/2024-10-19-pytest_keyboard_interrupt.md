@@ -152,7 +152,7 @@ def pytest_keyboard_interrupt(excinfo):
 ```
 
 **注释**：
-- 定义 `send_email` 函数，用于通过 SMTP 发送电子邮件。
+- 定义 `send_email` 函数，用于通过 `SMTP` 发送电子邮件。
 - 在 `pytest_keyboard_interrupt` 钩子中，捕获 `KeyboardInterrupt` 事件，记录日志并发送通知邮件。
 
 ## 运行和验证
@@ -170,7 +170,7 @@ def test_long_running():
 
 ### 执行测试命令并模拟中断
 
-在项目根目录下运行以下命令来执行测试，并在测试过程中按 Ctrl+C 中断测试：
+在项目根目录下运行以下命令来执行测试，并在测试过程中按 `Ctrl+C` 中断测试：
 
 ```shell
 pytest tests -v
@@ -198,7 +198,7 @@ tests/test_example.py::test_long_running ^C
 
 ```plaintext
 root@Gavin:~/test/hook# cat keyboard_interrupt.log 
-2024-06-05 10:31:58,279 - ERROR - Keyboard Interrupt: <ExceptionInfo KeyboardInterrupt() tblen=55>
+2024-10-19 10:31:58,279 - ERROR - Keyboard Interrupt: <ExceptionInfo KeyboardInterrupt() tblen=55>
 
 root@Gavin:~/test/hook#
 ```

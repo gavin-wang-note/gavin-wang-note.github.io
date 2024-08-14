@@ -22,7 +22,7 @@ tags:
 
 # 概述
 
-`pytest_fixture_post_finalizer` 是 `pytest` 框架中的一个钩子函数，允许我们在 `fixture`的清理阶段插入自定义逻辑，它在每个 `fixture` 被清理（即 finalization）后被触发，如资源的清理、结果的记录等。通过这个钩子函数，我们可以在 `fixture` 被撤销后运行特定的后处理代码，从而增强测试的灵活性和可配置性。
+`pytest_fixture_post_finalizer` 是 `pytest` 框架中的一个钩子函数，允许我们在 `fixture`的清理阶段插入自定义逻辑，它在每个 `fixture` 被清理（即 `finalization`）后被触发，如资源的清理、结果的记录等。通过这个钩子函数，我们可以在 `fixture` 被撤销后运行特定的后处理代码，从而增强测试的灵活性和可配置性。
 
 # 使用场景
 
@@ -39,7 +39,7 @@ def pytest_fixture_post_finalizer(fixturedef, request):
     pass
 ```
 
-- `fixturedef`：fixture 定义对象，包含 fixture 定义的所有信息。
+- `fixturedef`：`fixture` 定义对象，包含 `fixture` 定义的所有信息。
 - `request`：当前测试请求对象，包含有关当前测试请求的所有信息。
 
 # 示例代码
@@ -92,7 +92,7 @@ def test_example(db_connection):
 **注释**：
 - 在 `pytest_fixture_post_finalizer` 钩子函数中，检查 `fixture` 名称是否为 `db_connection`，并执行特定的资源清理代码。
 - 使用 `logging` 模块记录 `fixture` 清理的开始和结束信息。
-- 在 fixture 本体中使用 `yield` 关键字，将清理动作延迟到 `post finalizer` 中执行。
+- 在 `fixture` 本体中使用 `yield` 关键字，将清理动作延迟到 `post finalizer` 中执行。
 
 ## 案例二：增强可调试性
 
@@ -182,7 +182,7 @@ def test_example2(example_fixture):
 **注释**：
 - 在 `pytest_fixture_post_finalizer` 钩子函数中，检查 fixture 名称是否为 `example_fixture`，并收集测试数据。
 - 将收集到的测试数据追加到 `test_data` 列表中。
-- 在 `pytest_sessionfinish` 钩子函数中，将收集到的测试数据保存为 JSON 文件。
+- 在 `pytest_sessionfinish` 钩子函数中，将收集到的测试数据保存为 `JSON` 文件。
 
 ## 运行和验证
 
@@ -231,16 +231,16 @@ tests/test_example.py::test_example PASSED
 =================================================================================================================== 1 passed in 0.05s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 21:48 ./
+drwxr-xr-x 5 root root 4096 Oct  6 21:48 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  823 Jun  3 21:47 conftest.py
--rw-r--r-- 1 root root  201 Jun  3 21:48 fixture_cleanup.log
-drwxr-xr-x 2 root root 4096 Jun  3 21:48 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 21:48 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  3 21:48 tests/
+-rw-r--r-- 1 root root  823 Oct  6 21:47 conftest.py
+-rw-r--r-- 1 root root  201 Oct  6 21:48 fixture_cleanup.log
+drwxr-xr-x 2 root root 4096 Oct  6 21:48 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  6 21:48 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  6 21:48 tests/
 root@Gavin:~/test/hook# cat fixture_cleanup.log 
-2024-06-03 21:48:12,685 - Cleaning up fixture: db_connection for tests/test_example.py::test_example
-2024-06-03 21:48:12,686 - Cleaned up fixture: db_connection for tests/test_example.py::test_example
+2024-10-06 21:48:12,685 - Cleaning up fixture: db_connection for tests/test_example.py::test_example
+2024-10-06 21:48:12,686 - Cleaned up fixture: db_connection for tests/test_example.py::test_example
 root@Gavin:~/test/hook#
 ```
 
@@ -265,20 +265,20 @@ tests/test_example.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 21:51 ./
+drwxr-xr-x 5 root root 4096 Oct  6 21:51 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  713 Jun  3 21:51 conftest.py
--rw-r--r-- 1 root root  572 Jun  3 21:51 fixture_cleanup.log
-drwxr-xr-x 2 root root 4096 Jun  3 21:51 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 21:51 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  3 21:51 tests/
+-rw-r--r-- 1 root root  713 Oct  6 21:51 conftest.py
+-rw-r--r-- 1 root root  572 Oct  6 21:51 fixture_cleanup.log
+drwxr-xr-x 2 root root 4096 Oct  6 21:51 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  6 21:51 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  6 21:51 tests/
 root@Gavin:~/test/hook# cat fixture_cleanup.log 
-2024-06-03 21:51:29,396 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example1
-2024-06-03 21:51:29,396 - Fixture example_fixture value: example_fixture_value
-2024-06-03 21:51:29,396 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example1
-2024-06-03 21:51:29,398 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example2
-2024-06-03 21:51:29,398 - Fixture example_fixture value: example_fixture_value
-2024-06-03 21:51:29,398 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example2
+2024-10-06 21:51:29,396 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example1
+2024-10-06 21:51:29,396 - Fixture example_fixture value: example_fixture_value
+2024-10-06 21:51:29,396 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example1
+2024-10-06 21:51:29,398 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example2
+2024-10-06 21:51:29,398 - Fixture example_fixture value: example_fixture_value
+2024-10-06 21:51:29,398 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example2
 root@Gavin:~/test/hook#
 ```
 
@@ -286,23 +286,23 @@ root@Gavin:~/test/hook#
 
 ```shell
 root@Gavin:~/test/hook# cat fixture_cleanup.log 
-2024-06-03 21:51:29,396 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example1
-2024-06-03 21:51:29,396 - Fixture example_fixture value: example_fixture_value
-2024-06-03 21:51:29,396 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example1
-2024-06-03 21:51:29,398 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example2
-2024-06-03 21:51:29,398 - Fixture example_fixture value: example_fixture_value
-2024-06-03 21:51:29,398 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example2
+2024-10-06 21:51:29,396 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example1
+2024-10-06 21:51:29,396 - Fixture example_fixture value: example_fixture_value
+2024-10-06 21:51:29,396 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example1
+2024-10-06 21:51:29,398 - Cleaning up fixture: example_fixture for tests/test_example.py::test_example2
+2024-10-06 21:51:29,398 - Fixture example_fixture value: example_fixture_value
+2024-10-06 21:51:29,398 - Cleaned up fixture: example_fixture for tests/test_example.py::test_example2
 root@Gavin:~/test/hook# >conftest.py 
 root@Gavin:~/test/hook# vim conftest.py 
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 21:52 ./
+drwxr-xr-x 5 root root 4096 Oct  6 21:52 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  696 Jun  3 21:52 conftest.py
--rw-r--r-- 1 root root  572 Jun  3 21:51 fixture_cleanup.log
-drwxr-xr-x 2 root root 4096 Jun  3 21:51 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 21:51 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  3 21:51 tests/
+-rw-r--r-- 1 root root  696 Oct  6 21:52 conftest.py
+-rw-r--r-- 1 root root  572 Oct  6 21:51 fixture_cleanup.log
+drwxr-xr-x 2 root root 4096 Oct  6 21:51 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  6 21:51 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  6 21:51 tests/
 root@Gavin:~/test/hook# pytest -s -v --cache-clear
 ================================================================================================================== test session starts ==================================================================================================================
 platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
@@ -322,14 +322,14 @@ tests/test_example.py::test_example2 PASSEDCollected 2 test data entries.
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 32
-drwxr-xr-x 5 root root 4096 Jun  3 21:52 ./
+drwxr-xr-x 5 root root 4096 Oct  6 21:52 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  696 Jun  3 21:52 conftest.py
--rw-r--r-- 1 root root  572 Jun  3 21:51 fixture_cleanup.log
-drwxr-xr-x 2 root root 4096 Jun  3 21:52 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 21:52 .pytest_cache/
--rw-r--r-- 1 root root  302 Jun  3 21:52 test_data.json
-drwxr-xr-x 3 root root 4096 Jun  3 21:51 tests/
+-rw-r--r-- 1 root root  696 Oct  6 21:52 conftest.py
+-rw-r--r-- 1 root root  572 Oct  6 21:51 fixture_cleanup.log
+drwxr-xr-x 2 root root 4096 Oct  6 21:52 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  6 21:52 .pytest_cache/
+-rw-r--r-- 1 root root  302 Oct  6 21:52 test_data.json
+drwxr-xr-x 3 root root 4096 Oct  6 21:51 tests/
 root@Gavin:~/test/hook# cat test_data.json 
 [
     {

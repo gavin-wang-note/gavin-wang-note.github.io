@@ -91,12 +91,12 @@ def test_example2(db_connection):
 ```
 
 **注释**：
-- 在 `db_connection` fixture 中创建一个全局数据库连接，并在 `yield` 之后保留该连接。
+- 在 `db_connection fixture` 中创建一个全局数据库连接，并在 `yield` 之后保留该连接。
 - 在 `pytest_unconfigure` 钩子中，获取并关闭该数据库连接，确保资源正确释放。
 
 ## 案例二：保存日志
 
-目标：在 pytest 退出之前保存测试日志以便调试和分析。
+目标：在 `pytest` 退出之前保存测试日志以便调试和分析。
 
 步骤：
 1. 使用 `pytest_unconfigure` 钩子函数。
@@ -133,7 +133,7 @@ def test_example():
 **注释**：
 - 在 `pytest_sessionstart` 钩子中记录测试会话的开始信息。
 - 在 `pytest_sessionfinish` 钩子中记录测试会话的结束信息和退出状态。
-- 在 `pytest_unconfigure` 钩子中记录 pytest 即将退出的信息，确保日志的完整性。
+- 在 `pytest_unconfigure` 钩子中记录 `pytest` 即将退出的信息，确保日志的完整性。
 
 ## 案例三：生成最后的报告
 
@@ -176,8 +176,8 @@ def test_example2():
 ```
 
 **注释**：
-- 在 `pytest_runtest_makereport` 钩子函数中，收集每个测试用例的结果，包括节点 ID、结果和执行时间，并将数据存储在 `test_results` 列表中。
-- 在 `pytest_unconfigure` 钩子中，将收集到的测试结果生成 JSON 格式的报告，并保存到 `final_test_report.json` 文件中。
+- 在 `pytest_runtest_makereport` 钩子函数中，收集每个测试用例的结果，包括节点 `ID`、结果和执行时间，并将数据存储在 `test_results` 列表中。
+- 在 `pytest_unconfigure` 钩子中，将收集到的测试结果生成 `JSON` 格式的报告，并保存到 `final_test_report.json` 文件中。
 
 ## 案例四：清理临时文件
 
@@ -216,7 +216,7 @@ def test_example(temp_dir):
 ```
 
 **注释**：
-- 在 `temp_dir` fixture 中创建一个临时目录，用于存储测试过程中生成的文件。
+- 在 `temp_dir fixture` 中创建一个临时目录，用于存储测试过程中生成的文件。
 - 在 `pytest_unconfigure` 钩子中，删除临时目录，确保测试环境的整洁。
 
 ## 运行和验证
@@ -268,22 +268,22 @@ tests/test_example.py::test_example PASSED
 =================================================================================================================== 1 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  4 10:00 ./
+drwxr-xr-x 5 root root 4096 Oct  9 10:00 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  608 Jun  4 10:00 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  4 10:00 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 09:34 .pytest_cache/
--rw-r--r-- 1 root root  378 Jun  4 10:00 test.log
-drwxr-xr-x 3 root root 4096 Jun  4 10:00 tests/
+-rw-r--r-- 1 root root  608 Oct  9 10:00 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  9 10:00 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  9 09:34 .pytest_cache/
+-rw-r--r-- 1 root root  378 Oct  9 10:00 test.log
+drwxr-xr-x 3 root root 4096 Oct  9 10:00 tests/
 root@Gavin:~/test/hook# cat test.log 
-2024-06-04 10:00:22,603 - Test session started.
-2024-06-04 10:00:22,651 - Test session finished.
-2024-06-04 10:00:22,651 - Exit status: 1
-2024-06-04 10:00:22,652 - Pytest is about to exit.
-2024-06-04 10:00:45,640 - Test session started.
-2024-06-04 10:00:45,684 - Test session finished.
-2024-06-04 10:00:45,684 - Exit status: 0
-2024-06-04 10:00:45,685 - Pytest is about to exit.
+2024-10-09 10:00:22,603 - Test session started.
+2024-10-09 10:00:22,651 - Test session finished.
+2024-10-09 10:00:22,651 - Exit status: 1
+2024-10-09 10:00:22,652 - Pytest is about to exit.
+2024-10-09 10:00:45,640 - Test session started.
+2024-10-09 10:00:45,684 - Test session finished.
+2024-10-09 10:00:45,684 - Exit status: 0
+2024-10-09 10:00:45,685 - Pytest is about to exit.
 root@Gavin:~/test/hook#
 ```
 
@@ -321,14 +321,14 @@ FAILED tests/test_example.py::test_example2 - assert (2 + 2) == 5
 Final test report generated with 2 entries.
 root@Gavin:~/test/hook# ll
 total 32
-drwxr-xr-x 5 root root 4096 Jun  4 10:01 ./
+drwxr-xr-x 5 root root 4096 Oct  9 10:01 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  627 Jun  4 10:01 conftest.py
--rw-r--r-- 1 root root  291 Jun  4 10:01 final_test_report.json
-drwxr-xr-x 2 root root 4096 Jun  4 10:01 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 09:34 .pytest_cache/
--rw-r--r-- 1 root root  378 Jun  4 10:00 test.log
-drwxr-xr-x 3 root root 4096 Jun  4 10:01 tests/
+-rw-r--r-- 1 root root  627 Oct  9 10:01 conftest.py
+-rw-r--r-- 1 root root  291 Oct  9 10:01 final_test_report.json
+drwxr-xr-x 2 root root 4096 Oct  9 10:01 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  9 09:34 .pytest_cache/
+-rw-r--r-- 1 root root  378 Oct  9 10:00 test.log
+drwxr-xr-x 3 root root 4096 Oct  9 10:01 tests/
 root@Gavin:~/test/hook# cat final_test_report.json 
 [
     {
@@ -369,4 +369,4 @@ root@Gavin:~/test/hook#
 
 ### 总结
 
-通过 `pytest_unconfigure` 钩子，我们可以在 pytest 配置对象将被销毁之前执行全局的最终化操作，如释放全局资源、保存测试日志、生成最后的测试报告和清理临时文件等，从而确保环境能够被正确释放，并对测试结果进行处理
+通过 `pytest_unconfigure` 钩子，我们可以在 `pytest` 配置对象将被销毁之前执行全局的最终化操作，如释放全局资源、保存测试日志、生成最后的测试报告和清理临时文件等，从而确保环境能够被正确释放，并对测试结果进行处理

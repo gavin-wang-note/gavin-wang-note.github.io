@@ -126,16 +126,16 @@ FAILED tests/test_example.py::test_division_by_zero - ZeroDivisionError: divisio
 ============================================================================================================== 1 failed, 2 passed in 0.11s ==============================================================================================================
 root@Gavin:~/test/hook# ll
 total 36
-drwxr-xr-x 5 root root 4096 Jun  5 11:18 ./
-drwxr-xr-x 6 root root 4096 Jun  4 18:49 ../
--rw-r--r-- 1 root root  496 Jun  5 11:12 clear_pyc.py
--rw-r--r-- 1 root root  622 Jun  5 11:17 conftest.py
--rw-r--r-- 1 root root 4904 Jun  5 11:18 exceptions.log
-drwxr-xr-x 2 root root 4096 Jun  5 11:18 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  5 11:18 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  5 11:18 tests/
+drwxr-xr-x 5 root root 4096 Oct  20 11:18 ./
+drwxr-xr-x 6 root root 4096 Oct  19 18:49 ../
+-rw-r--r-- 1 root root  496 Oct  20 11:12 clear_pyc.py
+-rw-r--r-- 1 root root  622 Oct  20 11:17 conftest.py
+-rw-r--r-- 1 root root 4904 Oct  20 11:18 exceptions.log
+drwxr-xr-x 2 root root 4096 Oct  20 11:18 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  20 11:18 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  20 11:18 tests/
 root@Gavin:~/test/hook# cat exceptions.log 
-2024-06-05 11:18:02,659 - ERROR - Exception occurred in tests/test_example.py::test_division_by_zero:
+2024-10-20 11:18:02,659 - ERROR - Exception occurred in tests/test_example.py::test_division_by_zero:
 division by zero
 Traceback (most recent call last):
   File "/usr/local/lib/python3.11/dist-packages/_pytest/runner.py", line 342, in from_call

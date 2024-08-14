@@ -46,7 +46,7 @@ def pytest_sessionfinish(session, exitstatus):
 
 ## 案例一：关闭服务
 
-目标：在测试会话结束时关闭某些在会话期间启动的服务，如 web 服务器、后台任务进程等。
+目标：在测试会话结束时关闭某些在会话期间启动的服务，如 `web` 服务器、后台任务进程等。
 
 步骤：
 
@@ -330,13 +330,13 @@ FAILED tests/test_example.py::test_example2 - assert (2 + 2) == 5
 ============================================================================================================== 1 failed, 1 passed in 0.11s ==============================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  4 09:10 ./
+drwxr-xr-x 5 root root 4096 Oct  8 09:10 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  622 Jun  4 09:10 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  4 09:10 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 09:06 .pytest_cache/
--rw-r--r-- 1 root root  296 Jun  4 09:10 test_report.json
-drwxr-xr-x 3 root root 4096 Jun  4 09:10 tests/
+-rw-r--r-- 1 root root  622 Oct  8 09:10 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  8 09:10 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  8 09:06 .pytest_cache/
+-rw-r--r-- 1 root root  296 Oct  8 09:10 test_report.json
+drwxr-xr-x 3 root root 4096 Oct  8 09:10 tests/
 root@Gavin:~/test/hook# cat test_report.json 
 [
     {
@@ -373,33 +373,33 @@ tests/test_example.py::test_example1 PASSED
 
 =================================================================================================================== 1 passed in 0.03s ===================================================================================================================
 root@Gavin:~/test/hook# cat session.log 
-2024-06-04 09:11:52,038 - Test session started.
-2024-06-04 09:11:52,038 - Start time: 2024-06-04 09:11:52
-2024-06-04 09:11:52,081 - Test session finished.
-2024-06-04 09:11:52,081 - End time: 2024-06-04 09:11:52
-2024-06-04 09:11:52,081 - Exit status: 0
+2024-10-08 09:11:52,038 - Test session started.
+2024-10-08 09:11:52,038 - Start time: 2024-10-08 09:11:52
+2024-10-08 09:11:52,081 - Test session finished.
+2024-10-08 09:11:52,081 - End time: 2024-10-08 09:11:52
+2024-10-08 09:11:52,081 - Exit status: 0
 root@Gavin:~/test/hook#
 ```
 
 ### 详细解释
 
 1. **关闭服务**（案例一）：
-   - 在 `pytest_sessionstart` 钩子中，通过 `subprocess` 模块启动一个本地 web 服务器，并将其进程对象存储在 `session` 对象中。
-   - 在 `pytest_sessionfinish` 钩子中，使用 `terminate` 方法关闭 web 服务器，确保资源能够正确释放。
-   - 通过一个简单的测试用例验证 web 服务器的运行状态。
+   - 在 `pytest_sessionstart` 钩子中，通过 `subprocess` 模块启动一个本地 `web` 服务器，并将其进程对象存储在 `session` 对象中。
+   - 在 `pytest_sessionfinish` 钩子中，使用 `terminate` 方法关闭 `web` 服务器，确保资源能够正确释放。
+   - 通过一个简单的测试用例验证 `web` 服务器的运行状态。
 
 2. **清理资源**（案例二）：
    - 在 `pytest_sessionstart` 钩子中，创建一个全局的数据库连接，并在会话对象中存储该连接。
    - 在 `pytest_sessionfinish` 钩子中，关闭数据库连接，确保测试结束时资源能够正确释放。
-   - 使用 fixture 提供数据库连接，确保测试用例能够正常使用该连接。
+   - 使用 `fixture` 提供数据库连接，确保测试用例能够正常使用该连接。
 
 3. **生成报告**（案例三）：
-   - 在 `pytest_runtest_makereport` 钩子函数中，收集每个测试用例的结果，包括节点 ID、结果和执行时间，并将数据存储在 `test_results` 列表中。
-   - 在 `pytest_sessionfinish` 钩子中，将收集到的测试结果生成 JSON 格式的报告，并保存到文件中。
+   - 在 `pytest_runtest_makereport` 钩子函数中，收集每个测试用例的结果，包括节点 `ID`、结果和执行时间，并将数据存储在 `test_results` 列表中。
+   - 在 `pytest_sessionfinish` 钩子中，将收集到的测试结果生成 `JSON` 格式的报告，并保存到文件中。
    - 通过多个测试用例演示测试结果的收集和报告的生成。
 
 4. **记录日志**（案例四）：
-   - 在 `pytest_sessionstart` 钩子中记录测试会话的开始时间，使用 `time.strftime` 获取当前时间，同时记录 pytest 版本和 Python 解释器路径。
+   - 在 `pytest_sessionstart` 钩子中记录测试会话的开始时间，使用 `time.strftime` 获取当前时间，同时记录 `pytest` 版本和 `Python` 解释器路径。
    - 在 `pytest_sessionfinish` 钩子中记录测试会话的结束时间及退出状态，确保在会话结束时能够记录所有必要的日志信息。
    - 使用 `logging` 模块配置日志记录的格式和日志文件的路径。
 

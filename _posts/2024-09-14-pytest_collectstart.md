@@ -194,7 +194,7 @@ def test_example2():
 - `pytest_collectstart` 钩子中，通过 `logging.info` 函数记录当前收集器的节点信息到日志文件，为后续的审计和分析提供数据。
 
 
-运行 pytest 来验证新的测试设置：
+运行 `pytest` 来验证新的测试设置：
 
 ```shell
 pytest -s -v
@@ -221,20 +221,20 @@ tests/test_example2.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 09:43 ./
+drwxr-xr-x 5 root root 4096 Sep 14 09:43 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  380 Jun  1 09:42 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 09:43 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 .pytest_cache/
--rw-r--r-- 1 root root  437 Jun  1 09:43 test_collection.log
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests/
+-rw-r--r-- 1 root root  380 Sep 14 09:42 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 14 09:43 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 14 09:41 .pytest_cache/
+-rw-r--r-- 1 root root  437 Sep 14 09:43 test_collection.log
+drwxr-xr-x 3 root root 4096 Sep 14 09:41 tests/
 root@Gavin:~/test/hook# cat test_collection.log 
-2024-06-01 09:43:00,301 - Test session started
-2024-06-01 09:43:00,323 - Collecting tests from: <Session  exitstatus=<ExitCode.OK: 0> testsfailed=0 testscollected=0>
-2024-06-01 09:43:00,324 - Collecting tests from: <Dir hook>
-2024-06-01 09:43:00,325 - Collecting tests from: <Dir tests>
-2024-06-01 09:43:00,325 - Collecting tests from: <Module test_example1.py>
-2024-06-01 09:43:00,326 - Collecting tests from: <Module test_example2.py>
+2024-09-14 09:43:00,301 - Test session started
+2024-09-14 09:43:00,323 - Collecting tests from: <Session  exitstatus=<ExitCode.OK: 0> testsfailed=0 testscollected=0>
+2024-09-14 09:43:00,324 - Collecting tests from: <Dir hook>
+2024-09-14 09:43:00,325 - Collecting tests from: <Dir tests>
+2024-09-14 09:43:00,325 - Collecting tests from: <Module test_example1.py>
+2024-09-14 09:43:00,326 - Collecting tests from: <Module test_example2.py>
 root@Gavin:~/test/hook# 
 ```
 

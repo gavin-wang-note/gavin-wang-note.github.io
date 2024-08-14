@@ -26,8 +26,8 @@ tags:
 
 # 使用场景
 
-1. **环境信息**：在报告头部添加环境配置信息，如操作系统、Python 版本、依赖库版本等。
-2. **版本信息**：在报告头部添加版本信息，如应用程序版本、代码仓库的提交 ID 等。
+1. **环境信息**：在报告头部添加环境配置信息，如操作系统、`Python` 版本、依赖库版本等。
+2. **版本信息**：在报告头部添加版本信息，如应用程序版本、代码仓库的提交 `ID` 等。
 3. **运行参数**：在报告头部添加测试运行时的参数信息，如命令行参数、配置文件路径等。
 4. **调试信息**：在报告头部添加调试信息，以便更好地分析和诊断测试结果。
 
@@ -41,7 +41,7 @@ def pytest_report_header(config, start_path, startdir):
     pass
 ```
 
-- `config`：pytest 的配置对象，包含有关当前测试会话的所有信息。
+- `config`：`pytest` 的配置对象，包含有关当前测试会话的所有信息。
 - `start_path`：测试收集开始的目录。
 - `startdir`：测试收集开始的目录（废弃中）
 
@@ -49,7 +49,7 @@ def pytest_report_header(config, start_path, startdir):
 
 ## 案例一：环境信息
 
-目标：在测试报告头部添加环境配置信息，如操作系统、Python 版本、依赖库版本等。
+目标：在测试报告头部添加环境配置信息，如操作系统、`Python` 版本、依赖库版本等。
 
 步骤：
 1. 使用 `pytest_report_header` 钩子函数。
@@ -78,13 +78,13 @@ def test_example():
 
 **注释**：
 - 使用 `platform.platform()` 获取操作系统平台信息。
-- 使用 `sys.version` 获取 Python 版本信息。
-- 使用 `pytest.__version__` 获取 pytest 版本信息。
+- 使用 `sys.version` 获取 `Python` 版本信息。
+- 使用 `pytest.__version__` 获取 `pytest` 版本信息。
 - 在 `pytest_report_header` 钩子函数中返回一个包含这些信息的列表。
 
 ## 案例二：版本信息
 
-目标：在测试报告头部添加版本信息，如应用程序版本、代码仓库的提交 ID 等。
+目标：在测试报告头部添加版本信息，如应用程序版本、代码仓库的提交 `ID` 等。
 
 步骤：
 1. 使用 `pytest_report_header` 钩子函数。
@@ -118,8 +118,8 @@ def test_example():
 ```
 
 **注释**：
-- 使用 `subprocess.check_output` 命令获取当前代码仓库的提交 ID，并通过 `strip()` 和 `decode()` 方法处理输出。
-- 在 `pytest_report_header` 钩子函数中返回一个包含应用程序版本和 Git 提交 ID 的列表。
+- 使用 `subprocess.check_output` 命令获取当前代码仓库的提交 `ID`，并通过 `strip()` 和 `decode()` 方法处理输出。
+- 在 `pytest_report_header` 钩子函数中返回一个包含应用程序版本和 `Git` 提交 `ID` 的列表。
 
 ## 案例三：运行参数
 
@@ -318,7 +318,7 @@ root@Gavin:~/test/hook#
 1. **添加环境信息**（案例一）：
    - 使用 `platform.platform()` 函数获取操作系统平台信息。
    - 使用 `sys.version` 获取 `Python` 解释器版本信息。
-   - 使用 `pytest.__version__` 获取当前 pytest 的版本信息。
+   - 使用 `pytest.__version__` 获取当前 `pytest` 的版本信息。
    - 在 `pytest_report_header` 钩子函数中返回包含这些信息的字符串列表，这些字符串将被插入到测试报告的头部。
 
 2. **添加版本信息**（案例二）：
@@ -340,7 +340,7 @@ root@Gavin:~/test/hook#
 
 这些步骤确保在适当的钩子函数中插入代码来实现所需功能。
 
-#### 步骤一：编写 `pytest_report_header` 钩子函数
+#### 步骤一：编写 pytest_report_header 钩子函数
 
 ```python
 import pytest
@@ -487,7 +487,7 @@ root@Gavin:~/test/hook#
 
 我们可以进一步扩展 `conftest.py`，增加配置选项以便用户根据需要选择显示哪些信息。
 
-#### 增强版本的`conftest.py`内容
+#### 增强版本的conftest.py内容
 
 ```python
 import pytest

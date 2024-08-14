@@ -186,16 +186,16 @@ tests/test_example.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 09:07 ./
+drwxr-xr-x 5 root root 4096 Sep 27 09:07 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  273 Jun  3 09:06 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 09:07 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 09:07 .pytest_cache/
--rw-r--r-- 1 root root  274 Jun  3 09:07 test_finish.log
-drwxr-xr-x 3 root root 4096 Jun  3 09:07 tests/
+-rw-r--r-- 1 root root  273 Sep 27 09:06 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 27 09:07 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 27 09:07 .pytest_cache/
+-rw-r--r-- 1 root root  274 Sep 27 09:07 test_finish.log
+drwxr-xr-x 3 root root 4096 Sep 27 09:07 tests/
 root@Gavin:~/test/hook# cat test_finish.log 
-2024-06-03 09:07:27,053 - Finished test: tests/test_example.py::test_example1 at location: ('tests/test_example.py', 0, 'test_example1')
-2024-06-03 09:07:27,054 - Finished test: tests/test_example.py::test_example2 at location: ('tests/test_example.py', 3, 'test_example2')
+2024-09-27 09:07:27,053 - Finished test: tests/test_example.py::test_example1 at location: ('tests/test_example.py', 0, 'test_example1')
+2024-09-27 09:07:27,054 - Finished test: tests/test_example.py::test_example2 at location: ('tests/test_example.py', 3, 'test_example2')
 root@Gavin:~/test/hook# 
 ```
 

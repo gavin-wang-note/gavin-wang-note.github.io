@@ -106,17 +106,17 @@ tests/test_example2.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.03s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 09:49 ./
+drwxr-xr-x 5 root root 4096 Sep 15 09:49 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  370 Jun  1 09:49 conftest.py
--rw-r--r-- 1 root root  217 Jun  1 09:49 item_collection.log
-drwxr-xr-x 2 root root 4096 Jun  1 09:49 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests/
+-rw-r--r-- 1 root root  370 Sep 15 09:49 conftest.py
+-rw-r--r-- 1 root root  217 Sep 15 09:49 item_collection.log
+drwxr-xr-x 2 root root 4096 Sep 15 09:49 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 15 09:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 15 09:41 tests/
 root@Gavin:~/test/hook# cat item_collection.log 
-2024-06-01 09:49:51,431 - Test session started
-2024-06-01 09:49:51,452 - Collected test item: tests/test_example1.py::test_example1
-2024-06-01 09:49:51,452 - Collected test item: tests/test_example2.py::test_example2
+2024-09-15 09:49:51,431 - Test session started
+2024-09-15 09:49:51,452 - Collected test item: tests/test_example1.py::test_example1
+2024-09-15 09:49:51,452 - Collected test item: tests/test_example2.py::test_example2
 root@Gavin:~/test/hook#
 ```
 
@@ -166,14 +166,14 @@ def test_example2():
 ```shell
 root@Gavin:~/test/hook# ls -l
 total 12
--rw-r--r-- 1 root root  294 Jun  1 09:56 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 09:50 __pycache__
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests
+-rw-r--r-- 1 root root  294 Sep 15 09:56 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 15 09:50 __pycache__
+drwxr-xr-x 3 root root 4096 Sep 15 09:41 tests
 root@Gavin:~/test/hook# ls -l tests/
 total 12
-drwxr-xr-x 2 root root 4096 Jun  1 09:41 __pycache__
--rw-r--r-- 1 root root   43 Jun  1 09:21 test_example1.py
--rw-r--r-- 1 root root   43 Jun  1 09:21 test_example2.py
+drwxr-xr-x 2 root root 4096 Sep 15 09:41 __pycache__
+-rw-r--r-- 1 root root   43 Sep 15 09:21 test_example1.py
+-rw-r--r-- 1 root root   43 Sep 15 09:21 test_example2.py
 root@Gavin:~/test/hook# pytest -s -v
 ================================================================================================================== test session starts ==================================================================================================================
 platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
@@ -232,7 +232,7 @@ def test_example2():
 
 **说明**：
 
-- 使用 `pytest_itemcollected` 钩子收集每个测试项的节点 ID 信息。
+- 使用 `pytest_itemcollected` 钩子收集每个测试项的节点 `ID` 信息。
 - 在 `pytest_sessionfinish` 钩子中生成统计报告文件，将收集到的信息写入报告。
 
 ### 运行和验证
@@ -267,13 +267,13 @@ tests/test_example2.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 09:58 ./
+drwxr-xr-x 5 root root 4096 Sep 15 09:58 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root   75 Jun  1 09:58 collected_items_report.txt
--rw-r--r-- 1 root root  296 Jun  1 09:58 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 09:58 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 09:58 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests/
+-rw-r--r-- 1 root root   75 Sep 15 09:58 collected_items_report.txt
+-rw-r--r-- 1 root root  296 Sep 15 09:58 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 15 09:58 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 15 09:58 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 15 09:41 tests/
 root@Gavin:~/test/hook# cat collected_items_report.txt 
 tests/test_example1.py::test_example1
 tests/test_example2.py::test_example2
@@ -282,7 +282,7 @@ tests/test_example2.py::test_example2
 ### 验证生成的文件
 
 **报告文件 `collected_items_report.txt`**
-- 查看该文件，应包含所有收集到的测试项的节点 ID 信息。
+- 查看该文件，应包含所有收集到的测试项的节点 `ID` 信息。
 
 ### 详细解释
 

@@ -24,7 +24,7 @@ tags:
 
 `pytest_internalerror` 是 `pytest` 框架中的一个钩子函数。它用于捕获并处理 `pytest` 内部错误（`internal errors`）。
 
-它在 `pytest` 内部发生错误时被触发。这些错误通常不是用户测试用例造成的，而是 pytest 自身的运行问题。捕获这些错误可以帮助开发者和测试人员快速定位和修正问题。
+它在 `pytest` 内部发生错误时被触发。这些错误通常不是用户测试用例造成的，而是 `pytest` 自身的运行问题。捕获这些错误可以帮助开发者和测试人员快速定位和修正问题。
 
 # 使用场景
 
@@ -170,15 +170,15 @@ INTERNALERROR> RuntimeError: This is a forced internal error for testing purpose
 =================================================================================================================== 1 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  5 09:44 ./
-drwxr-xr-x 6 root root 4096 Jun  4 18:49 ../
--rw-r--r-- 1 root root  607 Jun  5 09:43 conftest.py
--rw-r--r-- 1 root root 4024 Jun  5 09:45 internal_errors.log
-drwxr-xr-x 2 root root 4096 Jun  5 09:43 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 22:42 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  5 09:45 tests/
+drwxr-xr-x 5 root root 4096 Oct  18 09:44 ./
+drwxr-xr-x 6 root root 4096 Oct  17 18:49 ../
+-rw-r--r-- 1 root root  607 Oct  18 09:43 conftest.py
+-rw-r--r-- 1 root root 4024 Oct  18 09:45 internal_errors.log
+drwxr-xr-x 2 root root 4096 Oct  18 09:43 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  17 22:42 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  18 09:45 tests/
 root@Gavin:~/test/hook# cat internal_errors.log 
-2024-06-05 09:45:03,472 - ERROR - Internal Error: Traceback (most recent call last):
+2024-10-18 09:45:03,472 - ERROR - Internal Error: Traceback (most recent call last):
   File "/usr/local/lib/python3.11/dist-packages/_pytest/main.py", line 273, in wrap_session
     session.exitstatus = doit(config, session) or 0
                          ^^^^^^^^^^^^^^^^^^^^^
@@ -250,7 +250,7 @@ root@Gavin:~/test/hook#
 
 步骤：
 1. 使用 `pytest_internalerror` 钩子捕获内部错误。
-2. 在钩子函数中实现自定义的错误处理逻辑，比如通过 SMTP 发送错误报告邮件。
+2. 在钩子函数中实现自定义的错误处理逻辑，比如通过 `SMTP` 发送错误报告邮件。
 
 示例代码：
 
@@ -282,7 +282,7 @@ def pytest_collection_modifyitems(items):
 ```
 
 **注释**：
-- 定义 `send_email` 函数，用于通过 SMTP 发送电子邮件。
+- 定义 `send_email` 函数，用于通过 `SMTP` 发送电子邮件。
 - 在 `pytest_internalerror` 钩子中，捕获异常并发送错误报告邮件。
 
 

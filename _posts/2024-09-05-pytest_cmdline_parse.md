@@ -35,8 +35,8 @@ tags:
 
 # 参数
 
-* pluginmanager: pytest 的插件管理器实例，用于管理插件、钩子和命令行选项
-* args: 命令行传递的参数列表
+* `pluginmanager`: `pytest` 的插件管理器实例，用于管理插件、钩子和命令行选项
+* `args`: 命令行传递的参数列表
 
 
 # 注意点
@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
 ### my_plugin.py：
 
-在这里，我们定义了一个插件类 `MyPlugin`，并在其中实现了 `pytest_cmdline_parse` 钩子。该方法在命令行选项被解析前将自动添加自定义选项（如果不存在），并打印修改后的命令行参数。我们还定义了 pytest_addoption 方法来添加自定义命令行选项，以及 `pytest_configure` 方法来读取和打印该选项的值。
+在这里，我们定义了一个插件类 `MyPlugin`，并在其中实现了 `pytest_cmdline_parse` 钩子。该方法在命令行选项被解析前将自动添加自定义选项（如果不存在），并打印修改后的命令行参数。我们还定义了 `pytest_addoption` 方法来添加自定义命令行选项，以及 `pytest_configure` 方法来读取和打印该选项的值。
 
 ### test_example.py：
 

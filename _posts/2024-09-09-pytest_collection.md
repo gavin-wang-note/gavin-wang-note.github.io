@@ -42,7 +42,7 @@ def pytest_collection(session):
     # session: 当前 pytest 会话对象
 ```
 
-* session：当前`pytest`会话对象，通过这个对象可以访问所有收集到的测试项以及配置。
+* `session`：当前`pytest`会话对象，通过这个对象可以访问所有收集到的测试项以及配置。
 
 
 # 示例代码
@@ -88,7 +88,7 @@ def pytest_collection(session):
 步骤：
 
 * 态生成测试路径列表。
-* 使用 pytest_collection 钩子设置新的测试路径。
+* 使用 `pytest_collection` 钩子设置新的测试路径。
 
 
 示例代码：
@@ -118,7 +118,7 @@ def pytest_collection(session):
 步骤：
 
 * 读取外部配置或参数。
-* 使用 pytest_collection 钩子进行条件检查，启用或禁用模块。
+* 使用 `pytest_collection` 钩子进行条件检查，启用或禁用模块。
 
 
 示例代码：

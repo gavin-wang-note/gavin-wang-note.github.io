@@ -42,7 +42,7 @@ def pytest_report_collectionfinish(config, startdir, items):
     pass
 ```
 
-- `config`：pytest 的配置对象，包含有关当前测试会话的所有信息。
+- `config`：`pytest` 的配置对象，包含有关当前测试会话的所有信息。
 - `start_path`：测试收集开始的目录。
 - `startdir`：测试收集开始的目录（废弃中）
 - `items`：收集到的测试用例项列表。
@@ -242,7 +242,7 @@ def test_example2():
 ```
 
 **注释**：
-- `pytest_configure` 钩子函数在 pytest 配置初始化时触发。我们在该钩子函数中记录测试收集的开始时间。
+- `pytest_configure` 钩子函数在 `pytest` 配置初始化时触发。我们在该钩子函数中记录测试收集的开始时间。
 - 在 `pytest_report_collectionfinish` 钩子函数中，计算测试收集的耗时，并将其与测试用例统计信息一起返回。
 
 **运行效果**：
@@ -464,10 +464,10 @@ root@Gavin:~/test/hook#
 这个输出展示了：
 
 1. **启动时的环境信息**：
-   - 平台、Python 版本、pytest 版本等。
+   - 平台、`Python` 版本、`pytest` 版本等。
 
 2. **版本信息**：
-   - 应用程序版本和 Git 提交 ID。
+   - 应用程序版本和 `Git` 提交 `ID`。
 
 3. **运行参数信息**：
    - 配置文件路径和运行时的命令行参数。

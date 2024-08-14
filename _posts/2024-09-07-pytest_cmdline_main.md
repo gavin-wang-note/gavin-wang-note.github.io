@@ -22,7 +22,7 @@ tags:
 
 # Overview
 
-`pytest_cmdline_main` 是 `pytest` 的一个钩子（hook），用于自定义 `pytest` 的命令行入口。这是高级用法，可用于深度定制 `pytest` 的行为。
+`pytest_cmdline_main` 是 `pytest` 的一个钩子（`hook`），用于自定义 `pytest` 的命令行入口。这是高级用法，可用于深度定制 `pytest` 的行为。
 
 # 使用场景
 
@@ -30,7 +30,7 @@ tags:
 
 # 参数
 
-* `config: Config` 对象，包含了 `pytest` 的所有配置和命令行参数。
+* `config`: `Config` 对象，包含了 `pytest` 的所有配置和命令行参数。
 
 
 # 示例代码
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
 **说明：**
 
-* 钩子函数pytest_cmdline_main:
+* 钩子函数`pytest_cmdline_main`:
   * 该函数会在 `pytest` 运行时被调用。
   * `config` 参数包含了所有配置和命令行参数。
 * 打印命令行参数:

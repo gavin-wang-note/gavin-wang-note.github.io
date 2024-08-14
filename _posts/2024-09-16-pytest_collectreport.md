@@ -88,19 +88,19 @@ def test_example2():
 **注释**：
 
 - `pytest_collectreport` 钩子中打开一个文件 `collect_report.txt`，并将每个收集报告的信息写入文件中。
-- 记录每个收集器的节点 ID 和收集结果。如果收集未通过，还记录错误信息。
+- 记录每个收集器的节点 `ID` 和收集结果。如果收集未通过，还记录错误信息。
 
 运行效果：
 
 ```shell
 root@Gavin:~/test/hook# ll
 total 24
-drwxr-xr-x 5 root root 4096 Jun  1 10:15 ./
+drwxr-xr-x 5 root root 4096 Sep 16 10:15 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  630 Jun  1 10:15 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 09:58 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 09:58 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests/
+-rw-r--r-- 1 root root  630 Sep 16 10:15 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 16 09:58 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 16 09:58 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 16 09:41 tests/
 root@Gavin:~/test/hook# pytest -s -v
 ================================================================================================================== test session starts ==================================================================================================================
 platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
@@ -119,13 +119,13 @@ tests/test_example2.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 10:15 ./
+drwxr-xr-x 5 root root 4096 Sep 16 10:15 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  235 Jun  1 10:15 collect_report.txt
--rw-r--r-- 1 root root  630 Jun  1 10:15 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 10:15 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 09:58 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests/
+-rw-r--r-- 1 root root  235 Sep 16 10:15 collect_report.txt
+-rw-r--r-- 1 root root  630 Sep 16 10:15 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 16 10:15 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 16 09:58 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 16 09:41 tests/
 root@Gavin:~/test/hook# cat collect_report.txt 
 Collect report for 
 Outcome: passed
@@ -210,24 +210,24 @@ tests/test_example2.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 10:17 ./
+drwxr-xr-x 5 root root 4096 Sep 16 10:17 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  495 Jun  1 10:17 collect_process.log
--rw-r--r-- 1 root root  659 Jun  1 10:17 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 10:17 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 09:58 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 09:41 tests/
+-rw-r--r-- 1 root root  495 Sep 16 10:17 collect_process.log
+-rw-r--r-- 1 root root  659 Sep 16 10:17 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 16 10:17 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 16 09:58 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 16 09:41 tests/
 root@Gavin:~/test/hook# cat collect_process.log 
-2024-06-01 10:17:22,908 - Collect report for: 
-2024-06-01 10:17:22,908 - Outcome: passed
-2024-06-01 10:17:22,911 - Collect report for: tests/test_example1.py
-2024-06-01 10:17:22,911 - Outcome: passed
-2024-06-01 10:17:22,911 - Collect report for: tests/test_example2.py
-2024-06-01 10:17:22,911 - Outcome: passed
-2024-06-01 10:17:22,912 - Collect report for: tests
-2024-06-01 10:17:22,912 - Outcome: passed
-2024-06-01 10:17:22,912 - Collect report for: .
-2024-06-01 10:17:22,912 - Outcome: passed
+2024-09-16 10:17:22,908 - Collect report for: 
+2024-09-16 10:17:22,908 - Outcome: passed
+2024-09-16 10:17:22,911 - Collect report for: tests/test_example1.py
+2024-09-16 10:17:22,911 - Outcome: passed
+2024-09-16 10:17:22,911 - Collect report for: tests/test_example2.py
+2024-09-16 10:17:22,911 - Outcome: passed
+2024-09-16 10:17:22,912 - Collect report for: tests
+2024-09-16 10:17:22,912 - Outcome: passed
+2024-09-16 10:17:22,912 - Collect report for: .
+2024-09-16 10:17:22,912 - Outcome: passed
 root@Gavin:~/test/hook# 
 ```
 
@@ -304,7 +304,7 @@ tests/
 conftest.py
 ```
 
-运行 pytest 来验证新的测试设置，并检查生成的日志文件和报告文件：
+运行 `pytest` 来验证新的测试设置，并检查生成的日志文件和报告文件：
 
 ```shell
 root@Gavin:~/test/hook# pytest -s -v
@@ -336,28 +336,28 @@ FAILED tests/test_example.py::test_example1 - assert False
 ============================================================================================================== 1 failed, 2 passed in 0.11s ==============================================================================================================
 root@Gavin:~/test/hook# ll
 total 32
-drwxr-xr-x 5 root root 4096 Jun  1 10:27 ./
+drwxr-xr-x 5 root root 4096 Sep 16 10:27 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  652 Jun  1 10:27 collect_process.log
--rw-r--r-- 1 root root  293 Jun  1 10:27 collect_report.txt
--rw-r--r-- 1 root root 1520 Jun  1 10:26 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 10:27 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 10:19 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 10:19 tests/
+-rw-r--r-- 1 root root  652 Sep 16 10:27 collect_process.log
+-rw-r--r-- 1 root root  293 Sep 16 10:27 collect_report.txt
+-rw-r--r-- 1 root root 1520 Sep 16 10:26 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 16 10:27 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 16 10:19 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 16 10:19 tests/
 root@Gavin:~/test/hook# cat collect_process.log 
-2024-06-01 10:27:01,651 - Test session started
-2024-06-01 10:27:01,673 - Collect report for: 
-2024-06-01 10:27:01,673 - Outcome: passed
-2024-06-01 10:27:01,676 - Collect report for: tests/test_example.py
-2024-06-01 10:27:01,676 - Outcome: passed
-2024-06-01 10:27:01,677 - Collect report for: tests/test_example1.py
-2024-06-01 10:27:01,677 - Outcome: passed
-2024-06-01 10:27:01,678 - Collect report for: tests/test_example2.py
-2024-06-01 10:27:01,678 - Outcome: passed
-2024-06-01 10:27:01,678 - Collect report for: tests
-2024-06-01 10:27:01,678 - Outcome: passed
-2024-06-01 10:27:01,678 - Collect report for: .
-2024-06-01 10:27:01,678 - Outcome: passed
+2024-09-16 10:27:01,651 - Test session started
+2024-09-16 10:27:01,673 - Collect report for: 
+2024-09-16 10:27:01,673 - Outcome: passed
+2024-09-16 10:27:01,676 - Collect report for: tests/test_example.py
+2024-09-16 10:27:01,676 - Outcome: passed
+2024-09-16 10:27:01,677 - Collect report for: tests/test_example1.py
+2024-09-16 10:27:01,677 - Outcome: passed
+2024-09-16 10:27:01,678 - Collect report for: tests/test_example2.py
+2024-09-16 10:27:01,678 - Outcome: passed
+2024-09-16 10:27:01,678 - Collect report for: tests
+2024-09-16 10:27:01,678 - Outcome: passed
+2024-09-16 10:27:01,678 - Collect report for: .
+2024-09-16 10:27:01,678 - Outcome: passed
 root@Gavin:~/test/hook# cat collect_report.txt 
 Collect report for: 
 Outcome: passed

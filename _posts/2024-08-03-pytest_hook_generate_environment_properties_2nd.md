@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: 几天前写过一篇文章，借助pytest hook生成Allure所需的environment.properties文件内容，在报告上的overview页面上的ENVIRONMENT位置展示相关自定义信息，此次更换其他`hook`实现，并增加了用例相关统计信息
+summary: 两天前写过一篇文章，借助pytest hook生成Allure所需的environment.properties文件内容，在报告上的overview页面上的ENVIRONMENT位置展示相关自定义信息，此次更换其他`hook`实现，并增加了用例相关统计信息
 categories:
     - [pytest]
     - [Automation]

@@ -131,15 +131,15 @@ tests/test_example3.py::test_example3 PASSED
 ============================================================================================================ 2 passed, 1 deselected in 0.04s ============================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 10:52 ./
+drwxr-xr-x 5 root root 4096 Sep 17 10:52 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  638 Jun  1 10:51 conftest.py
--rw-r--r-- 1 root root   86 Jun  1 10:52 deselected_tests.log
-drwxr-xr-x 2 root root 4096 Jun  1 10:52 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 10:52 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 10:52 tests/
+-rw-r--r-- 1 root root  638 Sep 17 10:51 conftest.py
+-rw-r--r-- 1 root root   86 Sep 17 10:52 deselected_tests.log
+drwxr-xr-x 2 root root 4096 Sep 17 10:52 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 17 10:52 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 17 10:52 tests/
 root@Gavin:~/test/hook# cat deselected_tests.log 
-2024-06-01 10:52:00,883 - Deselected test item: tests/test_example2.py::test_example2
+2024-09-17 10:52:00,883 - Deselected test item: tests/test_example2.py::test_example2
 root@Gavin:~/test/hook# 
 root@Gavin:~/test/hook# 
 ```
@@ -209,7 +209,7 @@ def test_example3():
 
 **注释**：
 
-- 在 `pytest_deselected` 钩子中收集每个被取消选择的测试项的节点 ID 信息。
+- 在 `pytest_deselected` 钩子中收集每个被取消选择的测试项的节点 `ID` 信息。
 - 在 `pytest_sessionfinish` 钩子中生成报告文件 `deselected_tests_report.txt`，将所有被取消选择的测试项信息写入报告。
 
 运行效果：
@@ -233,14 +233,14 @@ tests/test_example3.py::test_example3 PASSED
 ============================================================================================================ 2 passed, 1 deselected in 0.04s ============================================================================================================
 root@Gavin:~/test/hook# ll
 total 32
-drwxr-xr-x 5 root root 4096 Jun  1 11:03 ./
+drwxr-xr-x 5 root root 4096 Sep 17 11:03 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root 1053 Jun  1 11:03 conftest.py
--rw-r--r-- 1 root root   61 Jun  1 11:03 deselected_tests_report.txt
-drwxr-xr-x 2 root root 4096 Jun  1 11:03 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 10:52 .pytest_cache/
--rw-r--r-- 1 root root   97 Jun  1 11:03 selected_tests_report.txt
-drwxr-xr-x 3 root root 4096 Jun  1 10:52 tests/
+-rw-r--r-- 1 root root 1053 Sep 17 11:03 conftest.py
+-rw-r--r-- 1 root root   61 Sep 17 11:03 deselected_tests_report.txt
+drwxr-xr-x 2 root root 4096 Sep 17 11:03 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 17 10:52 .pytest_cache/
+-rw-r--r-- 1 root root   97 Sep 17 11:03 selected_tests_report.txt
+drwxr-xr-x 3 root root 4096 Sep 17 10:52 tests/
 root@Gavin:~/test/hook# cat deselected_tests_report.txt 
 Deselected test items:
 tests/test_example2.py::test_example2
@@ -287,7 +287,7 @@ def test_example3():
 
 **注释**：
 
-- 在 `pytest_deselected` 钩子中，通过 `print` 输出每个被取消选择的测试项的节点 ID 信息，便于在调试和分析时查看。
+- 在 `pytest_deselected` 钩子中，通过 `print` 输出每个被取消选择的测试项的节点 `ID` 信息，便于在调试和分析时查看。
 
 ### 运行和验证
 

@@ -27,7 +27,7 @@ tags:
 
 # 什么是pytest_make_collect_report？
 
-`pytest_make_collect_report` 是一个 pytest 提供的钩子函数，它在测试用例收集完成之后调用，用于生成一个自定义的收集报告。通过这个钩子，我们可以获取收集过程中的详细信息，并将这些信息组织成一个报告对象。
+`pytest_make_collect_report` 是一个 `pytest` 提供的钩子函数，它在测试用例收集完成之后调用，用于生成一个自定义的收集报告。通过这个钩子，我们可以获取收集过程中的详细信息，并将这些信息组织成一个报告对象。
 
 # 使用场景
 
@@ -43,7 +43,7 @@ def pytest_make_collect_report(collector):
     pass
 ```
 
-- `collector`：当前的 pytest 收集器对象，用于生成收集报告。
+- `collector`：当前的 `pytest` 收集器对象，用于生成收集报告。
 
 # 示例代码
 
@@ -210,16 +210,16 @@ def test_example3():
 
 **注释**：
 
-* Configuration of Logging:
+* `Configuration of Logging`:
 
   * 通过使用`logging.basicConfig`配置日志记录，确保日志信息写入`collect_report.log`文件。
 
-* pytest_make_collect_report 函数:
+* `pytest_make_collect_report` 函数:
 
-  * 使用 collector.collect() 方法收集测试用例，并转换为列表。
+  * 使用 `collector.collect()` 方法收集测试用例，并转换为列表。
   * 构建收集报告，统计收集到的测试用例数量，并生成详细的报告信息。
-  * 将收集报告信息记录到日志文件 collect_report.log 中。
-  * 基于收集结果构建并返回一个 pytest.CollectReport 对象。
+  * 将收集报告信息记录到日志文件 `collect_report.log` 中。
+  * 基于收集结果构建并返回一个 `pytest.CollectReport` 对象。
   * 如果收集失败，记录错误信息到日志文件当中。
 
 通过这种方式，我们确保了代码的兼容性和稳定性，并且使用`pytest`推荐的公开方法来完成收集报告，同时详细记录收集过程的日志信息。
@@ -247,32 +247,32 @@ tests/test_example3.py::test_example3 PASSED
 =================================================================================================================== 3 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 14:20 ./
+drwxr-xr-x 5 root root 4096 Sep 18 14:20 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  593 Jun  1 14:20 collect_report.log
--rw-r--r-- 1 root root 1101 Jun  1 14:19 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 14:20 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 10:52 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  1 10:52 tests/
+-rw-r--r-- 1 root root  593 Sep 18 14:20 collect_report.log
+-rw-r--r-- 1 root root 1101 Sep 18 14:19 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 18 14:20 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 18 10:52 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 18 10:52 tests/
 root@Gavin:~/test/hook# cat collect_report.log 
-2024-06-01 14:20:45,763 - Collected 1 tests from 
+2024-09-18 14:20:45,763 - Collected 1 tests from 
  - .
 
-2024-06-01 14:20:45,764 - Collected 1 tests from .
+2024-09-18 14:20:45,764 - Collected 1 tests from .
  - tests
 
-2024-06-01 14:20:45,765 - Collected 3 tests from tests
+2024-09-18 14:20:45,765 - Collected 3 tests from tests
  - tests/test_example1.py
  - tests/test_example2.py
  - tests/test_example3.py
 
-2024-06-01 14:20:45,766 - Collected 1 tests from tests/test_example1.py
+2024-09-18 14:20:45,766 - Collected 1 tests from tests/test_example1.py
  - tests/test_example1.py::test_example1
 
-2024-06-01 14:20:45,766 - Collected 1 tests from tests/test_example2.py
+2024-09-18 14:20:45,766 - Collected 1 tests from tests/test_example2.py
  - tests/test_example2.py::test_example2
 
-2024-06-01 14:20:45,767 - Collected 1 tests from tests/test_example3.py
+2024-09-18 14:20:45,767 - Collected 1 tests from tests/test_example3.py
  - tests/test_example3.py::test_example3
 
 root@Gavin:~/test/hook#
@@ -332,7 +332,7 @@ def test_example3():
 
 **注释**：
 
-* pytest_make_collect_report 函数
+* `pytest_make_collect_report` 函数
 
   * 使用`collector.collect()`方法收集测试用例，并将结果转换成列表，以便统计和处理。
   * 统计收集到的测试用例数量，并构建和格式化收集报告信息。

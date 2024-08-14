@@ -41,9 +41,9 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     pass
 ```
 
-- `terminalreporter`：TerminalReporter 对象，用于报告终端输出信息。
+- `terminalreporter`：`TerminalReporter` 对象，用于报告终端输出信息。
 - `exitstatus`：测试会话的退出状态，表示测试运行的结果。
-- `config`：pytest 的配置对象，包含有关当前测试会话的所有信息。
+- `config`：`pytest` 的配置对象，包含有关当前测试会话的所有信息。
 
 # 示例代码
 
@@ -644,7 +644,7 @@ root@Gavin:~/test/hook#
     - 将每次测试执行的结果保存下来，例如保存到服务器或数据库中，以便后续做趋势分析，查看测试结果的变化情况。
   
 - **图形报告**：
-    - 使用图表工具（如 Matplotlib、Plotly）根据收集的 JSON 数据生成测试报告的可视化图表，提升数据的直观性。
+    - 使用图表工具（如 `Matplotlib、Plotly`）根据收集的 `JSON` 数据生成测试报告的可视化图表，提升数据的直观性。
   
 - **邮件通知**：
     - 在测试完成后，自动发送测试结果和报告至开发团队，确保所有成员及时收到测试结果。
@@ -659,9 +659,9 @@ root@Gavin:~/test/hook#
 pip install matplotlib
 ```
 
-**调整 `conftest.py` 生成图表**
-
 ## 生成图形报告并保存总结
+
+**调整conftest.py生成图表**
 
 通过进一步扩展，我们将生成测试报告的图形表示，并保存总结信息到 `JSON` 文件。我们将使用 `matplotlib` 库来生成测试结果的图表。
 
@@ -861,7 +861,7 @@ root@Gavin:~/test/hook# cat test_summary_report.json
    - 使用 `matplotlib` 生成测试结果分布的饼图，直观展示通过、失败和跳过的测试用例比例。
 
 3. **输出到文件**：
-   - 将测试总结信息和失败原因保存到 JSON 文件中，便于后续分析和报告生成。
+   - 将测试总结信息和失败原因保存到 `JSON` 文件中，便于后续分析和报告生成。
 
 # 总结
 

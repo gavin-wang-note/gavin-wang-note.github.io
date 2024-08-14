@@ -182,16 +182,16 @@ tests/test_example.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 08:56 ./
+drwxr-xr-x 5 root root 4096 Sep 26 08:56 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  271 Jun  3 08:56 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 08:56 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 08:56 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  3 08:56 tests/
--rw-r--r-- 1 root root  274 Jun  3 08:56 test_start.log
+-rw-r--r-- 1 root root  271 Sep 26 08:56 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 26 08:56 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 26 08:56 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 26 08:56 tests/
+-rw-r--r-- 1 root root  274 Sep 26 08:56 test_start.log
 root@Gavin:~/test/hook# cat test_start.log 
-2024-06-03 08:56:45,882 - Starting test: tests/test_example.py::test_example1 at location: ('tests/test_example.py', 0, 'test_example1')
-2024-06-03 08:56:45,901 - Starting test: tests/test_example.py::test_example2 at location: ('tests/test_example.py', 3, 'test_example2')
+2024-09-26 08:56:45,882 - Starting test: tests/test_example.py::test_example1 at location: ('tests/test_example.py', 0, 'test_example1')
+2024-09-26 08:56:45,901 - Starting test: tests/test_example.py::test_example2 at location: ('tests/test_example.py', 3, 'test_example2')
 root@Gavin:~/test/hook# 
 ```
 
@@ -216,12 +216,12 @@ PASSED
 =================================================================================================================== 1 passed in 0.03s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 24
-drwxr-xr-x 5 root root 4096 Jun  3 08:58 ./
+drwxr-xr-x 5 root root 4096 Sep 26 08:58 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  213 Jun  3 08:57 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 08:58 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 08:58 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  3 08:58 tests/
+-rw-r--r-- 1 root root  213 Sep 26 08:57 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 26 08:58 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 26 08:58 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Sep 26 08:58 tests/
 root@Gavin:~/test/hook#
 ```
 
@@ -261,10 +261,10 @@ root@Gavin:~/test/hook#
 ### 确保钩子正确触发的步骤
 
 1. **检查 pytest 版本**
-   - 确保使用的是支持 `pytest_runtest_logstart` 钩子的 pytest 版本。
+   - 确保使用的是支持 `pytest_runtest_logstart` 钩子的 `pytest` 版本。
 
 2. **正确的目录结构和文件内容**
-   - 确保 `conftest.py` 文件位于项目根目录，测试文件如 `test_example.py` 放在 `tests` 目录内且符合 pytest 命名规则。
+   - 确保 `conftest.py` 文件位于项目根目录，测试文件如 `test_example.py` 放在 `tests` 目录内且符合 `pytest` 命名规则。
 
 3. **清理 pytest 缓存**
    - 通过 `pytest --cache-clear` 清理缓存，确保使用最新代码和配置。

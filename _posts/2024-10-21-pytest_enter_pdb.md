@@ -37,8 +37,8 @@ def pytest_enter_pdb(config: "Config", pdb: "pdb.Pdb") -> None:
     """
 ```
 
-- `config`：pytest 配置对象，包含当前 pytest 会话的配置信息。
-- `pdb`：Pdb 类实例，用于控制调试器的行为。
+- `config`：`pytest` 配置对象，包含当前 `pytest` 会话的配置信息。
+- `pdb`：`Pdb` 类实例，用于控制调试器的行为。
 
 # 使用场景
 
@@ -246,7 +246,7 @@ root@Gavin:~/test/hook#
 
 ```shell
 root@Gavin:~/test/hook# cat debug_events.log 
-2024-06-05 17:27:54,054 - INFO - Entering PDB for test: pluggy._callers at 2024-06-05 17:27:54.054009
+2024-10-21 17:27:54,054 - INFO - Entering PDB for test: pluggy._callers at 2024-10-21 17:27:54.054009
 root@Gavin:~/test/hook#
 ```
 

@@ -42,4 +42,4 @@ def pytest_cmdline_preparse(config: "Config", args: List[str]) -> None:
 ```
 
 
-此`hook`已经被其他`hook pytest_load_initial_conftests`所代替，这里就不介绍它了，后面后文章专门介绍`pytest_load_initial_conftests`。
+此`hook`已经被其他`hook pytest_load_initial_conftests`所代替，这里就不介绍它了，后面将有文章专门介绍`pytest_load_initial_conftests`。

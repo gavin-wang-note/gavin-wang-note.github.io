@@ -235,18 +235,18 @@ PASSED
 =================================================================================================================== 2 passed in 2.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 09:30 ./
+drwxr-xr-x 5 root root 4096 Sep 29 09:30 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  441 Jun  3 09:30 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 09:30 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 09:21 .pytest_cache/
--rw-r--r-- 1 root root  314 Jun  3 09:30 test_calls.log
-drwxr-xr-x 3 root root 4096 Jun  3 09:29 tests/
+-rw-r--r-- 1 root root  441 Sep 29 09:30 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 29 09:30 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 29 09:21 .pytest_cache/
+-rw-r--r-- 1 root root  314 Sep 29 09:30 test_calls.log
+drwxr-xr-x 3 root root 4096 Sep 29 09:29 tests/
 root@Gavin:~/test/hook# cat test_calls.log 
-2024-06-03 09:30:10,574 - Executing test: tests/test_example.py::test_example1
-2024-06-03 09:30:11,575 - Finished test: tests/test_example.py::test_example1
-2024-06-03 09:30:12,581 - Executing test: tests/test_example.py::test_example2
-2024-06-03 09:30:12,581 - Finished test: tests/test_example.py::test_example2
+2024-09-29 09:30:10,574 - Executing test: tests/test_example.py::test_example1
+2024-09-29 09:30:11,575 - Finished test: tests/test_example.py::test_example1
+2024-09-29 09:30:12,581 - Executing test: tests/test_example.py::test_example2
+2024-09-29 09:30:12,581 - Finished test: tests/test_example.py::test_example2
 root@Gavin:~/test/hook# 
 ```
 
@@ -289,10 +289,10 @@ root@Gavin:~/test/hook#
 ### 确保钩子正确触发的步骤
 
 1. **检查 pytest 版本**
-   - 确保使用的是支持 `pytest_runtest_call` 钩子的 pytest 版本。
+   - 确保使用的是支持 `pytest_runtest_call` 钩子的 `pytest` 版本。
 
 2. **正确的目录结构和文件内容**
-   - 确保 `conftest.py` 文件位于项目根目录，测试文件如 `test_example.py` 放在 `tests` 目录你且符合 pytest 命名规则。
+   - 确保 `conftest.py` 文件位于项目根目录，测试文件如 `test_example.py` 放在 `tests` 目录你且符合 `pytest` 命名规则。
 
 3. **清理 pytest 缓存**
    - 通过 `pytest --cache-clear` 清理缓存，确保使用最新代码和配置。

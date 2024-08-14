@@ -35,12 +35,12 @@ tags:
 
 # 参数
 
-* plugin: 被注册的插件实例(The plugin module or instance.)
-* manager: 管理所有插件注册和调用的插件管理器实例(pytest.PytestPluginManager manager: pytest plugin manager.)
+* `plugin`: 被注册的插件实例(`The plugin module or instance.`)
+* `manager`: 管理所有插件注册和调用的插件管理器实例(`pytest.PytestPluginManager manager: pytest plugin manager.`)
 
 **note::**
 
-This hook is incompatible with `hookwrapper=True`.
+`This hook is incompatible with hookwrapper=True`.
 
 
 # 示例代码

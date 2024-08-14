@@ -195,7 +195,7 @@ root@Gavin:~/test/hook#
 
 **说明：**
 - 通过 `pytest_collect_file` 钩子，根据文件后缀判断文件类型，并返回相应的收集器。
-- `.py` 文件使用默认的 Python 收集器，而 `.txt` 文件使用自定义的 `TxtFile` 收集器。
+- `.py` 文件使用默认的 `Python` 收集器，而 `.txt` 文件使用自定义的 `TxtFile` 收集器。
 
 ## 案例三：基于文件名模式进行条件性收集
 
@@ -232,10 +232,10 @@ def test_example():
 ```shell
 root@Gavin:~/test/hook# ls -l tests/
 total 16
-drwxr-xr-x 2 root root 4096 May 31 17:55 __pycache__
--rw-r--r-- 1 root root   42 May 31 17:54 test_example.py
--rw-r--r-- 1 root root   41 May 31 17:32 test_example.txt
--rw-r--r-- 1 root root   42 May 31 17:56 test_ignore.py
+drwxr-xr-x 2 root root 4096 Sep 13 17:55 __pycache__
+-rw-r--r-- 1 root root   42 Sep 13 17:54 test_example.py
+-rw-r--r-- 1 root root   41 Sep 13 17:32 test_example.txt
+-rw-r--r-- 1 root root   42 Sep 13 17:56 test_ignore.py
 root@Gavin:~/test/hook# pytest -s -v
 ================================================================================================================== test session starts ==================================================================================================================
 platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3

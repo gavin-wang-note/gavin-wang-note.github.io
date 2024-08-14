@@ -39,8 +39,8 @@ def pytest_leave_pdb(config: "Config", pdb: "pdb.Pdb") -> None:
     """
 ```
 
-- `config`：pytest 配置对象，包含当前 pytest 会话的配置信息。
-- `pdb`：Pdb 类实例，用于控制调试器的行为。
+- `config`：`pytest` 配置对象，包含当前 `pytest` 会话的配置信息。
+- `pdb`：`Pdb` 类实例，用于控制调试器的行为。
 
 # 使用场景
 
@@ -198,16 +198,16 @@ FAILED tests/test_example.py::test_division_by_zero - ZeroDivisionError: divisio
 ============================================================================================================== 1 failed, 2 passed in 4.80s ==============================================================================================================
 root@Gavin:~/test/hook# ll
 total 32
-drwxr-xr-x 5 root root 4096 Jun  5 17:55 ./
-drwxr-xr-x 6 root root 4096 Jun  4 18:49 ../
--rw-r--r-- 1 root root  496 Jun  5 11:12 clear_pyc.py
--rw-r--r-- 1 root root  500 Jun  5 17:54 conftest.py
--rw-r--r-- 1 root root   98 Jun  5 17:55 debug_events.log
-drwxr-xr-x 2 root root 4096 Jun  5 17:55 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  5 17:55 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  5 17:55 tests/
+drwxr-xr-x 5 root root 4096 Oct  22 17:55 ./
+drwxr-xr-x 6 root root 4096 Oct  21 18:49 ../
+-rw-r--r-- 1 root root  496 Oct  22 11:12 clear_pyc.py
+-rw-r--r-- 1 root root  500 Oct  22 17:54 conftest.py
+-rw-r--r-- 1 root root   98 Oct  22 17:55 debug_events.log
+drwxr-xr-x 2 root root 4096 Oct  22 17:55 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  22 17:55 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  22 17:55 tests/
 root@Gavin:~/test/hook# cat debug_events.log 
-2024-06-05 17:55:43,394 - INFO - Leaving PDB for test: test_example at 2024-06-05 17:55:43.394565
+2024-10-22 17:55:43,394 - INFO - Leaving PDB for test: test_example at 2024-10-22 17:55:43.394565
 root@Gavin:~/test/hook# 
 ```
 

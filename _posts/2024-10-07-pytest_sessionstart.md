@@ -88,11 +88,11 @@ def test_example2(db_connection):
 
 **注释**：
 - 在 `pytest_sessionstart` 钩子函数中，创建一个全局的数据库连接，并在会话对象中存储该连接。
-- 通过 `db_connection` fixture 提供该数据库连接，以便测试用例使用。
+- 通过 `db_connection fixture` 提供该数据库连接，以便测试用例使用。
 
 ## 案例二：启动服务
 
-目标：在测试会话开始时启动一些必要的服务，如 web 服务器、后台任务进程等。
+目标：在测试会话开始时启动一些必要的服务，如 `web` 服务器、后台任务进程等。
 
 步骤：
 1. 使用 `pytest_sessionstart` 钩子函数。
@@ -230,7 +230,7 @@ pytest -s -v --cache-clear
 
 ### 验证输出信息
 
-根据不同的案例，控制台、日志文件和环境变量应包含自定义逻辑的结果，如数据库连接的初始化日志、web 服务器的启动和终止日志、环境变量的设置及其值、会话开始和结束日志等。
+根据不同的案例，控制台、日志文件和环境变量应包含自定义逻辑的结果，如数据库连接的初始化日志、`web` 服务器的启动和终止日志、环境变量的设置及其值、会话开始和结束日志等。
 
 **案例一：全局初始化**
 
@@ -326,27 +326,27 @@ tests/test_example.py::test_example PASSED
 =================================================================================================================== 1 passed in 0.03s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 23:00 ./
+drwxr-xr-x 5 root root 4096 Oct  7 23:00 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  779 Jun  3 23:00 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 23:00 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 22:45 .pytest_cache/
--rw-r--r-- 1 root root  667 Jun  3 23:00 session.log
-drwxr-xr-x 3 root root 4096 Jun  3 22:58 tests/
+-rw-r--r-- 1 root root  779 Oct  7 23:00 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  7 23:00 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  7 22:45 .pytest_cache/
+-rw-r--r-- 1 root root  667 Oct  7 23:00 session.log
+drwxr-xr-x 3 root root 4096 Oct  7 22:58 tests/
 root@Gavin:~/test/hook# cat session.log 
-2024-06-03 22:58:07,725 - Test session started.
-2024-06-03 22:58:07,725 - Start time: 2024-06-03 22:58:07
-2024-06-03 22:58:07,725 - pytest version: 8.0.2
-2024-06-03 22:58:36,644 - Test session started.
-2024-06-03 22:58:36,644 - Start time: 2024-06-03 22:58:36
-2024-06-03 22:58:36,644 - pytest version: 8.0.2
-2024-06-03 23:00:56,983 - Test session started.
-2024-06-03 23:00:56,984 - Start time: 2024-06-03 23:00:56
-2024-06-03 23:00:56,984 - pytest version: 8.0.2
-2024-06-03 23:00:56,984 - Python version: /usr/bin/python3
-2024-06-03 23:00:57,024 - Test session finished.
-2024-06-03 23:00:57,024 - End time: 2024-06-03 23:00:57
-2024-06-03 23:00:57,024 - Exit status: 0
+2024-10-07 22:58:07,725 - Test session started.
+2024-10-07 22:58:07,725 - Start time: 2024-10-07 22:58:07
+2024-10-07 22:58:07,725 - pytest version: 8.0.2
+2024-10-07 22:58:36,644 - Test session started.
+2024-10-07 22:58:36,644 - Start time: 2024-10-07 22:58:36
+2024-10-07 22:58:36,644 - pytest version: 8.0.2
+2024-10-07 23:00:56,983 - Test session started.
+2024-10-07 23:00:56,984 - Start time: 2024-10-07 23:00:56
+2024-10-07 23:00:56,984 - pytest version: 8.0.2
+2024-10-07 23:00:56,984 - Python version: /usr/bin/python3
+2024-10-07 23:00:57,024 - Test session finished.
+2024-10-07 23:00:57,024 - End time: 2024-10-07 23:00:57
+2024-10-07 23:00:57,024 - Exit status: 0
 root@Gavin:~/test/hook#
 ```
 

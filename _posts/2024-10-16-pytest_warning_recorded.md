@@ -37,14 +37,14 @@ tags:
 def pytest_warning_recorded(warning_message, when, nodeid, location):
     # warning_message: 警告消息对象，包含警告的详细信息
     # when: 触发警告的阶段，如'runtest'、'setup'、'teardown'
-    # nodeid: 触发警告的测试节点ID
+    # nodeid: 触发警告的测试节点`ID`
     # location: 警告信息中的位置，如代码所在文件和行号等
     pass
 ```
 
 - `warning_message`：警告消息对象，包含警告的详细信息。
 - `when`：触发警告的阶段，包括 `'runtest', 'setup', 'teardown'` 等。
-- `nodeid`：触发警告的测试节点ID。
+- `nodeid`：触发警告的测试节点`ID`。
 - `location`：警告信息中的位置，如代码所在文件和行号等。
 
 # 示例代码
@@ -84,7 +84,7 @@ def test_warning():
 
 **注释**：
 - 在 `pytest_warning_recorded` 钩子中，将警告的详细信息记录到 `warnings.log` 文件中。
-- 警告详细信息包括：触发阶段、测试节点ID、位置、消息、类别、文件和行号。
+- 警告详细信息包括：触发阶段、测试节点`ID`、位置、消息、类别、文件和行号。
 
 **运行效果**：
 
@@ -112,13 +112,13 @@ tests/test_example.py::test_warning
 ============================================================================================================= 1 passed, 1 warning in 0.03s ==============================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  4 19:41 ./
-drwxr-xr-x 6 root root 4096 Jun  4 18:49 ../
--rw-r--r-- 1 root root  472 Jun  4 19:41 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  4 19:41 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 19:41 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  4 19:41 tests/
--rw-r--r-- 1 root root  200 Jun  4 19:41 warnings.log
+drwxr-xr-x 5 root root 4096 Oct  16 19:41 ./
+drwxr-xr-x 6 root root 4096 Oct  16 18:49 ../
+-rw-r--r-- 1 root root  472 Oct  16 19:41 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  16 19:41 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 tests/
+-rw-r--r-- 1 root root  200 Oct  16 19:41 warnings.log
 root@Gavin:~/test/hook# cat warnings.log 
 runtest - tests/test_example.py::test_warning - None
 Message: This is a test warning
@@ -199,13 +199,13 @@ tests/test_example.py::test_warning
 ============================================================================================================= 1 passed, 2 warnings in 0.03s =============================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  4 19:43 ./
-drwxr-xr-x 6 root root 4096 Jun  4 18:49 ../
--rw-r--r-- 1 root root  589 Jun  4 19:43 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  4 19:43 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 19:41 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  4 19:43 tests/
--rw-r--r-- 1 root root  200 Jun  4 19:43 warnings.log
+drwxr-xr-x 5 root root 4096 Oct  16 19:43 ./
+drwxr-xr-x 6 root root 4096 Oct  16 18:49 ../
+-rw-r--r-- 1 root root  589 Oct  16 19:43 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  16 19:43 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  16 19:43 tests/
+-rw-r--r-- 1 root root  200 Oct  16 19:43 warnings.log
 root@Gavin:~/test/hook# cat warnings.log 
 runtest - tests/test_example.py::test_warning - None
 Message: This is a test warning
@@ -339,11 +339,11 @@ INTERNALERROR> Failed: UserWarning as Error: This is a test warning
 ============================================================================================================= 1 passed, 1 warning in 0.04s ==============================================================================================================
 root@Gavin:~/test/hook#
 root@Gavin:~/test/hook# cat warnings.log 
-2024-06-04 19:44:59,297 - runtest - tests/test_example.py::test_warning - None
-2024-06-04 19:44:59,297 - Message: This is a test warning
-2024-06-04 19:44:59,297 - Category: UserWarning
-2024-06-04 19:44:59,297 - File: /root/test/hook/tests/test_example.py
-2024-06-04 19:44:59,297 - Line: 4
+2024-10-16 19:44:59,297 - runtest - tests/test_example.py::test_warning - None
+2024-10-16 19:44:59,297 - Message: This is a test warning
+2024-10-16 19:44:59,297 - Category: UserWarning
+2024-10-16 19:44:59,297 - File: /root/test/hook/tests/test_example.py
+2024-10-16 19:44:59,297 - Line: 4
 root@Gavin:~/test/hook# 
 ```
 
@@ -384,7 +384,7 @@ def test_warning():
 
 **注释**：
 - 在 `pytest_warning_recorded` 钩子中，将警告的详细信息记录到日志文件 `warnings.log` 中。
-- 使用 Python 的 `logging` 模块记录警告，适用于需要调试和分析的项目。
+- 使用 `Python` 的 `logging` 模块记录警告，适用于需要调试和分析的项目。
 
 
 **运行效果**：
@@ -413,19 +413,19 @@ tests/test_example.py::test_warning
 ============================================================================================================= 1 passed, 1 warning in 0.04s ==============================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  4 19:46 ./
-drwxr-xr-x 6 root root 4096 Jun  4 18:49 ../
--rw-r--r-- 1 root root  554 Jun  4 19:46 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  4 19:46 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  4 19:41 .pytest_cache/
-drwxr-xr-x 3 root root 4096 Jun  4 19:46 tests/
--rw-r--r-- 1 root root  289 Jun  4 19:46 warnings.log
+drwxr-xr-x 5 root root 4096 Oct  16 19:46 ./
+drwxr-xr-x 6 root root 4096 Oct  16 18:49 ../
+-rw-r--r-- 1 root root  554 Oct  16 19:46 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  16 19:46 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  16 19:46 tests/
+-rw-r--r-- 1 root root  289 Oct  16 19:46 warnings.log
 root@Gavin:~/test/hook# cat warnings.log 
-2024-06-04 19:46:59,297 - runtest - tests/test_example.py::test_warning - None
-2024-06-04 19:46:59,297 - Message: This is a test warning
-2024-06-04 19:46:59,297 - Category: UserWarning
-2024-06-04 19:46:59,297 - File: /root/test/hook/tests/test_example.py
-2024-06-04 19:46:59,297 - Line: 4
+2024-10-16 19:46:59,297 - runtest - tests/test_example.py::test_warning - None
+2024-10-16 19:46:59,297 - Message: This is a test warning
+2024-10-16 19:46:59,297 - Category: UserWarning
+2024-10-16 19:46:59,297 - File: /root/test/hook/tests/test_example.py
+2024-10-16 19:46:59,297 - Line: 4
 root@Gavin:~/test/hook# 
 ```
 
@@ -698,7 +698,7 @@ root@Gavin:~/test/hook#
 ### 详细解释和总结
 
 1. **记录和报告警告详情**：
-   - 在 `pytest_warning_recorded` 钩子中记录所有警告信息，包括触发阶段、节点ID、位置、消息、类别、文件和行号。
+   - 在 `pytest_warning_recorded` 钩子中记录所有警告信息，包括触发阶段、节点`ID`、位置、消息、类别、文件和行号。
    - 使用 `pytest.config._test_summary['warnings']` 存储警告信息，以便在测试总结时进行输出。
 
 2. **综合报告生成**：
@@ -710,7 +710,7 @@ root@Gavin:~/test/hook#
    - 在 `pytest_terminal_summary` 钩子中检查是否收集到覆盖率数据，并在终端中输出覆盖率报告。
 
 4. **保存总结为文件**：
-   - 使用 Python 标准库中的 `json` 模块将总结信息保存为 JSON 文件 `test_summary_report.json`。
+   - 使用 Python 标准库中的 `json` 模块将总结信息保存为 `JSON` 文件 `test_summary_report.json`。
    - 使用标准文件操作方法将总结信息保存为文本文件 `test_summary_report.txt`。
 
 # 高级功能示例
@@ -721,7 +721,7 @@ root@Gavin:~/test/hook#
 
 在测试会话结束时，自动发送测试结果和警告详情的电子邮件通知。
 
-**扩展 `conftest.py` 以包括邮件通知功能**
+**扩展conftest.py以包括邮件通知功能**
 
 ```python
 # conftest.py
@@ -908,7 +908,7 @@ def test_skipped():
 pytest -s -v
 ```
 
-控制台输出应包括综合报告，警告详情、测试结果、覆盖率报告，并生成 test_summary_report.json 和 test_summary_report.txt 文件，同时发送电子邮件通知。
+控制台输出应包括综合报告，警告详情、测试结果、覆盖率报告，并生成 `test_summary_report.json` 和 `test_summary_report.txt` 文件，同时发送电子邮件通知。
 
 控制台输出参考：
 
@@ -1002,7 +1002,7 @@ root@Gavin:~/test/hook#
 
 生成的文件：
 
-JSON 文件` test_summary_report.json` 示例:
+`JSON` 文件` test_summary_report.json` 示例:
 
 ```json
 root@Gavin:~/test/hook# cat test_summary_report.json 

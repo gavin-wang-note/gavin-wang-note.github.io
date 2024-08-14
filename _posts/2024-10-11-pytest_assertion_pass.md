@@ -83,7 +83,7 @@ def test_example():
 
 **注意**：
 
-这里有个小知识点，看过我写的《pytest实战指南》的同学，不是是否有印象，在`pytest -h`的输出中，有这么一段内容：
+这里有个小知识点，看过我写的[《pytest实战指南》](https://gavin-wang-note.github.io/2999/12/31/pytest_test_guide_book/)一书的同学，不是是否有印象，在`pytest -h`的输出中，有这么一段内容：
 
 ```shell
 enable_assertion_pass_hook (bool):
@@ -92,7 +92,7 @@ enable_assertion_pass_hook (bool):
 总结下来就两点：
 
 * 需要设置`enable_assertion_pass_hook`为`true`，可在`pytest.ini`中设置
-* 要求在`pytest_assertion_pass hook`中打印(print)或者日志记录(logging)内容，需要先清理掉cache，然后再执行测试代码。
+* 要求在`pytest_assertion_pass hook`中打印(`print`)或者日志记录(`logging`)内容，需要先清理掉`cache`，然后再执行测试代码。
 
 `pytest.ini` 文件内容参考如下：
 
@@ -308,8 +308,8 @@ pytest -s -v --cache-clear
 
 ```plaintext
 root@Gavin:~/test/hook# cat assertion.log 
-2024-06-04 14:07:36,832 - Assertion passed: 1 + 1 == 2 at tests/test_example.py:2
-2024-06-04 14:07:36,832 - Assertion passed: "pytest" in "pytest is fun" at tests/test_example.py:3
+2024-10-11 14:07:36,832 - Assertion passed: 1 + 1 == 2 at tests/test_example.py:2
+2024-10-11 14:07:36,832 - Assertion passed: "pytest" in "pytest is fun" at tests/test_example.py:3
 ```
 
 **案例二：统计信息收集**

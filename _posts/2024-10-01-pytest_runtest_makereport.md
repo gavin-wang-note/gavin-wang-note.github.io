@@ -28,7 +28,7 @@ tags:
 
 1. **添加额外的报告信息**：在生成测试报告时添加额外的信息，例如测试开始和结束时间、日志信息等。
 2. **处理统计数据**：在生成测试报告时处理和记录统计数据，例如通过率、失败率等。
-3. **生成自定义报告**：在生成测试报告时生成自定义格式的报告，例如 HTML 报告、JSON 报告等。
+3. **生成自定义报告**：在生成测试报告时生成自定义格式的报告，例如 `HTML` 报告、`JSON` 报告等。
 
 # 参数
 
@@ -132,7 +132,7 @@ def test_example2():
 
 ## 案例三：生成自定义格式的测试报告
 
-目标：在生成测试报告时生成自定义格式的报告，例如 HTML 报告、JSON 报告等。
+目标：在生成测试报告时生成自定义格式的报告，例如 `HTML` 报告、`JSON` 报告等。
 
 步骤：
 1. 使用 `pytest_runtest_makereport` 钩子函数生成自定义格式的测试报告。
@@ -173,7 +173,7 @@ def test_example2():
 
 **注释**：
 - 在 `pytest_runtest_makereport` 钩子函数中收集每个测试项的结果信息，并记录到 `test_results` 列表中。
-- 在 `pytest_sessionfinish` 钩子函数中生成 JSON 格式的测试报告，并保存到文件中。
+- 在 `pytest_sessionfinish` 钩子函数中生成 `JSON` 格式的测试报告，并保存到文件中。
 
 ## 运行和验证
 
@@ -226,16 +226,16 @@ PASSED
 =================================================================================================================== 2 passed in 1.05s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 13:38 ./
+drwxr-xr-x 5 root root 4096 Oct  1 13:38 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  571 Jun  3 13:37 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 13:38 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 13:38 .pytest_cache/
--rw-r--r-- 1 root root  194 Jun  3 13:38 test_report.log
-drwxr-xr-x 3 root root 4096 Jun  3 13:38 tests/
+-rw-r--r-- 1 root root  571 Oct  1 13:37 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  1 13:38 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  1 13:38 .pytest_cache/
+-rw-r--r-- 1 root root  194 Oct  1 13:38 test_report.log
+drwxr-xr-x 3 root root 4096 Oct  1 13:38 tests/
 root@Gavin:~/test/hook# cat test_report.log 
-2024-06-03 13:38:09,878 - Test tests/test_example.py::test_example1 completed in 1.0253 seconds.
-2024-06-03 13:38:09,880 - Test tests/test_example.py::test_example2 completed in 0.0006 seconds.
+2024-10-01 13:38:09,878 - Test tests/test_example.py::test_example1 completed in 1.0253 seconds.
+2024-10-01 13:38:09,880 - Test tests/test_example.py::test_example2 completed in 0.0006 seconds.
 root@Gavin:~/test/hook#
 ```
 
@@ -296,13 +296,13 @@ tests/test_example.py::test_example2 PASSEDGenerated JSON report with 2 test res
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  3 13:41 ./
+drwxr-xr-x 5 root root 4096 Oct  1 13:41 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  587 Jun  3 13:41 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  3 13:41 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  3 13:41 .pytest_cache/
--rw-r--r-- 1 root root  279 Jun  3 13:41 test_report.json
-drwxr-xr-x 3 root root 4096 Jun  3 13:40 tests/
+-rw-r--r-- 1 root root  587 Oct  1 13:41 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  1 13:41 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  1 13:41 .pytest_cache/
+-rw-r--r-- 1 root root  279 Oct  1 13:41 test_report.json
+drwxr-xr-x 3 root root 4096 Oct  1 13:40 tests/
 ]root@Gavin:~/test/hook#
 ```
 

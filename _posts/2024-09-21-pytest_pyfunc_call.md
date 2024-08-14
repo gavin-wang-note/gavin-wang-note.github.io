@@ -127,18 +127,18 @@ tests/test_example.py::test_example2 PASSED
 =================================================================================================================== 2 passed in 0.04s ===================================================================================================================
 root@Gavin:~/test/hook# ll
 total 28
-drwxr-xr-x 5 root root 4096 Jun  1 16:34 ./
+drwxr-xr-x 5 root root 4096 Sep 21 16:34 ./
 drwxr-xr-x 4 root root 4096 May 30 16:27 ../
--rw-r--r-- 1 root root  756 Jun  1 16:34 conftest.py
-drwxr-xr-x 2 root root 4096 Jun  1 16:34 __pycache__/
-drwxr-xr-x 3 root root 4096 Jun  1 16:34 .pytest_cache/
--rw-r--r-- 1 root root 1126 Jun  1 16:34 test_calls.log
-drwxr-xr-x 3 root root 4096 Jun  1 16:32 tests/
+-rw-r--r-- 1 root root  756 Sep 21 16:34 conftest.py
+drwxr-xr-x 2 root root 4096 Sep 21 16:34 __pycache__/
+drwxr-xr-x 3 root root 4096 Sep 21 16:34 .pytest_cache/
+-rw-r--r-- 1 root root 1126 Sep 21 16:34 test_calls.log
+drwxr-xr-x 3 root root 4096 Sep 21 16:32 tests/
 root@Gavin:~/test/hook# cat test_calls.log 
-2024-06-01 16:34:17,843 - Calling test function: test_example1 with arguments: {'event_loop_policy': <asyncio.unix_events._UnixDefaultEventLoopPolicy object at 0x74b03486dcd0>, 'twisted_greenlet': <greenlet.greenlet object at 0x74b034feb780 (otid=0x(nil)) pending>, '_session_faker': <faker.proxy.Faker object at 0x74b034889c10>, '_verify_url': None, 'sensitive_url': False, 'base_url': '', '_skip_sensitive': None, 'request': <FixtureRequest for <Function test_example1>>}
-2024-06-01 16:34:17,843 - Test function test_example1 finished with result: True
-2024-06-01 16:34:17,845 - Calling test function: test_example2 with arguments: {'event_loop_policy': <asyncio.unix_events._UnixDefaultEventLoopPolicy object at 0x74b03486dcd0>, 'twisted_greenlet': <greenlet.greenlet object at 0x74b034feb780 (otid=0x(nil)) pending>, '_session_faker': <faker.proxy.Faker object at 0x74b034889c10>, '_verify_url': None, 'sensitive_url': False, 'base_url': '', '_skip_sensitive': None, 'a': 2, 'b': 2, 'request': <FixtureRequest for <Function test_example2>>}
-2024-06-01 16:34:17,845 - Test function test_example2 finished with result: True
+2024-09-21 16:34:17,843 - Calling test function: test_example1 with arguments: {'event_loop_policy': <asyncio.unix_events._UnixDefaultEventLoopPolicy object at 0x74b03486dcd0>, 'twisted_greenlet': <greenlet.greenlet object at 0x74b034feb780 (otid=0x(nil)) pending>, '_session_faker': <faker.proxy.Faker object at 0x74b034889c10>, '_verify_url': None, 'sensitive_url': False, 'base_url': '', '_skip_sensitive': None, 'request': <FixtureRequest for <Function test_example1>>}
+2024-09-21 16:34:17,843 - Test function test_example1 finished with result: True
+2024-09-21 16:34:17,845 - Calling test function: test_example2 with arguments: {'event_loop_policy': <asyncio.unix_events._UnixDefaultEventLoopPolicy object at 0x74b03486dcd0>, 'twisted_greenlet': <greenlet.greenlet object at 0x74b034feb780 (otid=0x(nil)) pending>, '_session_faker': <faker.proxy.Faker object at 0x74b034889c10>, '_verify_url': None, 'sensitive_url': False, 'base_url': '', '_skip_sensitive': None, 'a': 2, 'b': 2, 'request': <FixtureRequest for <Function test_example2>>}
+2024-09-21 16:34:17,845 - Test function test_example2 finished with result: True
 root@Gavin:~/test/hook#
 ```
 

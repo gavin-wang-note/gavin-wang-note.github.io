@@ -38,7 +38,7 @@ def pytest_runtestloop(session):
     pass
 ```
 
-- `session`：pytest 的测试会话对象，包含有关当前测试会话的所有信息。
+- `session`：`pytest` 的测试会话对象，包含有关当前测试会话的所有信息。
 
 # 示例代码
 
@@ -321,16 +321,16 @@ root@Gavin:~/test/hook#
 ### 确保钩子正确触发的步骤
 
 1. **检查 pytest 版本**
-   - 确保所使用的是支持 `pytest_runtestloop` 钩子的 pytest 版本。
+   - 确保所使用的是支持 `pytest_runtestloop` 钩子的 `pytest` 版本。
 
 2. **正确的目录结构和文件内容**
-   - 确保 `conftest.py` 文件位于项目根目录，测试文件如 `test_example.py` 放在 `tests` 目录内且符合 pytest 命名规则。
+   - 确保 `conftest.py` 文件位于项目根目录，测试文件如 `test_example.py` 放在 `tests` 目录内且符合 `pytest` 命名规则。
 
 3. **清理 pytest 缓存**
    - 通过 `pytest --cache-clear` 清理缓存，确保使用最新代码和配置。
 
 4. **验证输出**
-   - 运行 pytest 并查看控制台输出，确认自定义逻辑的结果符合预期。
+   - 运行 `pytest` 并查看控制台输出，确认自定义逻辑的结果符合预期。
 
 # 总结
 

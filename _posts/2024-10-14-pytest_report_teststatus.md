@@ -40,8 +40,8 @@ def pytest_report_teststatus(report, config):
     pass
 ```
 
-- `report`：TestReport 对象，包含当前测试用例的结果信息。
-- `config`：pytest 的配置对象，包含有关当前测试会话的所有信息。
+- `report`：`TestReport` 对象，包含当前测试用例的结果信息。
+- `config`：`pytest` 的配置对象，包含有关当前测试会话的所有信息。
 
 # 示例代码
 

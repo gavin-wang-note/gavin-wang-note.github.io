@@ -269,8 +269,8 @@ PASSEDFinished test: tests/test_exampley.py::test_example2 in 0.0005 seconds
 =================================================================================================================== 2 passed in 1.04s ===================================================================================================================
 root@Gavin:~/test/hook# 
 root@Gavin:~/test/hook# cat test_teardown.log 
-2024-06-03 09:38:37,196 - Finished test: tests/test_exampley.py::test_example1 in 1.0207 seconds
-2024-06-03 09:38:37,197 - Finished test: tests/test_exampley.py::test_example2 in 0.0005 seconds
+2024-09-30 09:38:37,196 - Finished test: tests/test_exampley.py::test_example1 in 1.0207 seconds
+2024-09-30 09:38:37,197 - Finished test: tests/test_exampley.py::test_example2 in 0.0005 seconds
 root@Gavin:~/test/hook# 
 ```
 

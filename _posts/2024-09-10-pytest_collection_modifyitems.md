@@ -50,9 +50,9 @@ def pytest_collection_modifyitems(
     """
 ```
 
-* session: 当前`pytest`会话对象，通过这个对象可以访问所有收集到的测试项以及配置。
-* config：`pytest`配置对象，包含了从命令行和`pytest`配置文件中解析出来的选项。
-* items：已经收集到的测试用例列表，每一个元素都是一个`pytest`测试项对象，表示一个具体的测试用例。
+* `session`: 当前`pytest`会话对象，通过这个对象可以访问所有收集到的测试项以及配置。
+* `config`：`pytest`配置对象，包含了从命令行和`pytest`配置文件中解析出来的选项。
+* `items`：已经收集到的测试用例列表，每一个元素都是一个`pytest`测试项对象，表示一个具体的测试用例。
 
 
 # 示例代码

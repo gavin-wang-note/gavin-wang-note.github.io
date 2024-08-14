@@ -278,28 +278,28 @@ FAILED tests/test_example.py::test_custom_fixture - AssertionError: assert 'defa
 FAILED tests/test_example.py::test_division_by_zero - ZeroDivisionError: division by zero
 ============================================================================================================== 2 failed, 2 passed in 0.11s ==============================================================================================================
 root@Gavin:~/test/hook# cat fixtures.log 
-2024-06-05 18:29:44,024 - Setting up fixture: session - event_loop_policy
-2024-06-05 18:29:44,024 - Finished setting up fixture: session - event_loop_policy
-2024-06-05 18:29:44,024 - Setting up fixture: session - twisted_greenlet
-2024-06-05 18:29:44,024 - Finished setting up fixture: session - twisted_greenlet
-2024-06-05 18:29:44,025 - Setting up fixture: session - _session_faker
-2024-06-05 18:29:44,042 - Finished setting up fixture: session - _session_faker
-2024-06-05 18:29:44,042 - Setting up fixture: session - base_url
-2024-06-05 18:29:44,042 - Finished setting up fixture: session - base_url
-2024-06-05 18:29:44,042 - Setting up fixture: session - _verify_url
-2024-06-05 18:29:44,042 - Finished setting up fixture: session - _verify_url
-2024-06-05 18:29:44,042 - Setting up fixture: session - sensitive_url
-2024-06-05 18:29:44,043 - Finished setting up fixture: session - sensitive_url
-2024-06-05 18:29:44,043 - Setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,043 - Finished setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,043 - Setting up fixture: function - dynamic_fixture
-2024-06-05 18:29:44,043 - Finished setting up fixture: function - dynamic_fixture
-2024-06-05 18:29:44,067 - Setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,067 - Finished setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,068 - Setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,068 - Finished setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,069 - Setting up fixture: function - _skip_sensitive
-2024-06-05 18:29:44,069 - Finished setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,024 - Setting up fixture: session - event_loop_policy
+2024-10-04 18:29:44,024 - Finished setting up fixture: session - event_loop_policy
+2024-10-04 18:29:44,024 - Setting up fixture: session - twisted_greenlet
+2024-10-04 18:29:44,024 - Finished setting up fixture: session - twisted_greenlet
+2024-10-04 18:29:44,025 - Setting up fixture: session - _session_faker
+2024-10-04 18:29:44,042 - Finished setting up fixture: session - _session_faker
+2024-10-04 18:29:44,042 - Setting up fixture: session - base_url
+2024-10-04 18:29:44,042 - Finished setting up fixture: session - base_url
+2024-10-04 18:29:44,042 - Setting up fixture: session - _verify_url
+2024-10-04 18:29:44,042 - Finished setting up fixture: session - _verify_url
+2024-10-04 18:29:44,042 - Setting up fixture: session - sensitive_url
+2024-10-04 18:29:44,043 - Finished setting up fixture: session - sensitive_url
+2024-10-04 18:29:44,043 - Setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,043 - Finished setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,043 - Setting up fixture: function - dynamic_fixture
+2024-10-04 18:29:44,043 - Finished setting up fixture: function - dynamic_fixture
+2024-10-04 18:29:44,067 - Setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,067 - Finished setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,068 - Setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,068 - Finished setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,069 - Setting up fixture: function - _skip_sensitive
+2024-10-04 18:29:44,069 - Finished setting up fixture: function - _skip_sensitive
 root@Gavin:~/test/hook#
 ```
 
