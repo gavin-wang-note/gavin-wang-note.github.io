@@ -59,9 +59,9 @@ def test_example(base_url):
 == requests.get(base_url).status_code
 ```
 
-命令行执行的时候加上 --base-url 参数
+命令行执行的时候加上 `--base-url` 参数
 
-pytest --base-url http://www.example.com
+`pytest --base-url http://www.example.com`
 
 此时执行用例被跳过，出现如下信息：
 
@@ -126,8 +126,11 @@ root@Gavin:~/test#
 在`pytest.ini`配置文件中添加`base_url`地址
 
 #### pytest.ini文件内容
+
+```shell
 [pytest]
 base_url = http://www.bing.com
+```
 
 这样在命令行执行时候
 
@@ -236,7 +239,7 @@ pytest --target_url=test
 **说明：**:
 
 1、请事先安装dotenv，安装命令： `pip install pytest-dotenv`
-2、`dotenv`工作的核心是一个名为`.env`的文件。在这个文件中，你可以定义环境变量的键值对，`dotenv`将会读取这些信息并将其加载到Python环境中。这样，当你的应用运行时，这些环境变量就像是被设置在操作系统环境中一样。`.env`内容示例参考如下：
+2、`dotenv`工作的核心是一个名为`.env`的文件。在这个文件中，你可以定义环境变量的键值对，`dotenv`将会读取这些信息并将其加载到`Python`环境中。这样，当你的应用运行时，这些环境变量就像是被设置在操作系统环境中一样。`.env`内容示例参考如下：
 
 ```shell
 DB_HOST=localhost

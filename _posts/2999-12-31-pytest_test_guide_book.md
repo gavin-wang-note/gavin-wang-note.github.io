@@ -1,5 +1,5 @@
 ---
-title: 自己总结的《pytest测试指南》
+title: 自己总结的《pytest测试指南》一书，600余页
 date: 2999-12-31 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-2.png"
@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: 自己总结的《pytest测试指南》一书，超级详细的pytest介绍，以及具体API项目实践和Jenkins CI/CD落地，完整的一套从入门到项目实践的详细记载，值得详细阅读。
+summary: 自己总结的《pytest测试指南》一书，超级详细的pytest介绍，以及具体API项目实践和Jenkins CI落地，完整的一套从入门到项目实践的详细记载，值得详细阅读。
 categories:
     - [pytest]
     - [Automation]

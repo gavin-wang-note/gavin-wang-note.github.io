@@ -23,7 +23,7 @@ tags:
 
 # 概述
 
-如何让pytest用例执行过程中产生的日志按预期要求命名？
+如何让`pytest`用例执行过程中产生的日志按预期要求命名？
 
 比如按天：`pytest_log_2024_08_17.log`(pytest_log_年_月_日.log)
 
@@ -68,7 +68,7 @@ pytest --log-file=pytest_log_$timestamp.log
 
 如果不想在运行测试时每次都手动输入日期和时间，另一个方案是使用环境变量结合`conftest.py`文件来管理这个过程。
 
-设置环境变量并运行pytest
+设置环境变量并运行`pytest`
 
 在`Unix-like`系统:
 
@@ -85,7 +85,7 @@ pytest
 ```
 
 
-conftest.py文件中使用环境变量
+`conftest.py`文件中使用环境变量
 
 ```python
 # Content of conftest.py
@@ -100,10 +100,10 @@ def pytest_configure(config):
     config.option.log_file = log_name
 ```
 
-这种方式依赖于一个名为PYTEST_LOG_NAME的环境变量，你可以在运行测试之前设置它。
+这种方式依赖于一个名为`PYTEST_LOG_NAME`的环境变量，你可以在运行测试之前设置它。
 
 
-Windows下运行效果如下：
+`Windows`下运行效果如下：
 
 ```shell
 D:\test>set PYTEST_LOG_NAME=pytest_log_%date:~0,4%_%date:~5,2%_%date:~8,2%_%time:~0,2%_%time:~3,2%_%time:~6,2%.log
@@ -159,7 +159,7 @@ def pytest_configure(config):
     # config.option.log_file = f'pytest_log_{date_time_str}.log'
 ```
 
-Windows下运行效果如下：
+`Windows`下运行效果如下：
 
 ```shell
 D:\test>dir
@@ -179,7 +179,6 @@ D:\test>dir
 
 D:\test>
 ```
-
 
 通过在`conftest.py`中设置`config.option.log_file`，你可以动态地设置日志文件的路径和名称。根据你的需要，你可以选择使用包含日期的版本或包含日期和时间的版本。
 
