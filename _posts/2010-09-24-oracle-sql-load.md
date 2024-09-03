@@ -118,5 +118,5 @@ datatype
 
 # SQL*Loader示例
 
-详见博文：《Excel数据导入到oracle数据库中》一文中提供的方法一：SQL*Loader 中描述信息。
+详见博文：[Excel数据导入到oracle数据库中](https://gavin-wang-note.github.io/2010/06/03/import_excel_data_to_oracle/)一文中提供的方法一：SQL*Loader 中描述信息。
 
