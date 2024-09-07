@@ -17,6 +17,7 @@ tags:
 
 现在把PPT截图放出来，做了关键信息的屏蔽处理，望见谅~
 
+原代码已经遗失，无法找回了，只有这一个PPT档了，想下载原始PPT的，可透过如下link下载：https://github.com/gavin-wang-note/Upgrade-data-comparison
 
 # MMSG QCC auto upgrade 评审胶片
 

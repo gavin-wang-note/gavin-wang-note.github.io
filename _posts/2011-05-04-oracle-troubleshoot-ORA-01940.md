@@ -70,7 +70,7 @@ alter system kill session'530,44970';
 
 3、查询session信息确定该session是否被kill
 
-```
+```shell
 select saddr,sid,serial#,paddr,username,status from v$session where username is not null and username ='UFUSER';
 ```
 
