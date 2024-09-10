@@ -3,7 +3,7 @@ title: pytest hook逐一详解
 date: 2999-12-30 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-16.png"
-top: false
+top: True
 hide: false
 cover: false
 coverImg:
@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: pytest hook逐一详解
+summary: 在深入研究pytest 8.0.2版本的基础上，我精心编纂了一份全面的指南，涵盖了52个pytest钩子（hook）的功能和实际应用。无论你是测试领域的新手还是资深专家，本篇综合总览将为你提供一个详尽的参考，让你对pytest钩子的理解和运用游刃有余。只需阅读本系列文章，即可一网打尽所有关键信息。
 categories:
     - [pytest]
     - [Automation]

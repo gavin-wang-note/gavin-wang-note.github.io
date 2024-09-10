@@ -1,5 +1,5 @@
 ---
-title: 自己总结的《pytest测试指南》一书，600余页
+title: 自己总结的《pytest测试指南》一书，800余页
 date: 2999-12-31 23:00:00
 author: Gavin Wang
 img: "/img/pytest/pytest-2.png"
@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: 自己总结的《pytest测试指南》一书，超级详细的pytest介绍，以及具体API项目实践和Jenkins CI落地，完整的一套从入门到项目实践的详细记载，值得详细阅读。
+summary: 历经十八个月的辛勤耕耘，一部800余页的《pytest测试指南》完稿。本书不仅提供了pytest的全面介绍，更深入细致地探讨了具体的API项目实践。此外，书中还详尽阐述了如何将pytest与Jenkins相结合，以实现持续集成（CI）的完美落地。这是一部从基础入门到实际项目应用的完整手册，每一页都凝聚了我的心血，每一章节都经过精心雕琢。对于渴望深入掌握pytest的读者而言，本书无疑是一份不可多得的宝贵资源，值得细细品读。 
 categories:
     - [pytest]
     - [Automation]
@@ -79,7 +79,7 @@ tags:
 
 # 其他
 
-对于`pytest hook`的详细介绍与应用，敬请期待我的另外一篇汇总博文，将分门别类的详细介绍各个`hook`的使用场景和案例。
+对于`pytest hook`的详细介绍与应用，敬请期待我的另外一篇汇总博文(预计2024年10月底释出)，将分门别类的详细介绍各个`hook`的使用场景和案例。
 
 
 # 目录结构
