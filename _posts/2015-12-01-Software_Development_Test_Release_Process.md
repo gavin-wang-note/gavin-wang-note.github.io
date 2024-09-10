@@ -7,14 +7,14 @@ top: false
 hide: false
 cover: false
 coverImg:
-password: "meipian"
+password:
 toc: true
 mathjax: false
 summary: 本文介绍一下软件开发测试的基本流程，各家公司大同小异
 categories:
-    - [测试]
+    - [测试基础知识]
 tags:
-    - 测试
+    - 测试基础知识
 ---
 
 

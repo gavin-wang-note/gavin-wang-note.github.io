@@ -7,14 +7,14 @@ top: false
 hide: false
 cover: false
 coverImg:
-password: "meipian"
+password:
 toc: true
 mathjax: false
 summary: 压力测试、负载测试、性能测试的区别
 categories:
-    - [测试]
+    - [测试基础知识]
 tags:
-    - 测试
+    - 测试基础知识
 ---
 
 下面是使用Markdown格式的表格，描述压力测试、负载测试和性能测试的区别：

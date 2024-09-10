@@ -1,11 +1,11 @@
 ---
 layout:     post
-title:      "基于Cobbler自动部署OS与使用指南"
+title:      "基于Cobbler二次开发，实现自动安装ISO文件部署OS"
 subtitle:   "Cobbler-based automatic install OS and usage guide"
 date:       2020-10-09
 author:     "Gavin Wang"
 catalog:    true
-summary: "使用Cobbler自动部署OS与使用指南"
+summary: "基于Cobbler二次开发，实现自动获取ISO文件和部署不同类型的Linux OS"
 top: true
 categories:
     - [cobbler]

@@ -7,14 +7,14 @@ top: false
 hide: false
 cover: false
 coverImg:
-password: "meipian"
+password:
 toc: true
 mathjax: false
 summary: 测试人员如何保障项目质量？
 categories:
-    - [测试]
+    - [测试基础知识]
 tags:
-    - 测试
+    - 测试基础知识
 ---
 
 

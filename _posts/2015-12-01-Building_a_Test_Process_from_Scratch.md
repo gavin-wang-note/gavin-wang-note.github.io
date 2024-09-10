@@ -7,14 +7,14 @@ top: false
 hide: false
 cover: false
 coverImg:
-password: "meipian"
+password:
 toc: true
 mathjax: false
 summary: 本文介绍如何从0到1构建测试流程
 categories:
-    - [测试]
+    - [测试基础知识]
 tags:
-    - 测试
+    - 测试基础知识
 ---
 
 # 概述
