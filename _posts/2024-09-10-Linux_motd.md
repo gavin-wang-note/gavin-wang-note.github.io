@@ -68,9 +68,9 @@ root@Gavin:/etc/update-motd.d#
 
 # 过程
 
-接下来我们介绍一下`Ubuntu23`的`motd`，在登录的时候，它执行了哪些脚本？
+接下来介绍一下`Ubuntu23`的`motd`，在登录的时候，它执行了哪些脚本？
 
-安装上面图的显示顺序，执行过程参考如下：
+按照上面图的显示顺序，执行过程参考如下：
 
 ```shell
 root@Gavin:/etc/update-motd.d# ./00-header 
