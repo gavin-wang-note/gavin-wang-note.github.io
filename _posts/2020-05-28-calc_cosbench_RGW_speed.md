@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
 `write_json_data_for_esrally.py`
 
-```
+```python
 #!/usr/bin/env python
 
 import os
@@ -274,7 +274,7 @@ if __name__ == '__main__':
 
 cosbench.sh
 
-```
+```shell
 #!/bin/bash
 
 INFILE=roundN_10K_10Mfiles_Write.xml.in
