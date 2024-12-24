@@ -1,0 +1,2451 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="pytest hook系列之pytest_warning_recorded, 软硬件测试">
+    <meta name="description" content="pytest hook之pytest_warning_recorded">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>pytest hook系列之pytest_warning_recorded | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-20.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">pytest hook系列之pytest_warning_recorded</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-10-16
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    8k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    44 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest_warning_recorded</code> 是 <code>Pytest</code>框架中的一个钩子函数，用于记录和处理测试过程中发出的警告信息。通过这个钩子函数，我们可以在测试过程中拦截、记录和处理警告，甚至是过滤特定类型的警告，不仅提高了调试的灵活性，也增强了测试报告的准确性。</p>
+<h1 id="shi-yong-chang-jing">使用场景</h1>
+<ol>
+<li class="lvl-3">
+<p><strong>记录警告详情</strong>：在测试日志或报告中记录所有发出的警告，包括警告消息、级别、触发位置等。</p>
+</li>
+<li class="lvl-3">
+<p><strong>过滤特定警告</strong>：对特定类型的警告进行捕获和过滤，避免测试报告中充斥过多无关紧要的警告信息。</p>
+</li>
+<li class="lvl-3">
+<p><strong>调整警告级别</strong>：根据开发需求，将某些警告的级别调整为错误或忽略，确保测试结果的准确性。</p>
+</li>
+<li class="lvl-3">
+<p><strong>调试和分析</strong>：通过拦截和记录警告，分析程序中的潜在问题并进行调试。</p>
+</li>
+</ol>
+<h1 id="can-shu">参数</h1>
+<pre><code class="language-python">def pytest_warning_recorded(warning_message, when, nodeid, location):
+    # warning_message: 警告消息对象，包含警告的详细信息
+    # when: 触发警告的阶段，如'runtest'、'setup'、'teardown'
+    # nodeid: 触发警告的测试节点`ID`
+    # location: 警告信息中的位置，如代码所在文件和行号等
+    pass
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>warning_message</code>：警告消息对象，包含警告的详细信息。</p>
+</li>
+<li class="lvl-2">
+<p><code>when</code>：触发警告的阶段，包括 <code>'runtest', 'setup', 'teardown'</code> 等。</p>
+</li>
+<li class="lvl-2">
+<p><code>nodeid</code>：触发警告的测试节点<code>ID</code>。</p>
+</li>
+<li class="lvl-2">
+<p><code>location</code>：警告信息中的位置，如代码所在文件和行号等。</p>
+</li>
+</ul>
+<h1 id="shi-li-dai-ma">示例代码</h1>
+<h2 id="an-li-yi-ji-lu-jing-gao-xiang-qing">案例一：记录警告详情</h2>
+<p>目标：在测试日志或报告中记录所有发出的警告，包括警告消息、级别、触发位置等。</p>
+<p>步骤：</p>
+<ol>
+<li class="lvl-3">
+<p>使用 <code>pytest_warning_recorded</code> 钩子函数。</p>
+</li>
+<li class="lvl-3">
+<p>在钩子函数中插入警告记录代码。</p>
+</li>
+</ol>
+<p>示例代码：</p>
+<pre><code class="language-python"># conftest.py
+import pytest
+
+def pytest_warning_recorded(warning_message, when, nodeid, location):
+    """记录警告详情"""
+    with open('warnings.log', 'a') as f:
+        f.write(f"{when} - {nodeid} - {location}\n")
+        f.write(f"Message: {warning_message.message}\n")
+        f.write(f"Category: {warning_message.category.__name__}\n")
+        f.write(f"File: {warning_message.filename}\n")
+        f.write(f"Line: {warning_message.lineno}\n")
+        f.write("="*40 + "\n")
+
+# 示例测试文件 tests/test_warnings.py
+
+import warnings
+
+def test_warning():
+    warnings.warn("This is a test warning", UserWarning)
+    assert True
+</code></pre>
+<p><strong>注释</strong>：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 <code>pytest_warning_recorded</code> 钩子中，将警告的详细信息记录到 <code>warnings.log</code> 文件中。</p>
+</li>
+<li class="lvl-2">
+<p>警告详细信息包括：触发阶段、测试节点<code>ID</code>、位置、消息、类别、文件和行号。</p>
+</li>
+</ul>
+<p><strong>运行效果</strong>：</p>
+<pre><code class="language-shell">root@Gavin:~/test/hook# pytest -s -v
+================================================================================================================== test session starts ==================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-35-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'dotenv': '0.5.2', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/test/hook
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, dotenv-0.5.2, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collected 1 item                                                                                                                                                                                                                                        
+
+tests/test_example.py::test_warning PASSED
+
+=================================================================================================================== warnings summary ====================================================================================================================
+tests/test_example.py::test_warning
+  /root/test/hook/tests/test_example.py:4: UserWarning: This is a test warning
+    warnings.warn("This is a test warning", UserWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================================================= 1 passed, 1 warning in 0.03s ==============================================================================================================
+root@Gavin:~/test/hook# ll
+total 28
+drwxr-xr-x 5 root root 4096 Oct  16 19:41 ./
+drwxr-xr-x 6 root root 4096 Oct  16 18:49 ../
+-rw-r--r-- 1 root root  472 Oct  16 19:41 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  16 19:41 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 tests/
+-rw-r--r-- 1 root root  200 Oct  16 19:41 warnings.log
+root@Gavin:~/test/hook# cat warnings.log 
+runtest - tests/test_example.py::test_warning - None
+Message: This is a test warning
+Category: UserWarning
+File: /root/test/hook/tests/test_example.py
+Line: 4
+========================================
+root@Gavin:~/test/hook#
+</code></pre>
+<h2 id="an-li-er-guo-lu-te-ding-jing-gao">案例二：过滤特定警告</h2>
+<p>目标：对特定类型的警告进行捕获和过滤，避免测试报告中充斥过多无关紧要的警告信息。</p>
+<p>步骤：</p>
+<ol>
+<li class="lvl-3">
+<p>使用 <code>pytest_warning_recorded</code> 钩子函数。</p>
+</li>
+<li class="lvl-3">
+<p>在钩子函数中插入警告过滤代码。</p>
+</li>
+</ol>
+<p>示例代码：</p>
+<pre><code class="language-python"># conftest.py
+import pytest
+
+def pytest_warning_recorded(warning_message, when, nodeid, location):
+    """过滤特定类型的警告"""
+    if warning_message.category == DeprecationWarning:
+        # 忽略特定类型的警告
+        return
+    with open('warnings.log', 'a') as f:
+        f.write(f"{when} - {nodeid} - {location}\n")
+        f.write(f"Message: {warning_message.message}\n")
+        f.write(f"Category: {warning_message.category.__name__}\n")
+        f.write(f"File: {warning_message.filename}\n")
+        f.write(f"Line: {warning_message.lineno}\n")
+        f.write("="*40 + "\n")
+
+# 示例测试文件 tests/test_warnings.py
+
+import warnings
+
+def test_warning():
+    warnings.warn("This is a test warning", UserWarning)
+    warnings.warn("This is a deprecation warning", DeprecationWarning)
+    assert True
+</code></pre>
+<p><strong>注释</strong>：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 <code>pytest_warning_recorded</code> 钩子中，对 <code>DeprecationWarning</code> 类型的警告进行过滤忽略。</p>
+</li>
+</ul>
+<p><strong>运行效果</strong>：</p>
+<pre><code class="language-shell">root@Gavin:~/test/hook# pytest -s -v
+================================================================================================================== test session starts ==================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-35-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'dotenv': '0.5.2', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/test/hook
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, dotenv-0.5.2, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collected 1 item                                                                                                                                                                                                                                        
+
+tests/test_example.py::test_warning PASSED
+
+=================================================================================================================== warnings summary ====================================================================================================================
+tests/test_example.py::test_warning
+  /root/test/hook/tests/test_example.py:4: UserWarning: This is a test warning
+    warnings.warn("This is a test warning", UserWarning)
+
+tests/test_example.py::test_warning
+  /root/test/hook/tests/test_example.py:5: DeprecationWarning: This is a deprecation warning
+    warnings.warn("This is a deprecation warning", DeprecationWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================================================= 1 passed, 2 warnings in 0.03s =============================================================================================================
+root@Gavin:~/test/hook# ll
+total 28
+drwxr-xr-x 5 root root 4096 Oct  16 19:43 ./
+drwxr-xr-x 6 root root 4096 Oct  16 18:49 ../
+-rw-r--r-- 1 root root  589 Oct  16 19:43 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  16 19:43 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  16 19:43 tests/
+-rw-r--r-- 1 root root  200 Oct  16 19:43 warnings.log
+root@Gavin:~/test/hook# cat warnings.log 
+runtest - tests/test_example.py::test_warning - None
+Message: This is a test warning
+Category: UserWarning
+File: /root/test/hook/tests/test_example.py
+Line: 4
+========================================
+root@Gavin:~/test/hook#
+</code></pre>
+<h2 id="an-li-san-diao-zheng-jing-gao-ji-bie">案例三：调整警告级别</h2>
+<p>目标：根据开发需求，将某些警告的级别调整为错误或忽略，确保测试结果的准确性。</p>
+<p>步骤：</p>
+<ol>
+<li class="lvl-3">
+<p>使用 <code>pytest_warning_recorded</code> 钩子函数。</p>
+</li>
+<li class="lvl-3">
+<p>在钩子函数中插入调整警告级别的代码。</p>
+</li>
+</ol>
+<p>示例代码：</p>
+<pre><code class="language-python"># conftest.py
+import pytest
+import warnings
+
+def pytest_warning_recorded(warning_message, when, nodeid, location):
+    """调整特定警告的级别"""
+    if warning_message.category == UserWarning:
+        # 提升 UserWarning 到错误级别
+        raise pytest.fail(f"UserWarning as Error: {warning_message.message}")
+    with open('warnings.log', 'a') as f:
+        f.write(f"{when} - {nodeid} - {location}\n")
+        f.write(f"Message: {warning_message.message}\n")
+        f.write(f"Category: {warning_message.category.__name__}\n")
+        f.write(f"File: {warning_message.filename}\n")
+        f.write(f"Line: {warning_message.lineno}\n")
+        f.write("="*40 + "\n")
+
+# 示例测试文件 tests/test_warnings.py
+
+import warnings
+
+def test_warning():
+    warnings.warn("This is a test warning", UserWarning)
+    assert True
+</code></pre>
+<p><strong>注释</strong>：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 <code>pytest_warning_recorded</code> 钩子中，将 <code>UserWarning</code> 类型的警告提升到错误级别并抛出 <code>pytest.fail</code> 异常。</p>
+</li>
+</ul>
+<p><strong>运行效果</strong>：</p>
+<pre><code class="language-shell">root@Gavin:~/test/hook# pytest -s -v
+================================================================================================================== test session starts ==================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-35-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'dotenv': '0.5.2', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/test/hook
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, dotenv-0.5.2, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collected 1 item                                                                                                                                                                                                                                        
+
+tests/test_example.py::test_warning PASSED
+INTERNALERROR&gt; Traceback (most recent call last):
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/main.py", line 273, in wrap_session
+INTERNALERROR&gt;     session.exitstatus = doit(config, session) or 0
+INTERNALERROR&gt;                          ^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/main.py", line 327, in _main
+INTERNALERROR&gt;     config.hook.pytest_runtestloop(session=session)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_hooks.py", line 513, in __call__
+INTERNALERROR&gt;     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR&gt;            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR&gt;     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR&gt;            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR&gt;     raise exception.with_traceback(exception.__traceback__)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 122, in _multicall
+INTERNALERROR&gt;     teardown.throw(exception)  # type: ignore[union-attr]
+INTERNALERROR&gt;     ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/logging.py", line 796, in pytest_runtestloop
+INTERNALERROR&gt;     return (yield)  # Run all the tests.
+INTERNALERROR&gt;             ^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 103, in _multicall
+INTERNALERROR&gt;     res = hook_impl.function(*args)
+INTERNALERROR&gt;           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/main.py", line 352, in pytest_runtestloop
+INTERNALERROR&gt;     item.config.hook.pytest_runtest_protocol(item=item, nextitem=nextitem)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_hooks.py", line 513, in __call__
+INTERNALERROR&gt;     return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)
+INTERNALERROR&gt;            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR&gt;     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR&gt;            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 182, in _multicall
+INTERNALERROR&gt;     return outcome.get_result()
+INTERNALERROR&gt;            ^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_result.py", line 100, in get_result
+INTERNALERROR&gt;     raise exc.with_traceback(exc.__traceback__)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 169, in _multicall
+INTERNALERROR&gt;     teardown.send(outcome._result)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/warnings.py", line 106, in pytest_runtest_protocol
+INTERNALERROR&gt;     with catch_warnings_for_item(
+INTERNALERROR&gt;   File "/usr/lib/python3.11/contextlib.py", line 144, in __exit__
+INTERNALERROR&gt;     next(self.gen)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/warnings.py", line 64, in catch_warnings_for_item
+INTERNALERROR&gt;     ihook.pytest_warning_recorded.call_historic(
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_hooks.py", line 535, in call_historic
+INTERNALERROR&gt;     res = self._hookexec(self.name, self._hookimpls.copy(), kwargs, False)
+INTERNALERROR&gt;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_manager.py", line 120, in _hookexec
+INTERNALERROR&gt;     return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+INTERNALERROR&gt;            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 139, in _multicall
+INTERNALERROR&gt;     raise exception.with_traceback(exception.__traceback__)
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/pluggy/_callers.py", line 103, in _multicall
+INTERNALERROR&gt;     res = hook_impl.function(*args)
+INTERNALERROR&gt;           ^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/root/test/hook/conftest.py", line 8, in pytest_warning_recorded
+INTERNALERROR&gt;     raise pytest.fail(f"UserWarning as Error: {warning_message.message}")
+INTERNALERROR&gt;           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+INTERNALERROR&gt;   File "/usr/local/lib/python3.11/dist-packages/_pytest/outcomes.py", line 188, in fail
+INTERNALERROR&gt;     raise Failed(msg=reason, pytrace=pytrace)
+INTERNALERROR&gt; Failed: UserWarning as Error: This is a test warning
+
+============================================================================================================= 1 passed, 1 warning in 0.04s ==============================================================================================================
+root@Gavin:~/test/hook#
+root@Gavin:~/test/hook# cat warnings.log 
+2024-10-16 19:44:59,297 - runtest - tests/test_example.py::test_warning - None
+2024-10-16 19:44:59,297 - Message: This is a test warning
+2024-10-16 19:44:59,297 - Category: UserWarning
+2024-10-16 19:44:59,297 - File: /root/test/hook/tests/test_example.py
+2024-10-16 19:44:59,297 - Line: 4
+root@Gavin:~/test/hook# 
+</code></pre>
+<h2 id="an-li-si-diao-shi-he-fen-xi">案例四：调试和分析</h2>
+<p>目标：通过拦截和记录警告，分析程序中的潜在问题并进行调试。</p>
+<p>步骤：</p>
+<ol>
+<li class="lvl-3">
+<p>使用 <code>pytest_warning_recorded</code> 钩子函数。</p>
+</li>
+<li class="lvl-3">
+<p>在钩子函数中插入调试和分析的代码。</p>
+</li>
+</ol>
+<p>示例代码：</p>
+<pre><code class="language-python"># conftest.py
+import pytest
+import logging
+
+# 配置日志记录
+logging.basicConfig(filename='warnings.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+
+def pytest_warning_recorded(warning_message, when, nodeid, location):
+    """记录警告详情用于调试和分析"""
+    logging.info(f"{when} - {nodeid} - {location}")
+    logging.info(f"Message: {warning_message.message}")
+    logging.info(f"Category: {warning_message.category.__name__}")
+    logging.info(f"File: {warning_message.filename}")
+    logging.info(f"Line: {warning_message.lineno}")
+
+# 示例测试文件 tests/test_warnings.py
+
+import warnings
+
+def test_warning():
+    warnings.warn("This is a test warning", UserWarning)
+    assert True
+</code></pre>
+<p><strong>注释</strong>：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 <code>pytest_warning_recorded</code> 钩子中，将警告的详细信息记录到日志文件 <code>warnings.log</code> 中。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>Python</code> 的 <code>logging</code> 模块记录警告，适用于需要调试和分析的项目。</p>
+</li>
+</ul>
+<p><strong>运行效果</strong>：</p>
+<pre><code class="language-shell">root@Gavin:~/test/hook# pytest -s -v
+================================================================================================================== test session starts ==================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-35-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'dotenv': '0.5.2', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/test/hook
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, dotenv-0.5.2, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collected 1 item                                                                                                                                                                                                                                        
+
+tests/test_example.py::test_warning PASSED
+
+=================================================================================================================== warnings summary ====================================================================================================================
+tests/test_example.py::test_warning
+  /root/test/hook/tests/test_example.py:4: UserWarning: This is a test warning
+    warnings.warn("This is a test warning", UserWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+============================================================================================================= 1 passed, 1 warning in 0.04s ==============================================================================================================
+root@Gavin:~/test/hook# ll
+total 28
+drwxr-xr-x 5 root root 4096 Oct  16 19:46 ./
+drwxr-xr-x 6 root root 4096 Oct  16 18:49 ../
+-rw-r--r-- 1 root root  554 Oct  16 19:46 conftest.py
+drwxr-xr-x 2 root root 4096 Oct  16 19:46 __pycache__/
+drwxr-xr-x 3 root root 4096 Oct  16 19:41 .pytest_cache/
+drwxr-xr-x 3 root root 4096 Oct  16 19:46 tests/
+-rw-r--r-- 1 root root  289 Oct  16 19:46 warnings.log
+root@Gavin:~/test/hook# cat warnings.log 
+2024-10-16 19:46:59,297 - runtest - tests/test_example.py::test_warning - None
+2024-10-16 19:46:59,297 - Message: This is a test warning
+2024-10-16 19:46:59,297 - Category: UserWarning
+2024-10-16 19:46:59,297 - File: /root/test/hook/tests/test_example.py
+2024-10-16 19:46:59,297 - Line: 4
+root@Gavin:~/test/hook# 
+</code></pre>
+<h1 id="gao-ji-yong-li-jie-he-pytest-warning-recorded-yu-qi-ta-gou-zi">高级用例：结合pytest_warning_recorded与其他钩子</h1>
+<p>通过结合 <code>pytest_warning_recorded</code> 与其他 <code>pytest</code> 钩子，我们可以实现更复杂和更实用的功能。例如，在测试会话结束时生成一份综合报告，包括警告详情、测试结果等。</p>
+<h2 id="kuo-zhan-shi-li-zong-he-bao-gao-sheng-cheng">扩展示例：综合报告生成</h2>
+<p>在测试会话结束时，生成包含警告详情、测试结果和覆盖率信息的综合报告，并保存为 <code>JSON</code> 文件和文本文件。</p>
+<pre><code class="language-python"># conftest.py
+import pytest
+import coverage
+from colorama import Fore, Style, init
+import json
+
+init(autoreset=True)  # 自动重置颜色
+
+cov = None
+test_summary = {
+    'total': 0,
+    'passed': 0,
+    'failed': 0,
+    'skipped': 0,
+    'by_module': {},
+    'failures': [],
+    'warnings': []
+}
+
+def pytest_configure(config):
+    global cov
+    """在 pytest 配置时，启动覆盖率插件"""
+    cov = coverage.Coverage()
+    cov.start()
+
+def pytest_sessionfinish(session, exitstatus):
+    global cov
+    """在测试会话结束时停止覆盖率收集并保存数据"""
+    if cov:
+        cov.stop()
+        cov.save()
+
+def pytest_warning_recorded(warning_message, nodeid, location):
+    """记录警告详情"""
+    global test_summary
+    warning_info = {
+        'nodeid': nodeid,
+        'location': location,
+        'message': str(warning_message.message),
+        'category': warning_message.category.__name__,
+        'filename': warning_message.filename,
+        'lineno': warning_message.lineno
+    }
+    test_summary['warnings'].append(warning_info)
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    global cov, test_summary
+    """在测试结束时汇总报告统计信息、警告详情和覆盖率信息，并保存报告和结果"""
+    stats = terminalreporter.stats
+
+    test_summary['total'] = sum(len(stats.get(stat, [])) for stat in ['passed', 'failed', 'skipped'])
+    test_summary['passed'] = len(stats.get('passed', []))
+    test_summary['failed'] = len(stats.get('failed', []))
+    test_summary['skipped'] = len(stats.get('skipped', []))
+    
+    for stat in ['passed', 'failed', 'skipped']:
+        for report in stats.get(stat, []):
+            module = report.location[0]
+            if module not in test_summary['by_module']:
+                test_summary['by_module'][module] = {'passed': 0, 'failed': 0, 'skipped': 0}
+            test_summary['by_module'][module][stat] += 1
+            
+            if stat == 'failed':
+                test_summary['failures'].append({
+                    'name': report.nodeid,
+                    'reason': str(report.longrepr)
+                })
+
+    # 输出警告详情到终端
+    terminalreporter.write_sep("=", f"{Fore.MAGENTA}Warnings Summary")
+    for warning in test_summary['warnings']:
+        terminalreporter.write_line(f"{warning['nodeid']} - {warning['location']}")
+        terminalreporter.write_line(f"Message: {warning['message']}")
+        terminalreporter.write_line(f"Category: {warning['category']}")
+        terminalreporter.write_line(f"File: {warning['filename']}")
+        terminalreporter.write_line(f"Line: {warning['lineno']}")
+        terminalreporter.write_line("="*40)
+
+    terminalreporter.write_sep("=", f"{Fore.CYAN}Test Summary")
+    terminalreporter.write_line(f"{Fore.GREEN}Passed: {test_summary['passed']}")
+    terminalreporter.write_line(f"{Fore.RED}Failed: {test_summary['failed']}")
+    terminalreporter.write_line(f"{Fore.YELLOW}Skipped: {test_summary['skipped']}")
+    
+    terminalreporter.write_sep("=", f"{Fore.RED}Failure Summary")
+    for report in stats.get('failed', []):
+        terminalreporter.write_line(f"{Fore.RED}{report.nodeid}: {report.longrepr}")
+    
+    terminalreporter.write_sep("=", f"{Fore.BLUE}Coverage Summary")
+    if cov and cov.get_data().measured_files():
+        cov.report(file=terminalreporter._tw)
+    else:
+        terminalreporter.write_line(f"{Fore.RED}No coverage data to report.")
+
+    terminalreporter.write_sep("=", f"{Fore.MAGENTA}Module-wise Summary")
+    for module, counts in test_summary['by_module'].items():
+        terminalreporter.write_line(f"{module}: Passed: {counts['passed']}, Failed: {counts['failed']}, Skipped: {counts['skipped']}")
+
+    # 保存警告、总结、覆盖率信息为 JSON 文件
+    with open('test_summary_report.json', 'w') as f:
+        json.dump(test_summary, f, indent=4)
+
+    # 保存警告、总结、覆盖率信息为文本文件
+    with open('test_summary_report.txt', 'w') as f:
+        f.write("Test Summary\n")
+        f.write(f"Passed: {test_summary['passed']}\n")
+        f.write(f"Failed: {test_summary['failed']}\n")
+        f.write(f"Skipped: {test_summary['skipped']}\n")
+        f.write("\nFailure Summary\n")
+        for report in stats.get('failed', []):
+            f.write(f"{report.nodeid}: {report.longrepr}\n")
+        f.write("\nWarnings Summary\n")
+        for warning in test_summary['warnings']:
+            f.write(f"{warning['nodeid']} - {warning['location']}\n")
+            f.write(f"Message: {warning['message']}\n")
+            f.write(f"Category: {warning['category']}\n")
+            f.write(f"File: {warning['filename']}\n")
+            f.write(f"Line: {warning['lineno']}\n")
+            f.write("="*40 + "\n")
+        f.write("\nCoverage Summary\n")
+        if cov and cov.get_data().measured_files():
+            cov.report(file=f)
+        else:
+            f.write("No coverage data to report.\n")
+        f.write("\nModule-wise Summary\n")
+        for module, counts in test_summary['by_module'].items():
+            f.write(f"{module}: Passed: {counts['passed']}, Failed: {counts['failed']}, Skipped: {counts['skipped']}\n")
+
+# 示例测试文件 tests/test_warnings.py
+import pytest
+import warnings
+
+@pytest.mark.unit
+def test_unit_passed():
+    assert 1 + 1 == 2
+
+@pytest.mark.integration
+def test_integration_passed():
+    assert 2 + 2 == 4
+
+def test_failed():
+    warnings.warn("This is a failing test warning", UserWarning)
+    assert 1 + 1 == 3
+
+def test_skipped():
+    pytest.skip("Skipping this test")
+</code></pre>
+<h2 id="yun-xing-he-yan-zheng">运行和验证</h2>
+<p>控制台输出应包括综合报告，警告详情、测试结果、覆盖率报告，并生成 <code>test_summary_report.json</code> 和 <code>test_summary_report.txt</code> 文件。</p>
+<h3 id="kong-zhi-tai-shu-chu-shi-li">控制台输出示例</h3>
+<pre><code class="language-plaintext">root@Gavin:~/test/hook# pytest -s -v
+================================================================================================================== test session starts ==================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-35-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'dotenv': '0.5.2', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/test/hook
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, dotenv-0.5.2, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collected 4 items                                                                                                                                                                                                                                       
+
+tests/test_example.py::test_unit_passed PASSED
+tests/test_example.py::test_integration_passed PASSED
+tests/test_example.py::test_failed FAILED
+tests/test_example.py::test_skipped SKIPPED (Skipping this test)
+
+======================================================================================================================= FAILURES ========================================================================================================================
+______________________________________________________________________________________________________________________ test_failed ______________________________________________________________________________________________________________________
+
+    def test_failed():
+        warnings.warn("This is a failing test warning", UserWarning)
+&gt;       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_example.py:14: AssertionError
+=================================================================================================================== warnings summary ====================================================================================================================
+tests/test_example.py:4
+  /root/test/hook/tests/test_example.py:4: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/test_example.py:8
+  /root/test/hook/tests/test_example.py:8: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/test_example.py::test_failed
+  /root/test/hook/tests/test_example.py:13: UserWarning: This is a failing test warning
+    warnings.warn("This is a failing test warning", UserWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================================================================================= Warnings Summary =================================================================================================================
+ - None
+Message: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+Category: PytestUnknownMarkWarning
+File: /root/test/hook/tests/test_example.py
+Line: 4
+========================================
+ - None
+Message: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+Category: PytestUnknownMarkWarning
+File: /root/test/hook/tests/test_example.py
+Line: 8
+========================================
+tests/test_example.py::test_failed - None
+Message: This is a failing test warning
+Category: UserWarning
+File: /root/test/hook/tests/test_example.py
+Line: 13
+========================================
+=================================================================================================================== Test Summary ===================================================================================================================
+Passed: 2
+Failed: 1
+Skipped: 1
+================================================================================================================= Failure Summary ==================================================================================================================
+tests/test_example.py::test_failed: def test_failed():
+        warnings.warn("This is a failing test warning", UserWarning)
+&gt;       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_example.py:14: AssertionError
+================================================================================================================= Coverage Summary =================================================================================================================
+Name                                                                                      Stmts   Miss  Cover
+-------------------------------------------------------------------------------------------------------------
+/usr/lib/python3/dist-packages/OpenSSL/SSL.py                                              1003    665    34%
+/usr/lib/python3/dist-packages/OpenSSL/__init__.py                                            4      0   100%
+/usr/lib/python3/dist-packages/OpenSSL/_util.py                                              41     18    56%
+/usr/lib/python3/dist-packages/OpenSSL/crypto.py                                           1219    986    19%
+/usr/lib/python3/dist-packages/OpenSSL/version.py                                            10      0   100%
+/usr/lib/python3/dist-packages/_distutils_hack/__init__.py                                  100     95     5%
+/usr/lib/python3/dist-packages/attr/_compat.py                                               69     60    13%
+................................................
+/usr/lib/python3/dist-packages/twisted/python/threadpool.py                                 119     80    33%
+/usr/lib/python3/dist-packages/twisted/python/util.py                                       427    330    23%
+/usr/lib/python3/dist-packages/twisted/python/win32.py                                       55     12    78%
+/usr/lib/python3/dist-packages/zope/interface/_compat.py                                     65     38    42%
+/usr/lib/python3/dist-packages/zope/interface/adapter.py                                    511    351    31%
+/usr/lib/python3/dist-packages/zope/interface/declarations.py                               475    388    18%
+/usr/lib/python3/dist-packages/zope/interface/interface.py                                  497    379    24%
+/usr/lib/python3/dist-packages/zope/interface/ro.py                                         274    216    21%
+conftest.py                                                                                  81     76     6%
+tests/test_example.py                                                                        13      0   100%
+-------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                     23153  14733    36%
+=============================================================================================================== Module-wise Summary ================================================================================================================
+tests/test_example.py: Passed: 2, Failed: 1, Skipped: 1
+================================================================================================================ short test summary info ================================================================================================================
+FAILED tests/test_example.py::test_failed - assert (1 + 1) == 3
+================================================================================================== 1 failed, 2 passed, 1 skipped, 3 warnings in 1.79s ===================================================================================================
+root@Gavin:~/test/hook# 
+
+</code></pre>
+<h3 id="xiang-xi-jie-shi-he-zong-jie">详细解释和总结</h3>
+<ol>
+<li class="lvl-3">
+<p><strong>记录和报告警告详情</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">在 <code>pytest_warning_recorded</code> 钩子中记录所有警告信息，包括触发阶段、节点<code>ID</code>、位置、消息、类别、文件和行号。</li>
+<li class="lvl-5">使用 <code>pytest.config._test_summary['warnings']</code> 存储警告信息，以便在测试总结时进行输出。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>综合报告生成</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">在 <code>pytest_terminal_summary</code> 钩子中，综合汇总测试结果、警告详情和覆盖率信息。</li>
+<li class="lvl-5">使用 <code>terminalreporter.write_sep</code> 和 <code>terminalreporter.write_line</code> 在终端输出综合报告。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>覆盖率报告</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">在 <code>pytest_sessionfinish</code> 钩子中停止覆盖率收集并保存数据。</li>
+<li class="lvl-5">在 <code>pytest_terminal_summary</code> 钩子中检查是否收集到覆盖率数据，并在终端中输出覆盖率报告。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>保存总结为文件</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用 Python 标准库中的 <code>json</code> 模块将总结信息保存为 <code>JSON</code> 文件 <code>test_summary_report.json</code>。</li>
+<li class="lvl-5">使用标准文件操作方法将总结信息保存为文本文件 <code>test_summary_report.txt</code>。</li>
+</ul>
+</li>
+</ol>
+<h1 id="gao-ji-gong-neng-shi-li">高级功能示例</h1>
+<p>进一步扩展，我们可以添加更多高级功能，例如邮件通知和图形报告。</p>
+<h2 id="kuo-zhan-shi-li-you-jian-tong-zhi">扩展示例：邮件通知</h2>
+<p>在测试会话结束时，自动发送测试结果和警告详情的电子邮件通知。</p>
+<p><strong>扩展conftest.py以包括邮件通知功能</strong></p>
+<pre><code class="language-python"># conftest.py
+import pytest
+import coverage
+from colorama import Fore, Style, init
+import json
+import smtplib
+from email.mime.text import MIMEText
+import matplotlib.pyplot as plt
+
+init(autoreset=True)  # 自动重置颜色
+
+cov = None
+test_summary = {
+    'total': 0,
+    'passed': 0,
+    'failed': 0,
+    'skipped': 0,
+    'by_module': {},
+    'failures': [],
+    'warnings': []
+}
+
+def send_email(summary):
+    """发送测试结果和警告详情的电子邮件通知"""
+    msg = MIMEText(json.dumps(summary, indent=4))
+    msg['Subject'] = 'Test Summary Report'
+    msg['From'] = 'sender@example.com'
+    msg['To'] = 'recipient@example.com'
+
+    with smtplib.SMTP('localhost') as server:  # 或者使用实际的 SMTP 服务器
+        server.sendmail('sender@example.com', ['recipient@example.com'], msg.as_string())
+
+def pytest_configure(config):
+    global cov
+    """在 pytest 配置时，启动覆盖率插件"""
+    cov = coverage.Coverage()
+    cov.start()
+
+def pytest_sessionfinish(session, exitstatus):
+    global cov
+    """在测试会话结束时停止覆盖率收集并保存数据"""
+    if cov:
+        cov.stop()
+        cov.save()
+
+def pytest_warning_recorded(warning_message, nodeid, location):
+    """记录警告详情"""
+    global test_summary
+    warning_info = {
+        'nodeid': nodeid,
+        'location': location,
+        'message': str(warning_message.message),
+        'category': warning_message.category.__name__,
+        'filename': warning_message.filename,
+        'lineno': warning_message.lineno
+    }
+    test_summary['warnings'].append(warning_info)
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    global cov, test_summary
+    """在测试结束时汇总报告统计信息、警告详情和覆盖率信息，并保存报告和结果"""
+    stats = terminalreporter.stats
+
+    test_summary['total'] = sum(len(stats.get(stat, [])) for stat in ['passed', 'failed', 'skipped'])
+    test_summary['passed'] = len(stats.get('passed', []))
+    test_summary['failed'] = len(stats.get('failed', []))
+    test_summary['skipped'] = len(stats.get('skipped', []))
+    
+    for stat in ['passed', 'failed', 'skipped']:
+        for report in stats.get(stat, []):
+            module = report.location[0]
+            if module not in test_summary['by_module']:
+                test_summary['by_module'][module] = {'passed': 0, 'failed': 0, 'skipped': 0}
+            test_summary['by_module'][module][stat] += 1
+            
+            if stat == 'failed':
+                test_summary['failures'].append({
+                    'name': report.nodeid,
+                    'reason': str(report.longrepr)
+                })
+
+    # 输出警告详情到终端
+    terminalreporter.write_sep("=", f"{Fore.MAGENTA}Warnings Summary")
+    for warning in test_summary['warnings']:
+        terminalreporter.write_line(f"{warning['nodeid']} - {warning['location']}")
+        terminalreporter.write_line(f"Message: {warning['message']}")
+        terminalreporter.write_line(f"Category: {warning['category']}")
+        terminalreporter.write_line(f"File: {warning['filename']}")
+        terminalreporter.write_line(f"Line: {warning['lineno']}")
+        terminalreporter.write_line("="*40)
+
+    terminalreporter.write_sep("=", f"{Fore.CYAN}Test Summary")
+    terminalreporter.write_line(f"{Fore.GREEN}Passed: {test_summary['passed']}")
+    terminalreporter.write_line(f"{Fore.RED}Failed: {test_summary['failed']}")
+    terminalreporter.write_line(f"{Fore.YELLOW}Skipped: {test_summary['skipped']}")
+    
+    terminalreporter.write_sep("=", f"{Fore.RED}Failure Summary")
+    for report in stats.get('failed', []):
+        terminalreporter.write_line(f"{Fore.RED}{report.nodeid}: {report.longrepr}")
+    
+    terminalreporter.write_sep("=", f"{Fore.BLUE}Coverage Summary")
+    if cov and cov.get_data().measured_files():
+        cov.report(file=terminalreporter._tw)
+    else:
+        terminalreporter.write_line(f"{Fore.RED}No coverage data to report.")
+
+    terminalreporter.write_sep("=", f"{Fore.MAGENTA}Module-wise Summary")
+    for module, counts in test_summary['by_module'].items():
+        terminalreporter.write_line(f"{module}: Passed: {counts['passed']}, Failed: {counts['failed']}, Skipped: {counts['skipped']}")
+
+    # 生成图表并保存为文件
+    labels = ['Passed', 'Failed', 'Skipped']
+    sizes = [test_summary['passed'], test_summary['failed'], test_summary['skipped']]
+    colors = ['green', 'red', 'yellow']
+    
+    plt.figure(figsize=(10, 7))
+    plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%', startangle=140)
+    plt.axis('equal')
+    plt.title('Test Results Distribution')
+    plt.savefig('test_results_distribution.png')
+    plt.close()
+
+    # 保存总结为 JSON 文件
+    with open('test_summary_report.json', 'w') as f:
+        json.dump(test_summary, f, indent=4)
+
+    # 保存总结为文本文件
+    with open('test_summary_report.txt', 'w') as f:
+        f.write("Test Summary\n")
+        f.write(f"Passed: {test_summary['passed']}\n")
+        f.write(f"Failed: {test_summary['failed']}\n")
+        f.write(f"Skipped: {test_summary['skipped']}\n")
+        f.write("\nFailure Summary\n")
+        for report in stats.get('failed', []):
+            f.write(f"{report.nodeid}: {report.longrepr}\n")
+        f.write("\nWarnings Summary\n")
+        for warning in test_summary['warnings']:
+            f.write(f"{warning['nodeid']} - {warning['location']}\n")
+            f.write(f"Message: {warning['message']}\n")
+            f.write(f"Category: {warning['category']}\n")
+            f.write(f"File: {warning['filename']}\n")
+            f.write(f"Line: {warning['lineno']}\n")
+            f.write("="*40 + "\n")
+        f.write("\nCoverage Summary\n")
+        if cov and cov.get_data().measured_files():
+            cov.report(file=f)
+        else:
+            f.write("No coverage data to report.\n")
+        f.write("\nModule-wise Summary\n")
+        for module, counts in test_summary['by_module'].items():
+            f.write(f"{module}: Passed: {counts['passed']}, Failed: {counts['failed']}, Skipped: {counts['skipped']}\n")
+
+    # 发送电子邮件
+    send_email(test_summary)
+
+# 示例测试文件 tests/test_warnings.py
+import pytest
+import warnings
+
+@pytest.mark.unit
+def test_unit_passed():
+    assert 1 + 1 == 2
+
+@pytest.mark.integration
+def test_integration_passed():
+    assert 2 + 2 == 4
+
+def test_failed():
+    warnings.warn("This is a failing test warning", UserWarning)
+    assert 1 + 1 == 3
+
+def test_skipped():
+    pytest.skip("Skipping this test")
+</code></pre>
+<h2 id="yun-xing-he-yan-zheng-1">运行和验证</h2>
+<p>在项目根目录下运行以下命令来执行测试，并启用覆盖率报告：</p>
+<pre><code class="language-shell">pytest -s -v
+</code></pre>
+<p>控制台输出应包括综合报告，警告详情、测试结果、覆盖率报告，并生成 <code>test_summary_report.json</code> 和 <code>test_summary_report.txt</code> 文件，同时发送电子邮件通知。</p>
+<p>控制台输出参考：</p>
+<pre><code class="language-plaintext">root@Gavin:~/test/hook# pytest -s -v
+================================================================================================================== test session starts ==================================================================================================================
+platform linux -- Python 3.11.6, pytest-8.0.2, pluggy-1.5.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+sensitiveurl: .*
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-35-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.0.2', 'pluggy': '1.5.0'}, 'Plugins': {'cov': '4.1.0', 'order': '1.2.0', 'random-order': '1.1.1', 'tornasync': '0.6.0.post2', 'check': '2.2.2', 'instafail': '0.5.0', 'allure-pytest': '2.13.2', 'asyncio': '0.23.6', 'selenium': '4.1.0', 'xdist': '3.5.0', 'variables': '3.1.0', 'rerunfailures': '13.0', 'html': '4.1.1', 'progress': '1.2.5', 'metadata': '3.0.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'dotenv': '0.5.2', 'timeout': '2.2.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+rootdir: /root/test/hook
+plugins: cov-4.1.0, order-1.2.0, random-order-1.1.1, tornasync-0.6.0.post2, check-2.2.2, instafail-0.5.0, allure-pytest-2.13.2, asyncio-0.23.6, selenium-4.1.0, xdist-3.5.0, variables-3.1.0, rerunfailures-13.0, html-4.1.1, progress-1.2.5, metadata-3.0.0, twisted-1.14.1, picked-0.5.0, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, dotenv-0.5.2, timeout-2.2.0
+asyncio: mode=Mode.STRICT
+collected 4 items                                                                                                                                                                                                                                       
+
+tests/test_example.py::test_unit_passed PASSED
+tests/test_example.py::test_integration_passed PASSED
+tests/test_example.py::test_failed FAILED
+tests/test_example.py::test_skipped SKIPPED (Skipping this test)
+
+======================================================================================================================= FAILURES ========================================================================================================================
+______________________________________________________________________________________________________________________ test_failed ______________________________________________________________________________________________________________________
+
+    def test_failed():
+        warnings.warn("This is a failing test warning", UserWarning)
+&gt;       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_example.py:14: AssertionError
+=================================================================================================================== warnings summary ====================================================================================================================
+tests/test_example.py:4
+  /root/test/hook/tests/test_example.py:4: PytestUnknownMarkWarning: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.unit
+
+tests/test_example.py:8
+  /root/test/hook/tests/test_example.py:8: PytestUnknownMarkWarning: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+    @pytest.mark.integration
+
+tests/test_example.py::test_failed
+  /root/test/hook/tests/test_example.py:13: UserWarning: This is a failing test warning
+    warnings.warn("This is a failing test warning", UserWarning)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================================================================================================= Warnings Summary =================================================================================================================
+ - None
+Message: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+Category: PytestUnknownMarkWarning
+File: /root/test/hook/tests/test_example.py
+Line: 4
+========================================
+ - None
+Message: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+Category: PytestUnknownMarkWarning
+File: /root/test/hook/tests/test_example.py
+Line: 8
+========================================
+tests/test_example.py::test_failed - None
+Message: This is a failing test warning
+Category: UserWarning
+File: /root/test/hook/tests/test_example.py
+Line: 13
+========================================
+=================================================================================================================== Test Summary ===================================================================================================================
+Passed: 2
+Failed: 1
+Skipped: 1
+================================================================================================================= Failure Summary ==================================================================================================================
+tests/test_example.py::test_failed: def test_failed():
+        warnings.warn("This is a failing test warning", UserWarning)
+&gt;       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_example.py:14: AssertionError
+================================================================================================================= Coverage Summary =================================================================================================================
+Name                                                                                      Stmts   Miss  Cover
+-------------------------------------------------------------------------------------------------------------
+/usr/lib/python3/dist-packages/OpenSSL/SSL.py                                              1003    665    34%
+........................省略..............................
+/usr/lib/python3/dist-packages/zope/interface/ro.py                                         274    216    21%
+conftest.py                                                                                 101     96     5%
+tests/test_example.py                                                                        13      0   100%
+-------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                     23173  14753    36%
+=============================================================================================================== Module-wise Summary ================================================================================================================
+tests/test_example.py: Passed: 2, Failed: 1, Skipped: 1
+........................省略..............................
+root@Gavin:~/test/hook#
+</code></pre>
+<p>生成的文件：</p>
+<p><code>JSON</code> 文件<code> test_summary_report.json</code> 示例:</p>
+<pre><code class="language-json">root@Gavin:~/test/hook# cat test_summary_report.json 
+{
+    "total": 4,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "by_module": {
+        "tests/test_example.py": {
+            "passed": 2,
+            "failed": 1,
+            "skipped": 1
+        }
+    },
+    "failures": [
+        {
+            "name": "tests/test_example.py::test_failed",
+            "reason": "def test_failed():\n        warnings.warn(\"This is a failing test warning\", UserWarning)\n&gt;       assert 1 + 1 == 3\nE       assert (1 + 1) == 3\n\ntests/test_example.py:14: AssertionError"
+        }
+    ],
+    "warnings": [
+        {
+            "nodeid": "",
+            "location": null,
+            "message": "Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html",
+            "category": "PytestUnknownMarkWarning",
+            "filename": "/root/test/hook/tests/test_example.py",
+            "lineno": 4
+        },
+        {
+            "nodeid": "",
+            "location": null,
+            "message": "Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html",
+            "category": "PytestUnknownMarkWarning",
+            "filename": "/root/test/hook/tests/test_example.py",
+            "lineno": 8
+        },
+        {
+            "nodeid": "tests/test_example.py::test_failed",
+            "location": null,
+            "message": "This is a failing test warning",
+            "category": "UserWarning",
+            "filename": "/root/test/hook/tests/test_example.py",
+            "lineno": 13
+        }
+    ]
+}root@Gavin:~/test/hook# 
+</code></pre>
+<p>文本文件 <code>test_summary_report.txt</code> 示例:</p>
+<pre><code class="language-plaintext">root@Gavin:~/test/hook# cat test_summary_report.txt 
+Test Summary
+Passed: 2
+Failed: 1
+Skipped: 1
+
+Failure Summary
+tests/test_example.py::test_failed: def test_failed():
+        warnings.warn("This is a failing test warning", UserWarning)
+&gt;       assert 1 + 1 == 3
+E       assert (1 + 1) == 3
+
+tests/test_example.py:14: AssertionError
+
+Warnings Summary
+ - None
+Message: Unknown pytest.mark.unit - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+Category: PytestUnknownMarkWarning
+File: /root/test/hook/tests/test_example.py
+Line: 4
+========================================
+ - None
+Message: Unknown pytest.mark.integration - is this a typo?  You can register custom marks to avoid this warning - for details, see https://docs.pytest.org/en/stable/how-to/mark.html
+Category: PytestUnknownMarkWarning
+File: /root/test/hook/tests/test_example.py
+Line: 8
+========================================
+tests/test_example.py::test_failed - None
+Message: This is a failing test warning
+Category: UserWarning
+File: /root/test/hook/tests/test_example.py
+Line: 13
+========================================
+
+Coverage Summary
+Name                                                                                      Stmts   Miss  Cover
+-------------------------------------------------------------------------------------------------------------
+/usr/lib/python3/dist-packages/OpenSSL/SSL.py                                              1003    665    34%
+........................省略............................
+/usr/lib/python3/dist-packages/zope/interface/ro.py                                         274    216    21%
+conftest.py                                                                                 101     96     5%
+tests/test_example.py                                                                        13      0   100%
+-------------------------------------------------------------------------------------------------------------
+TOTAL                                                                                     23173  14753    36%
+
+Module-wise Summary
+tests/test_example.py: Passed: 2, Failed: 1, Skipped: 1
+root@Gavin:~/test/hook# 
+</code></pre>
+<p>生成的饼图示例:</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/test_results_distribution2.png" width="600">
+<h1 id="xiang-xi-jie-shi-he-zong-jie-1">详细解释和总结</h1>
+<p>通过上述扩展示例，我们实现了以下功能：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>记录和报告警告详情：使用 <code>pytest_warning_recorded</code> 钩子记录所有警告信息，并在测试总结时进行输出。</p>
+</li>
+<li class="lvl-2">
+<p>综合报告生成：在 <code>pytest_terminal_summary</code> 钩子中，综合汇总测试结果、警告详情和覆盖率信息，输出到终端并保存为文件。</p>
+</li>
+<li class="lvl-2">
+<p>覆盖率报告：使用 <code>coverage</code> 库进行覆盖率收集和报告，确保在测试总结中包含覆盖率信息。</p>
+</li>
+<li class="lvl-2">
+<p>图表生成：使用 <code>matplotlib</code> 生成测试结果分布的饼图，直观展示通过、失败和跳过的测试用例比例。</p>
+</li>
+<li class="lvl-2">
+<p>邮件通知：使用 <code>smtplib</code> 发送电子邮件通知，包含测试结果和警告详情，确保开发团队及时收到测试结果。</p>
+</li>
+</ul>
+<h1 id="xiao-jie">小结</h1>
+<p>通过这些扩展和优化，我们极大地增强了测试报告的丰富性、可读性和实用性。这些详细的测试报告和通知功能，可以帮助开发团队更好地理解测试结果，做出更好的质量决策。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/10/16/pytest_warning_recorded/">https://gavin-wang-note.github.io/2024/10/16/pytest_warning_recorded/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2024/10/17/pytest_markeval_namespace/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-20.jpg" class="responsive-img" alt="pytest hook系列之pytest_markeval_namespace">
+                        
+                        <span class="card-title">pytest hook系列之pytest_markeval_namespace</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            pytest hook之pytest_markeval_namespace
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-10-17
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/10/15/pytest_terminal_summary/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-20.jpg" class="responsive-img" alt="pytest hook系列之pytest_terminal_summary">
+                        
+                        <span class="card-title">pytest hook系列之pytest_terminal_summary</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            pytest hook之pytest_terminal_summary
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-10-15
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1032.9k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

@@ -1,0 +1,1846 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例多重校验之pytest_check源码解读, 软硬件测试">
+    <meta name="description" content="测试用例多重校验/检查点之pytest_check源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例多重校验之pytest_check源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例多重校验之pytest_check源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-11-26
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    4.7k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    18 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p>上篇文章我们介绍了<a href="https://gavin-wang-note.github.io/2024/11/17/pytest_assume/">pytest_assume</a>的多重校验，此次介绍另外一个功能类似的插件<code>pytest_check</code>，二者在实现上有一定的差异。</p>
+<p>源码下载到本地解压后展示如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin# cd pytest_check-2.3.1/
+root@Gavin:~/pytest_plugin/pytest_check-2.3.1# ll
+total 76
+drwxr-xr-x 5 root root  4096 Jul  3 09:34 ./
+drwxr-xr-x 9 root root  4096 Jul 13 14:05 ../
+-rw-r--r-- 1 root root 10194 Jan 19 04:24 changelog.md
+drwxr-xr-x 2 root root  4096 Jul  3 14:56 examples/
+-rw-r--r-- 1 root root  1079 Jan 19 04:24 LICENSE.txt
+-rw-r--r-- 1 root root 13382 Jan  1  1970 PKG-INFO
+-rw-r--r-- 1 root root   693 Jan 19 04:24 pyproject.toml
+-rw-r--r-- 1 root root 13007 Jan 19 04:24 README.md
+drwxr-xr-x 3 root root  4096 Jul  3 09:34 src/
+drwxr-xr-x 2 root root  4096 Jul  3 09:34 tests/
+-rw-r--r-- 1 root root   868 Jan 19 04:24 tox.ini
+root@Gavin:~/pytest_plugin/pytest_check-2.3.1# cd src
+root@Gavin:~/pytest_plugin/pytest_check-2.3.1/src# ll
+total 12
+drwxr-xr-x 3 root root 4096 Jul  3 09:34 ./
+drwxr-xr-x 5 root root 4096 Jul  3 09:34 ../
+drwxr-xr-x 2 root root 4096 Jul  3 14:54 pytest_check/
+root@Gavin:~/pytest_plugin/pytest_check-2.3.1/src# cd pytest_check/
+root@Gavin:~/pytest_plugin/pytest_check-2.3.1/src/pytest_check# ll
+total 44
+drwxr-xr-x 2 root root 4096 Jul  3 14:54 ./
+drwxr-xr-x 3 root root 4096 Jul  3 09:34 ../
+-rw-r--r-- 1 root root 5299 Jan 19 04:24 check_functions.py
+-rw-r--r-- 1 root root 1836 Jan 19 04:24 check_log.py
+-rw-r--r-- 1 root root 3831 Jan 19 04:24 check_raises.py
+-rw-r--r-- 1 root root 1669 Jan 19 04:24 context_manager.py
+-rw-r--r-- 1 root root 1434 Jan 19 04:24 __init__.py
+-rw-r--r-- 1 root root 4608 Jan 19 04:24 plugin.py
+-rw-r--r-- 1 root root 3567 Jan 19 04:24 pseudo_traceback.py
+root@Gavin:~/pytest_plugin/pytest_check-2.3.1/src/pytest_check# 
+</code></pre>
+<p>核心内容在<code>src</code>目录下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>check_functions.py</code> ： 提供一组自定义的断言函数，它们在断言失败时不会立即失败，而是提供了更灵活的错误处理方式。这些函数可以与 <code>pytest</code> 测试框架无缝集成，增强测试的可读性和灵活性。</p>
+</li>
+<li class="lvl-2">
+<p><code>check_log.py</code> ： 记录失败信息的核心。</p>
+</li>
+<li class="lvl-2">
+<p><code>check_raises.py</code> ： 检查预期的异常。</p>
+</li>
+<li class="lvl-2">
+<p><code>context_manager.py</code> ： 提供上下文管理器，捕获和记录测试中的断言错误。</p>
+</li>
+<li class="lvl-2">
+<p><code>__init__.py</code> ： 导入pytest_check使得被 <code>pytest</code> 测试框架使用。</p>
+</li>
+<li class="lvl-2">
+<p><code>plugin.py</code> ： 实现<code>pytest_check</code> 插件的核心功能，处理测试报告的生成。</p>
+</li>
+<li class="lvl-2">
+<p><code>pseudo_traceback.py</code> ： 生成更易于理解的追踪栈信息。</p>
+</li>
+</ul>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="check-functions-py-wen-jian">check_functions.py文件</h2>
+<p>它提供了额外的断言函数和功能来增强测试体验。</p>
+<h3 id="dao-ru-he-chu-shi-hua">导入和初始化</h3>
+<pre><code class="language-python">import functools
+import pytest
+
+from .check_log import log_failure
+
+__all__ = [
+    # 这里列出了所有将被导出的函数名称
+]
+</code></pre>
+<p>这段代码导入了必要的模块，并定义了一个 <code>__all__</code> 列表，它包含了模块中所有要导出的函数名，使得这些函数可以在其他模块中直接使用 <code>from pytest_check import function_name</code> 的方式导入。</p>
+<h3 id="check-func-zhuang-shi-qi">check_func 装饰器</h3>
+<pre><code class="language-python">def check_func(func):
+    # 这个装饰器用来包装测试函数，记录测试结果和日志
+    @functools.wraps(func)
+    def wrapper(*args, **kwds):
+        __tracebackhide__ = True  # pytest 特性，用于隐藏内部的 traceback
+        try:
+            func(*args, **kwds)  # 调用原始函数
+            return True
+        except AssertionError as e:
+            log_failure(e)  # 记录失败信息
+            return False
+    return wrapper
+</code></pre>
+<p><code>check_func</code> 是一个装饰器工厂，它返回一个装饰器，这个装饰器会捕获在被装饰函数中抛出的 <code>AssertionError</code> 异常，并调用 <code>log_failure</code> 函数来记录日志。如果函数执行成功，返回 <code>True</code>。</p>
+<h3 id="duan-yan-han-shu">断言函数</h3>
+<p>以下是一些自定义的断言函数示例，它们都遵循相似的模式：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用 <code>__tracebackhide__</code> 来控制 traceback 的显示。</p>
+</li>
+<li class="lvl-2">
+<p>比较操作（例如 <code>a == b</code>）。</p>
+</li>
+<li class="lvl-2">
+<p>如果比较成功，返回 <code>True</code>。</p>
+</li>
+<li class="lvl-2">
+<p>如果比较失败，调用 <code>log_failure</code> 记录失败信息，并返回 <code>False</code>。</p>
+</li>
+</ul>
+<pre><code class="language-python">def assert_equal(a, b, msg=""):
+    assert a == b, msg  # 传统的断言
+
+def equal(a, b, msg=""):
+    if a == b:
+        return True
+    else:
+        log_failure(f"check {a} == {b}", msg)
+        return False
+
+# 其他断言函数遵循类似的模式...
+</code></pre>
+<p>这些函数提供了与 <code>pytest</code> 内置断言不同的行为，尤其是在失败时不会立即抛出异常，而是记录失败信息并返回 <code>False</code>。</p>
+<h3 id="shu-xue-bi-jiao-han-shu">数学比较函数</h3>
+<p><code>almost_equal</code> 和 <code>not_almost_equal</code> 函数使用了 <code>pytest.approx</code> 来比较两个浮点数是否在相对或绝对容差内近似相等。</p>
+<h3 id="fan-wei-jian-cha-han-shu">范围检查函数</h3>
+<p><code>between</code> 和 <code>between_equal</code> 函数检查一个值是否在两个其他值之间，可以指定是否包含边界。</p>
+<h3 id="code-fail-code-han-shu"><code>fail</code> 函数</h3>
+<pre><code class="language-python">def fail(msg):
+    log_failure(msg)
+</code></pre>
+<p><code>fail</code> 函数是一个简单的工具函数，用于在测试中主动记录一个失败信息。</p>
+<h2 id="check-log-py-wen-jian">check_log.py文件</h2>
+<p>此文件是负责记录测试失败信息的核心组件。</p>
+<h3 id="bian-liang-ding-yi">变量定义</h3>
+<pre><code class="language-python">should_use_color = False  # 决定是否在日志中使用颜色
+COLOR_RED = "\x1b[31m"  # 红色的ANSI转义序列
+COLOR_RESET = "\x1b[0m"  # 重置颜色的ANSI转义序列
+
+_failures = []  # 存储失败信息的列表
+_stop_on_fail = False  # 如果为True，则在第一个失败时停止测试
+
+_default_max_fail = None  # 最大失败次数，默认无限制
+_default_max_report = None  # 最大报告的失败次数，默认无限制
+_default_max_tb = 1  # 最大记录的追踪栈深度，默认为1
+
+_max_fail = _default_max_fail  # 当前最大失败次数
+_max_report = _default_max_report  # 当前最大报告的失败次数
+_max_tb = _default_max_tb  # 当前最大追踪栈深度
+_num_failures = 0  # 当前失败次数计数
+_fail_function = None  # 当记录失败时调用的函数，如果设置了的话
+
+_showlocals = False  # 是否显示局部变量
+</code></pre>
+<p>这些变量控制了失败信息的记录、报告和展示方式。</p>
+<h3 id="han-shu-ding-yi">函数定义</h3>
+<pre><code class="language-python">def clear_failures():
+    # 在每个测试函数开始时调用
+    global 变量列表
+    _failures = []  # 清空失败列表
+    # 重置计数器和最大值到默认设置
+</code></pre>
+<p><code>clear_failures</code> 函数在每个测试开始时被调用，用于重置失败信息记录的状态。</p>
+<pre><code class="language-python">def any_failures() -&gt; bool:
+    # 返回是否有任何失败发生
+    return bool(get_failures())
+
+def get_failures():
+    # 返回失败信息列表
+    return _failures
+</code></pre>
+<p><code>any_failures</code> 和 <code>get_failures</code> 函数提供了查询当前失败状态的方法。</p>
+<pre><code class="language-python">def log_failure(msg="", check_str="", tb=None):
+    # 记录失败信息的函数
+    global _num_failures
+    __tracebackhide__ = True  # pytest 特性，用于隐藏内部的 traceback
+    _num_failures += 1  # 失败次数加一
+
+    # 构造失败信息
+    msg = str(msg).strip()
+    if check_str:
+        msg = f"{msg}: {check_str}"
+
+    # 判断是否需要记录当前失败信息
+    if (_max_report is None or _num_failures &lt;= _max_report) and _num_failures &lt;= _max_tb:
+        pseudo_trace_str = _build_pseudo_trace_str(_showlocals, tb, should_use_color)
+        msg = f"{msg}\n{pseudo_trace_str}"
+
+    # 根据设置添加颜色和前缀
+    if should_use_color:
+        msg = f"{COLOR_RED}FAILURE: {COLOR_RESET}{msg}"
+    else:
+        msg = f"FAILURE: {msg}"
+    _failures.append(msg)
+
+    # 如果设置了回调函数，调用它
+    if _fail_function:
+        _fail_function(msg)
+
+    # 检查是否达到了最大失败次数，并抛出异常
+    if _max_fail and _num_failures &gt;= _max_fail:
+        assert_msg = f"pytest-check max fail of {_num_failures} reached"
+        assert _num_failures &lt; _max_fail, assert_msg
+
+    # 如果设置在第一个失败时停止，断言失败
+    if _stop_on_fail:
+        assert False, "Stopping on first failure"
+</code></pre>
+<p><code>log_failure</code> 函数是记录失败信息的核心，它接受一个消息 <code>msg</code>，一个可选的检查字符串 <code>check_str</code>，和一个追踪栈 <code>tb</code>。函数内部首先构造失败信息，然后根据配置决定是否记录当前失败。如果设置了最大失败次数 <code>_max_fail</code>，且已达到该次数，将抛出异常。如果设置了 <code>_stop_on_fail</code> 为 <code>True</code>，则在第一个失败时停止测试。</p>
+<h2 id="check-raises-py-wen-jian">check_raises.py 文件</h2>
+<p><code>check_raises.py</code> 提供了一个 <code>raises</code> 函数和 <code>CheckRaisesContext</code> 类来检查预期的异常是否被抛出。</p>
+<h3 id="bian-liang-ding-yi-1">变量定义</h3>
+<pre><code class="language-python">_stop_on_fail = False  # 如果为True，在第一个失败时停止测试
+</code></pre>
+<h3 id="raises-han-shu">raises 函数</h3>
+<pre><code class="language-python">def raises(expected_exception, *args, **kwargs):
+</code></pre>
+<p><code>raises</code> 函数可以作为上下文管理器或函数使用，用于检查给定的可调用或上下文是否抛出了指定类型的异常。函数接受以下参数：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>expected_exception</code>：期望抛出的异常类型。</p>
+</li>
+<li class="lvl-2">
+<p><code>*args</code> 和 <code>**kwargs</code>：传递给可调用对象的参数和关键字参数。</p>
+</li>
+</ul>
+<p>函数的主体实现了以下逻辑：</p>
+<ol>
+<li class="lvl-3">
+<p>检查 <code>expected_exception</code> 是否为类型或元组，包含多个异常类型。</p>
+</li>
+<li class="lvl-3">
+<p>断言所有期望的异常都是有效的类型或基类。</p>
+</li>
+<li class="lvl-3">
+<p>从 <code>kwargs</code> 中提取 <code>msg</code> 并使用它作为日志消息。</p>
+</li>
+<li class="lvl-3">
+<p>如果没有提供可调用对象，返回一个 <code>CheckRaisesContext</code> 实例作为上下文管理器。</p>
+</li>
+<li class="lvl-3">
+<p>如果提供了可调用对象，使用 <code>CheckRaisesContext</code> 作为上下文管理器执行该函数。</p>
+</li>
+</ol>
+<h3 id="check-raises-context-lei">CheckRaisesContext 类</h3>
+<pre><code class="language-python">class CheckRaisesContext:
+</code></pre>
+<p><code>CheckRaisesContext</code> 类是一个辅助上下文管理器，用于参数化异常类型。它实现了以下方法：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>__init__</code>：初始化实例，接收期望的异常类型和消息。</p>
+</li>
+<li class="lvl-2">
+<p><code>__enter__</code>：进入上下文管理器，返回自身。</p>
+</li>
+<li class="lvl-2">
+<p><code>__exit__</code>：退出上下文管理器，处理异常。</p>
+</li>
+</ul>
+<p><code>__exit__</code> 方法的逻辑：</p>
+<ol>
+<li class="lvl-3">
+<p>如果捕获到的异常类型 <code>exc_type</code> 是期望的异常类型之一，返回 <code>True</code>，这会阻止异常向外传播。</p>
+</li>
+<li class="lvl-3">
+<p>如果 <code>_stop_on_fail</code> 为 <code>False</code>，则记录失败并返回 <code>True</code>，允许测试继续执行。</p>
+</li>
+<li class="lvl-3">
+<p>如果 <code>_stop_on_fail</code> 为 <code>True</code>，则不记录失败，允许异常向外传播，导致测试停止。</p>
+</li>
+</ol>
+<h2 id="context-manager-py">context_manager.py</h2>
+<p><code>context_manager.py</code> 定义了一个 <code>CheckContextManager</code> 类，它是 <code>pytest_check</code> 插件的核心上下文管理器，提供了灵活的错误检查和记录功能。</p>
+<h3 id="lei-bian-liang">类变量</h3>
+<pre><code class="language-python">_stop_on_fail = False  # 如果为True，在第一个失败时停止测试
+</code></pre>
+<h3 id="check-context-manager-lei">CheckContextManager 类</h3>
+<pre><code class="language-python">class CheckContextManager:
+</code></pre>
+<p><code>CheckContextManager</code> 类是一个上下文管理器，用于封装测试断言的逻辑。</p>
+<h3 id="chu-shi-hua-fang-fa">初始化方法</h3>
+<pre><code class="language-python">    def __init__(self):
+        self.msg = None
+</code></pre>
+<p><code>__init__</code> 方法初始化上下文管理器，设置一个 <code>msg</code> 属性来存储自定义消息。</p>
+<h3 id="jin-ru-shang-xia-wen-fang-fa">进入上下文方法</h3>
+<pre><code class="language-python">    def __enter__(self):
+        return self
+</code></pre>
+<p><code>__enter__</code> 方法在进入上下文时被调用，返回上下文管理器实例本身。</p>
+<h3 id="tui-chu-shang-xia-wen-fang-fa">退出上下文方法</h3>
+<pre><code class="language-python">    def __exit__(self, exc_type, exc_val, exc_tb):
+</code></pre>
+<p><code>__exit__</code> 方法在退出上下文时被调用，接收异常类型、值和追踪栈作为参数。它实现了以下逻辑：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>如果捕获到的异常是 <code>AssertionError</code> 的子类，并且 <code>_stop_on_fail</code> 为 <code>True</code>，则不记录消息，允许异常传播。</p>
+</li>
+<li class="lvl-2">
+<p>如果 <code>_stop_on_fail</code> 为 <code>False</code>，则记录异常值和消息（如果有），并返回 <code>True</code> 以阻止异常传播。</p>
+</li>
+</ul>
+<h3 id="diao-yong-fang-fa">调用方法</h3>
+<pre><code class="language-python">    def __call__(self, msg=None):
+</code></pre>
+<p><code>__call__</code> 方法允许上下文管理器像函数一样被调用，设置自定义消息并返回实例本身。</p>
+<h3 id="she-zhi-fang-fa">设置方法</h3>
+<pre><code class="language-python">    def set_no_tb(self):
+        # 弃用的方法，使用 set_max_tb(0) 替代
+        pass
+
+    def set_max_fail(self, x):
+        check_log._max_fail = x
+
+    def set_max_report(self, x):
+        check_log._max_report = x
+
+    def set_max_tb(self, x):
+        check_log._max_tb = x
+</code></pre>
+<p>这些方法允许用户设置最大失败次数、最大报告次数和最大追踪栈深度。<code>set_no_tb</code> 方法已被弃用。</p>
+<h3 id="shi-bai-hui-diao-fang-fa">失败回调方法</h3>
+<pre><code class="language-python">    def call_on_fail(self, func):
+</code></pre>
+<p><code>call_on_fail</code> 方法设置一个回调函数，当测试失败时调用。</p>
+<h3 id="quan-ju-shi-li">全局实例</h3>
+<pre><code class="language-python">check = CheckContextManager()
+</code></pre>
+<p>在文件的最后，创建了一个 <code>CheckContextManager</code> 的全局实例 <code>check</code>，它可以在测试代码中直接使用，无需实例化。</p>
+<h2 id="strong-init-strong-py-wen-jian"><strong>init</strong>.py文件</h2>
+<p><code>__init__.py</code> 文件是 Python 包的初始化文件，它定义了包的行为和对外提供的接口。对于 <code>pytest_check</code> 这个插件来说，<code>__init__.py</code> 做了以下几件事情：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>注册断言重写</strong>：</p>
+<pre><code class="language-python">import pytest
+pytest.register_assert_rewrite("pytest_check.check_functions")
+</code></pre>
+<p>这行代码告诉 pytest 插件系统，当进行断言操作时，应该使用 <code>pytest_check.check_functions</code> 模块中定义的断言方法。</p>
+</li>
+<li class="lvl-3">
+<p><strong>导入并暴露辅助函数</strong>：</p>
+<pre><code class="language-python">from pytest_check.check_functions import *  # noqa: F401, F402, F403, E402
+</code></pre>
+<p>这行代码从 <code>check_functions</code> 模块导入所有函数，并将它们放在包的顶层，使得用户可以直接使用这些函数，如 <code>pytest_check.equal(1, 1)</code>。</p>
+</li>
+<li class="lvl-3">
+<p><strong>导入并暴露 <code>any_failures</code> 函数</strong>：</p>
+<pre><code class="language-python">from pytest_check.check_log import any_failures  # noqa: F401, F402, F403, E402
+</code></pre>
+<p><code>any_failures</code> 函数被导入并放在包的顶层，允许用户检查是否有任何检查失败。</p>
+</li>
+<li class="lvl-3">
+<p><strong>导入并暴露 <code>raises</code> 函数</strong>：</p>
+<pre><code class="language-python">from pytest_check.check_raises import raises  # noqa: F401, F402, F403, E402
+</code></pre>
+<p><code>raises</code> 函数被导入，允许用户在测试中使用上下文管理器来检查是否抛出了预期的异常。</p>
+</li>
+<li class="lvl-3">
+<p><strong>导入并暴露 <code>check</code> 上下文管理器</strong>：</p>
+<pre><code class="language-python">from pytest_check.context_manager import check  # noqa: F401, F402, F403, E402
+</code></pre>
+<p><code>check</code> 上下文管理器被导入，允许用户在 <code>with</code> 语句中使用它来进行断言检查。</p>
+</li>
+<li class="lvl-3">
+<p><strong>为 <code>check</code> 添加额外的方法</strong>：</p>
+<pre><code class="language-python">setattr(check, "raises", raises)
+setattr(check, "any_failures", any_failures)
+setattr(check, "check", check)
+</code></pre>
+<p>这些 <code>setattr</code> 调用为 <code>check</code> 上下文管理器添加了 <code>raises</code> 和 <code>any_failures</code> 方法，以及一个 <code>check</code> 方法，虽然这看起来有些冗余。</p>
+</li>
+<li class="lvl-3">
+<p><strong>将辅助函数添加到 <code>check</code> 上下文管理器</strong>：</p>
+<pre><code class="language-python">for func in check_functions.__all__:  # noqa: F405
+    setattr(check, func, getattr(check_functions, func))  # noqa: F405
+</code></pre>
+<p>这将 <code>check_functions</code> 模块中定义的所有函数添加到 <code>check</code> 上下文管理器中，使得这些函数可以在 <code>with check:</code> 语句中使用。</p>
+</li>
+</ol>
+<h2 id="plugin-py-wen-jian">plugin.py文件</h2>
+<p><code>plugin.py</code> 文件是 <code>pytest_check</code> 插件的入口点，它定义了插件如何与 pytest 框架集成。以下是对文件中定义的函数和钩子（hooks）的详细解读：</p>
+<h3 id="pytest-runtest-makereport-gou-zi">pytest_runtest_makereport 钩子</h3>
+<pre><code class="language-python">@pytest.hookimpl(hookwrapper=True, trylast=True)
+def pytest_runtest_makereport(item, call):
+</code></pre>
+<p>这个钩子在每个测试用例执行后被调用，用于生成测试报告。它处理了以下逻辑：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>获取 <code>check_log</code> 中记录的失败次数和失败信息。</p>
+</li>
+<li class="lvl-2">
+<p>如果存在失败，且当前测试已被标记为 <code>xfail</code>（预期失败），则将测试结果设置为 “skipped”。</p>
+</li>
+<li class="lvl-2">
+<p>如果存在失败，但测试没有被标记为 <code>xfail</code>，则将测试结果设置为 “failed”，并构建一个详细的失败报告。</p>
+</li>
+</ul>
+<h3 id="pytest-configure-han-shu">pytest_configure 函数</h3>
+<pre><code class="language-python">def pytest_configure(config):
+</code></pre>
+<p>这个函数在 pytest 启动时被调用，用于配置插件的行为：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>根据终端是否支持颜色输出，设置 <code>check_log</code> 的颜色使用标志。</p>
+</li>
+<li class="lvl-2">
+<p>根据命令行参数 <code>--maxfail</code> 的值，设置是否在第一个检查失败时停止测试。</p>
+</li>
+<li class="lvl-2">
+<p>设置 <code>context_manager</code>、<code>check_raises</code> 和 <code>check_log</code> 模块的 <code>_stop_on_fail</code> 变量。</p>
+</li>
+<li class="lvl-2">
+<p>根据命令行参数 <code>--tb</code> 的值，设置是否显示伪追踪栈。</p>
+</li>
+<li class="lvl-2">
+<p>获取并存储其他一些命令行选项，如 <code>check-max-report</code>、<code>check-max-fail</code> 和 <code>check-max-tb</code>。</p>
+</li>
+</ul>
+<h3 id="check-fixture-han-shu">check_fixture 函数</h3>
+<pre><code class="language-python">@pytest.fixture(name="check")
+def check_fixture():
+</code></pre>
+<p>这个函数定义了一个 pytest fixture，允许测试用例通过 <code>check</code> fixture 访问 <code>context_manager.check</code> 实例。</p>
+<h3 id="pytest-addoption-han-shu">pytest_addoption 函数</h3>
+<pre><code class="language-python">def pytest_addoption(parser):
+</code></pre>
+<p>这个函数添加了自定义命令行选项，允许用户在运行 <code>pytest</code> 时设置：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>--check-max-report</code>：最大报告的失败次数。</p>
+</li>
+<li class="lvl-2">
+<p><code>--check-max-fail</code>：每个测试允许的最大失败次数。</p>
+</li>
+<li class="lvl-2">
+<p><code>--check-max-tb</code>：每个测试的最大伪追踪栈数量。</p>
+</li>
+</ul>
+<h2 id="pseudo-traceback-py-wen-jian">pseudo_traceback.py文件</h2>
+<p><code>pseudo_traceback.py</code> 文件定义了伪追踪栈（<code>pseudo traceback</code>）的功能，用于生成更友好和有用的错误信息。</p>
+<h3 id="bian-liang-ding-yi-2">变量定义</h3>
+<pre><code class="language-python">_traceback_style = "auto"
+</code></pre>
+<p>定义了追踪栈的风格，默认为 “auto”，表示根据上下文自动选择。</p>
+<h3 id="get-full-context-han-shu">get_full_context 函数</h3>
+<pre><code class="language-python">def get_full_context(frame):
+</code></pre>
+<p>这个函数从给定的栈帧中提取完整的上下文信息，包括文件名、行号、函数名、代码行的上下文、局部变量以及是否隐藏追踪栈。</p>
+<h3 id="yan-se-ding-yi">颜色定义</h3>
+<pre><code class="language-python">COLOR_RED = "\x1b[31m"
+COLOR_RESET = "\x1b[0m"
+</code></pre>
+<p>定义了用于在终端中高亮显示文本的颜色代码。</p>
+<h3 id="reformat-raw-traceback-han-shu">reformat_raw_traceback 函数</h3>
+<pre><code class="language-python">def reformat_raw_traceback(lines, color):
+</code></pre>
+<p>这个函数重新格式化原始追踪栈信息，以提高可读性。它会跳过某些行，比如 “Traceback (most recent call last)”，并使用正则表达式解析文件路径、行号、函数名和代码上下文。如果启用了颜色显示，还会对关键部分进行颜色高亮。</p>
+<h3 id="build-pseudo-trace-str-han-shu">_build_pseudo_trace_str 函数</h3>
+<pre><code class="language-python">def _build_pseudo_trace_str(showlocals, tb, color):
+</code></pre>
+<p>这个函数构建伪追踪栈字符串。它首先检查是否需要生成伪追踪栈（如果 <code>_traceback_style</code> 设置为 “no”，则不生成）。然后，它会遍历栈帧，提取用户代码的上下文信息，并在必要时显示局部变量。如果启用了颜色显示，还会对文件名等关键信息进行颜色高亮。</p>
+<h3 id="wei-zhui-zong-zhan-gou-jian-luo-ji">伪追踪栈构建逻辑</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>skip_own_frames</code>：跳过自身框架的数量，以避免在生成的追踪栈中包含插件自身的代码。</p>
+</li>
+<li class="lvl-2">
+<p><code>pseudo_trace</code>：用于存储构建的伪追踪栈信息。</p>
+</li>
+<li class="lvl-2">
+<p><code>func</code>：用于存储当前遍历到的函数名。</p>
+</li>
+</ul>
+<h1 id="xiao-jie">小结</h1>
+<ul class="lvl-0">
+<li class="lvl-3">
+<p><code>check_functions.py</code> 模块提供了一组自定义的断言函数，它们在断言失败时不会立即失败，而是提供了更灵活的错误处理方式。这些函数可以与 <code>pytest</code> 测试框架无缝集成，增强测试的可读性和灵活性。装饰器 <code>check_func</code> 允许用户定义自己的断言函数，并在这些函数失败时记录详细的日志信息。</p>
+</li>
+<li class="lvl-2">
+<p><code>check_log.py</code> 提供了一套机制来记录和处理测试中的失败情况。通过 <code>log_failure</code> 函数，用户可以灵活地记录失败信息，并根据需要调整失败处理的行为，例如设置最大失败次数、是否在第一个失败时停止测试，以及是否使用颜色高亮显示失败信息。此外，通过 <code>clear_failures</code> 函数，可以在每个测试开始时重置失败记录状态。</p>
+</li>
+<li class="lvl-2">
+<p><code>check_raises.py</code> 提供了一个灵活的方式来检查预期的异常。通过 <code>raises</code> 函数，用户可以指定一个或多个期望的异常类型，并将其应用于可调用对象或作为上下文管理器使用。<code>CheckRaisesContext</code> 类提供了上下文管理器的实现，允许在 <code>with</code> 语句中使用 <code>raises</code> 函数。这种实现方式允许用户更精确地控制异常的检查和测试流程，特别是在需要捕获和验证多个异常类型时。</p>
+</li>
+<li class="lvl-2">
+<p><code>__init__.py</code> 文件通过一系列导入和设置，使得 <code>pytest_check</code> 插件的功能可以很容易地被 <code>pytest</code> 测试框架使用。它提供了断言重写、辅助函数、上下文管理器和异常检查功能，并且允许用户以一种非常直观和一致的方式使用这些功能。通过这种方式，<code>pytest_check</code> 插件增强了 pytest 的功能，使得编写和维护测试变得更加方便。</p>
+</li>
+<li class="lvl-2">
+<p><code>context_manager.py</code> 中的 <code>CheckContextManager</code> 类提供了一个强大的上下文管理器，用于捕获和记录测试中的断言错误。通过这个类，用户可以自定义错误消息、设置最大失败次数和追踪栈深度，并在失败时调用回调函数。全局实例 <code>check</code> 的存在使得这个功能在整个测试代码中易于访问和使用。</p>
+</li>
+<li class="lvl-2">
+<p><code>plugin.py</code> 通过定义 pytest 钩子和函数，实现了 <code>pytest_check</code> 插件的核心功能。它处理测试报告的生成，根据用户配置调整插件行为，并提供了一个自定义的 <code>pytest fixture</code>。通过这些机制，<code>pytest_check</code> 插件增强了 <code>pytest</code> 的错误报告和检查功能，使得测试更加灵活和强大。</p>
+</li>
+<li class="lvl-2">
+<p><code>pseudo_traceback.py</code> 提供了一种机制，用于生成更易于理解的追踪栈信息，特别是在 <code>pytest</code> 测试失败时。它通过解析和重新格式化原始追踪栈，以及提取和显示用户代码的上下文信息，帮助用户更快地定位问题所在。此外，通过颜色高亮和条件显示局部变量，进一步增强了错误信息的可读性和有用性。</p>
+</li>
+</ul>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2024/11/26/pytest_check/">https://gavin-wang-note.github.io/2024/11/26/pytest_check/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2024/12/15/pytest_assume_check_issue/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="pytest-assume teardown的坑">
+                        
+                        <span class="card-title">pytest-assume teardown的坑</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            pytest-assume teardown的坑，使用pytest-check规避
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-12-15
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/11/07/pytest_assume/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例中多个软断言pytest-assume源码解读">
+                        
+                        <span class="card-title">测试用例中多个软断言pytest-assume源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例中多个软断言pytest-assume源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-11-07
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1032.9k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

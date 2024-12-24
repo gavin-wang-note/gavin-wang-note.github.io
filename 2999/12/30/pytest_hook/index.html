@@ -1,0 +1,2187 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="pytest hook逐一详解, 软硬件测试">
+    <meta name="description" content="在深入研究pytest 8.0.2版本的基础上，我精心编纂了一份全面的指南，涵盖了52个pytest钩子（hook）的功能和实际应用。无论你是测试领域的新手还是资深专家，本篇综合总览将为你提供一个详尽的参考，让你对pytest钩子的理解和运用游刃有余。只需阅读本系列文章，即可一网打尽所有关键信息。">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>pytest hook逐一详解 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-16.png')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">pytest hook逐一详解</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2999-12-30
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    4.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    16 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="qian-yan">前言</h1>
+<p>从6月份下旬开始着手写，写到10月份，期间进行了多次的修正和调整。为了保持文章的连续性，决定从09-01开始按天释出文章。</p>
+<h1 id="wen-zhang-zong-lan">文章总览</h1>
+<h2 id="initialization-hooks-called-for-every-plugin">Initialization hooks called for every plugin</h2>
+<p>第一篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/01/pytest_addhooks/">pytest_addhooks</a></p>
+<p>第二篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/02/pytest_plugin_registered/">pytest_plugin_registered</a></p>
+<p>第三篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/03/pytest_addoption/">pytest_addoption</a></p>
+<p>第四篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/04/pytest_configure/">pytest_configure</a></p>
+<h2 id="bootstrapping-hooks-called-for-plugins-registered-early-enough">Bootstrapping hooks called for plugins registered early enough</h2>
+<p>第五篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/05/pytest_cmdline_parse/">pytest_cmdline_parse</a></p>
+<p>第六篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/06/pytest_cmdline_preparse/">pytest_cmdline_preparse</a></p>
+<p>第七篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/07/pytest_cmdline_main/">pytest_cmdline_main</a></p>
+<p>第八篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/08/pytest_load_initial_conftests/">pytest_load_initial_conftests</a></p>
+<h2 id="collection-hooks">collection hooks</h2>
+<p>第九篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/09/pytest_collection/">pytest_collection</a></p>
+<p>第十篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/10/pytest_collection_modifyitems/">pytest_collection_modifyitems</a></p>
+<p>第十一篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/11/pytest_collection_finish/">pytest_collection_finish</a></p>
+<p>第十二篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/12/pytest_ignore_collect/">pytest_ignore_collect</a></p>
+<p>第十三篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/13/pytest_collect_file/">pytest_collect_file</a></p>
+<p>第十四篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/14/pytest_collectstart/">pytest_collectstart</a></p>
+<p>第十五篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/15/pytest_itemcollected/">pytest_itemcollected</a></p>
+<p>第十六篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/16/pytest_collectreport/">pytest_collectreport</a></p>
+<p>第十七篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/17/pytest_deselected/">pytest_deselected</a></p>
+<p>第十八篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/18/pytest_make_collect_report/">pytest_make_collect_report</a></p>
+<h2 id="python-test-function-related-hooks">Python test function related hooks</h2>
+<p>第十九篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/19/pytest_pycollect_makemodule/">pytest_pycollect_makemodule</a></p>
+<p>第二十篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/20/pytest_pycollect_makeitem/">pytest_pycollect_makeitem</a></p>
+<p>第二十一篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/21/pytest_pyfunc_call/">pytest_pyfunc_call</a></p>
+<p>第二十二篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/22/pytest_generate_tests/">pytest_generate_tests</a></p>
+<p>第二十三篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/23/pytest_make_parametrize_id/">pytest_make_parametrize_id</a></p>
+<h2 id="runtest-related-hooks">runtest related hooks</h2>
+<p>第二十四篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/24/pytest_runtestloop/">pytest_runtestloop</a></p>
+<p>第二十五篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/25/pytest_runtest_protocol/">pytest_runtest_protocol</a></p>
+<p>第二十六篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/26/pytest_runtest_logstart/">pytest_runtest_logstart</a></p>
+<p>第二十七篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/27/pytest_runtest_logfinish/">pytest_runtest_logfinish</a></p>
+<p>第二十八篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/28/pytest_runtest_setup/">pytest_runtest_setup</a></p>
+<p>第二十九篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/29/pytest_runtest_call/">pytest_runtest_call</a></p>
+<p>第三十篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/09/30/pytest_runtest_teardown/">pytest_runtest_teardown</a></p>
+<p>第三十一篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/01/pytest_runtest_makereport/">pytest_runtest_makereport</a></p>
+<p>第三十二篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/02/pytest_runtest_logreport/">pytest_runtest_logreport</a></p>
+<p>第三十三篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/03/pytest_report_to_serializable/">pytest_report_to_serializable</a></p>
+<p>第三十四篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/04/pytest_report_from_serializable/">pytest_report_from_serializable</a></p>
+<h2 id="fixture-related-hooks">Fixture related hooks</h2>
+<p>第三十五篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/05/pytest_fixture_setup/">pytest_fixture_setup</a></p>
+<p>第三十六篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/06/pytest_fixture_post_finalizer/">pytest_fixture_post_finalizer</a></p>
+<h2 id="test-session-related-hooks">test session related hooks</h2>
+<p>第三十七篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/07/pytest_sessionstart/">pytest_sessionstart</a></p>
+<p>第三十八篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/08/pytest_sessionfinish/">pytest_sessionfinish</a></p>
+<p>第三十九篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/09/pytest_unconfigure/">pytest_unconfigure</a></p>
+<h2 id="hooks-for-customizing-the-assert-methods">hooks for customizing the assert methods</h2>
+<p>第四十篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/10/pytest_assertrepr_compare/">pytest_assertrepr_compare</a></p>
+<p>第四十一篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/11/pytest_assertion_pass/">pytest_assertion_pass</a></p>
+<h2 id="hooks-for-influencing-reporting-invoked-from-pytest-terminal">Hooks for influencing reporting (invoked from _pytest_terminal)</h2>
+<p>第四十二篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/12/pytest_report_header/">pytest_report_header</a></p>
+<p>第四十三篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/13/pytest_report_collectionfinish/">pytest_report_collectionfinish</a></p>
+<p>第四十四篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/14/pytest_report_teststatus/">pytest_report_teststatus</a></p>
+<p>第四十五篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/15/pytest_terminal_summary/">pytest_terminal_summary</a></p>
+<p>第四十六篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/16/pytest_warning_recorded/">pytest_warning_recorded</a></p>
+<h2 id="hooks-for-influencing-skipping">Hooks for influencing skipping</h2>
+<p>第四十七篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/17/pytest_markeval_namespace/">pytest_markeval_namespace</a></p>
+<h2 id="error-handling-and-internal-debugging-hooks">error handling and internal debugging hooks</h2>
+<p>第四十八篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/18/pytest_internalerror/">pytest_internalerror</a></p>
+<p>第四十九篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/19/pytest_keyboard_interrupt/">pytest_keyboard_interrupt</a></p>
+<p>第五十篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/20/pytest_exception_interact/">pytest_exception_interact</a></p>
+<p>第五十一篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/21/pytest_enter_pdb/">pytest_enter_pdb</a></p>
+<p>第五十二篇：pytest hook 之 <a href="https://gavin-wang-note.github.io/2024/10/22/pytest_leave_pdb/">pytest_leave_pdb</a></p>
+<h1 id="hook-jian-jie">hook简介</h1>
+<p><code>pytest</code>是一个强大的测试框架，它提供了一系列的<code>hook</code>函数，这些<code>hook</code>函数允许你在测试执行的不同阶段进行干预和扩展，以改变或增强测试的行为。</p>
+<p>这些<code>hook</code>函数通常以<code>pytest_</code>为前缀，并在<code>conftest.py</code>文件或测试模块中定义。</p>
+<p>如下图所示(点击图片可放大)，在<code>pytest</code>用例执行过程中，每个过程都有钩子函数的参与：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pytest用例执行顺序.png" width="600">
+<p>列个大概的过程，如下图所示(点击图片可放大)：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pytest-hook过程.jpeg" width="800">
+<p>这篇文章是总览，我将逐一介绍<code>pytest hook</code>的使用方法。</p>
+<h1 id="pytest-you-na-xie-hook">pytest有哪些hook</h1>
+<p>以<code>pytest 8.0.2</code>为例，它有如下<code>hook</code>函数：</p>
+<pre><code class="language-shell">root@Gavin:/usr/lib/python3/dist-packages/_pytest# cat hookspec.py | grep 'def pytest_' | awk -F '(' '{{print $1}}'
+def pytest_addhooks
+def pytest_plugin_registered
+def pytest_addoption
+def pytest_configure
+def pytest_cmdline_parse
+def pytest_cmdline_preparse
+def pytest_cmdline_main
+def pytest_load_initial_conftests
+def pytest_collection
+def pytest_collection_modifyitems
+def pytest_collection_finish
+def pytest_ignore_collect
+def pytest_collect_file
+def pytest_collectstart
+def pytest_itemcollected
+def pytest_collectreport
+def pytest_deselected
+def pytest_make_collect_report
+def pytest_pycollect_makemodule
+def pytest_pycollect_makeitem
+def pytest_pyfunc_call
+def pytest_generate_tests
+def pytest_make_parametrize_id
+def pytest_runtestloop
+def pytest_runtest_protocol
+def pytest_runtest_logstart
+def pytest_runtest_logfinish
+def pytest_runtest_setup
+def pytest_runtest_call
+def pytest_runtest_teardown
+def pytest_runtest_makereport
+def pytest_runtest_logreport
+def pytest_report_to_serializable
+def pytest_report_from_serializable
+def pytest_fixture_setup
+def pytest_fixture_post_finalizer
+def pytest_sessionstart
+def pytest_sessionfinish
+def pytest_unconfigure
+def pytest_assertrepr_compare
+def pytest_assertion_pass
+def pytest_report_header
+def pytest_report_collectionfinish
+def pytest_report_teststatus
+def pytest_terminal_summary
+def pytest_warning_recorded
+def pytest_markeval_namespace
+def pytest_internalerror
+def pytest_keyboard_interrupt
+def pytest_exception_interact
+def pytest_enter_pdb
+def pytest_leave_pdb
+root@Gavin:/usr/lib/python3/dist-packages/_pytest# cat hookspec.py | grep 'def pytest_' | awk -F '(' '{{print $1}}' | wc -l
+52
+root@Gavin:/usr/lib/python3/dist-packages/_pytest#
+</code></pre>
+<h1 id="pytest-hook-fen-lei">pytest hook 分类</h1>
+<p>大致被分为以下几个阶段：初始化、配置、命令行处理、收集、运行测试、测试完成和清理等。下文按钩子的执行顺序与时机进行分类。</p>
+<h2 id="chu-shi-hua-jie-duan">初始化阶段</h2>
+<pre><code class="language-python">   def pytest_addhooks(pluginmanager):
+       # 注册新的插件钩子
+       pass
+
+   def pytest_plugin_registered(plugin, manager):
+       # 每次注册插件后调用
+       pass
+</code></pre>
+<h2 id="pei-zhi-jie-duan">配置阶段</h2>
+<pre><code class="language-python">   def pytest_addoption(parser, pluginmanager):
+       # 添加命令行选项和ini配置文件值
+       pass
+
+   def pytest_configure(config):
+       # 配置插件和初始化操作
+       pass
+</code></pre>
+<h2 id="ming-ling-xing-chu-li-jie-duan">命令行处理阶段</h2>
+<pre><code class="language-python">   def pytest_cmdline_parse(parser):
+       # 解析命令行参数
+       pass
+
+   def pytest_cmdline_preparse(config, args):
+       # 在默认和插件命令行参数解析之前预处理命令行
+       pass
+
+   def pytest_cmdline_main(config):
+       # 处理测试运行的主要入口函数
+       pass
+</code></pre>
+<h2 id="chu-bu-jia-zai-jie-duan">初步加载阶段</h2>
+<pre><code class="language-python">   def pytest_load_initial_conftests(early_config, parser, args):
+       # 最早加载conftest.py文件
+       pass
+</code></pre>
+<h2 id="shou-ji-jie-duan">收集阶段</h2>
+<pre><code class="language-python">   def pytest_collection(session):
+       # 测试用例收集阶段
+       pass
+
+   def pytest_collection_modifyitems(session, config, items):
+       # 修改收集的项，如重新排序或添加/移除项目
+       pass
+
+   def pytest_collection_finish(session):
+       # 收集阶段结束
+       pass
+
+   def pytest_ignore_collect(path, config):
+       # 决定是否忽略某个收集项目
+       pass
+
+   def pytest_collect_file(file_path, parent):
+       # 收集文件
+       pass
+
+   def pytest_collectstart(collector):
+       # 开始收集某个项目
+       pass
+
+   def pytest_collectreport(report):
+       # 收集归档报告
+       pass
+
+   def pytest_make_collect_report(collector):
+       # 创建收集报告
+       pass
+
+   def pytest_itemcollected(item):
+       # 每收集到一个项目时调用
+       pass
+
+   def pytest_deselected(items):
+       # 项目取消选择时调用
+       pass
+
+   def pytest_pycollect_makemodule(module_path, parent):
+       # 创建一个模块收集器
+       pass
+
+   def pytest_pycollect_makeitem(collector, name, obj):
+       # 创建收集项目
+       pass
+</code></pre>
+<h2 id="ce-shi-sheng-cheng-jie-duan">测试生成阶段</h2>
+<pre><code class="language-python">
+   def pytest_generate_tests(metafunc):
+       # 动态生成测试用例
+       pass
+
+   def pytest_make_parametrize_id(config, val):
+       # 用于生成参数化的测试标识符
+       pass
+</code></pre>
+<h2 id="yun-xing-ce-shi-jie-duan">运行测试阶段</h2>
+<pre><code class="language-python">   def pytest_runtestloop(session):
+       # 测试运行循环
+       pass
+
+   def pytest_runtest_protocol(item, nextitem):
+       # 运行单个测试项协议
+       pass
+
+   def pytest_runtest_logstart(nodeid, location):
+       # 日志记录开始
+       pass
+
+   def pytest_runtest_logfinish(nodeid, location):
+       # 日志记录结束
+       pass
+
+   def pytest_runtest_setup(item):
+       # 测试项设置
+       pass
+
+   def pytest_pyfunc_call(pyfuncitem):
+       # 实际调用测试函数
+       pass
+
+   def pytest_runtest_call(item):
+       # 执行测试项
+       pass
+
+   def pytest_runtest_teardown(item, nextitem):
+       # 清理测试项
+       pass
+
+   def pytest_runtest_makereport(item, call):
+       # 制作测试报告
+       pass
+
+   def pytest_runtest_logreport(report):
+       # 日志记录测试报告
+       pass
+
+   def pytest_report_to_serializable(report):
+       # 报告序列化
+       pass
+
+   def pytest_report_from_serializable(config, data):
+       # 从序列化数据中生成报告
+       pass
+</code></pre>
+<h2 id="fixture-jie-duan">fixture阶段</h2>
+<pre><code class="language-python">   def pytest_fixture_setup(fixturedef, request):
+       # 设置fixture
+       pass
+
+   def pytest_fixture_post_finalizer(fixturedef, request):
+       # fixture最终清理阶段后的操作
+       pass
+</code></pre>
+<h2 id="hui-hua-sheng-ming-zhou-qi-jie-duan">会话生命周期阶段</h2>
+<pre><code class="language-python">   def pytest_sessionstart(session):
+       # 会话开始
+       pass
+
+   def pytest_sessionfinish(session, exitstatus):
+       # 会话结束
+       pass
+
+   def pytest_unconfigure(config):
+       # 解除配置并清理资源
+       pass
+</code></pre>
+<h2 id="duan-yan-jie-duan">断言阶段</h2>
+<pre><code class="language-python">    def pytest_assertrepr_compare(config, op, left, right):
+        # 断言比较表示
+        pass
+
+    def pytest_assertion_pass(item, lineno, orig, expl):
+        # 断言通过
+        pass
+</code></pre>
+<h2 id="bao-gao-jie-duan">报告阶段</h2>
+<pre><code class="language-python">    def pytest_report_header(config):
+        # 报告前的头部信息
+        pass
+
+    def pytest_report_collectionfinish(config, startdir, items):
+        # 收集结束时的报告信息
+        pass
+
+    def pytest_report_teststatus(report, config):
+        # 测试状态的报告
+        pass
+
+    def pytest_terminal_summary(terminalreporter, exitstatus):
+        # 终端汇总和总结
+        pass
+</code></pre>
+<h2 id="jing-gao-he-nei-bu-cuo-wu-jiao-hu-jie-duan">警告和内部错误、交互阶段</h2>
+<pre><code class="language-python">
+    def pytest_warning_recorded(warning_message, nodeid, location):
+        # 记录警告
+        pass
+
+    def pytest_markeval_namespace(config):
+        # 评估mark表达式的命名空间
+        pass
+
+    def pytest_internalerror(excrepr, excinfo):
+        # 处理内部错误
+        pass
+
+    def pytest_keyboard_interrupt(excinfo):
+        # 处理键盘中断
+        pass
+
+    def pytest_exception_interact(node, call, report):
+        # 交互异常
+        pass
+
+    def pytest_enter_pdb(config, traceback, excinfo):
+        # 进入PDB调试器
+        pass
+
+    def pytest_leave_pdb(config, traceback, excinfo):
+        # 离开PDB调试器
+        pass
+</code></pre>
+<h1 id="gou-zi-han-shu-jie-shi">钩子函数解释</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>pytest_addhooks: 在插件钩子系统注册新的钩子。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_plugin_registered: 每次新插件注册时被调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_addoption: 用于增加命令行参数和配置选项。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_configure: 在测试运行开始时配置所有插件和初始化。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_cmdline_parse: 解析命令行参数。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_cmdline_preparse: 在命令行参数解析之前进行预处理。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_cmdline_main: 处理测试运行的主要入口函数。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_load_initial_conftests: 最早加载conftest.py文件。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collection: 表示开始收集测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collection_modifyitems: 修改或筛选已经收集的测试项。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collection_finish: 收集阶段结束时被调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_ignore_collect: 决定是否忽略某个路径的收集。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collect_file: 收集指定文件中的测试项。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collectstart: 收集一个项目的开始阶段。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_collectreport: 报告收集结果。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_make_collect_report: 创建收集的报告对象。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_itemcollected: 每收集到一个项目时被调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_deselected: 某些项目被取消选择时被调用。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_pycollect_makemodule: 创建模块收集器。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_pycollect_makeitem: 创建具体的测试项。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_generate_tests: 动态生成测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_make_parametrize_id: 生成参数化测试用例的标识符。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtestloop: 测试运行循环。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_protocol: 运行单个测试项的协议。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_logstart: 记录测试开始日志。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_logfinish: 记录测试结束日志。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_setup: 设置测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_pyfunc_call: 实际调用测试函数。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_call: 执行测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_teardown: 清理测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_makereport: 制作每个测试阶段的报告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_runtest_logreport: 记录测试报告日志。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_to_serializable: 将报告对象转换为可序列化格式。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_from_serializable: 从可序列化格式恢复报告对象。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_fixture_setup: 设置fixture。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_fixture_post_finalizer: fixture最终清理阶段后的操作。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_sessionstart: 会话开始。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_sessionfinish: 会话结束。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_unconfigure: 解除配置并清理资源。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_assertrepr_compare: 断言比较表示。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_assertion_pass: 断言通过。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_header: 报告前的头部信息。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_collectionfinish: 收集结束时的报告信息。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_report_teststatus: 测试状态的报告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_terminal_summary: 终端汇总和总结。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_warning_recorded: 记录警告。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_markeval_namespace: 评估mark表达式的命名空间。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_internalerror: 处理内部错误。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_keyboard_interrupt: 处理键盘中断。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_exception_interact: 交互异常。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_enter_pdb: 进入PDB调试器。</p>
+</li>
+<li class="lvl-2">
+<p>pytest_leave_pdb: 离开PDB调试器。</p>
+</li>
+</ul>
+<h1 id="pytest-hooks-gong-neng-shi-yong-chang-jing-he-zhu-yi-dian">pytest Hooks 功能、使用场景和注意点</h1>
+<table>
+<thead>
+<tr>
+<th>Hook 名称</th>
+<th>功能描述</th>
+<th>使用场景</th>
+<th>注意点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pytest_addhooks</code></td>
+<td>增加插件所需要的 hooks</td>
+<td>用于自定义插件开发时增加新的 hooks</td>
+<td>需要深刻理解 hooks 的管理机制</td>
+</tr>
+<tr>
+<td><code>pytest_plugin_registered</code></td>
+<td>插件被注册时调用</td>
+<td>可用于记录插件的加载</td>
+<td>确认插件注册逻辑无循环引用</td>
+</tr>
+<tr>
+<td><code>pytest_addoption</code></td>
+<td>增加自定义命令行选项</td>
+<td>用于提供额外的命令行参数</td>
+<td>确保命令行参数的名称和描述具有唯一性</td>
+</tr>
+<tr>
+<td><code>pytest_configure</code></td>
+<td>在会话配置时调用</td>
+<td>用于配置初始化，设置全局变量</td>
+<td>必须在 <code>pytest_sessionstart</code> 前调用</td>
+</tr>
+<tr>
+<td><code>pytest_cmdline_parse</code></td>
+<td>命令行解析完成后调用</td>
+<td>用于在命令行参数解析后添加自定义逻辑</td>
+<td>解析逻辑应兼容所有合法命令行参数</td>
+</tr>
+<tr>
+<td><code>pytest_cmdline_preparse</code></td>
+<td>命令行初始解析之前调用</td>
+<td>可在参数解析之前进行预处理</td>
+<td>避免破坏命令行标准参数</td>
+</tr>
+<tr>
+<td><code>pytest_cmdline_main</code></td>
+<td>主命令行解析后立即调用</td>
+<td>可对最终命令行参数进行调整</td>
+<td>确保调整的参数能被预期的函数识别</td>
+</tr>
+<tr>
+<td><code>pytest_load_initial_conftests</code></td>
+<td>装载初始 <code>conftest.py</code> 文件</td>
+<td>用于初始化 <code>conftest.py</code> 配置文件</td>
+<td>确保 <code>conftest.py</code> 文件路径及加载顺序正确</td>
+</tr>
+<tr>
+<td><code>pytest_collection</code></td>
+<td>开始收集测试项目调用</td>
+<td>用于收集测试用例前的准备工作</td>
+<td>确保收集逻辑无副作用</td>
+</tr>
+<tr>
+<td><code>pytest_collection_modifyitems</code></td>
+<td>收集到测试项目后调用可修改测试集合</td>
+<td>用于动态过滤、排序测试用例</td>
+<td>确保修改测试集合的逻辑无副作用</td>
+</tr>
+<tr>
+<td><code>pytest_collection_finish</code></td>
+<td>收集测试项目完成后调用</td>
+<td>收集完成后的清理和日志记录</td>
+<td>确保收集完成的状态一致</td>
+</tr>
+<tr>
+<td><code>pytest_ignore_collect</code></td>
+<td>某个路径被忽略时调用</td>
+<td>用于过滤掉不需要的测试文件</td>
+<td>确保过滤路径完全覆盖所需范围</td>
+</tr>
+<tr>
+<td><code>pytest_collect_file</code></td>
+<td>收集文件时调用</td>
+<td>用于自定义文件收集逻辑</td>
+<td>确保路径处理符合预期</td>
+</tr>
+<tr>
+<td><code>pytest_collectstart</code></td>
+<td>开始收集某个项目时调用</td>
+<td>可用于在特定目录或模块开始时的初始化工作</td>
+<td>防止无限循环收集</td>
+</tr>
+<tr>
+<td><code>pytest_itemcollected</code></td>
+<td>每个测试项目被收集到时调用</td>
+<td>用于记录收集到的测试用例</td>
+<td>在收集项目时避免耗时操作</td>
+</tr>
+<tr>
+<td><code>pytest_collectreport</code></td>
+<td>收集报告生成时调用</td>
+<td>用于处理收集报告</td>
+<td>确保报告生成逻辑与期望一致</td>
+</tr>
+<tr>
+<td><code>pytest_deselected</code></td>
+<td>测试项目被过滤掉时调用</td>
+<td>用于记录被过滤掉的测试项目</td>
+<td>防止误删关键测试用例</td>
+</tr>
+<tr>
+<td><code>pytest_make_collect_report</code></td>
+<td>创建收集报告时调用</td>
+<td>用于生成自定义收集报告</td>
+<td>确保报告内容充分反映收集过程</td>
+</tr>
+<tr>
+<td><code>pytest_pycollect_makemodule</code></td>
+<td>创建 Python 模块收集项目</td>
+<td>用于自定义模块收集逻辑</td>
+<td>确保模块的合法性</td>
+</tr>
+<tr>
+<td><code>pytest_pycollect_makeitem</code></td>
+<td>创建 Python 测试项目</td>
+<td>用于自定义测试项目的创建逻辑</td>
+<td>确保项目收集逻辑满足预期</td>
+</tr>
+<tr>
+<td><code>pytest_pyfunc_call</code></td>
+<td>调用测试函数时调用</td>
+<td>用于自定义测试函数调用行为</td>
+<td>确保调用逻辑没有副作用</td>
+</tr>
+<tr>
+<td><code>pytest_generate_tests</code></td>
+<td>动态生成测试用例</td>
+<td>用于参数化测试生成测试用例</td>
+<td>确保生成的测试用例符合命名规则</td>
+</tr>
+<tr>
+<td><code>pytest_make_parametrize_id</code></td>
+<td>生成参数化的 id</td>
+<td>用于生成更具可读性的参数化 id</td>
+<td>保证参数化 id 的唯一性</td>
+</tr>
+<tr>
+<td><code>pytest_runtestloop</code></td>
+<td>测试运行主循环</td>
+<td>用于修改或增强测试运行循环</td>
+<td>确保自定义逻辑不破坏测试流程</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_protocol</code></td>
+<td>每个测试用例的运行协议</td>
+<td>用于控制单个测试用例的运行过程</td>
+<td>确保测试运行协议的完整性</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_logstart</code></td>
+<td>每个测试用例开始时的日志记录</td>
+<td>用于记录测试用例开始执行信息</td>
+<td>确保日志格式与系统一致</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_logfinish</code></td>
+<td>每个测试用例结束时的日志记录</td>
+<td>用于记录测试用例结束执行信息</td>
+<td>确保结束日志与开始日志匹配</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_setup</code></td>
+<td>测试用例运行前</td>
+<td>用于测试环境的准备工作</td>
+<td>确保所有前置条件都已配置完毕</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_call</code></td>
+<td>测试用例运行时调用</td>
+<td>用于自定义测试用例运行逻辑</td>
+<td>确保运行逻辑没有副作用</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_teardown</code></td>
+<td>测试结束后的清理工作</td>
+<td>用于清理测试环境以及资源回收</td>
+<td>确保清理确实完成且无副作用</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_makereport</code></td>
+<td>生成测试用例的运行报告</td>
+<td>用于生成自定义测试报告</td>
+<td>确保报告内容准确反映测试结果</td>
+</tr>
+<tr>
+<td><code>pytest_runtest_logreport</code></td>
+<td>测试用例完成时的日志记录</td>
+<td>用于记录测试用例的最终状态</td>
+<td>确保日志详细记录测试结果</td>
+</tr>
+<tr>
+<td><code>pytest_report_to_serializable</code></td>
+<td>将报告对象序列化</td>
+<td>用于报告多进程、多主机环境下的传输</td>
+<td>确保序列化格式的一致性</td>
+</tr>
+<tr>
+<td><code>pytest_report_from_serializable</code></td>
+<td>从序列化对象还原报告</td>
+<td>用于报告多进程、多主机环境下的还原</td>
+<td>确保反序列化格式的一致性</td>
+</tr>
+<tr>
+<td><code>pytest_fixture_setup</code></td>
+<td>固件被设置时调用</td>
+<td>用于自定义固件设置逻辑</td>
+<td>确保固件设置无副作用</td>
+</tr>
+<tr>
+<td><code>pytest_fixture_post_finalizer</code></td>
+<td>固件最后一个 finalizer 运行后调用</td>
+<td>用于自定义固件后处理逻辑</td>
+<td>确保固件后处理无副作用</td>
+</tr>
+<tr>
+<td><code>pytest_sessionstart</code></td>
+<td>测试会话启动时调用</td>
+<td>用于初始化测试会话</td>
+<td>确保会话启动逻辑的唯一性</td>
+</tr>
+<tr>
+<td><code>pytest_sessionfinish</code></td>
+<td>测试会话结束时调用</td>
+<td>用于清理测试会话资源</td>
+<td>确保所有资源都已被正确释放</td>
+</tr>
+<tr>
+<td><code>pytest_unconfigure</code></td>
+<td>测试会话完全结束时调用</td>
+<td>用于配置文件和内存的最终清理</td>
+<td>确保所有配置和内存都已被正确清理</td>
+</tr>
+<tr>
+<td><code>pytest_assertrepr_compare</code></td>
+<td>断言比较时调用</td>
+<td>用于自定义断言比较信息</td>
+<td>确保断言信息的详细和准确</td>
+</tr>
+<tr>
+<td><code>pytest_assertion_pass</code></td>
+<td>当断言通过时调用</td>
+<td>用于记录成功断言的日志</td>
+<td>可以选择性记录成功断言</td>
+</tr>
+<tr>
+<td><code>pytest_report_header</code></td>
+<td>生成测试报告的头部信息</td>
+<td>用于自定义测试报告头部</td>
+<td>确保头部信息的清晰和准确</td>
+</tr>
+<tr>
+<td><code>pytest_report_collectionfinish</code></td>
+<td>在测试集合完成后生成报告头部信息</td>
+<td>增强报告内容，确保收集过程的完整性</td>
+<td>确保报告准确反映测试集合的实际状态</td>
+</tr>
+<tr>
+<td><code>pytest_report_teststatus</code></td>
+<td>修改或增加测试状态信息</td>
+<td>自定义测试状态，以更好地符合项目需求</td>
+<td>确保测试状态与实际一致，避免误导</td>
+</tr>
+<tr>
+<td><code>pytest_terminal_summary</code></td>
+<td>生成测试会话的最终总结报告</td>
+<td>统一输出测试结果，提供整体视图</td>
+<td>确保报告内容的全面和准确</td>
+</tr>
+<tr>
+<td><code>pytest_warning_recorded</code></td>
+<td>记录测试中出现的警告信息</td>
+<td>收集、记录或处理测试警告</td>
+<td>确保警告信息的完整记录，避免遗漏重要警告</td>
+</tr>
+<tr>
+<td><code>pytest_markeval_namespace</code></td>
+<td>自定义标记表达式解析命名空间</td>
+<td>定义新的标记规则和解析逻辑</td>
+<td>确保新规则符合项目的实际需求</td>
+</tr>
+<tr>
+<td><code>pytest_internalerror</code></td>
+<td>捕获 pytest 框架自身的内部错误</td>
+<td>记录和处理 pytest 内部错误</td>
+<td>捕获到内部错误时，确保不会影响其他测试流程</td>
+</tr>
+<tr>
+<td><code>pytest_keyboard_interrupt</code></td>
+<td>处理键盘中断事件</td>
+<td>可用于处理 Ctrl+C 中断并进行善后处理</td>
+<td>确保中断事件处理不影响已完成的测试结果</td>
+</tr>
+<tr>
+<td><code>pytest_exception_interact</code></td>
+<td>在测试过程中抛出异常时与之交互</td>
+<td>捕获测试中异常，提供交互式调试或日志记录</td>
+<td>确保异常信息的详细记录，便于后续分析处理</td>
+</tr>
+<tr>
+<td><code>pytest_enter_pdb</code></td>
+<td>进入 pdb 调试模式时调用</td>
+<td>预设调试环境，打印调试信息</td>
+<td>确保调试信息的详细和准确，可以有效指导问题定位</td>
+</tr>
+<tr>
+<td><code>pytest_leave_pdb</code></td>
+<td>离开 pdb 调试模式时调用</td>
+<td>清理调试状态，记录调试结束信息</td>
+<td>确保调试状态的清理正确，避免影响后续测试</td>
+</tr>
+</tbody>
+</table>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2999/12/30/pytest_hook/">https://gavin-wang-note.github.io/2999/12/30/pytest_hook/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2999/12/31/pytest_test_guide_book/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="自己总结的《pytest测试指南》一书，800余页">
+                        
+                        <span class="card-title">自己总结的《pytest测试指南》一书，800余页</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            历经十八个月的辛勤耕耘，一部800余页的《pytest测试指南》完稿。本书不仅提供了pytest的全面介绍，更深入细致地探讨了具体的API项目实践。此外，书中还详尽阐述了如何将pytest与Jenkins相结合，以实现持续集成（CI）的完美落地。这是一部从基础入门到实际项目应用的完整手册，每一页、每一章节都凝聚心血、精心雕琢。对于渴望深入掌握pytest的读者而言，本书无疑是一份不可多得的宝贵资源，值得细细品读。
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2999-12-31
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2999/12/29/rrs/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/img/loading.gif" data-original="/medias/featureimages/250.jpg" class="responsive-img" alt="博客RRS订阅出现XML内容">
+                        
+                        <span class="card-title">博客RRS订阅出现XML内容</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            博客进行RRS订阅时，出现XML内容的解决方案
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2999-12-29
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/RRS/" class="post-category">
+                                    RRS
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/RRS/">
+                        <span class="chip bg-color">RRS</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2024</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1032.9k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
