@@ -1,0 +1,2626 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例失败重运行之pytest-rerunfailures源码解读, 软硬件测试">
+    <meta name="description" content="测试用例失败重运行之pytest-rerunfailures源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例失败重运行之pytest-rerunfailures源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例失败重运行之pytest-rerunfailures源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-02-23
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    10.1k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    43 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest</code> 插件 <code>pytest-rerunfailures</code>用于在测试失败时重新运行测试，以消除间歇性（<code>flaky</code>）测试失败（它们可能由于许多因素，如网络延迟、资源加载问题、并发问题等偶尔失败）。</p>
+<h1 id="zhu-yao-te-xing">主要特性</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>自动重试</strong>：能够自动重新运行未通过的测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>重试次数</strong>：可以定义要重新运行每个失败测试的次数。</p>
+</li>
+<li class="lvl-2">
+<p><strong>重试延迟</strong>：可以在重试之间设置延迟。</p>
+</li>
+<li class="lvl-2">
+<p><strong>有条件的重试</strong>：可以根据失败原因有选择地重试测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>与其他插件兼容</strong>：可以与如 <code>pytest-xdist</code> 的并行测试执行插件共同使用。</p>
+</li>
+</ul>
+<h1 id="shi-yong-chang-jing">使用场景</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>处理间歇性错误</strong>：网络请求或集成测试中的间歇性错误。</p>
+</li>
+<li class="lvl-2">
+<p><strong>外部资源波动</strong>：依赖于外部服务或资源的测试可能受到这些资源的可用性或响应速度的影响。</p>
+</li>
+<li class="lvl-2">
+<p><strong>并发问题</strong>：并发环境中可能出现的竞争条件或其他并发问题。</p>
+</li>
+<li class="lvl-2">
+<p><strong>加载时间差异</strong>：例如，UI 测试中的元素加载时间可能因环境而异。</p>
+</li>
+</ul>
+<h1 id="shi-yong-shi-li">使用示例</h1>
+<p>如果没安装，可通过 <code>pip</code> 命令进行安装：</p>
+<pre><code class="language-shell">pip install -U pytest-rerunfailures
+</code></pre>
+<p>我们来看一个非常常见的示例，使用命令行选项自动重试所有失败的测试：</p>
+<pre><code class="language-shell">pytest --reruns 2 --reruns-delay 1
+</code></pre>
+<p>在此例中，失败的测试将被自动重新运行最多两次，并在每次重试前设置 1 秒的延迟。</p>
+<p>对特定测试使用 <code>@pytest.mark.flaky</code> 重试：</p>
+<pre><code class="language-python"># content of test_rerunfailures.py
+import random
+import pytest
+
+# 无条件地在每个错误或失败的测试后重试最多两次
+@pytest.mark.flaky(reruns=2)
+def test_example_fail_twice():
+    """这个测试有一个随机因素，它可能会失败，我们将尝试重跑两次。"""
+    assert random.choice([True, False])
+
+# 在特定条件下重试
+@pytest.mark.flaky(reruns=5, reruns_delay=1)
+def test_example_with_condition():
+    """这个测试在特定条件下失败，我们将重试5次，并在重试间增加延迟。"""
+    value = random.randint(0, 5)
+    assert value &gt; 2
+
+# 没有使用rerunfailures装饰器的测试
+def test_always_passes():
+    """这个测试总是通过，不涉及重跑逻辑。"""
+    assert True
+</code></pre>
+<p>如果期间有测试失败，<code>pytest-rerunfailures</code> 插件会按照指定的 <code>reruns</code> 数量对失败的测试进行重试。对于带有 <code>@pytest.mark.flaky</code> 装饰器的测试，如 <code>test_example_fail_twice</code> 和 <code>test_example_with_condition</code>，将遵循装饰器中定义的重试规则。</p>
+<p><code>test_always_passes</code> 是一个普通的测试，不涵盖重跑逻辑，所以如果它失败了，它不会自动重试。</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/test# pytest -s -v test_rerunfailures.py
+Test session starts (platform: linux, Python 3.11.6, pytest 8.2.2, pytest-sugar 1.0.0)
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-44-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'profiling': '1.7.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'order': '1.2.1', 'progress': '1.3.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'assume': '2.4.3', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2', 'extra-durations': '0.1.3', 'line-profiler': '0.2.1', 'sugar': '1.0.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/pytest_plugin/test
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, profiling-1.7.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, order-1.2.1, progress-1.3.0, twisted-1.14.1, picked-0.5.0, assume-2.4.3, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2, extra-durations-0.1.3, line-profiler-0.2.1, sugar-1.0.0
+asyncio: mode=Mode.STRICT
+collected 3 items                                                                                                                                                                                                                        
+
+ test_rerunfailures.py::test_example_fail_twice RR✓                                                                                                                                                                         33% ███▍      
+ test_rerunfailures.py::test_example_with_condition ✓                                                                                                                                                                       67% ██████▋   
+ test_rerunfailures.py::test_always_passes ✓                                                                                                                                                                               100% ██████████
+======================================================================================================= sum of all tests durations =======================================================================================================
+
+0.02s
+
+Results (0.08s):
+       3 passed
+       2 rerun
+root@Gavin:~/pytest_plugin/test#
+</code></pre>
+<p>从执行结果看，用例<code>test_example_fail_twice</code>第一次和第二次失败，第三次成功。再来看一下携带参数的效果：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/test# pytest -s -v --reruns 2 --reruns-delay 1 test_rerunfailures.py
+Test session starts (platform: linux, Python 3.11.6, pytest 8.2.2, pytest-sugar 1.0.0)
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-44-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'profiling': '1.7.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'order': '1.2.1', 'progress': '1.3.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'assume': '2.4.3', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2', 'extra-durations': '0.1.3', 'line-profiler': '0.2.1', 'sugar': '1.0.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/pytest_plugin/test
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, profiling-1.7.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, order-1.2.1, progress-1.3.0, twisted-1.14.1, picked-0.5.0, assume-2.4.3, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2, extra-durations-0.1.3, line-profiler-0.2.1, sugar-1.0.0
+asyncio: mode=Mode.STRICT
+collected 3 items                                                                                                                                                                                                                        
+
+ test_rerunfailures.py::test_example_fail_twice ✓                                                                                                                                                                           33% ███▍      
+ test_rerunfailures.py::test_example_with_condition R✓                                                                                                                                                                      67% ██████▋   
+ test_rerunfailures.py::test_always_passes ✓                                                                                                                                                                               100% ██████████
+======================================================================================================= sum of all tests durations =======================================================================================================
+0.02s
+
+Results (1.10s):
+       3 passed
+       1 rerun
+root@Gavin:~/pytest_plugin/test#
+</code></pre>
+<p>携带此参数后，用例<code>test_example_fail_twice</code>的执行次数明显变少。</p>
+<h1 id="zhu-yi-shi-xiang">注意事项</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>遮掩问题</strong>：自动重试有可能掩盖根本问题，而这些问题可能需要修复。</p>
+</li>
+<li class="lvl-2">
+<p><strong>增加测试时间</strong>：重试失败的测试会增加总体的测试执行时间。</p>
+</li>
+<li class="lvl-2">
+<p><strong>与CI集成</strong>：在持续集成系统中使用时需要考虑到测试时间延长问题。</p>
+</li>
+<li class="lvl-2">
+<p><strong>可能的资源清理</strong>：在重试前可能需要清理由前一次测试运行留下的资源，避免 “脏” 环境影响后续测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>并行测试</strong>：在并行测试中使用时要特别小心，重试可能不会按预期工作。</p>
+</li>
+</ul>
+<p><code>pytest-rerunfailures</code> 插件很适合用在不稳定或易受环境影响的测试上，但最好还是尽量让测试保持稳定和可预测，并且对 flaky 测试进行额外的调查和分析，以防在一个确定性的环境中隐藏问题。记住，过度依赖自动重试可能会降低持续集成反馈的价值，并使得问题难以被察觉和解决。</p>
+<h1 id="yuan-ma-mu-lu-jie-gou">源码目录结构</h1>
+<p>从<a target="_blank" rel="noopener" href="https://pypi.org/project/pytest-rerunfailures">官网</a>下载源码解压后目录结构如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/pytest-rerunfailures-14.0# ll
+total 88
+drwxr-xr-x  4  502 staff  4096 Mar 13 16:21 ./
+drwxr-xr-x 17 root root   4096 Jul 23 11:46 ../
+-rw-r--r--  1  502 staff  9708 Mar 13 16:21 CHANGES.rst
+-rw-r--r--  1  502 staff  1252 Mar 13 16:21 CONTRIBUTING.rst
+-rw-r--r--  1  502 staff    14 Mar 13 16:21 HEADER.rst
+-rw-r--r--  1  502 staff   198 Mar 13 16:21 LICENSE
+-rw-r--r--  1  502 staff    74 Mar 13 16:21 MANIFEST.in
+-rw-r--r--  1  502 staff 18948 Mar 13 16:21 PKG-INFO
+-rw-r--r--  1  502 staff  2306 Mar 13 16:21 pyproject.toml
+-rw-r--r--  1  502 staff  7796 Mar 13 16:21 README.rst
+-rw-r--r--  1  502 staff    38 Mar 13 16:21 setup.cfg
+-rwxr-xr-x  1  502 staff    60 Mar 13 16:21 setup.py*
+drwxr-xr-x  3  502 staff  4096 Mar 13 16:21 src/
+drwxr-xr-x  2  502 staff  4096 Mar 13 16:21 tests/
+-rw-r--r--  1  502 staff   966 Mar 13 16:21 tox.ini
+root@Gavin:~/pytest_plugin/pytest-rerunfailures-14.0# cd src
+root@Gavin:~/pytest_plugin/pytest-rerunfailures-14.0/src# ll
+total 32
+drwxr-xr-x 3 502 staff  4096 Mar 13 16:21 ./
+drwxr-xr-x 4 502 staff  4096 Mar 13 16:21 ../
+drwxr-xr-x 2 502 staff  4096 Mar 13 16:21 pytest_rerunfailures.egg-info/
+-rw-r--r-- 1 502 staff 19286 Mar 13 16:21 pytest_rerunfailures.py
+root@Gavin:~/pytest_plugin/pytest-rerunfailures-14.0/src#
+</code></pre>
+<p>核心文件是<code>pytest_rerunfailures.py</code>，接下来我们对此文件进行一些解读。</p>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="mo-kuai-import">模块import</h2>
+<pre><code class="language-python">import hashlib
+import importlib.metadata
+import os
+import platform
+import re
+import socket
+import sys
+import threading
+import time
+import traceback
+import warnings
+from contextlib import suppress
+
+import pytest
+from _pytest.outcomes import fail
+from _pytest.runner import runtestprotocol
+from packaging.version import parse as parse_version
+
+try:
+    from xdist.newhooks import pytest_handlecrashitem
+    HAS_PYTEST_HANDLECRASHITEM = True
+    del pytest_handlecrashitem
+except ImportError:
+    HAS_PYTEST_HANDLECRASHITEM = False
+</code></pre>
+<p>这里导入了需要的模块，并检查了是否导入了 <code>pytest_handlecrashitem</code>，这是为了兼容 <code>pytest-xdist</code>。</p>
+<h2 id=""></h2>
+<h2 id="ming-ling-xing-can-shu-zhi-chi">命令行参数支持</h2>
+<pre><code class="language-python">def pytest_addoption(parser):
+    group = parser.getgroup("rerunfailures", "re-run failing tests to eliminate flaky failures")
+    group._addoption(
+        "--only-rerun",
+        action="append",
+        dest="only_rerun",
+        type=str,
+        default=None,
+        help="If passed, only rerun errors matching the regex provided. "
+             "Pass this flag multiple times to accumulate a list of regexes to match",
+    )
+    group._addoption(
+        "--reruns",
+        action="store",
+        dest="reruns",
+        type=int,
+        help="number of times to re-run failed tests. defaults to 0.",
+    )
+    group._addoption(
+        "--reruns-delay",
+        action="store",
+        dest="reruns_delay",
+        type=float,
+        help="add time (seconds) delay between reruns.",
+    )
+    group._addoption(
+        "--rerun-except",
+        action="append",
+        dest="rerun_except",
+        type=str,
+        default=None,
+        help="If passed, only rerun errors other than matching the regex "
+             "provided. Pass this flag multiple times to accumulate a list of regexes to match",
+    )
+    arg_type = "string"
+    parser.addini("reruns", "number of times to re-run failed tests. defaults to 0.", type=arg_type)
+    parser.addini("reruns_delay", "add time (seconds) delay between reruns.", type=arg_type)
+</code></pre>
+<p>在 <code>pytest_addoption</code> 中定义了几种命令行选项，以及在 <code>pytest.ini</code> 配置文件中的选项。</p>
+<h2 id="pei-zhi-jian-cha">配置检查</h2>
+<pre><code class="language-python">def check_options(config):
+    val = config.getvalue
+    if not val("collectonly"):
+        if config.option.reruns != 0:
+            if config.option.usepdb:  # a core option
+                raise pytest.UsageError("--reruns incompatible with --pdb")
+</code></pre>
+<p>这个函数检查命令行选项的有效性。如果使用了 <code>--reruns</code> 选项，将与调试（<code>--pdb</code>）功能冲突：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>只有当 <code>collectonly</code> 选项没有被设置（即测试将被执行）时，才进行进一步检查。</p>
+</li>
+<li class="lvl-2">
+<p>如果设置了 <code>reruns</code> 选项，表示用户希望对失败的测试进行重新运行。</p>
+</li>
+<li class="lvl-2">
+<p>如果同时设置了 <code>usepdb</code> 选项，这与 <code>reruns</code> 选项的目的冲突，因为 <code>usepdb</code> 会在测试失败时立即启动调试器，而不是让测试重新运行。</p>
+</li>
+<li class="lvl-2">
+<p>因此，如果同时设置了这两个选项，将抛出一个 <code>UsageError</code> 异常，指出它们是不兼容的。</p>
+</li>
+</ul>
+<h2 id="huo-qu-biao-ji-he-zhong-xin-yun-xing-ci-shu">获取标记和重新运行次数</h2>
+<pre><code class="language-python">def _get_marker(item):
+    return item.get_closest_marker("flaky")
+
+def get_reruns_count(item):
+    rerun_marker = _get_marker(item)
+    if rerun_marker is not None:
+        if "reruns" in rerun_marker.kwargs:
+            return rerun_marker.kwargs["reruns"]
+        elif len(rerun_marker.args) &gt; 0:
+            return rerun_marker.args[0]
+        else:
+            return 1
+
+    reruns = item.session.config.getvalue("reruns")
+    if reruns is not None:
+        return reruns
+
+    with suppress(TypeError, ValueError):
+        reruns = int(item.session.config.getini("reruns"))
+
+    return reruns
+</code></pre>
+<p>这些函数用于获取重试标记和重试次数。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>首先尝试从测试项的 <code>flaky</code> 标记中获取重试次数。<code>flaky</code> 标记可以通过位置参数或关键字参数 <code>reruns</code> 来指定重试次数。</p>
+</li>
+<li class="lvl-2">
+<p>如果测试项没有 <code>flaky</code> 标记或没有指定重试次数，则尝试从 pytest 的全局配置中获取 <code>reruns</code> 值。</p>
+</li>
+<li class="lvl-2">
+<p>如果全局配置中也没有指定，则尝试从配置文件（如 <code>pytest.ini</code>）中获取 <code>reruns</code> 配置项，并将其转换为整数。</p>
+</li>
+<li class="lvl-2">
+<p>如果所有方法都失败，返回默认的重试次数 1。</p>
+</li>
+</ul>
+<h2 id="huo-qu-zhong-shi-yan-chi">获取重试延迟</h2>
+<pre><code class="language-python">def get_reruns_delay(item):
+    rerun_marker = _get_marker(item)
+    if rerun_marker is not None:
+        if "reruns_delay" in rerun_marker.kwargs:
+            delay = rerun_marker.kwargs["reruns_delay"]
+        elif len(rerun_marker.args) &gt; 1:
+            delay = rerun_marker.args[1]
+        else:
+            delay = 0
+    else:
+        delay = item.session.config.getvalue("reruns_delay")
+        if delay is None:
+            try:
+                delay = float(item.session.config.getini("reruns_delay"))
+            except (TypeError, ValueError):
+                delay = 0
+
+    if delay &lt; 0:
+        delay = 0
+        warnings.warn("Delay time between re-runs cannot be &lt; 0. Using default value: 0")
+
+    return delay
+</code></pre>
+<p>这个函数用于获取重试之间的延迟时间。如果在标记中有设置，则使用标记中的设置，否则使用配置中的设置。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>首先尝试从测试项的 <code>flaky</code> 标记中获取重试延迟时间。<code>flaky</code> 标记可以通过关键字参数 <code>reruns_delay</code> 或位置参数来指定重试延迟时间。</p>
+</li>
+<li class="lvl-2">
+<p>如果测试项没有 <code>flaky</code> 标记或没有指定重试延迟时间，则尝试从 pytest 的全局配置中获取 <code>reruns_delay</code> 值。</p>
+</li>
+<li class="lvl-2">
+<p>如果全局配置中也没有指定，则尝试从配置文件中获取 <code>reruns_delay</code> 配置项，并将其转换为浮点数。</p>
+</li>
+<li class="lvl-2">
+<p>如果所有方法都失败或转换失败，返回默认的重试延迟时间 0。</p>
+</li>
+<li class="lvl-2">
+<p>确保返回的延迟时间不小于 0，并在必要时发出警告。</p>
+</li>
+</ul>
+<h2 id="get-reruns-condition">get_reruns_condition</h2>
+<pre><code class="language-python">def get_reruns_condition(item):
+    rerun_marker = _get_marker(item)
+
+    condition = True
+    if rerun_marker is not None and "condition" in rerun_marker.kwargs:
+        condition = evaluate_condition(
+            item, rerun_marker, rerun_marker.kwargs["condition"]
+        )
+
+    return condition
+</code></pre>
+<p><code>get_reruns_condition</code> 的函数，用于获取与 <code>pytest </code>测试项（<code>test item</code>）相关的重试条件：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>首先尝试从测试项的 <code>flaky</code> 标记中获取重试条件。</p>
+</li>
+<li class="lvl-2">
+<p>如果 <code>flaky</code> 标记中包含 <code>condition</code> 参数，则使用 <code>evaluate_condition</code> 函数来评估这个条件表达式。</p>
+</li>
+<li class="lvl-2">
+<p><code>evaluate_condition</code> 函数的具体实现没有在代码片段中给出，但它应该能够根据条件表达式返回一个布尔值，指示是否满足重试条件。</p>
+</li>
+<li class="lvl-2">
+<p>如果没有找到 <code>flaky</code> 标记或没有指定重试条件，则默认重试条件为 <code>True</code>。</p>
+</li>
+</ul>
+<h2 id="evaluate-condition">evaluate_condition</h2>
+<pre><code class="language-python">def evaluate_condition(item, mark, condition: object) -&gt; bool:
+    # copy from python3.8 _pytest.skipping.py
+
+    result = False
+    # String condition.
+    if isinstance(condition, str):
+        globals_ = {
+            "os": os,
+            "sys": sys,
+            "platform": platform,
+            "config": item.config,
+        }
+        if hasattr(item, "obj"):
+            globals_.update(item.obj.__globals__)  # type: ignore[attr-defined]
+        try:
+            filename = f"&lt;{mark.name} condition&gt;"
+            condition_code = compile(condition, filename, "eval")
+            result = eval(condition_code, globals_)  # noqa: S307
+        except SyntaxError as exc:
+            msglines = [
+                "Error evaluating %r condition" % mark.name,
+                "    " + condition,
+                "    " + " " * (exc.offset or 0) + "^",
+                "SyntaxError: invalid syntax",
+            ]
+            fail("\n".join(msglines), pytrace=False)
+        except Exception as exc:
+            msglines = [
+                "Error evaluating %r condition" % mark.name,
+                "    " + condition,
+                *traceback.format_exception_only(type(exc), exc),
+            ]
+            fail("\n".join(msglines), pytrace=False)
+
+    # Boolean condition.
+    else:
+        try:
+            result = bool(condition)
+        except Exception as exc:
+            msglines = [
+                "Error evaluating %r condition as a boolean" % mark.name,
+                *traceback.format_exception_only(type(exc), exc),
+            ]
+            fail("\n".join(msglines), pytrace=False)
+    return result
+</code></pre>
+<p><code>evaluate_condition</code> 的函数，用于评估一个条件表达式，这个条件表达式通常与 <code>pytest</code> 的 <code>flaky</code> 标记相关联，用于决定测试是否应该被标记为 flaky（即允许失败后重试）。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>根据条件的类型（字符串或布尔值），使用不同的方法进行评估。</p>
+</li>
+<li class="lvl-2">
+<p>如果条件是字符串，将其作为 <code>Python</code> 表达式进行评估。</p>
+</li>
+<li class="lvl-2">
+<p>如果条件不是字符串，尝试将其转换为布尔值。</p>
+</li>
+<li class="lvl-2">
+<p>在评估过程中，如果发生语法错误或其他异常，将构造错误消息并报告错误。</p>
+</li>
+</ul>
+<h2 id="ji-ge-si-you-han-shu">几个私有函数</h2>
+<pre><code class="language-python">def _remove_cached_results_from_failed_fixtures(item):
+    """Note: remove all cached_result attribute from every fixture."""
+    cached_result = "cached_result"
+    fixture_info = getattr(item, "_fixtureinfo", None)
+    for fixture_def_str in getattr(fixture_info, "name2fixturedefs", ()):
+        fixture_defs = fixture_info.name2fixturedefs[fixture_def_str]
+        for fixture_def in fixture_defs:
+            if getattr(fixture_def, cached_result, None) is not None:
+                result, _, err = getattr(fixture_def, cached_result)
+                if err:  # Deleting cached results for only failed fixtures
+                    setattr(fixture_def, cached_result, None)
+
+
+def _remove_failed_setup_state_from_session(item):
+    """
+    Clean up setup state.
+
+    Note: remove all failures from every node in _setupstate stack
+          and clean the stack itself
+    """
+    setup_state = item.session._setupstate
+    setup_state.stack = {}
+
+
+def _get_rerun_filter_regex(item, regex_name):
+    rerun_marker = _get_marker(item)
+
+    if rerun_marker is not None and regex_name in rerun_marker.kwargs:
+        regex = rerun_marker.kwargs[regex_name]
+        if isinstance(regex, str):
+            regex = [regex]
+    else:
+        regex = getattr(item.session.config.option, regex_name)
+
+    return regex
+
+
+def _matches_any_rerun_error(rerun_errors, report):
+    return _try_match_reprcrash(rerun_errors, report)
+
+
+def _matches_any_rerun_except_error(rerun_except_errors, report):
+    return _try_match_reprcrash(rerun_except_errors, report)
+
+
+def _try_match_reprcrash(rerun_errors, report):
+    for rerun_regex in rerun_errors:
+        try:
+            if re.search(rerun_regex, report.longrepr.reprcrash.message):
+                return True
+        except AttributeError:
+            if re.search(rerun_regex, report.longreprtext):
+                return True
+    return False
+
+
+def _should_hard_fail_on_error(item, report):
+    if report.outcome != "failed":
+        return False
+
+    rerun_errors = _get_rerun_filter_regex(item, "only_rerun")
+    rerun_except_errors = _get_rerun_filter_regex(item, "rerun_except")
+
+    if (not rerun_errors) and (not rerun_except_errors):
+        # Using neither --only-rerun nor --rerun-except
+        return False
+
+    elif rerun_errors and (not rerun_except_errors):
+        # Using --only-rerun but not --rerun-except
+        return not _matches_any_rerun_error(rerun_errors, report)
+
+    elif (not rerun_errors) and rerun_except_errors:
+        # Using --rerun-except but not --only-rerun
+        return _matches_any_rerun_except_error(rerun_except_errors, report)
+
+    else:
+        # Using both --only-rerun and --rerun-except
+        matches_rerun_only = _matches_any_rerun_error(rerun_errors, report)
+        matches_rerun_except = _matches_any_rerun_except_error(
+            rerun_except_errors, report
+        )
+        return (not matches_rerun_only) or matches_rerun_except
+
+
+def _should_not_rerun(item, report, reruns):
+    xfail = hasattr(report, "wasxfail")
+    is_terminal_error = _should_hard_fail_on_error(item, report)
+    condition = get_reruns_condition(item)
+    return (
+        item.execution_count &gt; reruns
+        or not report.failed
+        or xfail
+        or is_terminal_error
+        or not condition
+    )
+</code></pre>
+<p>这段代码包含了一系列函数，它们用于在<code>pytest</code>测试框架中处理与测试重试相关的逻辑。</p>
+<ol>
+<li class="lvl-3">
+<p><code>_remove_cached_results_from_failed_fixtures</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">目的：从每个 <code>fixture</code> 中移除所有 <code>cached_result</code> 属性。</li>
+<li class="lvl-5">逻辑：遍历 <code>item._fixtureinfo.name2fixturedefs</code> 中定义的所有 fixture definitions，如果找到 <code>cached_result</code> 属性，并且该 <code>fixture</code> 失败（<code>err</code> 为真），则将其 <code>cached_result</code> 设置为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><code>_remove_failed_setup_state_from_session</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">目的：清理<code> session</code> 的 <code>setup</code> 状态。</li>
+<li class="lvl-5">逻辑：清空 <code>item.session._setupstate.stack</code>，移除所有与设置状态相关的记录。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><code>_get_rerun_filter_regex</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">目的：获取用于决定哪些错误应该重新运行测试的正则表达式。</li>
+<li class="lvl-5">逻辑：检查 <code>rerun_marker</code> 是否存在以及是否包含指定的 <code>regex_name</code> 参数，如果存在则使用它；否则，使用来自 <code>item.session.config.option</code> 的值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><code>_matches_any_rerun_error</code> 和 <code>_matches_any_rerun_except_error</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">这两个函数的目的是检查测试报告是否与任何重试错误或排除错误匹配。</li>
+<li class="lvl-5">它们使用 <code>_try_match_reprcrash</code> 函数来执行实际的匹配检查。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><code>_try_match_reprcrash</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">目的：尝试匹配报告的 crash 信息或文本表示与提供的正则表达式。</li>
+<li class="lvl-5">逻辑：遍历 <code>rerun_errors</code> 中的每个正则表达式，尝试匹配 <code>report.longrepr.reprcrash.message</code> 或 <code>report.longreprtext</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><code>_should_hard_fail_on_error</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">目的：确定是否应该在错误发生时立即失败（不进行重试）。</li>
+<li class="lvl-5">逻辑：根据 <code>rerun_errors</code> 和 <code>rerun_except_errors</code> 检查报告，如果报告的失败不匹配任何 <code>only_rerun</code> 正则表达式或匹配任何 <code>rerun_except</code> 正则表达式，则测试将立即失败。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><code>_should_not_rerun</code> 函数：</p>
+<ul class="lvl-2">
+<li class="lvl-5">目的：确定是否不应该对测试项进行重试。</li>
+<li class="lvl-5">逻辑：如果测试项的执行次数超过 <code>reruns</code> 指定的次数、测试没有失败、测试被标记为 xfail、测试应该立即失败，或者测试条件不满足，则不应重试。</li>
+</ul>
+</li>
+</ol>
+<p>这些函数共同处理了测试重试的逻辑，包括条件评估、错误匹配、以及基于特定规则决定是否应该重试失败的测试。</p>
+<h2 id="is-master">is_master</h2>
+<pre><code class="language-pyhton">def is_master(config):
+    return not (hasattr(config, "workerinput") or hasattr(config, "slaveinput"))
+</code></pre>
+<p>这个 <code>is_master</code> 函数用于确定当前的 <code>pytest</code> 测试执行过程是否运行在主进程中。函数的逻辑非常简单：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>它接受一个参数 <code>config</code>，这是 <code>pytest</code> 的配置对象，包含了所有的命令行选项和配置设置。</p>
+</li>
+<li class="lvl-2">
+<p>函数内部使用了一个 <code>return</code> 语句，检查 <code>config</code> 对象是否具有 <code>workerinput</code> 或 <code>slaveinput</code> 属性。</p>
+</li>
+<li class="lvl-2">
+<p>如果 <code>config</code> 有 <code>workerinput</code> 或 <code>slaveinput</code> 属性，这通常意味着当前的执行环境是一个工作进程（<code>worker process</code>），而不是主进程。</p>
+</li>
+<li class="lvl-2">
+<p>因此，函数返回 <code>False</code> 表示这不是主进程。</p>
+</li>
+<li class="lvl-2">
+<p>如果 <code>config</code> 没有这些属性，函数返回 <code>True</code>，表示这是主进程。</p>
+</li>
+</ul>
+<p>简而言之，<code>is_master</code> 函数通过检查配置对象是否有特定的属性来确定是否处于主进程。这是一种常见的模式，用于在分布式测试环境中区分主进程和工作进程。在 <code>pytest-xdist</code> 等插件中，这种区分可能用于决定哪些操作应该仅在主进程中执行，例如协调测试执行、收集结果或处理最终报告。</p>
+<h2 id="pytest-pei-zhi-han-shu">pytest 配置函数</h2>
+<pre><code class="language-python">def pytest_configure(config):
+    config.addinivalue_line("markers",
+                            "flaky(reruns=1, reruns_delay=0): mark test to re-run up to 'reruns' times. "
+                            "Add a delay of 'reruns_delay' seconds between re-runs.")
+
+    if config.pluginmanager.hasplugin("xdist") and HAS_PYTEST_HANDLECRASHITEM:
+        config.pluginmanager.register(XDistHooks())
+        if is_master(config):
+            config.failures_db = ServerStatusDB()
+        else:
+            config.failures_db = ClientStatusDB(config.workerinput["sock_port"])
+    else:
+        config.failures_db = StatusDB()
+</code></pre>
+<p>在 <code>pytest_configure</code> 中，注册了一个新的标记 <code>flaky</code>，并根据是否使用了 <code>xdist</code> 插件来配置不同的数据库。</p>
+<h2 id="zhi-chi-fen-bu-shi-chu-li-de-hooks-lei">支持分布式处理的 hooks 类</h2>
+<pre><code class="language-python">class XDistHooks:
+    def pytest_configure_node(self, node):
+        node.workerinput["sock_port"] = node.config.failures_db.sock_port
+
+    def pytest_handlecrashitem(self, crashitem, report, sched):
+        db = sched.config.failures_db
+        reruns = db.get_test_reruns(crashitem)
+        if db.get_test_failures(crashitem) &lt; reruns:
+            sched.mark_test_pending(crashitem)
+            report.outcome = "rerun"
+
+        db.add_test_failure(crashitem)
+</code></pre>
+<p>该类实现了两个 hook 方法，用于配置分布式处理节点和处理崩溃项目：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>向 pytest 配置中添加自定义标记 <code>flaky</code> 的说明。</p>
+</li>
+<li class="lvl-2">
+<p>根据是否使用 <code>pytest-xdist</code> 插件以及是否支持新钩子来注册自定义钩子，并初始化用于跟踪失败测试的数据库实例。</p>
+</li>
+<li class="lvl-2">
+<p>确保根据当前的测试环境（并行或非并行）使用适当的数据库实例。</p>
+</li>
+</ul>
+<h2 id="nei-cun-shu-ju-ku">内存数据库</h2>
+<pre><code class="language-python">class StatusDB:
+    def __init__(self):
+        self.delim = b"\n"
+        self.hmap = {}
+
+    def _hash(self, crashitem: str) -&gt; str:
+        if crashitem not in self.hmap:
+            self.hmap[crashitem] = hashlib.sha1(crashitem.encode()).hexdigest()[:10]  # noqa: S324
+
+        return self.hmap[crashitem]
+
+    def add_test_failure(self, crashitem):
+        hash = self._hash(crashitem)
+        failures = self._get(hash, "f")
+        failures += 1
+        self._set(hash, "f", failures)
+
+    def get_test_failures(self, crashitem):
+        hash = self._hash(crashitem)
+        return self._get(hash, "f")
+
+    def set_test_reruns(self, crashitem, reruns):
+        hash = self._hash(crashitem)
+        self._set(hash, "r", reruns)
+
+    def get_test_reruns(self, crashitem):
+        hash = self._hash(crashitem)
+        return self._get(hash, "r")
+
+    # i is a hash of the test name, t_f.py::test_t
+    # k is f for failures or r for reruns
+    # v is the number of failures or reruns (an int)
+    def _set(self, i: str, k: str, v: int):
+        pass
+
+    def _get(self, i: str, k: str) -&gt; int:
+        return 0
+</code></pre>
+<p>这是一个存储重试信息的内存数据库类：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用 <code>_hash</code> 方法为每个测试项生成一个唯一的哈希值，并缓存这些哈希值以避免重复计算。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>_set</code> 和 <code>_get</code> 方法来存储和检索测试失败次数和重试次数，这些方法需要在子类中具体实现。</p>
+</li>
+<li class="lvl-2">
+<p>提供了 <code>add_test_failure</code>、<code>get_test_failures</code>、<code>set_test_reruns</code> 和 <code>get_test_reruns</code> 等方法来操作测试失败和重试次数。</p>
+</li>
+</ul>
+<h2 id="tao-jie-zi-shu-ju-ku">套接字数据库</h2>
+<pre><code class="language-python">class SocketDB(StatusDB):
+    def __init__(self):
+        super().__init__()
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setblocking(1)
+
+    def _sock_recv(self, conn) -&gt; str:
+        buf = b""
+        while True:
+            b = conn.recv(1)
+            if b == self.delim:
+                break
+            buf += b
+
+        return buf.decode()
+
+    def _sock_send(self, conn, msg: str):
+        conn.send(msg.encode() + self.delim)
+</code></pre>
+<p>这段代码假设了一个网络环境，其中测试失败和重试次数的信息需要通过网络套接字进行通信。这可用于分布式测试环境中，测试结果需要在不同的测试节点之间共享。</p>
+<p>这个类的核心逻辑如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用 <code>TCP</code> 套接字进行网络通信。</p>
+</li>
+<li class="lvl-2">
+<p><code>_sock_recv</code> 方法用于从套接字连接中接收数据，直到遇到分隔符。</p>
+</li>
+<li class="lvl-2">
+<p><code>_sock_send</code> 方法用于将数据发送到套接字连接，并在数据末尾添加分隔符。</p>
+</li>
+</ul>
+<h2 id="fu-wu-qi-shu-ju-ku">服务器数据库</h2>
+<pre><code class="language-python">class ServerStatusDB(SocketDB):
+    def __init__(self):
+        super().__init__()
+        self.sock.bind(("localhost", 0))
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.rerunfailures_db = {}
+        t = threading.Thread(target=self.run_server, daemon=True)
+        t.start()
+
+    @property
+    def sock_port(self):
+        return self.sock.getsockname()[1]
+
+    def run_server(self):
+        self.sock.listen()
+        while True:
+            conn, _ = self.sock.accept()
+            t = threading.Thread(target=self.run_connection, args=(conn,), daemon
+</code></pre>
+<p><code>ServerStatusDB</code> 类继承自 <code>SocketDB</code> 类。<code>ServerStatusDB</code> 类是一个服务器端的数据库，用于处理测试状态信息，如测试失败和重试次数，并通过 <code>TCP</code> 套接字进行通信。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>作为服务器端，绑定到一个随机端口并监听来自客户端的连接请求。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>threading.Thread</code> 创建线程来处理每个客户端连接。</p>
+</li>
+<li class="lvl-2">
+<p>通过 <code>run_server</code> 方法来接受客户端连接，并在连接建立时启动 <code>run_connection</code> 方法。</p>
+</li>
+<li class="lvl-2">
+<p><code>rerunfailures_db</code> 字典用于存储和跟踪测试的失败和重试状态信息。</p>
+</li>
+</ul>
+<h2 id="ke-hu-duan-shu-ju-ku">客户端数据库</h2>
+<pre><code class="language-python">class ClientStatusDB(SocketDB):
+    def __init__(self, sock_port):
+        super().__init__()
+        self.sock.connect(("localhost", sock_port))
+
+    def _set(self, i: str, k: str, v: int):
+        self._sock_send(self.sock, "|".join(("set", i, k, str(v))))
+
+    def _get(self, i: str, k: str) -&gt; int:
+        self._sock_send(self.sock, "|".join(("get", i, k, "")))
+        return int(self._sock_recv(self.sock))
+</code></pre>
+<p><code>ClientStatusDB</code> 类继承自 <code>SocketDB</code> 类。<code>ClientStatusDB</code> 类是一个客户端数据库，用于通过网络套接字与服务器进行通信，处理测试状态信息，如测试失败和重试次数。</p>
+<p>这个类的核心逻辑是：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>作为客户端，连接到服务器的套接字。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>_set</code> 方法通过网络发送设置测试状态的请求，并等待服务器处理。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>_get</code> 方法通过网络发送获取测试状态的请求，并接收服务器返回的状态信息。</p>
+</li>
+</ul>
+<p>请注意，这段代码中有几个关键的部分：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>_sock_send</code> 和 <code>_sock_recv</code> 方法是在 <code>SocketDB</code> 类中定义的，用于发送和接收数据。</p>
+</li>
+<li class="lvl-2">
+<p>数据通信是通过简单的字符串传输实现的，使用 “|” 字符作为字段分隔符。</p>
+</li>
+<li class="lvl-2">
+<p><code>connect</code> 和 <code>send</code> 等套接字操作可能会引发异常，因此在实际使用中可能需要添加异常处理逻辑。</p>
+</li>
+<li class="lvl-2">
+<p>类中的 <code>_set</code> 和 <code>_get</code> 方法假设服务器能够正确处理发送的命令，并返回相应的结果。服务器端需要实现相应的逻辑来响应这些命令。</p>
+</li>
+</ul>
+<h2 id="pytest-runtest-teardown">pytest_runtest_teardown</h2>
+<pre><code class="language-python">def pytest_runtest_teardown(item, nextitem):
+    reruns = get_reruns_count(item)
+    if reruns is None:
+        # global setting is not specified, and this test is not marked with
+        # flaky
+        return
+
+    if not hasattr(item, "execution_count"):
+        # pytest_runtest_protocol hook of this plugin was not executed
+        # -&gt; teardown needs to be skipped as well
+        return
+
+    _test_failed_statuses = getattr(item, "_test_failed_statuses", {})
+
+    # Only remove non-function level actions from the stack if the test is to be re-run
+    # Exceeding re-run limits, being free of failue statuses, and encountering
+    # allowable exceptions indicate that the test is not to be re-ran.
+    if (
+        item.execution_count &lt;= reruns
+        and any(_test_failed_statuses.values())
+        and not any(item._terminal_errors.values())
+    ):
+        # clean cashed results from any level of setups
+        _remove_cached_results_from_failed_fixtures(item)
+
+        if item in item.session._setupstate.stack:
+            for key in list(item.session._setupstate.stack.keys()):
+                if key != item:
+                    del item.session._setupstate.stack[key]
+</code></pre>
+<p>这个 <code>pytest_runtest_teardown</code> 函数是 <code>pytest</code> 测试框架中的一个挂钩（<code>hook</code>）实现，用于在每个测试用例执行完毕后进行清理工作。函数的主要目的是在测试失败时，如果设置了重试（<code>rerun</code>），则清理相关的状态，以便测试可以被重新执行。下面是对这段代码的逐行解读：</p>
+<ol>
+<li class="lvl-3">
+<p>函数签名 <code>pytest_runtest_teardown(item, nextitem)</code>：这个函数作为 <code>pytest</code> 的钩子（<code>hook</code>），接受两个参数，<code>item</code> 是当前测试项，<code>nextitem</code> 是下一个将要执行的测试项。</p>
+</li>
+<li class="lvl-3">
+<p>调用 <code>get_reruns_count(item)</code> 来获取当前测试项的重试次数。</p>
+</li>
+<li class="lvl-3">
+<p>如果 <code>reruns</code> 是 <code>None</code>，则表示没有设置全局重试次数，并且当前测试项没有使用 <code>flaky</code> 标记指定重试，因此不需要执行任何操作，函数返回。</p>
+</li>
+<li class="lvl-3">
+<p>检查 <code>item</code> 是否有 <code>execution_count</code> 属性。该属性在 pytest 的测试执行协议钩子（<code>pytest_runtest_protocol</code>）中设置。如果没有这个属性，说明测试执行协议钩子没有被执行，因此不需要执行清理，函数返回。</p>
+</li>
+<li class="lvl-3">
+<p>使用 <code>getattr</code> 获取 <code>item</code> 的 <code>_test_failed_statuses</code> 属性，这是一个字典，存储了测试失败的状态。</p>
+</li>
+<li class="lvl-3">
+<p>检查是否满足以下条件才进行清理：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item.execution_count</code> 小于或等于 <code>reruns</code>，即测试尚未超过重试次数。</li>
+<li class="lvl-5"><code>_test_failed_statuses</code> 字典中至少有一个测试用例失败了。</li>
+<li class="lvl-5"><code>item._terminal_errors</code> 字典中没有任何测试用例遇到终止错误（<code>terminal error</code>），这些通常是不应该重试的错误，如超时或中断。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p>如果满足清理条件，调用 <code>_remove_cached_results_from_failed_fixtures(item)</code> 来移除所有失败的 <code>fixture</code> 的 <code>cached_result</code> 属性。</p>
+</li>
+<li class="lvl-3">
+<p>检查 <code>item</code> 是否在 <code>item.session._setupstate.stack</code> 中，这个栈存储了测试设置的状态。如果是，并且栈中存在非当前测试项的键，则从栈中删除这些键，以清理其他测试项的设置状态。</p>
+</li>
+</ol>
+<p>这段代码的逻辑是在测试失败后，如果设置了重试并且测试用例没有遇到终止错误，就清理测试项的状态，以便重新执行测试。这样做的目的是避免由于测试项的副作用或依赖关系导致重试失败。</p>
+<h2 id="pytest-runtest-makereport">pytest_runtest_makereport</h2>
+<pre><code class="language-python">@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    outcome = yield
+    result = outcome.get_result()
+    if result.when == "setup":
+        # clean failed statuses at the beginning of each test/rerun
+        setattr(item, "_test_failed_statuses", {})
+
+        # create a dict to store error-check results for each stage
+        setattr(item, "_terminal_errors", {})
+
+    _test_failed_statuses = getattr(item, "_test_failed_statuses", {})
+    _test_failed_statuses[result.when] = result.failed
+    item._test_failed_statuses = _test_failed_statuses
+
+    item._terminal_errors[result.when] = _should_hard_fail_on_error(item, result)
+</code></pre>
+<p>这段代码使用了<code> pytest</code> 的钩子（hook）机制，定义了一个 <code>pytest_runtest_makereport</code> 函数，该函数在生成测试报告时被调用。使用了 <code>@pytest.hookimpl</code> 装饰器来注册钩子实现，并使用 <code>hookwrapper=True</code> 参数来获取 <code>pytest</code> 钩子的额外上下文信息。</p>
+<ol>
+<li class="lvl-3">
+<p>使用 <code>@pytest.hookimpl</code> 装饰器定义钩子实现，<code>hookwrapper=True</code> 表示这个钩子会包装其他钩子的执行，允许你在其他钩子执行前后添加逻辑。</p>
+</li>
+<li class="lvl-3">
+<p>定义函数 <code>pytest_runtest_makereport(item, call)</code>，它接受两个参数：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item</code>：当前测试项（test item）。</li>
+<li class="lvl-5"><code>call</code>：一个封装了测试调用的 <code>pytest.CallInfo</code> 对象。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p>使用 <code>yield</code> 关键字挂起函数执行，并将结果传递给 <code>outcome</code> 变量。这是 <code>hookwrapper=True</code> 用法的一部分，允许你在其他钩子执行完成后获取结果。</p>
+</li>
+<li class="lvl-3">
+<p>从 <code>outcome</code> 对象获取生成的测试结果，存储在 <code>result</code> 变量中。</p>
+</li>
+<li class="lvl-3">
+<p>检查 <code>result.when</code> 是否等于 <code>"setup"</code>，如果是，则表明当前是在测试用例的设置阶段。</p>
+</li>
+<li class="lvl-3">
+<p>如果在设置阶段失败，则清理之前可能存在的任何失败状态，并为当前测试用例创建一个新的失败状态字典 <code>_test_failed_statuses</code>。</p>
+</li>
+<li class="lvl-3">
+<p>同样在设置阶段，创建一个字典 <code>_terminal_errors</code> 来存储每个测试阶段是否应该立即失败的状态。</p>
+</li>
+<li class="lvl-3">
+<p>获取当前测试项的 <code>_test_failed_statuses</code> 属性，如果不存在则使用空字典。</p>
+</li>
+<li class="lvl-3">
+<p>更新 <code>_test_failed_statuses</code> 字典，将当前测试阶段的失败状态设置为 <code>result.failed</code>。</p>
+</li>
+<li class="lvl-4">
+<p>将更新后的 <code>_test_failed_statuses</code> 字典设置回测试项的属性。</p>
+</li>
+<li class="lvl-4">
+<p>根据当前测试结果调用 <code>_should_hard_fail_on_error</code> 函数，判断是否应该立即失败，并更新 <code>item._terminal_errors</code> 字典。</p>
+</li>
+<li class="lvl-4">
+<p>将更新后的 <code>_terminal_errors</code> 字典设置回测试项的属性。</p>
+</li>
+</ol>
+<p>这段代码的主要目的是在生成测试报告时，收集和更新关于测试失败状态和是否应该立即失败的信息。这些信息随后可以在其他钩子中使用，例如在 <code>pytest_runtest_teardown</code> 中，以决定是否需要清理测试状态或是否应该重新执行测试。通过在测试用例的设置阶段初始化这些属性，并在测试报告生成时更新它们，可以确保测试框架具有关于测试执行状态的准确信息。</p>
+<h2 id="pytest-runtest-protocol">pytest_runtest_protocol</h2>
+<pre><code class="language-python">def pytest_runtest_protocol(item, nextitem):
+    """
+    Run the test protocol.
+
+    Note: when teardown fails, two reports are generated for the case, one for
+    the test case and the other for the teardown error.
+    """
+    reruns = get_reruns_count(item)
+    if reruns is None:
+        # global setting is not specified, and this test is not marked with
+        # flaky
+        return
+
+    # while this doesn't need to be run with every item, it will fail on the
+    # first item if necessary
+    check_options(item.session.config)
+    delay = get_reruns_delay(item)
+    parallel = not is_master(item.config)
+    db = item.session.config.failures_db
+    item.execution_count = db.get_test_failures(item.nodeid)
+    db.set_test_reruns(item.nodeid, reruns)
+
+    if item.execution_count &gt; reruns:
+        return True
+
+    need_to_run = True
+    while need_to_run:
+        item.execution_count += 1
+        item.ihook.pytest_runtest_logstart(nodeid=item.nodeid, location=item.location)
+        reports = runtestprotocol(item, nextitem=nextitem, log=False)
+
+        for report in reports:  # 3 reports: setup, call, teardown
+            report.rerun = item.execution_count - 1
+            if _should_not_rerun(item, report, reruns):
+                # last run or no failure detected, log normally
+                item.ihook.pytest_runtest_logreport(report=report)
+            else:
+                # failure detected and reruns not exhausted, since i &lt; reruns
+                report.outcome = "rerun"
+                time.sleep(delay)
+
+                if not parallel or works_with_current_xdist():
+                    # will rerun test, log intermediate result
+                    item.ihook.pytest_runtest_logreport(report=report)
+
+                # cleanin item's cashed results from any level of setups
+                _remove_cached_results_from_failed_fixtures(item)
+                _remove_failed_setup_state_from_session(item)
+
+                break  # trigger rerun
+        else:
+            need_to_run = False
+
+        item.ihook.pytest_runtest_logfinish(nodeid=item.nodeid, location=item.location)
+
+    return True
+</code></pre>
+<p>这段代码定义了 <code>pytest_runtest_protocol</code> 函数，它是 <code>pytest</code> 测试框架中的一个核心钩子（<code>hook</code>）实现，用于控制测试的执行流程，包括处理测试的重试逻辑。代码解读：</p>
+<ol>
+<li class="lvl-3">
+<p>函数签名 <code>pytest_runtest_protocol(item, nextitem)</code>：这个函数作为 pytest 的钩子，接受两个参数，<code>item</code> 是当前测试项，<code>nextitem</code> 是下一个将要执行的测试项。</p>
+</li>
+<li class="lvl-3">
+<p>调用 <code>get_reruns_count(item)</code> 来获取当前测试项的重试次数。</p>
+</li>
+<li class="lvl-3">
+<p>如果 <code>reruns</code> 是 <code>None</code>，则表示没有设置全局重试次数，并且当前测试项没有使用 <code>flaky</code> 标记指定重试，因此不需要执行重试逻辑，函数返回。</p>
+</li>
+<li class="lvl-3">
+<p>调用 <code>check_options(item.session.config)</code> 来检查配置选项是否兼容。</p>
+</li>
+<li class="lvl-3">
+<p>调用 <code>get_reruns_delay(item)</code> 来获取重试之间的延迟时间。</p>
+</li>
+<li class="lvl-3">
+<p>调用 <code>is_master(item.config)</code> 来确定是否在主进程中运行，如果不是，则为 <code>True</code>，表示在并行环境中。</p>
+</li>
+<li class="lvl-3">
+<p>从 <code>item.session.config</code> 获取 <code>failures_db</code>，这是用于跟踪测试失败和重试次数的数据库实例。</p>
+</li>
+<li class="lvl-3">
+<p>获取当前测试项的失败次数，并设置到 <code>item.execution_count</code>。</p>
+</li>
+<li class="lvl-3">
+<p>设置当前测试项的重试次数到数据库。</p>
+</li>
+<li class="lvl-4">
+<p>如果 <code>item.execution_count</code> 大于 <code>reruns</code>，则不再需要重试，函数返回 <code>True</code>。</p>
+</li>
+<li class="lvl-4">
+<p>初始化 <code>need_to_run</code> 为 <code>True</code>，用于控制循环是否继续执行。</p>
+</li>
+<li class="lvl-4">
+<p>使用 <code>while</code> 循环来处理测试的执行和重试逻辑。</p>
+</li>
+<li class="lvl-4">
+<p>每次循环开始时，增加 <code>item.execution_count</code>。</p>
+</li>
+<li class="lvl-4">
+<p>使用 <code>item.ihook.pytest_runtest_logstart</code> 记录测试开始日志。</p>
+</li>
+<li class="lvl-4">
+<p>调用 <code>runtestprotocol</code> 函数执行测试协议，<code>log=False</code> 表示不记录日志。</p>
+</li>
+<li class="lvl-4">
+<p>遍历 <code>runtestprotocol</code> 返回的报告列表（可能包括 <code>setup, call, teardown</code> 报告）。</p>
+</li>
+<li class="lvl-4">
+<p>对于每个报告，设置 <code>rerun</code> 属性为当前重试次数减一。</p>
+</li>
+<li class="lvl-4">
+<p>调用 <code>_should_not_rerun</code> 函数检查是否不应该重试测试。</p>
+</li>
+<li class="lvl-4">
+<p>如果不应该重试，使用 <code>item.ihook.pytest_runtest_logreport</code> 记录报告。</p>
+</li>
+<li class="lvl-4">
+<p>如果应该重试并且还没有达到重试次数限制，将报告的 <code>outcome</code> 设置为 <code>"rerun"</code>。</p>
+</li>
+<li class="lvl-4">
+<p>如果在并行环境中或者 <code>works_with_current_xdist()</code> 返回 <code>True</code>，则记录中间结果。</p>
+</li>
+<li class="lvl-4">
+<p>调用 <code>_remove_cached_results_from_failed_fixtures(item)</code> 清理缓存结果。</p>
+</li>
+<li class="lvl-4">
+<p>调用 <code>_remove_failed_setup_state_from_session(item)</code> 清理会话的设置状态。</p>
+</li>
+<li class="lvl-4">
+<p><code>break</code> 语句触发重试。</p>
+</li>
+<li class="lvl-4">
+<p>如果没有进入 <code>for</code> 循环的 <code>else</code> 块，说明没有检测到失败或不需要重试，设置 <code>need_to_run</code> 为 <code>False</code> 退出循环。</p>
+</li>
+<li class="lvl-4">
+<p>使用 <code>item.ihook.pytest_runtest_logfinish</code> 记录测试结束日志。</p>
+</li>
+<li class="lvl-4">
+<p>函数返回 <code>True</code>，表示钩子逻辑正常结束。</p>
+</li>
+</ol>
+<p>这个函数的逻辑是在 <code>pytest</code> 的测试执行流程中，根据测试项的重试设置来控制测试的执行和重试。通过循环和条件判断，实现了在测试失败时重试测试的功能，并在重试之间添加了延迟。此外，还处理了并行测试环境中的重试逻辑，确保测试可以在适当的条件下重新执行。</p>
+<h2 id="pytest-report-teststatus">pytest_report_teststatus</h2>
+<pre><code class="language-python">def pytest_report_teststatus(report):
+    # Adapted from https://pytest.org/latest/_modules/_pytest/skipping.html
+    if report.outcome == "rerun":
+        return "rerun", "R", ("RERUN", {"yellow": True})
+</code></pre>
+<p>这段代码定义了一个名为 <code>pytest_report_teststatus</code> 的函数，它是 <code>pytest</code> 测试框架中的一个钩子（<code>hook</code>）实现，用于报告测试的状态。这个特定的实现是用来处理测试重新运行（rerun）的状态报告。代码解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p>函数签名 <code>pytest_report_teststatus(report)</code>：这个函数作为 <code>pytest</code> 的钩子，接受一个参数 <code>report</code>，它是当前测试项的报告对象，包含了测试的执行结果和状态。</p>
+</li>
+<li class="lvl-3">
+<p>检查 <code>report</code> 对象的 <code>outcome</code> 属性是否等于 <code>"rerun"</code>。<code>outcome</code> 属性表示测试的最终结果，<code>"rerun"</code> 是一个自定义的结果，表示测试需要重新运行。</p>
+</li>
+<li class="lvl-3">
+<p>如果 <code>outcome</code> 是 <code>"rerun"</code>，函数返回一个包含三个元素的元组：</p>
+<ul class="lvl-2">
+<li class="lvl-5">第一个元素是状态字符串 <code>"rerun"</code>，表示测试的状态是重新运行。</li>
+<li class="lvl-5">第二个元素是状态的简短表示 <code>"R"</code>，这个简短表示可能会在测试报告中使用。</li>
+<li class="lvl-5">第三个元素是一个元组，包含两个部分：
+<ul class="lvl-4">
+<li class="lvl-7">一个字符串 <code>"RERUN"</code>，表示测试重新运行的文本描述。</li>
+<li class="lvl-7">一个字典 <code>{"yellow": True}</code>，指定了文本描述的颜色样式，这里是黄色。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>这个函数的主要作用是在 <code>pytest</code> 的测试报告中添加对 <code>"rerun"</code> 状态的支持。当测试因为失败而被标记为需要重新运行时，这个状态会通过 pytest 的报告系统传递，并在最终的测试报告中以特定的样式显示。这为用户提供了清晰的反馈，说明哪些测试因为失败而被自动重新执行。</p>
+<h2 id="pytest-terminal-summary">pytest_terminal_summary</h2>
+<pre><code class="language-python">def pytest_terminal_summary(terminalreporter):
+    # Adapted from https://pytest.org/latest/_modules/_pytest/skipping.html
+    tr = terminalreporter
+    if not tr.reportchars:
+        return
+
+    lines = []
+    for char in tr.reportchars:
+        if char in "rR":
+            show_rerun(terminalreporter, lines)
+
+    if lines:
+        tr._tw.sep("=", "rerun test summary info")
+        for line in lines:
+            tr._tw.line(line)
+</code></pre>
+<p><code>pytest_terminal_summary</code> 是一个 <code>pytest</code> 钩子函数，通常用于在测试运行结束时向终端报告测试的摘要信息。这个特定的实现是用来在终端报告中添加关于测试重试的摘要信息。</p>
+<p>这段代码解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pytest_terminal_summary(terminalreporter)</code>：这个函数接收一个参数 <code>terminalreporter</code>，它是 <code>pytest</code> 的终端报告器对象，负责向终端输出报告信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查报告字符</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if not tr.reportchars: return</code>：如果 <code>terminalreporter</code> 的 <code>reportchars</code> 属性为空，函数直接返回。<code>reportchars</code> 是一个字符串，包含了测试结果的单字符表示，例如 <code>"."</code> 表示通过，<code>"F"</code> 表示失败，<code>"r"</code> 或 <code>"R"</code> 可能表示重试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>收集重试信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>lines = []</code>：初始化一个列表 <code>lines</code>，用来收集关于重试测试的信息。</li>
+<li class="lvl-5"><code>for char in tr.reportchars:</code>：遍历 <code>reportchars</code> 中的每个字符。</li>
+<li class="lvl-5"><code>if char in "rR":</code>：如果字符是 <code>"r"</code> 或 <code>"R"</code>，表明有测试用例需要重试或已经重试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>展示重试信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>show_rerun(terminalreporter, lines)</code>：调用 <code>show_rerun</code> 函数（未在代码中定义，可能是自定义函数），传入 <code>terminalreporter</code> 和 <code>lines</code> 来收集需要展示的重试信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>报告重试摘要</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if lines:</code>：如果 <code>lines</code> 非空，说明有重试信息需要展示。</li>
+<li class="lvl-5"><code>tr._tw.sep("=", "rerun test summary info")</code>：使用 <code>_tw.sep</code> 方法输出一个分隔线，标题为 “rerun test summary info”。</li>
+<li class="lvl-5"><code>for line in lines:</code>：遍历 <code>lines</code> 中的每一行信息。</li>
+<li class="lvl-5"><code>tr._tw.line(line)</code>：使用 <code>_tw.line</code> 方法输出每一行重试信息。</li>
+</ul>
+</li>
+</ol>
+<p>这个函数的主要作用是在测试结束时，如果存在重试的测试用例，就在终端报告中添加一个重试测试的摘要部分。这为用户提供了关于哪些测试用例被重试以及可能的结果的额外信息。</p>
+<h2 id="show-rerun">show_rerun</h2>
+<pre><code class="language-python">
+def show_rerun(terminalreporter, lines):
+    rerun = terminalreporter.stats.get("rerun")
+    if rerun:
+        for rep in rerun:
+            pos = rep.nodeid
+            lines.append(f"RERUN {pos}")
+</code></pre>
+<p>这段代码定义了一个名为 <code>show_rerun</code> 的函数，它的作用是收集并展示在 <code>pytest</code> 测试运行中被重试的测试用例的信息。</p>
+<p>这段代码的解读如下所示：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>show_rerun(terminalreporter, lines)</code>：这个函数接收两个参数，<code>terminalreporter</code> 是 <code>pytest</code> 的终端报告器对象，用于访问测试统计信息；<code>lines</code> 是一个列表，用来收集重试测试用例的信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取重试测试的统计信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>rerun = terminalreporter.stats.get("rerun")</code>：从 <code>terminalreporter</code> 的 <code>stats</code> 字典中获取键为 <code>"rerun"</code> 的条目，这个条目包含了所有被标记为需要重试的测试报告。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查是否有重试的测试</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if rerun:</code>：如果存在重试的测试（即 <code>rerun</code> 不为空），则进入循环处理这些测试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历重试的测试报告</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for rep in rerun:</code>：遍历 <code>rerun</code> 列表中的每个测试报告对象。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取测试用例的位置信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pos = rep.nodeid</code>：从测试报告对象 <code>rep</code> 中获取 <code>nodeid</code> 属性，这是一个字符串，唯一标识一个测试用例。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>收集重试测试的信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>lines.append(f"RERUN {pos}")</code>：使用 <code>f</code> 字符串格式化，创建一个包含 “RERUN” 和测试用例位置信息的字符串，并将其添加到 <code>lines</code> 列表中。</li>
+</ul>
+</li>
+</ol>
+<p>这个函数的主要作用是将被重试的测试用例的信息收集起来，并将这些信息以列表的形式返回，供 <code>pytest_terminal_summary</code> 函数在终端报告中展示。通过这种方式，用户可以清晰地看到哪些测试用例在测试运行中失败了并且被自动重试。</p>
+<h1 id="jie-yu">结语</h1>
+<p><code>pytest-rerunfailures</code> 是一个 <code>pytest</code> 插件，用于在测试失败后自动重新运行测试，直到成功或达到最大重试次数。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>插件初始化与配置</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">插件通过钩子函数（如 <code>pytest_configure</code>）进行初始化。</li>
+<li class="lvl-5">它检查是否与其他插件（如 <code>pytest-xdist</code>）兼容，并根据配置设置初始化数据库（<code>StatusDB</code>）来跟踪测试失败和重试状态。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>测试重试逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">通过 <code>pytest_runtest_protocol</code> 钩子实现测试重试逻辑。</li>
+<li class="lvl-5">根据测试项的 <code>flaky</code> 标记或全局配置获取重试次数。</li>
+<li class="lvl-5">在测试失败时，根据设定的条件和重试次数决定是否重新执行测试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>数据库操作</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>StatusDB</code> 类及其子类（如 <code>ServerStatusDB</code> 和 <code>ClientStatusDB</code>）来存储和检索测试的失败次数和重试设置。</li>
+<li class="lvl-5">数据库操作包括设置和获取测试的失败次数及重试次数。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>条件评估</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">通过 <code>evaluate_condition</code> 函数评估 <code>flaky</code> 标记中的条件表达式，决定是否应该对测试进行重试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>错误处理与匹配</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用正则表达式匹配测试错误，确定哪些错误应该触发重试，哪些不应该。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>测试设置与清理</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">在测试重试之前，清理测试项的缓存结果和会话状态，确保测试环境的一致性。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>测试报告</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">通过 <code>pytest_report_teststatus</code> 钩子自定义测试报告的状态，例如添加 <code>"rerun"</code> 状态。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>并行测试支持</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">当与 <code>pytest-xdist</code> 插件一起使用时，<code>pytest-rerunfailures</code> 插件支持在并行测试环境中运行。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>兼容性检查</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">插件会检查当前环境和依赖项的兼容性，确保重试逻辑正确执行。</li>
+</ul>
+</li>
+<li class="lvl-4">
+<p><strong>用户配置</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-6">用户可以通过 pytest 命令行选项或配置文件设置重试次数、延迟等参数。</li>
+</ul>
+</li>
+</ol>
+<p><code>pytest-rerunfailures</code> 插件的源码实现了一套完整的机制，用于处理测试的自动重试，包括条件评估、错误匹配、数据库跟踪、报告自定义等。它提供了一种强大的方式，以自动化测试流程，提高测试的可靠性和效率。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/02/23/pytest_rerunfailures/">https://gavin-wang-note.github.io/2025/02/23/pytest_rerunfailures/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2025/03/17/pytest_random_order/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例随机执行之pytest-random-order源码解读">
+                        
+                        <span class="card-title">测试用例随机执行之pytest-random-order源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例随机执行之pytest-random-order源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2025-03-17
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/02/01/pytest_order/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例执行顺序之pytest-order源码解读">
+                        
+                        <span class="card-title">测试用例执行顺序之pytest-order源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例执行顺序之pytest-order源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-02-01
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1083.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

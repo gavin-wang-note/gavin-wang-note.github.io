@@ -1,0 +1,4811 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例执行顺序之pytest-order源码解读, 软硬件测试">
+    <meta name="description" content="测试用例执行顺序之pytest-order源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例执行顺序之pytest-order源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例执行顺序之pytest-order源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-02-01
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    21.1k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    87 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p>今天我们来解读一下<code>pytest-order</code>源码，以及使用<code>pytest-order</code>中的一个坑的介绍。</p>
+<p>The content is a bit long, please read patiently. -^-^-</p>
+<p>了解这一块的同学可能会提及另外一个插件<code>pytest-ordering</code>，这两者之间关系比较密切，准确的说<code>pytest-order</code>是<code>pytest-ordering</code>的一个分支，但是<code>pytest-ordering</code>已经不维护了（多年未更新了,官网有说：This is a fork of pytest-ordering. That project is not maintained anymore, and there are several helpful PRs that are now integrated into pytest-order. ），所以就介绍介绍<code>pytest-order</code>吧。</p>
+<h1 id="yuan-ma-mu-lu-jie-gou">源码目录结构</h1>
+<p><a target="_blank" rel="noopener" href="https://pypi.org/project/pytest-order">官网</a>下载后解压，目录结构如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin# cd pytest-order-1.2.1/
+root@Gavin:~/pytest_plugin/pytest-order-1.2.1# ll
+total 80
+drwxr-xr-x  7 1001 gdm  4096 Apr  3 03:09 ./
+drwxr-xr-x 15 root root 4096 Jul 18 10:16 ../
+-rw-r--r--  1 1001 gdm   347 Apr  3 03:08 AUTHORS
+-rw-r--r--  1 1001 gdm  9153 Apr  3 03:08 CHANGELOG.md
+drwxr-xr-x  3 1001 gdm  4096 Apr  3 03:09 docs/
+drwxr-xr-x  4 1001 gdm  4096 Apr  3 03:09 example/
+-rw-r--r--  1 1001 gdm  1148 Apr  3 03:08 LICENSE
+-rw-r--r--  1 1001 gdm   172 Apr  3 03:08 MANIFEST.in
+-rw-r--r--  1 1001 gdm  7640 Apr  3 03:09 PKG-INFO
+drwxr-xr-x  2 1001 gdm  4096 Apr  3 03:09 pytest_order/
+drwxr-xr-x  2 1001 gdm  4096 Apr  3 03:09 pytest_order.egg-info/
+-rw-r--r--  1 1001 gdm  6184 Apr  3 03:08 README.md
+-rw-r--r--  1 1001 gdm   165 Apr  3 03:09 setup.cfg
+-rw-r--r--  1 1001 gdm  1929 Apr  3 03:08 setup.py
+drwxr-xr-x  2 1001 gdm  4096 Apr  3 03:09 tests/
+-rw-r--r--  1 1001 gdm   648 Apr  3 03:08 tox.ini
+root@Gavin:~/pytest_plugin/pytest-order-1.2.1# cd pytest_order
+root@Gavin:~/pytest_plugin/pytest-order-1.2.1/pytest_order# ll
+total 56
+drwxr-xr-x 2 1001 gdm  4096 Apr  3 03:09 ./
+drwxr-xr-x 7 1001 gdm  4096 Apr  3 03:09 ../
+-rw-r--r-- 1 1001 gdm    22 Apr  3 03:08 __init__.py
+-rw-r--r-- 1 1001 gdm  7545 Apr  3 03:08 item.py
+-rw-r--r-- 1 1001 gdm  5241 Apr  3 03:08 plugin.py
+-rw-r--r-- 1 1001 gdm  2536 Apr  3 03:08 settings.py
+-rw-r--r-- 1 1001 gdm 21385 Apr  3 03:08 sorter.py
+root@Gavin:~/pytest_plugin/pytest-order-1.2.1/pytest_order#
+</code></pre>
+<p>核心源码在<code>pytest_order</code>目录下。</p>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="a-href-http-xn-item-p-85-f-980-j-py-wen-jian-item-py-a"><a target="_blank" rel="noopener" href="http://xn--item-p85f980j.py">文件item.py</a></h2>
+<p>该文件主要为<code>pytest-order</code> 提供基础支持，包括表示和处理测试项的类、按标记顺序排序项目和处理标记。通过这些类与方法，实现了定义和执行测试项顺序的功能。在实际运用中，整体框架便于管理复杂的测试项顺序关系，满足深层次测试需求。</p>
+<pre><code class="language-python">import sys
+from typing import Optional, List, Dict, Tuple, Generic, TypeVar
+
+from _pytest.python import Function
+
+from .settings import Scope, Settings
+
+
+_ItemType = TypeVar("_ItemType", "Item", "ItemGroup")
+
+
+class Item:
+    """Represents a single test item."""
+
+    def __init__(self, item: Function) -&gt; None:
+        self.item: Function = item  # 代表一个单一的测试项
+        self.nr_rel_items: int = 0  # 表示与其他项相关的数量
+        self.order: Optional[int] = None  # 表示其顺序
+        self._node_id: Optional[str] = None  # 节点ID
+
+    def inc_rel_marks(self) -&gt; None:
+        if self.order is None:
+            self.nr_rel_items += 1  # 增加相关项数量
+
+    def dec_rel_marks(self) -&gt; None:
+        if self.order is None:
+            self.nr_rel_items -= 1  # 减少相关项数量
+
+    @property
+    def module_path(self) -&gt; str:
+        return self.item.nodeid[: self.node_id.index("::")]  # 获取模块路径
+
+    def parent_path(self, level) -&gt; str:
+        return "/".join(self.module_path.split("/")[:level])  # 获取父路径
+
+    @property
+    def node_id(self) -&gt; str:
+        if self._node_id is None:
+            # pytest 4 之前的版本中，nodeid 包含不需要的 ::()
+            self._node_id = self.item.nodeid.replace("::()", "")
+        return self._node_id
+</code></pre>
+<h3 id="item-lei">Item 类</h3>
+<p><code>Item</code> 类表示单一的测试项。包含以下主要属性和方法：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>item</code>：测试项本身，是一个 <code>_pytest.python.Function</code> 对象.</p>
+</li>
+<li class="lvl-2">
+<p><code>nr_rel_items</code>：相关项数量。用于管理与此项相关联的其他测试项数量。</p>
+</li>
+<li class="lvl-2">
+<p><code>order</code>：测试项的执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>node_id</code>：采用惰性加载的方式获取测试项的节点ID。</p>
+</li>
+</ul>
+<pre><code class="language-python">class ItemList:
+    """Handles a group of items with the same scope."""
+
+    def __init__(
+        self,
+        items: List[Item],
+        settings: Settings,
+        scope: Scope,
+        rel_marks: List["RelativeMark[Item]"],
+        dep_marks: List["RelativeMark[Item]"],
+    ) -&gt; None:
+        self.items = items  # 项目列表
+        self.settings = settings  # 设置
+        self.scope = scope  # 范围
+        self.start_items: List[Tuple[int, List[Item]]] = []  # 起始项
+        self.end_items: List[Tuple[int, List[Item]]] = []  # 结束项
+        self.unordered_items: List[Item] = []  # 无序项
+        self._start_items: Dict[int, List[Item]] = {}  # 内部起始项字典
+        self._end_items: Dict[int, List[Item]] = {}  # 内部结束项字典
+        self.all_rel_marks = rel_marks  # 所有关系标记
+        self.all_dep_marks = dep_marks  # 所有依赖标记
+        self.rel_marks = filter_marks(rel_marks, items)  # 过滤后的关系标记
+        self.dep_marks = filter_marks(dep_marks, items)  # 过滤后的依赖标记
+
+    def collect_markers(self, item: Item) -&gt; None:
+        self.handle_order_mark(item)
+        if item.nr_rel_items or item.order is None:
+            self.unordered_items.append(item)
+
+    def handle_order_mark(self, item: Item) -&gt; None:
+        if item.order is not None:
+            if item.order &lt; 0:
+                self._end_items.setdefault(item.order, []).append(item)
+            else:
+                self._start_items.setdefault(item.order, []).append(item)
+
+    def sort_numbered_items(self) -&gt; List[Item]:
+        self.start_items = sorted(self._start_items.items())
+        self.end_items = sorted(self._end_items.items())
+        sorted_list = []
+        index = 0
+        for order, items in self.start_items:
+            if self.settings.sparse_ordering:
+                while order &gt; index and self.unordered_items:
+                    sorted_list.append(self.unordered_items.pop(0))
+                    index += 1
+            sorted_list += items
+            index += len(items)
+        mid_index = len(sorted_list)
+        index = -1
+        for order, items in reversed(self.end_items):
+            if self.settings.sparse_ordering:
+                while order &lt; index and self.unordered_items:
+                    sorted_list.insert(mid_index, self.unordered_items.pop())
+                    index -= 1
+            sorted_list[mid_index:mid_index] = items
+            index -= len(items)
+        sorted_list[mid_index:mid_index] = self.unordered_items
+        return sorted_list
+
+    def print_unhandled_items(self) -&gt; None:
+        msg = " ".join(
+            [mark.item.node_id for mark in self.rel_marks]
+            + [mark.item.node_id for mark in self.dep_marks]
+        )
+        if msg:
+            sys.stdout.write("\nWARNING: cannot execute test relative to others: ")
+            sys.stdout.write(msg)
+            sys.stdout.write(" - ignoring the marker.\n")
+            sys.stdout.flush()
+
+    def number_of_rel_groups(self) -&gt; int:
+        return len(self.rel_marks) + len(self.dep_marks)
+
+    def handle_rel_marks(self, sorted_list: List[Item]) -&gt; None:
+        self.handle_relative_marks(self.rel_marks, sorted_list, self.all_rel_marks)
+
+    def handle_dep_marks(self, sorted_list: List[Item]) -&gt; None:
+        self.handle_relative_marks(self.dep_marks, sorted_list, self.all_dep_marks)
+
+    @staticmethod
+    def handle_relative_marks(
+        marks: List["RelativeMark[Item]"],
+        sorted_list: List[Item],
+        all_marks: List["RelativeMark[Item]"],
+    ) -&gt; None:
+        for mark in reversed(marks):
+            if move_item(mark, sorted_list):
+                marks.remove(mark)
+                all_marks.remove(mark)
+
+    def group_order(self) -&gt; Optional[int]:
+        if self.start_items:
+            return self.start_items[0][0]
+        elif self.end_items:
+            return self.end_items[-1][0]
+        return None
+
+</code></pre>
+<h3 id="item-list-lei">ItemList 类</h3>
+<p><code>ItemList</code> 类处理具有相同范围的一组测试项。主要功能是收集并排序测试项，处理排序标记和关闭标记。主要方法与属性有:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>__init__</code>: 初始化方法，接受一组测试项及其相关的标记。</p>
+</li>
+<li class="lvl-2">
+<p><code>collect_markers</code>: 收集测试项的标记并将未排序项追加到列表中。</p>
+</li>
+<li class="lvl-2">
+<p><code>handle_order_mark</code>: 根据顺序标记将项添加到起始项或结束项字典中。</p>
+</li>
+<li class="lvl-2">
+<p><code>sort_numbered_items</code>: 根据起始项和结束项将测试项排序。</p>
+</li>
+<li class="lvl-2">
+<p><code>print_unhandled_items</code>: 打印未被处理的项。</p>
+</li>
+<li class="lvl-2">
+<p><code>number_of_rel_groups</code>: 返回关系标记组数量。</p>
+</li>
+<li class="lvl-2">
+<p><code>handle_rel_marks</code>: 处理关系标记。</p>
+</li>
+<li class="lvl-2">
+<p><code>handle_dep_marks</code>: 处理依赖标记。</p>
+</li>
+</ul>
+<h4 id="collect-markers-fang-fa">collect_markers 方法</h4>
+<pre><code class="language-python">    def collect_markers(self, item: Item) -&gt; None:
+        self.handle_order_mark(item)
+        if item.nr_rel_items or item.order is None:
+            self.unordered_items.append(item)
+</code></pre>
+<p>这个方法主要作用是收集测试用例的标记，并根据这些标记对测试用例进行分类处理。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>参数：<br>
+item：一个 <code>Item</code> 对象，代表单个测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>功能：调用 handle_order_mark 方法来处理 item 的顺序标记。检查 item 的 nr_rel_items（相对标记的数量）和 order 属性：如果 item 没有相对标记（<code>nr_rel_items</code> 为0）且没有指定顺序（<code>order</code> 为 <code>None</code>），则将该 <code>item</code> 添加到 <code>unordered_items</code> 列表中。这些未排序的测试用例将在所有已排序测试用例之后执行。</p>
+</li>
+</ul>
+<h4 id="handle-order-mark-fang-fa">handle_order_mark 方法</h4>
+<pre><code class="language-python">    def handle_order_mark(self, item: Item) -&gt; None:
+        if item.order is not None:
+            if item.order &lt; 0:
+                self._end_items.setdefault(item.order, []).append(item)
+            else:
+                self._start_items.setdefault(item.order, []).append(item)
+</code></pre>
+<p>这个方法主要作用是处理单个测试用例的顺序标记。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>参数：<code>item</code>：一个 <code>Item</code> 对象，代表单个测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>功能：检查 <code>item</code> 的 <code>order</code> 属性：</p>
+<ul class="lvl-2">
+<li class="lvl-4">如果 <code>order</code> 不为 <code>None</code>（即测试用例有指定的执行顺序），则根据 <code>order</code> 的值将 <code>item</code> 分类到 <code>_start_items</code> 或 <code>_end_items</code> 字典中：如果 <code>order</code> 为负数（如 -1，表示最后执行），则将 <code>item</code> 添加到 <code>_end_items</code> 字典中，以 <code>order</code> 值为键。如果 <code>order</code> 为正数或零（如 1，表示最先执行），则将 <code>item</code> 添加到 <code>_start_items</code> 字典中，以 <code>order</code> 值为键。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>代码逻辑</p>
+</li>
+</ul>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>收集标记：遍历所有测试用例，调用 <code>collect_markers</code> 方法。对每个测试用例，调用 <code>handle_order_mark</code> 方法处理其顺序标记。</p>
+</li>
+<li class="lvl-2">
+<p>分类存储：根据 <code>order</code> 值，将测试用例存储在<code> _start_items</code>（正数或零）或 <code>_end_items</code>（负数）字典中。未指定顺序的测试用例存储在 <code>unordered_items</code> 列表中。</p>
+</li>
+<li class="lvl-2">
+<p>排序执行：在实际执行测试用例之前，根据 <code>_start_items、_end_items</code> 和 <code>unordered_items</code> 中的顺序，构建最终的执行顺序。</p>
+</li>
+</ul>
+<p><strong>注意事项：</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>全局性：一旦使用了 <code>order</code> 标记，所有测试用例都需要明确指定其顺序，否则可能会影响预期的执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p>负数顺序：负数 <code>order</code> 值表示测试用例将在其他测试用例之后执行，这在需要在测试结束时执行某些清理操作时非常有用。</p>
+</li>
+</ul>
+<h4 id="sort-numbered-items-fang-fa">sort_numbered_items方法</h4>
+<p><code>sort_numbered_items</code> 方法的作用是将测试用例按照指定的顺序进行排序，既做到灵活地控制测试用例的执行顺序，同时又能保持代码的可读性和可维护性。</p>
+<pre><code class="language-python">    def sort_numbered_items(self) -&gt; List[Item]:
+        self.start_items = sorted(self._start_items.items())
+        self.end_items = sorted(self._end_items.items())
+        sorted_list = []
+        index = 0
+        for order, items in self.start_items:
+            if self.settings.sparse_ordering:
+                while order &gt; index and self.unordered_items:
+                    sorted_list.append(self.unordered_items.pop(0))
+                    index += 1
+            sorted_list += items
+            index += len(items)
+        mid_index = len(sorted_list)
+        index = -1
+        for order, items in reversed(self.end_items):
+            if self.settings.sparse_ordering:
+                while order &lt; index and self.unordered_items:
+                    sorted_list.insert(mid_index, self.unordered_items.pop())
+                    index -= 1
+            sorted_list[mid_index:mid_index] = items
+            index -= len(items)
+        sorted_list[mid_index:mid_index] = self.unordered_items
+        return sorted_list
+</code></pre>
+<p>逻辑解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>排序起始和结束项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>self.start_items = sorted(self._start_items.items())</code>：将具有正数或零顺序标记的测试用例（存储在 <code>_start_items</code> 字典中）按顺序值进行排序。</li>
+<li class="lvl-5"><code>self.end_items = sorted(self._end_items.items())</code>：将具有负数顺序标记的测试用例（存储在 <code>_end_items</code> 字典中）按顺序值进行排序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>初始化排序列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorted_list = []</code>：创建一个空列表，用于存储排序后的测试用例。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理起始项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>self.start_items</code> 中的每个顺序值和对应的测试用例列表：
+<ul class="lvl-4">
+<li class="lvl-7">如果设置了 <code>self.settings.sparse_ordering</code>（稀疏排序），则在将未排序的测试用例插入到当前位置之前，先将它们插入到排序列表中，直到达到当前顺序值。</li>
+<li class="lvl-7">将当前顺序的测试用例添加到 <code>sorted_list</code>。</li>
+<li class="lvl-7">更新 <code>index</code> 值，表示已排序的测试用例数量。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理中间项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>mid_index = len(sorted_list)</code>：记录排序列表的中间索引位置。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理结束项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>self.end_items</code> 中的每个顺序值和对应的测试用例列表（逆序遍历）：
+<ul class="lvl-4">
+<li class="lvl-7">如果设置了 <code>self.settings.sparse_ordering</code>，则在将未排序的测试用例插入到当前位置之前，先将它们插入到排序列表中，直到达到当前顺序值。</li>
+<li class="lvl-7">将当前顺序的测试用例插入到 <code>sorted_list</code> 的中间位置。</li>
+<li class="lvl-7">更新 <code>index</code> 值，表示已排序的测试用例数量。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加未排序项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorted_list[mid_index:mid_index] = self.unordered_items</code>：将未排序的测试用例添加到排序列表的末尾。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回排序后的列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return sorted_list</code>：返回排序后的测试用例列表。</li>
+</ul>
+</li>
+</ol>
+<h4 id="print-unhandled-items-fang-fa">print_unhandled_items方法</h4>
+<p><code>print_unhandled_items</code> 方法用于处理和报告未处理的相对标记（<code>relative marks</code>），有助于调试和理解测试用例的执行顺序，特别是在处理复杂的依赖关系时。</p>
+<p>逻辑大致如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>构建消息内容</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>msg = " ".join([...])</code>：通过 <code>join</code> 方法将字符串列表连接成一个单独的字符串，每个字符串之间用空格分隔。</li>
+<li class="lvl-5"><code>(mark.item.node_id for mark in self.rel_marks)</code>：生成一个迭代器，包含所有相对标记（<code>RelativeMark</code> 对象）中的 <code>item</code> 的 <code>node_id</code>。</li>
+<li class="lvl-5"><code>(mark.item.node_id for mark in self.dep_marks)</code>：类似地，生成一个迭代器，包含所有依赖标记中的 <code>item</code> 的 <code>node_id</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查消息是否非空</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if msg:</code>：如果 <code>msg</code> 字符串非空（即存在未处理的标记），则执行以下操作。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>输出警告信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sys.stdout.write("\nWARNING: cannot execute test relative to others: ")</code>：使用 <code>sys.stdout.write</code> 输出警告消息的开头部分。</li>
+<li class="lvl-5"><code>sys.stdout.write(msg)</code>：输出未处理的测试用例的 <code>node_id</code>。</li>
+<li class="lvl-5"><code>sys.stdout.write(" - ignoring the marker.\n")</code>：输出警告消息的结尾部分，提示这些标记将被忽略。</li>
+<li class="lvl-5"><code>sys.stdout.flush()</code>：刷新标准输出缓冲区，确保警告信息立即显示。</li>
+</ul>
+</li>
+</ol>
+<p><strong>注意事项：</strong></p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>输出警告</strong>：这个方法仅在存在未处理的相对标记时输出警告信息。如果没有未处理的标记，它不会输出任何内容。</p>
+</li>
+<li class="lvl-2">
+<p><strong>即时显示</strong>：通过 <code>sys.stdout.flush()</code> 确保警告信息立即显示在控制台上，而不是等待缓冲区自动刷新。</p>
+</li>
+</ul>
+<h4 id="number-of-rel-groups-fang-fa">number_of_rel_groups方法</h4>
+<p>此方法用于计算测试用例中相对标记的数量，返回值：int，相对标记组的总数。</p>
+<pre><code class="language-python">    def number_of_rel_groups(self) -&gt; int:
+        return len(self.rel_marks) + len(self.dep_marks)
+</code></pre>
+<p>这个方法返回 <code>self.rel_marks</code>（相对标记列表）和 <code>self.dep_marks</code>（依赖标记列表）的长度之和。这些标记用来定义测试用例之间的相对执行顺序。</p>
+<h4 id="handle-rel-marks-fang-fa">handle_rel_marks方法</h4>
+<p>此方法处理相对标记。</p>
+<pre><code class="language-python">    def handle_rel_marks(self, sorted_list: List[Item]) -&gt; None:
+        self.handle_relative_marks(self.rel_marks, sorted_list, self.all_rel_marks)
+</code></pre>
+<p>调用 <code>handle_relative_marks</code> 静态方法，传入 <code>self.rel_marks</code>（相对标记列表）、<code>sorted_list</code>（已排序的测试用例列表）和 <code>self.all_rel_marks</code>（所有相对标记列表）。</p>
+<h4 id="handle-dep-marks-fang-fa">handle_dep_marks方法</h4>
+<p>此方法处理依赖标记。</p>
+<pre><code class="language-python">    def handle_dep_marks(self, sorted_list: List[Item]) -&gt; None:
+        self.handle_relative_marks(self.dep_marks, sorted_list, self.all_dep_marks)
+</code></pre>
+<p>这个方法调用<code> handle_relative_marks</code> 静态方法，传入 <code>self.dep_marks</code>（依赖标记列表）、<code>sorted_list</code>（已排序的测试用例列表）和 <code>self.all_dep_marks</code>（所有依赖标记列表）。</p>
+<h4 id="handle-relative-marks-fang-fa">handle_relative_marks方法</h4>
+<p><code>handle_relative_marks</code>方法用于处理相对标记，确保测试用例按照这些相对关系进行排序，它通过调整测试用例在 <code>sorted_list</code> 中的位置来实现这一点。</p>
+<pre><code class="language-python">    @staticmethod
+    def handle_relative_marks(
+        marks: List["RelativeMark[Item]"],
+        sorted_list: List[Item],
+        all_marks: List["RelativeMark[Item]"],
+    ) -&gt; None:
+        for mark in reversed(marks):
+            if move_item(mark, sorted_list):
+                marks.remove(mark)
+                all_marks.remove(mark)
+</code></pre>
+<p>逻辑解读如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>遍历 <code>marks</code> 列表的逆序列（从最后一个标记开始）。</p>
+</li>
+<li class="lvl-2">
+<p>对于每个标记，调用 <code>move_item</code> 方法尝试根据相对标记调整 <code>sorted_list</code> 中测试用例的顺序。</p>
+</li>
+<li class="lvl-2">
+<p>如果 <code>move_item</code> 返回 <code>True</code>，表示标记被成功处理：从 <code>marks</code> 列表中移除该标记。从 <code>all_marks</code> 列表中移除该标记。</p>
+</li>
+</ul>
+<h4 id="group-order-fang-fa">group_order方法</h4>
+<p>这个方法用于确定测试用例组的顺序值，基于组内测试用例的相对顺序标记，即确定测试用例组的整体顺序，这在处理多个测试用例需要按特定顺序执行时非常有用。</p>
+<pre><code class="language-python">    def group_order(self) -&gt; Optional[int]:
+        if self.start_items:
+            return self.start_items[0][0]
+        elif self.end_items:
+            return self.end_items[-1][0]
+        return None
+</code></pre>
+<p>逻辑解读如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>检查 <code>self.start_items</code>（起始项列表）：如果存在起始项，返回第一个起始项的顺序值。</p>
+</li>
+<li class="lvl-2">
+<p>检查 <code>self.end_items</code>（结束项列表）：如果存在结束项，返回最后一个结束项的顺序值。</p>
+</li>
+<li class="lvl-2">
+<p>如果两者都不存在，返回 <code>None</code>。</p>
+</li>
+</ul>
+<h3 id="item-group-lei">ItemGroup 类</h3>
+<pre><code class="language-python">class ItemGroup:
+    """
+    Holds a group of sorted items with the same group order scope.
+    Used for sorting groups similar to Item for sorting items.
+    """
+
+    def __init__(
+        self, items: Optional[List[Item]] = None, order: Optional[int] = None
+    ) -&gt; None:
+        self.items: List[Item] = items or []
+        self.order = order
+        self.nr_rel_items = 0
+
+    def inc_rel_marks(self) -&gt; None:
+        if self.order is None:
+            self.nr_rel_items += 1
+
+    def dec_rel_marks(self) -&gt; None:
+        if self.order is None:
+            self.nr_rel_items -= 1
+
+    def extend(self, groups: List["ItemGroup"], order: Optional[int]) -&gt; None:
+        for group in groups:
+            self.items.extend(group.items)
+        self.order = order
+</code></pre>
+<p><code>ItemGroup</code>类用于处理具有相同分组顺序范围的一组项目。主要方法与属性有:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>__init__</code>: 初始化方法，接受一组项目及其顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>inc_rel_marks</code>: 增加相关项目数量。</p>
+</li>
+<li class="lvl-2">
+<p><code>dec_rel_marks</code>: 减少相关项目数量。</p>
+</li>
+<li class="lvl-2">
+<p><code>extend</code>: 扩展项目组。</p>
+</li>
+</ul>
+<p><code>ItemGroup</code> 类用于以下目的：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>分组：将具有相同顺序范围的测试用例组合在一起。</p>
+</li>
+<li class="lvl-2">
+<p>顺序管理：通过 <code>order</code> 属性管理组的整体执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p>相对标记计数：通过 <code>nr_rel_items</code> 属性跟踪组内未标记顺序的测试用例数量，这有助于在处理相对顺序时做出决策。</p>
+</li>
+</ul>
+<h4 id="lei-ding-yi-he-chu-shi-hua">类定义和初始化</h4>
+<pre><code class="language-python">class ItemGroup:
+    """
+    Holds a group of sorted items with the same group order scope.
+    Used for sorting groups similar to Item for sorting items.
+    """
+    def __init__(
+        self, items: Optional[List[Item]] = None, order: Optional[int] = None
+    ) -&gt; None:
+        self.items: List[Item] = items or []
+        self.order = order
+        self.nr_rel_items = 0
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>__init__</code> 方法</strong>：类的构造函数，用于初始化 <code>ItemGroup</code> 实例。</p>
+<ul class="lvl-2">
+<li class="lvl-4"><strong>参数</strong>：
+<ul class="lvl-4">
+<li class="lvl-6"><code>items</code>：<code>Optional[List[Item]]</code>，一个可选的测试用例列表。如果未提供，则默认为空列表。</li>
+<li class="lvl-6"><code>order</code>：<code>Optional[int]</code>，一个可选的整数，表示组的顺序。如果未提供，则默认为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-4"><strong>属性</strong>：
+<ul class="lvl-4">
+<li class="lvl-6"><code>self.items</code>：存储属于该组的测试用例列表。</li>
+<li class="lvl-6"><code>self.order</code>：存储该组的顺序值。</li>
+<li class="lvl-6"><code>self.nr_rel_items</code>：存储该组中未标记顺序的测试用例数量。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="fang-fa">方法</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>inc_rel_marks</code> 方法</strong>：</p>
+<pre><code class="language-python">def inc_rel_marks(self) -&gt; None:
+    if self.order is None:
+        self.nr_rel_items += 1
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-4">
+<p><strong>功能</strong>：增加未标记顺序的测试用例计数。</p>
+</li>
+<li class="lvl-4">
+<p><strong>参数</strong>：无</p>
+</li>
+<li class="lvl-4">
+<p><strong>返回值</strong>：无（<code>None</code>）</p>
+</li>
+<li class="lvl-4">
+<p><strong>逻辑</strong>：如果组的顺序 <code>self.order</code> 为 <code>None</code>，则增加 <code>self.nr_rel_items</code> 的值。</p>
+</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong><code>dec_rel_marks</code> 方法</strong>：</p>
+<pre><code class="language-python">def dec_rel_marks(self) -&gt; None:
+    if self.order is None:
+        self.nr_rel_items -= 1
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-4">
+<p><strong>功能</strong>：减少未标记顺序的测试用例计数。</p>
+</li>
+<li class="lvl-4">
+<p><strong>参数</strong>：无</p>
+</li>
+<li class="lvl-4">
+<p><strong>返回值</strong>：无（<code>None</code>）</p>
+</li>
+<li class="lvl-4">
+<p><strong>逻辑</strong>：如果组的顺序 <code>self.order</code> 为 <code>None</code>，则减少 <code>self.nr_rel_items</code> 的值。</p>
+</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong><code>extend</code> 方法</strong>：</p>
+<pre><code class="language-python">def extend(self, groups: List["ItemGroup"], order: Optional[int]) -&gt; None:
+    for group in groups:
+        self.items.extend(group.items)
+    self.order = order
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-4">
+<p><strong>功能</strong>：扩展当前组，包含其他组的测试用例。</p>
+</li>
+<li class="lvl-4">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-4">
+<li class="lvl-6"><code>groups</code>：<code>List[ItemGroup]</code>，要合并的组列表。</li>
+<li class="lvl-6"><code>order</code>：<code>Optional[int]</code>，新的顺序值，用于更新当前组的顺序。</li>
+</ul>
+</li>
+<li class="lvl-4">
+<p><strong>返回值</strong>：无（<code>None</code>）</p>
+</li>
+<li class="lvl-4">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-4">
+<li class="lvl-6">遍历 <code>groups</code> 列表，将每个组的测试用例列表扩展到当前组的 <code>self.items</code> 中。</li>
+<li class="lvl-6">更新当前组的顺序值为传入的 <code>order</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="relative-mark-lei">RelativeMark 类</h3>
+<p><code>RelativeMark</code> 类代表标记项或项组，并处理两个相关项或组及其关系。此外，函数 <code>filter_marks</code> 与 <code>move_item</code>，是 <code>pytest-order</code> 插件中用于处理测试用例相对顺序的核心部分。</p>
+<h4 id="relative-mark-lei-1">RelativeMark 类</h4>
+<pre><code class="language-python">class RelativeMark(Generic[_ItemType]):
+    """
+    Represents a marker for an item or an item group.
+    Holds two related items or groups and their relationship.
+    """
+
+    def __init__(
+        self,
+        item: _ItemType,
+        item_to_move: _ItemType,
+        move_after: bool,
+    ) -&gt; None:
+        self.item: _ItemType = item
+        self.item_to_move: _ItemType = item_to_move
+        self.move_after: bool = move_after
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：表示一个测试用例或测试用例组的相对标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>item</code>：<code>_ItemType</code>，被标记的测试用例或组。</li>
+<li class="lvl-4"><code>item_to_move</code>：<code>_ItemType</code>，需要移动的测试用例或组。</li>
+<li class="lvl-4"><code>move_after</code>：<code>bool</code>，一个布尔值，指示 <code>item_to_move</code> 是否应该移动到 <code>item</code> 之后。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>属性</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>self.item</code>：存储被标记的测试用例或组。</li>
+<li class="lvl-4"><code>self.item_to_move</code>：存储需要移动的测试用例或组。</li>
+<li class="lvl-4"><code>self.move_after</code>：指示移动方向。</li>
+</ul>
+</li>
+</ul>
+<h4 id="filter-marks-han-shu">filter_marks 函数</h4>
+<pre><code class="language-python">def filter_marks(
+    marks: List[RelativeMark[_ItemType]], all_items: List[Item]
+) -&gt; List[RelativeMark[_ItemType]]:
+    result = []
+    for mark in marks:
+        if mark.item in all_items and mark.item_to_move in all_items:
+            result.append(mark)
+        else:
+            mark.item_to_move.dec_rel_marks()
+    return result
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：过滤相对标记，确保标记中的测试用例或组都存在于 <code>all_items</code> 列表中。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>marks</code>：<code>List[RelativeMark[_ItemType]]</code>，相对标记列表。</li>
+<li class="lvl-4"><code>all_items</code>：<code>List[Item]</code>，所有测试用例的列表。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>List[RelativeMark[_ItemType]]</code>，过滤后的相对标记列表。</p>
+</li>
+<li class="lvl-2">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">遍历 <code>marks</code> 列表。</li>
+<li class="lvl-4">如果标记中的 <code>item</code> 和 <code>item_to_move</code> 都在 <code>all_items</code> 中，则将该标记添加到结果列表 <code>result</code>。</li>
+<li class="lvl-4">如果 <code>item_to_move</code> 不在 <code>all_items</code> 中，则调用 <code>dec_rel_marks</code> 方法减少其相对标记计数。</li>
+</ul>
+</li>
+</ul>
+<h4 id="move-item-han-shu">move_item 函数</h4>
+<pre><code class="language-python">def move_item(mark: RelativeMark[_ItemType], sorted_items: List[_ItemType]) -&gt; bool:
+    if (
+        mark.item not in sorted_items
+        or mark.item_to_move not in sorted_items
+        or mark.item.nr_rel_items
+    ):
+        return False
+    pos_item = sorted_items.index(mark.item)
+    pos_item_to_move = sorted_items.index(mark.item_to_move)
+    if mark.item_to_move.order is not None and mark.item.order is None:
+        # if the item to be moved has already been ordered numerically,
+        # and the other item is not ordered, we move that one instead
+        mark.move_after = not mark.move_after
+        mark.item, mark.item_to_move = mark.item_to_move, mark.item
+        pos_item, pos_item_to_move = pos_item_to_move, pos_item
+    mark.item_to_move.dec_rel_marks()
+    if mark.move_after:
+        if pos_item_to_move &lt; pos_item + 1:
+            del sorted_items[pos_item_to_move]
+            sorted_items.insert(pos_item, mark.item_to_move)
+    else:
+        if pos_item_to_move &gt; pos_item:
+            del sorted_items[pos_item_to_move]
+            pos_item -= 1
+            sorted_items.insert(pos_item + 1, mark.item_to_move)
+    return True
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：根据相对标记调整测试用例在已排序列表中的位置。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>mark</code>：<code>RelativeMark[_ItemType]</code>，相对标记。</li>
+<li class="lvl-4"><code>sorted_items</code>：<code>List[_ItemType]</code>，已排序的测试用例或组列表。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>bool</code>，指示是否成功移动了测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">检查 <code>mark.item</code> 和 <code>mark.item_to_move</code> 是否都在 <code>sorted_items</code> 中，如果不在或 <code>mark.item</code> 有多个相对标记，则返回 <code>False</code>。</li>
+<li class="lvl-4">获取 <code>mark.item</code> 和 <code>mark.item_to_move</code> 在 <code>sorted_items</code> 中的位置。</li>
+<li class="lvl-4">如果 <code>mark.item_to_move</code> 已经有顺序，而 <code>mark.item</code> 没有，则交换 <code>item</code> 和 <code>item_to_move</code>，并更新移动方向。</li>
+<li class="lvl-4">调用 <code>dec_rel_marks</code> 方法减少 <code>mark.item_to_move</code> 的相对标记计数。</li>
+<li class="lvl-4">根据移动方向 <code>mark.move_after</code> 调整 <code>sorted_items</code> 中的位置。</li>
+</ul>
+</li>
+</ul>
+<h4 id="qi-ta-shuo-ming">其他说明</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>相对标记</strong>：<code>RelativeMark</code> 类用于定义测试用例或组之间的相对执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>过滤标记</strong>：<code>filter_marks</code> 函数确保所有标记的测试用例或组都存在于测试用例列表中，否则减少其相对标记计数。</p>
+</li>
+<li class="lvl-2">
+<p><strong>移动测试用例</strong>：<code>move_item</code> 函数根据相对标记调整测试用例在排序列表中的位置，确保相对顺序被尊重。</p>
+</li>
+</ul>
+<p>这些功能共同确保测试用例不仅按照它们的绝对顺序执行，而且也尊重它们之间的相对顺序关系。这对于测试用例之间存在依赖关系或特定执行顺序要求的场景非常重要。</p>
+<h2 id="a-href-http-xn-plugin-h-18-ip-45-m-py-wen-jian-plugin-py-a"><a target="_blank" rel="noopener" href="http://xn--plugin-h18ip45m.py">文件plugin.py</a></h2>
+<h3 id="pytest-configure-han-shu">pytest_configure 函数</h3>
+<pre><code class="language-python">def pytest_configure(config: Config) -&gt; None:
+    """
+    Register the "order" marker and configure the plugin,
+    depending on the CLI options.
+    """
+    provided_by_pytest_order = (
+        "Provided by pytest-order. " "See also: https://pytest-order.readthedocs.io/"
+    )
+
+    config_line = (
+        "order: specify ordering information for when tests should run "
+        "in relation to one another. " + provided_by_pytest_order
+    )
+    config.addinivalue_line("markers", config_line)
+
+    if config.getoption("indulgent_ordering"):
+        wrapper = pytest.hookimpl(tryfirst=True)
+    else:
+        wrapper = pytest.hookimpl(trylast=True)
+    OrderingPlugin.pytest_collection_modifyitems = wrapper(  # type:ignore[attr-defined]
+        modify_items
+    )
+    config.pluginmanager.register(OrderingPlugin(), "orderingplugin")
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：在 <code>pytest</code> 配置阶段注册 “order” 标记，并根据命令行选项配置插件。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>config</code>：<code>Config</code>，<code>pytest</code> 的配置对象。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">向配置文件中添加 “order” 标记的说明。</li>
+<li class="lvl-4">根据是否设置了 <code>--indulgent-ordering</code> 选项，决定 <code>modify_items</code> 函数的执行顺序（<code>tryfirst</code> 或 <code>trylast</code>）。</li>
+<li class="lvl-4">注册 <code>OrderingPlugin</code> 插件。</li>
+</ul>
+</li>
+</ul>
+<h3 id="pytest-addoption-han-shu">pytest_addoption 函数</h3>
+<pre><code class="language-python">def pytest_addoption(parser: Parser) -&gt; None:
+    """Set up CLI option for pytest"""
+    group = parser.getgroup("order")
+    group.addoption(
+        "--indulgent-ordering",
+        action="store_true",
+        dest="indulgent_ordering",
+        help=(
+            "Request that the sort order provided by pytest-order be applied "
+            "before other sorting, allowing the other sorting to have priority"
+        ),
+    )
+    group.addoption(
+        "--order-scope",
+        action="store",
+        dest="order_scope",
+        help=(
+            "Defines the scope used for ordering. Possible values are: "
+            "'session' (default), 'module', and 'class'. "
+            "Ordering is only done inside a scope."
+        ),
+    )
+    group.addoption(
+        "--order-scope-level",
+        action="store",
+        type=int,
+        dest="order_scope_level",
+        help=(
+            "Defines that the given directory level is used as order scope. "
+            "Cannot be used with --order-scope. The value is a number "
+            "that defines the hierarchical index of the directories used as "
+            "order scope, starting with 0 at session scope."
+        ),
+    )
+    group.addoption(
+        "--order-group-scope",
+        action="store",
+        dest="order_group_scope",
+        help=(
+            "Defines the scope used for order groups. Possible values are: "
+            " 'session' (default), 'module', and 'class'. "
+            "Ordering is first done inside a group, then between groups."
+        ),
+    )
+    group.addoption(
+        "--sparse-ordering",
+        action="store_true",
+        dest="sparse_ordering",
+        help=(
+            "If there are gaps between ordinals, they are filled "
+            "with unordered tests."
+        ),
+    )
+    group.addoption(
+        "--order-dependencies",
+        action="store_true",
+        dest="order_dependencies",
+        help=(
+            "If set, dependencies added by pytest-dependency will be ordered "
+            "if needed."
+        ),
+    )
+    group.addoption(
+        "--order-marker-prefix",
+        action="store",
+        dest="order_marker_prefix",
+        help=(
+            "If set, markers starting with the given prefix followed by a number "
+            "are handled like order markers with an index."
+        ),
+    )
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：为 <code>pytest</code> 设置命令行选项。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>parser</code>：<code>Parser</code>，<code>pytest</code> 的命令行参数解析器。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">创建一个名为 “order” 的参数组。</li>
+<li class="lvl-4">添加多个选项，允许用户控制测试用例的执行顺序和相关行为。</li>
+</ul>
+</li>
+</ul>
+<h3 id="get-mark-description-han-shu">_get_mark_description 函数</h3>
+<pre><code class="language-python">def _get_mark_description(mark: Mark):
+    if mark.kwargs:
+        return ", ".join([f"{k}={v}" for k, v in mark.kwargs.items()])
+    elif mark.args:
+        return f"index={mark.args[0]}"
+    return mark
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：获取标记的描述。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>mark</code>：<code>Mark</code>，<code>pytest</code> 的标记对象。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>str</code>，标记的描述。</p>
+</li>
+</ul>
+<h3 id="pytest-generate-tests-han-shu">pytest_generate_tests 函数</h3>
+<pre><code class="language-python">def pytest_generate_tests(metafunc):
+    """
+    Handle multiple pytest.mark.order decorators.
+
+    Make parametrized tests with corresponding order marks.
+    """
+    if getattr(metafunc, "function", False):
+        if getattr(metafunc.function, "pytestmark", False):
+            # Get list of order marks
+            marks = metafunc.function.pytestmark
+            order_marks = [mark for mark in marks if mark.name == "order"]
+            if len(order_marks) &gt; 1:
+                # Remove all order marks
+                metafunc.function.pytestmark = [
+                    mark for mark in marks if mark.name != "order"
+                ]
+                # Prepare arguments for parametrization with order marks
+                args = [
+                    pytest.param(_get_mark_description(mark), marks=[mark])
+                    for mark in order_marks
+                ]
+                if "order" not in metafunc.fixturenames:
+                    metafunc.fixturenames.append("order")
+                metafunc.parametrize("order", args)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：处理多个 <code>pytest.mark.order</code> 装饰器，并生成相应的参数化测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>metafunc</code>：<code>Metafunc</code>，<code>pytest</code> 的元函数对象。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">获取函数的所有标记。</li>
+<li class="lvl-4">筛选出所有的 “order” 标记。</li>
+<li class="lvl-4">如果有多个 “order” 标记，将它们参数化，并生成相应的测试用例。</li>
+</ul>
+</li>
+</ul>
+<h3 id="ordering-plugin-lei">OrderingPlugin 类</h3>
+<pre><code class="language-python">class OrderingPlugin:
+    """
+    Plugin implementation.
+
+    By putting this in a class, we are able to dynamically register it after
+    the CLI is parsed.
+    """
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：插件实现。</p>
+</li>
+<li class="lvl-2">
+<p><strong>说明</strong>：通过将插件实现放在类中，可以在命令行解析后动态注册它。</p>
+</li>
+</ul>
+<h3 id="modify-items-han-shu">modify_items 函数</h3>
+<pre><code class="language-python">def modify_items(session: Session, config: Config, items: List[Function]) -&gt; None:
+    sorter = Sorter(config, items)
+    items[:] = sorter.sort_items()
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：修改项目列表，根据指定的顺序对测试用例进行排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>session</code>：<code>Session</code>，<code>pytest</code> 的会话对象。</li>
+<li class="lvl-4"><code>config</code>：<code>Config</code>，<code>pytest</code> 的配置对象。</li>
+<li class="lvl-4"><code>items</code>：<code>List[Function]</code>，测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>逻辑</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">创建一个 <code>Sorter</code> 对象，传入配置和测试用例列表。</li>
+<li class="lvl-4">使用 <code>Sorter</code> 对象的 <code>sort_items</code> 方法对测试用例进行排序，并更新 <code>items</code> 列表。</li>
+</ul>
+</li>
+</ul>
+<h3 id="gong-neng-jie-shi">功能解释</h3>
+<p>这些函数和类共同实现了 <code>pytest-order</code> 插件的核心功能：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>命令行选项</strong>：允许用户通过命令行选项控制测试用例的执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>标记处理</strong>：处理 <code>pytest.mark.order</code> 装饰器，支持参数化测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>排序</strong>：根据用户指定的顺序对测试用例进行排序。</p>
+</li>
+</ul>
+<p>通过这些功能，<code>pytest-order</code> 插件能够灵活地控制测试用例的执行顺序，满足不同的测试需求。</p>
+<h2 id="a-href-http-xn-settings-8-t-1-mq-77-p-py-wen-jian-settings-py-a"><a target="_blank" rel="noopener" href="http://xn--settings-8t1mq77p.py">文件settings.py</a></h2>
+<p>这段代码定义了 <code>pytest-order</code> 插件的配置设置，主要用于处理命令行选项和配置文件中的设置，并提供这些设置的访问。</p>
+<h3 id="scope-mei-ju-lei">Scope 枚举类</h3>
+<pre><code class="language-python">from enum import Enum
+
+class Scope(Enum):
+    CLASS = 1
+    MODULE = 2
+    SESSION = 3
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：定义了三个枚举值，分别表示测试用例的执行范围。</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>CLASS</code>：类级别。</li>
+<li class="lvl-4"><code>MODULE</code>：模块级别。</li>
+<li class="lvl-4"><code>SESSION</code>：会话级别。</li>
+</ul>
+</li>
+</ul>
+<h3 id="settings-lei">Settings 类</h3>
+<pre><code class="language-python">class Settings:
+    """Holds all configuration settings."""
+    valid_scopes = {
+        "class": Scope.CLASS,
+        "module": Scope.MODULE,
+        "session": Scope.SESSION,
+    }
+
+    def __init__(self, config: Config) -&gt; None:
+        self.sparse_ordering: bool = config.getoption("sparse_ordering")
+        self.order_dependencies: bool = config.getoption("order_dependencies")
+        self.marker_prefix: str = config.getoption("order_marker_prefix")
+        scope: str = config.getoption("order_scope")
+        if scope in self.valid_scopes:
+            self.scope: Scope = self.valid_scopes[scope]
+        else:
+            if scope is not None:
+                warn(
+                    "Unknown order scope '{}', ignoring it. "
+                    "Valid scopes are 'session', 'module' and 'class'.".format(scope)
+                )
+            self.scope = Scope.SESSION
+        scope_level: int = config.getoption("order_scope_level") or 0
+        if scope_level != 0 and self.scope != Scope.SESSION:
+            warn(
+                "order-scope-level cannot be used together with "
+                "--order-scope={}".format(scope)
+            )
+            scope_level = 0
+        self.scope_level: int = scope_level
+        group_scope: str = config.getoption("order_group_scope")
+        if group_scope in self.valid_scopes:
+            self.group_scope: Scope = self.valid_scopes[group_scope]
+        else:
+            if group_scope is not None:
+                warn(
+                    "Unknown order group scope '{}', ignoring it. "
+                    "Valid scopes are 'session', 'module' and 'class'.".format(
+                        group_scope
+                    )
+                )
+            self.group_scope = self.scope
+        if self.group_scope.value &gt; self.scope.value:
+            warn("Group scope is larger than order scope, ignoring it.")
+            self.group_scope = self.scope
+        try:
+            auto_mark_dep = config.getini("automark_dependency")
+            if isinstance(auto_mark_dep, str):
+                auto_mark_dep = auto_mark_dep.lower() in (
+                    "1",
+                    "yes",
+                    "y",
+                    "true",
+                    "t",
+                    "on",
+                )
+        except ValueError:
+            auto_mark_dep = False
+        self.auto_mark_dep = auto_mark_dep
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：存储所有配置设置。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>config</code>：<code>Config</code>，<code>pytest</code> 的配置对象。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>属性</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>self.sparse_ordering</code>：布尔值，表示是否启用稀疏排序。</li>
+<li class="lvl-4"><code>self.order_dependencies</code>：布尔值，表示是否排序依赖项。</li>
+<li class="lvl-4"><code>self.marker_prefix</code>：字符串，表示标记前缀。</li>
+<li class="lvl-4"><code>self.scope</code>：<code>Scope</code> 枚举值，表示排序的执行范围。</li>
+<li class="lvl-4"><code>self.scope_level</code>：整数，表示执行范围的层级。</li>
+<li class="lvl-4"><code>self.group_scope</code>：<code>Scope</code> 枚举值，表示组排序的执行范围。</li>
+<li class="lvl-4"><code>self.auto_mark_dep</code>：布尔值，表示是否自动标记依赖项。</li>
+</ul>
+</li>
+</ul>
+<p><strong>逻辑</strong>：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化</strong>：从配置对象中获取相关选项，并进行相应的处理。</p>
+</li>
+<li class="lvl-3">
+<p><strong>范围验证</strong>：验证 <code>order_scope</code> 和 <code>order_group_scope</code> 是否有效，如果无效则使用默认值。</p>
+</li>
+<li class="lvl-3">
+<p><strong>范围层级</strong>：处理 <code>order_scope_level</code>，但只有在 <code>scope</code> 为 <code>SESSION</code> 时才有效。</p>
+</li>
+<li class="lvl-3">
+<p><strong>依赖项自动标记</strong>：处理 <code>automark_dependency</code> 配置项，决定是否自动标记依赖项。</p>
+</li>
+</ol>
+<h3 id="gong-neng-jie-shi-1">功能解释</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>配置读取</strong>：从 <code>pytest</code> 配置中读取相关选项，如排序、依赖项处理等。</p>
+</li>
+<li class="lvl-2">
+<p><strong>范围处理</strong>：处理测试用例执行的范围和组排序的范围，确保它们是有效的枚举值。</p>
+</li>
+<li class="lvl-2">
+<p><strong>警告</strong>：如果配置项无效或存在冲突，发出警告并使用默认值。</p>
+</li>
+</ul>
+<p>这些设置使得 <code>pytest-order</code> 插件能够根据用户的需求灵活地控制测试用例的执行顺序和相关行为。</p>
+<h2 id="a-href-http-xn-sorter-h-18-ip-45-m-py-wen-jian-sorter-py-a"><a target="_blank" rel="noopener" href="http://xn--sorter-h18ip45m.py">文件sorter.py</a></h2>
+<h3 id="sort-items-fang-fa">sort_items方法</h3>
+<p>它负责对测试用例进行排序并返回排序后的测试用例列表。</p>
+<h4 id="fang-fa-can-shu-he-fan-hui-zhi">方法参数和返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：无</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>List[Function]</code>，排序后的测试用例列表</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>收集标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>self.collect_markers()</code>：收集测试用例的标记，包括顺序标记和依赖标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>根据作用域进行排序</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">根据配置文件中指定的作用域（会话、模块、类），对测试用例进行分组和排序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>会话作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>self.settings.scope</code> 是 <code>Scope.SESSION</code>：
+<ul class="lvl-4">
+<li class="lvl-7">检查 <code>self.settings.scope_level</code> 是否大于0：
+<ul class="lvl-6">
+<li class="lvl-9">如果是，调用 <code>directory_item_groups</code> 函数将测试用例按目录层级分组。</li>
+<li class="lvl-9">遍历每个分组，创建 <code>ScopeSorter</code> 实例对每个分组内的测试用例进行排序，并将排序后的结果添加到 <code>sorted_list</code>。</li>
+</ul>
+</li>
+<li class="lvl-7">如果不是，创建一个 <code>ScopeSorter</code> 实例（指定会话作用域），并调用其 <code>sort_items</code> 方法对所有测试用例进行排序。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>模块作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>self.settings.scope</code> 是 <code>Scope.MODULE</code>：
+<ul class="lvl-4">
+<li class="lvl-7">调用 <code>module_item_groups</code> 函数将测试用例按模块分组。</li>
+<li class="lvl-7">遍历每个模块分组，创建 <code>ScopeSorter</code> 实例对每个模块内的测试用例进行排序，并将排序后的结果添加到 <code>sorted_list</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>类作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>self.settings.scope</code> 是其他值（默认为类作用域）：
+<ul class="lvl-4">
+<li class="lvl-7">调用 <code>class_item_groups</code> 函数将测试用例按类分组。</li>
+<li class="lvl-7">遍历每个类分组，创建 <code>ScopeSorter</code> 实例对每个类内的测试用例进行排序，并将排序后的结果添加到 <code>sorted_list</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回排序后的测试用例列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return [item.item for item in sorted_list]</code>：从排序后的 <code>Item</code> 对象列表中提取测试用例（<code>Function</code> 对象），并返回。</li>
+</ul>
+</li>
+</ol>
+<h3 id="mark-binning-fang-fa">mark_binning方法</h3>
+<p><code>mark_binning</code> 和 <code>handle_dependency_mark</code>这两个方法负责处理测试用例的标记，特别是与依赖和顺序相关的标记。</p>
+<pre><code class="language-python">def mark_binning(
+    self,
+    item: Item,
+    dep_marks: Dict[Tuple[str, Scope, str], List[Item]],
+    aliases: Dict[str, List[Item]],
+) -&gt; None:
+    """
+    Collect relevant markers for the given item.
+    """
+    keys = item.item.keywords.keys()
+    has_dependency = "dependency" in keys
+    has_order = "order" in keys
+    if not has_order and self.settings.marker_prefix:
+        for key in keys:
+            if key.startswith(self.settings.marker_prefix):
+                try:
+                    index = int(key[len(self.settings.marker_prefix)])
+                    item.order = index
+                except ValueError:
+                    pass
+    if has_dependency or self.settings.auto_mark_dep:
+        self.handle_dependency_mark(item, has_order, dep_marks, aliases)
+    if has_order:
+        self.handle_order_marks(item)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>item</code>：<code>Item</code> 对象，代表单个测试用例。</li>
+<li class="lvl-4"><code>dep_marks</code>：依赖标记的字典，键是依赖项的名称、作用域和前缀的元组，值是依赖该项的测试用例列表。</li>
+<li class="lvl-4"><code>aliases</code>：别名字典，存储测试用例的别名和对应的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>功能</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">收集与给定测试用例相关的标记。</li>
+<li class="lvl-4">检查是否有 <code>dependency</code> 或 <code>order</code> 标记。</li>
+<li class="lvl-4">如果没有 <code>order</code> 标记但设置了标记前缀，则尝试将其他标记转换为顺序索引。</li>
+<li class="lvl-4">处理依赖标记。</li>
+<li class="lvl-4">处理顺序标记。</li>
+</ul>
+</li>
+</ul>
+<h3 id="handle-dependency-mark-fang-fa">handle_dependency_mark 方法</h3>
+<pre><code class="language-python">def handle_dependency_mark(
+    self,
+    item: Item,
+    has_order: bool,
+    dep_marks: Dict[Tuple[str, Scope, str], List[Item]],
+    aliases: Dict[str, List[Item]],
+) -&gt; None:
+    # always order dependencies if an order mark is present
+    # otherwise only if order-dependencies is set
+    mark = item.item.get_closest_marker("dependency")
+    name_mark = None
+    if mark and (self.settings.order_dependencies or has_order):
+        dependent_mark = mark.kwargs.get("depends")
+        if dependent_mark:
+            scope = scope_from_name(mark.kwargs.get("scope", "module"))
+            prefix = scoped_node_id(item.node_id, scope)
+            for name in dependent_mark:
+                dep_marks.setdefault((name, scope, prefix), []).append(item)
+                item.inc_rel_marks()
+        # we always collect the names of the dependent items, because
+        # we need them in both cases
+        name_mark = mark.kwargs.get("name")
+    # the default name in pytest-dependency is the nodeid or a part
+    # of the nodeid, depending on the scope
+    if not name_mark:
+        name_mark = item.node_id
+    aliases.setdefault(name_mark, []).append(item)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>item</code>：<code>Item</code> 对象，代表单个测试用例。</li>
+<li class="lvl-4"><code>has_order</code>：布尔值，指示是否有顺序标记。</li>
+<li class="lvl-4"><code>dep_marks</code>：依赖标记的字典。</li>
+<li class="lvl-4"><code>aliases</code>：别名字典。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>功能</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">处理依赖标记。</li>
+<li class="lvl-4">获取 <code>dependency</code> 标记，并根据其依赖项设置依赖标记。</li>
+<li class="lvl-4">如果标记存在且 <code>order_dependencies</code> 设置为 <code>True</code> 或存在顺序标记，则处理依赖项。</li>
+<li class="lvl-4">获取依赖项的作用域和前缀，并为每个依赖项名称创建依赖标记。</li>
+<li class="lvl-4">更新别名字典，存储测试用例的别名和对应的测试用例列表。</li>
+</ul>
+</li>
+</ul>
+<h4 id="dai-ma-luo-ji">代码逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>收集标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>mark_binning</code> 方法首先检查测试用例是否有 <code>dependency</code> 或 <code>order</code> 标记。</li>
+<li class="lvl-5">如果没有 <code>order</code> 标记但设置了标记前缀，则尝试将其他标记转换为顺序索引。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理依赖标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>handle_dependency_mark</code> 方法处理 <code>dependency</code> 标记。</li>
+<li class="lvl-5">获取 <code>dependency</code> 标记的参数，如依赖项名称和作用域。</li>
+<li class="lvl-5">为每个依赖项名称创建依赖标记，并将其添加到 <code>dep_marks</code> 字典中。</li>
+<li class="lvl-5">更新测试用例的相对标记计数。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>更新别名字典</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>dependency</code> 标记中没有提供名称，则使用测试用例的节点 ID 作为名称。</li>
+<li class="lvl-5">将测试用例添加到别名字典中，以便后续处理。</li>
+</ul>
+</li>
+</ol>
+<h3 id="handle-order-marks-fang-fa">handle_order_marks 方法</h3>
+<p><code>handle_order_marks</code> 和 <code>handle_order_mark</code>，这些方法负责处理 <code>order</code> 标记，这些标记用于指定测试用例的执行顺序。</p>
+<pre><code class="language-python">def handle_order_marks(self, item: Item) -&gt; None:
+    marks = item.item.iter_markers("order")
+    for mark in marks:
+        self.handle_order_mark(item, mark)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>item</code>：<code>Item</code> 对象，代表单个测试用例。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>功能</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">获取测试用例上所有的 <code>order</code> 标记。</li>
+<li class="lvl-4">对每个 <code>order</code> 标记调用 <code>handle_order_mark</code> 方法进行处理。</li>
+</ul>
+</li>
+</ul>
+<h3 id="handle-order-mark-fang-fa-1">handle_order_mark 方法</h3>
+<pre><code class="language-python">def handle_order_mark(self, item: Item, mark: Mark) -&gt; None:
+    order = mark.args[0] if mark.args else mark.kwargs.get("index")
+    if order is not None:
+        if isinstance(order, int):
+            order = int(order)
+        elif order in orders_map:
+            order = orders_map[order]
+        else:
+            warn("Unknown order attribute:'{}'".format(order))
+            order = None
+    if item.order is None:
+        item.order = order
+    self.handle_relative_marks(item, mark)
+    if order is not None:
+        item.nr_rel_items = 0
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>item</code>：<code>Item</code> 对象，代表单个测试用例。</li>
+<li class="lvl-4"><code>mark</code>：<code>Mark</code> 对象，代表 <code>order</code> 标记。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>功能</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4">从 <code>order</code> 标记中提取顺序值。</li>
+<li class="lvl-4">根据 <code>mark.args</code> 或 <code>mark.kwargs</code> 中的 <code>index</code> 获取顺序值。</li>
+<li class="lvl-4">如果顺序值是整数，则直接使用。</li>
+<li class="lvl-4">如果顺序值是字符串且在 <code>orders_map</code> 中定义，则将其转换为对应的整数。</li>
+<li class="lvl-4">如果顺序值未知，则发出警告并设置为 <code>None</code>。</li>
+<li class="lvl-4">如果测试用例之前没有顺序值，则将其设置为当前的顺序值。</li>
+<li class="lvl-4">调用 <code>handle_relative_marks</code> 方法处理相关的相对标记。</li>
+<li class="lvl-4">如果设置了顺序值，则将测试用例的相对标记计数器重置为0。</li>
+</ul>
+</li>
+</ul>
+<p>详细解读内容如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>获取 <code>order</code> 标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>marks = item.item.iter_markers("order")</code>：获取测试用例上所有的 <code>order</code> 标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理每个 <code>order</code> 标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历每个 <code>order</code> 标记，调用 <code>handle_order_mark</code> 方法。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>提取顺序值</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>order = mark.args[0] if mark.args else mark.kwargs.get("index")</code>：从标记的参数或关键字参数中获取顺序值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>验证和转换顺序值</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果顺序值是整数，则直接使用。</li>
+<li class="lvl-5">如果顺序值是字符串，则检查是否在 <code>orders_map</code> 中定义，如果是，则转换为对应的整数。</li>
+<li class="lvl-5">如果顺序值未知，则发出警告并将其设置为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>设置测试用例的顺序值</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果测试用例之前没有顺序值，则将其设置为当前的顺序值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理相对标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>self.handle_relative_marks(item, mark)</code>：处理测试用例上的相对标记，如 <code>before</code> 和 <code>after</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>重置相对标记计数器</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果设置了顺序值，则将测试用例的相对标记计数器 <code>item.nr_rel_items</code> 重置为0。这表示该测试用例已经有了明确的顺序，不需要进一步的相对标记处理。</li>
+</ul>
+</li>
+</ol>
+<h3 id="items-from-label-fang-fa">items_from_label 方法</h3>
+<p><code>items_from_label</code> 方法用于根据给定的标签（<code>label</code>）查找匹配的测试用例项（<code>Item</code>），处理测试用例相对顺序标记的关键部分，确保测试用例能够根据指定的顺序执行。</p>
+<pre><code class="language-python">def items_from_label(self, label: str, item: Item, is_cls_mark: bool) -&gt; List[Item]:
+    """
+    Return the list of matching items from the given label.
+    The list contains one item for a single matching test, several items
+    in the case of a matching parametrized test, or no item in case of
+    an invalid label.
+    """
+    item_id = item.node_id
+    label_len = len(label)
+    last_comp = label.split("/")[-1].split("::")[-1]
+    items = []
+    with suppress(KeyError):
+        node_ids = self.node_id_last[last_comp]
+        for node_id in node_ids:
+            if node_id.endswith(label):
+                id_start = node_id[:-label_len]
+            elif node_id.endswith("]") and node_id.rpartition("[")[0].endswith(
+                label
+            ):
+                id_start = node_id.rpartition("[")[0][:-label_len]
+            else:
+                continue
+            if is_cls_mark and id_start.count("::") == 2:
+                continue
+            if item_id.startswith(id_start):
+                items.append(self.node_ids[node_id])
+
+    return items
+</code></pre>
+<h4 id="fang-fa-can-shu">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>label</code>：<code>str</code>，要匹配的标签。</p>
+</li>
+<li class="lvl-2">
+<p><code>item</code>：<code>Item</code> 对象，当前正在处理的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>is_cls_mark</code>：<code>bool</code>，指示标记是否应用于类级别。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>List[Item]</code>，匹配的测试用例项列表。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-1">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化变量</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item_id</code>：获取当前测试用例的节点 ID。</li>
+<li class="lvl-5"><code>label_len</code>：计算标签的长度。</li>
+<li class="lvl-5"><code>last_comp</code>：获取标签的最后一部分，这通常是测试用例的名称或部分路径。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>初始化结果列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>items</code>：创建一个空列表，用于存储匹配的测试用例项。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理标签匹配</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>with suppress(KeyError)</code> 确保即使 <code>last_comp</code> 不存在于 <code>node_id_last</code> 字典中也不会抛出异常。</li>
+<li class="lvl-5">获取与 <code>last_comp</code> 相关的所有节点 ID（<code>node_ids</code>）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历节点 ID</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>node_ids</code> 中的每个节点 ID。</li>
+<li class="lvl-5">检查节点 ID 是否以标签结束：
+<ul class="lvl-4">
+<li class="lvl-7">如果是，计算 <code>id_start</code> 为节点 ID 减去标签长度。</li>
+<li class="lvl-7">如果节点 ID 以 “[” 结尾，并且 “[” 之前的部分以标签结束，则从 “[” 之前的部分计算 <code>id_start</code>。</li>
+</ul>
+</li>
+<li class="lvl-5">如果 <code>is_cls_mark</code> 为 <code>True</code> 并且 <code>id_start</code> 包含两个 <code>"::"</code>，则跳过当前节点 ID（只匹配类级别的标记）。</li>
+<li class="lvl-5">如果当前测试用例的节点 ID（<code>item_id</code>）以 <code>id_start</code> 开始，则将匹配的测试用例项添加到 <code>items</code> 列表中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">返回包含所有匹配测试用例项的列表。</li>
+</ul>
+</li>
+</ol>
+<p>概况下来就是：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>标签匹配</strong>：该方法通过标签匹配测试用例，支持精确匹配和部分匹配。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数化测试</strong>：如果标签匹配到多个测试用例（例如参数化测试），则所有匹配的测试用例都会被添加到结果列表中。</p>
+</li>
+<li class="lvl-2">
+<p><strong>类级别标记</strong>：如果 <code>is_cls_mark</code> 为 <code>True</code>，则仅匹配类级别的测试用例。</p>
+</li>
+</ul>
+<h3 id="items-from-class-label-fang-fa">items_from_class_label 方法</h3>
+<p><code>items_from_class_label</code> 方法用于根据类标签查找匹配的测试用例项（<code>Item</code>）。</p>
+<pre><code class="language-python">def items_from_class_label(self, label: str, item: Item) -&gt; List[Item]:
+    items = []
+    item_id = item.node_id
+    label_len = len(label)
+    for node_id in self.node_ids:
+        if node_id.count("::") == 2:
+            cls_index = node_id.rindex("::")
+            if node_id[:cls_index].endswith(label):
+                id_start = node_id[: cls_index - label_len]
+                if item_id.startswith(id_start):
+                    items.append(self.node_ids[node_id])
+    return items
+</code></pre>
+<h4 id="fang-fa-can-shu-1">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>label</code>：<code>str</code>，要匹配的类标签。</p>
+</li>
+<li class="lvl-2">
+<p><code>item</code>：<code>Item</code> 对象，当前正在处理的测试用例。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-1">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>List[Item]</code>，匹配的测试用例项列表。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-2">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化结果列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>items</code>：创建一个空列表，用于存储匹配的测试用例项。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取当前测试用例的节点 ID</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item_id</code>：获取当前测试用例的节点 ID。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>计算标签长度</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>label_len</code>：计算标签的长度。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历所有测试用例的节点 ID</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>self.node_ids</code> 字典中的所有节点 ID。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查节点 ID 是否匹配类标签</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">对于每个节点 ID，检查其是否包含两个 <code>"::"</code>，这通常表示它是一个类级别的测试用例。</li>
+<li class="lvl-5">获取类名称的结束索引 <code>cls_index</code>。</li>
+<li class="lvl-5">检查节点 ID 的前 <code>cls_index</code> 部分是否以标签结束：
+<ul class="lvl-4">
+<li class="lvl-7">如果是，计算 <code>id_start</code> 为节点 ID 的前 <code>cls_index - label_len</code> 部分。</li>
+<li class="lvl-7">如果当前测试用例的节点 ID（<code>item_id</code>）以 <code>id_start</code> 开始，则将匹配的测试用例项添加到 <code>items</code> 列表中。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">返回包含所有匹配测试用例项的列表。</li>
+</ul>
+</li>
+</ol>
+<p>概括就是：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>类标签匹配</strong>：该方法通过类标签匹配测试用例，支持精确匹配类级别的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><strong>节点 ID 分析</strong>：通过分析节点 <code>ID</code> 来确定测试用例是否属于特定的类。</p>
+</li>
+<li class="lvl-2">
+<p><strong>匹配添加</strong>：将所有匹配的测试用例项添加到结果列表中。</p>
+</li>
+</ul>
+<h3 id="handle-before-or-after-mark-fang-fa">handle_before_or_after_mark 方法</h3>
+<p><code>handle_before_or_after_mark</code> 方法用于处理测试用例上的 <code>before</code> 和 <code>after</code> 标记，这些标记定义了测试用例之间的相对执行顺序。</p>
+<pre><code class="language-python">def handle_before_or_after_mark(
+    self, item: Item, mark: Mark, marker_name: str, is_after: bool
+) -&gt; bool:
+    def is_class_mark() -&gt; bool:
+        if item.item.cls and item.item.parent:
+            return item.item.parent.get_closest_marker("order") == mark
+        return False
+
+    def is_mark_for_class() -&gt; bool:
+        return "::" not in marker_name and is_class_mark()
+
+    is_cls_mark = is_class_mark()
+    items_for_label = self.items_from_label(marker_name, item, is_cls_mark)
+    if items_for_label:
+        for item_for_label in items_for_label:
+            rel_mark = RelativeMark(item_for_label, item, move_after=is_after)
+            if is_after or not is_cls_mark:
+                self.rel_marks.append(rel_mark)
+            else:
+                self.rel_marks.insert(0, rel_mark)
+            item.inc_rel_marks()
+        return True
+    else:
+        if is_mark_for_class():
+            items = self.items_from_class_label(marker_name, item)
+            for item_for_label in items:
+                rel_mark = RelativeMark(item_for_label, item, move_after=is_after)
+                if is_after:
+                    self.rel_marks.append(rel_mark)
+                else:
+                    self.rel_marks.insert(0, rel_mark)
+                item.inc_rel_marks()
+            return len(items) &gt; 0
+    return False
+</code></pre>
+<h4 id="fang-fa-can-shu-2">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>item</code>：<code>Item</code> 对象，当前正在处理的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>mark</code>：<code>Mark</code> 对象，包含 <code>order</code> 标记的详细信息。</p>
+</li>
+<li class="lvl-2">
+<p><code>marker_name</code>：<code>str</code>，要匹配的标记名称。</p>
+</li>
+<li class="lvl-2">
+<p><code>is_after</code>：<code>bool</code>，指示是否将当前测试用例放在标记指定的测试用例之后。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-2">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>bool</code>，指示是否成功处理了标记。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-3">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>辅助函数 <code>is_class_mark</code></strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">检查 <code>item</code> 是否属于类级别的测试用例，并且其父级是否有 <code>order</code> 标记。</li>
+<li class="lvl-5">如果是，则返回 <code>True</code>，表示标记应用于类级别。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>辅助函数 <code>is_mark_for_class</code></strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">检查 <code>marker_name</code> 是否不包含 <code>"::"</code> 并且 <code>is_class_mark</code> 返回 <code>True</code>。</li>
+<li class="lvl-5">如果是，则返回 <code>True</code>，表示标记应用于类级别。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>初始化变量</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>is_cls_mark</code>：根据 <code>is_class_mark</code> 函数的结果初始化，表示标记是否应用于类级别。</li>
+<li class="lvl-5"><code>items_for_label</code>：通过调用 <code>items_from_label</code> 方法获取与 <code>marker_name</code> 匹配的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理标签匹配的测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>items_for_label</code> 不为空：
+<ul class="lvl-4">
+<li class="lvl-7">遍历每个匹配的测试用例 <code>item_for_label</code>。</li>
+<li class="lvl-7">创建 <code>RelativeMark</code> 对象，表示 <code>item_for_label</code> 和 <code>item</code> 之间的相对顺序关系。</li>
+<li class="lvl-7">根据 <code>is_after</code> 的值，将 <code>RelativeMark</code> 对象添加到 <code>self.rel_marks</code> 列表的末尾或开头。</li>
+<li class="lvl-7">增加 <code>item</code> 的相对标记计数。</li>
+<li class="lvl-7">返回 <code>True</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理类级别的标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>is_mark_for_class</code> 返回 <code>True</code>：
+<ul class="lvl-4">
+<li class="lvl-7">调用 <code>items_from_class_label</code> 方法获取与类标签匹配的测试用例列表。</li>
+<li class="lvl-7">遍历每个匹配的测试用例 <code>item_for_label</code>。</li>
+<li class="lvl-7">创建 <code>RelativeMark</code> 对象，表示 <code>item_for_label</code> 和 <code>item</code> 之间的相对顺序关系。</li>
+<li class="lvl-7">根据 <code>is_after</code> 的值，将 <code>RelativeMark</code> 对象添加到 <code>self.rel_marks</code> 列表的末尾或开头。</li>
+<li class="lvl-7">增加 <code>item</code> 的相对标记计数。</li>
+<li class="lvl-7">返回匹配的测试用例数量大于0的结果。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果没有匹配的测试用例或类级别的标记，则返回 <code>False</code>。</li>
+</ul>
+</li>
+</ol>
+<p>概要的说就是：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>相对标记处理</strong>：该方法处理 <code>before</code> 和 <code>after</code> 标记，确定测试用例之间的相对执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>类级别标记</strong>：特别处理类级别的标记，确保类级别的测试用例能够正确排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回结果</strong>：返回一个布尔值，指示是否成功处理了标记，这有助于调试和验证标记处理逻辑。</p>
+</li>
+</ul>
+<h3 id="handle-relative-marks-fang-fa-1">handle_relative_marks 方法</h3>
+<p><code>handle_relative_marks</code> 方法用于处理测试用例上的相对顺序标记，如 <code>before</code> 和 <code>after</code>。</p>
+<p>这些标记定义了测试用例相对于其他测试用例的执行顺序。同时，通过警告机制（且看接下来的<code>warn_about_unknown_test</code>），插件能够提醒用户检查标记的使用，提高测试用例的可维护性。</p>
+<pre><code class="language-python">def handle_relative_marks(self, item: Item, mark: Mark) -&gt; bool:
+    has_relative_marks = False
+    before_marks = mark.kwargs.get("before", ())
+    if before_marks and not isinstance(before_marks, (list, tuple)):
+        before_marks = (before_marks,)
+    for before_mark in before_marks:
+        if self.handle_before_or_after_mark(
+            item, mark, before_mark, is_after=False
+        ):
+            has_relative_marks = True
+        else:
+            self.warn_about_unknown_test(item, before_mark)
+    after_marks = mark.kwargs.get("after", ())
+    if after_marks and not isinstance(after_marks, (list, tuple)):
+        after_marks = (after_marks,)
+    for after_mark in after_marks:
+        if self.handle_before_or_after_mark(item, mark, after_mark, is_after=True):
+            has_relative_marks = True
+        else:
+            self.warn_about_unknown_test(item, after_mark)
+    return has_relative_marks
+</code></pre>
+<h4 id="gong-neng-jie-shi-2">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>相对标记处理</strong>：该方法处理 <code>before</code> 和 <code>after</code> 标记，确定测试用例相对于其他测试用例的执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>警告机制</strong>：如果无法找到与标记名称匹配的测试用例，则发出警告，提示用户检查标记名称是否正确。</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回结果</strong>：返回一个布尔值，指示是否成功处理了标记，这有助于调试和验证标记处理逻辑。</p>
+</li>
+</ul>
+<h4 id="fang-fa-can-shu-3">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>item</code>：<code>Item</code> 对象，当前正在处理的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>mark</code>：<code>Mark</code> 对象，包含 <code>order</code> 标记的详细信息。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-3">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>bool</code>，指示是否在测试用例上发现了相对标记。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-4">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化变量</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>has_relative_marks</code>：布尔值，用于指示是否发现了相对标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理 <code>before</code> 标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">获取 <code>mark</code> 中的 <code>before</code> 关键字参数，默认为空元组 <code>()</code>。</li>
+<li class="lvl-5">如果 <code>before_marks</code> 不是列表或元组类型，则将其转换为单元素元组。</li>
+<li class="lvl-5">遍历 <code>before_marks</code> 中的每个标记名称：
+<ul class="lvl-4">
+<li class="lvl-7">调用 <code>handle_before_or_after_mark</code> 方法，将当前测试用例 (<code>item</code>) 与 <code>before_mark</code> 进行比较，设置 <code>is_after=False</code>。</li>
+<li class="lvl-7">如果 <code>handle_before_or_after_mark</code> 返回 <code>True</code>，表示成功处理了 <code>before</code> 标记，将 <code>has_relative_marks</code> 设置为 <code>True</code>。</li>
+<li class="lvl-7">如果处理失败，则调用 <code>warn_about_unknown_test</code> 方法，发出警告。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理 <code>after</code> 标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">获取 <code>mark</code> 中的 <code>after</code> 关键字参数，默认为空元组 <code>()</code>。</li>
+<li class="lvl-5">如果 <code>after_marks</code> 不是列表或元组类型，则将其转换为单元素元组。</li>
+<li class="lvl-5">遍历 <code>after_marks</code> 中的每个标记名称：
+<ul class="lvl-4">
+<li class="lvl-7">调用 <code>handle_before_or_after_mark</code> 方法，将当前测试用例 (<code>item</code>) 与 <code>after_mark</code> 进行比较，设置 <code>is_after=True</code>。</li>
+<li class="lvl-7">如果 <code>handle_before_or_after_mark</code> 返回 <code>True</code>，表示成功处理了 <code>after</code> 标记，将 <code>has_relative_marks</code> 设置为 <code>True</code>。</li>
+<li class="lvl-7">如果处理失败，则调用 <code>warn_about_unknown_test</code> 方法，发出警告。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">返回 <code>has_relative_marks</code> 的值，表示是否在测试用例上发现了相对标记。</li>
+</ul>
+</li>
+</ol>
+<h3 id="warn-about-unknown-test-fang-fa">warn_about_unknown_test 方法</h3>
+<p>静态方法 <code>warn_about_unknown_test</code>用于在无法识别或匹配测试用例的相对标记时发出警告。</p>
+<pre><code class="language-python">@staticmethod
+def warn_about_unknown_test(item: Item, rel_mark: str) -&gt; None:
+    sys.stdout.write(
+        "\nWARNING: cannot execute '{}' relative to others: "
+        "'{}' - ignoring the marker.".format(item.item.name, rel_mark)
+    )
+</code></pre>
+<h4 id="gong-neng-jie-shi-3">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>警告机制</strong>：当 <code>pytest-order</code> 插件在处理测试用例的相对顺序标记时，如果遇到无法识别的标记（例如，标记的测试用例不存在），则会调用这个方法输出警告信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>直接输出</strong>：通过 <code>sys.stdout.write</code> 直接输出警告信息，而不是使用 <code>print</code> 函数，这样可以避免额外的换行符和缓冲问题。</p>
+</li>
+</ul>
+<h4 id="fang-fa-can-shu-4">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>item</code>：<code>Item</code> 对象，当前正在处理的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>rel_mark</code>：<code>str</code>，无法识别的相对标记名称。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-4">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>None</code>，这个方法不返回任何值，而是直接输出警告信息。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-5">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>输出警告信息</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>sys.stdout.write</code> 直接向标准输出写入警告信息。</li>
+<li class="lvl-5">格式化字符串，包含当前测试用例的名称 (<code>item.item.name</code>) 和无法识别的相对标记名称 (<code>rel_mark</code>)。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>警告内容</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">警告信息的格式为：<pre><code>WARNING: cannot execute '&lt;test_name&gt;' relative to others: '&lt;rel_mark&gt;' - ignoring the marker.
+</code></pre>
+</li>
+<li class="lvl-5">其中 <code>&lt;test_name&gt;</code> 会被替换为当前测试用例的名称，<code>&lt;rel_mark&gt;</code> 会被替换为无法识别的相对标记名称。</li>
+</ul>
+</li>
+</ol>
+<h4 id="shi-yong-chang-jing">使用场景</h4>
+<p>这个方法通常在以下场景中被调用：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>在 <code>handle_before_or_after_mark</code> 方法中，如果无法找到与 <code>before</code> 或 <code>after</code> 标记匹配的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>在 <code>handle_relative_marks</code> 方法中，处理 <code>before</code> 和 <code>after</code> 标记时，如果遇到无法识别的标记名称。</p>
+</li>
+</ul>
+<p>通过输出警告信息，插件提醒用户检查测试用例的相对顺序标记，确保所有标记都能正确识别和处理，从而避免测试执行顺序的混乱。</p>
+<h4 id="zhu-yi-shi-xiang">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>警告信息是直接输出到控制台的，不会被 <code>pytest</code> 的日志系统捕获，因此它们可能不会被一些日志收集工具记录。</p>
+</li>
+<li class="lvl-2">
+<p>这个方法不返回任何值，它的目的仅仅是为了通知用户存在未处理的标记。</p>
+</li>
+</ul>
+<h3 id="collect-markers-fang-fa-1">collect_markers 方法</h3>
+<p><code>collect_markers</code> 方法负责收集测试用例的标记，并处理依赖关系和别名。</p>
+<pre><code class="language-python">def collect_markers(self) -&gt; None:
+    aliases: Dict[str, List[Item]] = {}
+    dep_marks: Dict[Tuple[str, Scope, str], List[Item]] = {}
+    for item in self.items:
+        self.mark_binning(item, dep_marks, aliases)
+    self.resolve_dependency_markers(dep_marks, aliases)
+</code></pre>
+<h4 id="gong-neng-jie-shi-4">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>标记收集</strong>：<code>collect_markers</code> 方法是 <code>Sorter</code> 类中用于初始化和收集测试用例标记的关键步骤。</p>
+</li>
+<li class="lvl-2">
+<p><strong>依赖关系处理</strong>：通过 <code>mark_binning</code> 方法，插件能够识别测试用例之间的依赖关系，并准备相应的标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>别名处理</strong>：别名用于处理测试用例的命名冲突或重载，确保每个测试用例都可以被唯一标识。</p>
+</li>
+</ul>
+<h4 id="fang-fa-can-shu-5">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>无参数。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-5">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>None</code>，这个方法不返回任何值，而是直接修改对象的状态。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-6">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化字典</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>aliases</code>：字典，用于存储别名和对应的测试用例列表。</li>
+<li class="lvl-5"><code>dep_marks</code>：字典，用于存储依赖标记和对应的测试用例列表。键是一个元组，包含依赖项的名称、作用域和前缀。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>self.items</code> 中的所有测试用例（<code>Item</code> 对象）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>收集标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">对于每个测试用例，调用 <code>mark_binning</code> 方法：
+<ul class="lvl-4">
+<li class="lvl-7">收集依赖标记并存储到 <code>dep_marks</code> 字典中。</li>
+<li class="lvl-7">收集别名并存储到 <code>aliases</code> 字典中。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理依赖标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">调用 <code>resolve_dependency_markers</code> 方法，处理依赖标记：
+<ul class="lvl-4">
+<li class="lvl-7">将依赖标记转换为相对标记，并存储到 <code>self.rel_marks</code> 列表中。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="shi-yong-chang-jing-1">使用场景</h4>
+<p>这个方法在 <code>Sorter</code> 类的实例化过程中被调用，通常在测试用例开始执行之前。它为后续的排序和依赖关系处理提供了必要的信息。</p>
+<h4 id="zhu-yi-shi-xiang-1">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>字典结构</strong>：<code>dep_marks</code> 字典的键是一个元组，包含依赖项的名称、作用域和前缀，这有助于精确地识别依赖关系。</p>
+</li>
+<li class="lvl-2">
+<p><strong>方法调用</strong>：<code>mark_binning</code> 和 <code>resolve_dependency_markers</code> 方法的调用是收集和处理标记的核心，确保所有依赖关系都被正确识别和处理。</p>
+</li>
+</ul>
+<h3 id="resolve-dependency-markers-fang-fa">resolve_dependency_markers 方法</h3>
+<p><code>resolve_dependency_markers</code> 方法负责处理测试用例的依赖标记，并将它们转换为相对标记。</p>
+<pre><code class="language-python">def resolve_dependency_markers(
+    self,
+    dep_marks: Dict[Tuple[str, Scope, str], List[Item]],
+    aliases: Dict[str, List[Item]],
+) -&gt; None:
+    for (name, _, prefix), items in dep_marks.items():
+        if name in aliases:
+            for item in items:
+                alias = self.matching_alias(aliases[name], item)
+                self.dep_marks.append(RelativeMark(alias, item, move_after=True))
+        else:
+            label = "::".join((prefix, name))
+            if label in aliases:
+                for item in items:
+                    alias = self.matching_alias(aliases[label], item)
+                    self.dep_marks.append(
+                        RelativeMark(alias, item, move_after=True)
+                    )
+            else:
+                sys.stdout.write(
+                    "\nWARNING: Cannot resolve the dependency marker '{}' "
+                    "- ignoring it.".format(name)
+                )
+</code></pre>
+<h4 id="gong-neng-jie-shi-5">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>依赖标记处理</strong>：该方法处理测试用例的依赖标记，确保测试用例按照依赖关系正确执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>别名匹配</strong>：通过 <code>matching_alias</code> 方法，找到与当前测试用例最匹配的别名测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><strong>相对标记创建</strong>：创建 <code>RelativeMark</code> 对象，表示测试用例之间的相对执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>警告机制</strong>：如果无法解析依赖标记，输出警告信息，提醒用户检查标记的正确性。</p>
+</li>
+</ul>
+<h4 id="fang-fa-can-shu-6">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>dep_marks</code>：<code>Dict[Tuple[str, Scope, str], List[Item]]</code>，一个字典，键是一个包含依赖项名称、作用域和前缀的元组，值是依赖该项的测试用例列表。</p>
+</li>
+<li class="lvl-2">
+<p><code>aliases</code>：<code>Dict[str, List[Item]]</code>，一个字典，存储测试用例的别名和对应的测试用例列表。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-6">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>None</code>，这个方法不返回任何值，而是直接修改对象的状态。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-7">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>遍历依赖标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>dep_marks</code> 字典中的每个条目。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查别名</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">对于每个依赖标记，检查其名称 <code>name</code> 是否存在于 <code>aliases</code> 字典中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理已知别名</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>name</code> 存在于 <code>aliases</code> 中：
+<ul class="lvl-4">
+<li class="lvl-7">遍历依赖项的测试用例列表 <code>items</code>。</li>
+<li class="lvl-7">对于每个测试用例，调用 <code>matching_alias</code> 方法找到匹配的别名测试用例。</li>
+<li class="lvl-7">创建 <code>RelativeMark</code> 对象，表示依赖关系，并将 <code>move_after</code> 设置为 <code>True</code>（表示依赖项应该在当前测试用例之后执行）。</li>
+<li class="lvl-7">将 <code>RelativeMark</code> 对象添加到 <code>self.dep_marks</code> 列表中。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理未知别名</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>name</code> 不存在于 <code>aliases</code> 中：
+<ul class="lvl-4">
+<li class="lvl-7">创建完整的标签 <code>label</code>，格式为 <code>"::".join((prefix, name))</code>。</li>
+<li class="lvl-7">检查 <code>label</code> 是否存在于 <code>aliases</code> 中：
+<ul class="lvl-6">
+<li class="lvl-9">如果是，执行与已知别名相同的处理步骤。</li>
+<li class="lvl-9">如果不是，输出警告信息，提示无法解析依赖标记，并忽略该标记。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>输出警告</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果无法解析依赖标记，使用 <code>sys.stdout.write</code> 输出警告信息。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-2">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>别名字典</strong>：<code>aliases</code> 字典用于存储测试用例的别名，确保能够正确匹配依赖关系。</p>
+</li>
+<li class="lvl-2">
+<p><strong>警告信息</strong>：输出的警告信息直接写入标准输出，不会被 <code>pytest</code> 的日志系统捕获，因此可能不会被一些日志收集工具记录。</p>
+</li>
+</ul>
+<h3 id="matching-alias-fang-fa">matching_alias 方法</h3>
+<p><code>matching_alias</code> 静态方法用于在多个具有相同别名的测试用例中选择与依赖项最匹配的一个。</p>
+<pre><code class="language-python">@staticmethod
+def matching_alias(aliases: List[Item], item: Item) -&gt; Item:
+    if len(aliases) == 1:
+        return aliases[0]
+
+    # handle the rare case that several tests have the same alias name
+    # we use the item that best matches the node id of the dependent item
+    max_matching_parts = 0
+    node_id_parts = re.split("(::|/)", item.node_id)
+    matching_item = aliases[0]
+    for alias_item in aliases:
+        alias_node_id_parts = re.split("(::|/)", alias_item.node_id)
+        nr_matching_parts = 0
+        for n, a in zip(node_id_parts, alias_node_id_parts):
+            if n != a:
+                break
+            nr_matching_parts += 1
+        if nr_matching_parts &gt; max_matching_parts:
+            max_matching_parts = nr_matching_parts
+            matching_item = alias_item
+    return matching_item
+</code></pre>
+<h4 id="gong-neng-jie-shi-6">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>别名匹配</strong>：当多个测试用例具有相同的别名时，该方法通过比较节点 <code>ID</code> 来选择最匹配的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><strong>最大匹配度</strong>：通过计算节点 <code>ID</code> 的公共部分数量来确定匹配度，并选择匹配度最高的测试用例。</p>
+</li>
+</ul>
+<h4 id="fang-fa-can-shu-7">方法参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>aliases</code>：<code>List[Item]</code>，一个包含测试用例项（<code>Item</code> 对象）的列表，这些测试用例具有相同的别名。</p>
+</li>
+<li class="lvl-2">
+<p><code>item</code>：<code>Item</code> 对象，当前正在处理的测试用例。</p>
+</li>
+</ul>
+<h4 id="fang-fa-fan-hui-zhi-7">方法返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>Item</code>，最匹配的测试用例项。</p>
+</li>
+</ul>
+<h4 id="fang-fa-luo-ji-8">方法逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>处理单个别名</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>aliases</code> 列表中只有一个测试用例，则直接返回这个测试用例。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理多个别名</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>aliases</code> 列表中有多个测试用例：
+<ul class="lvl-4">
+<li class="lvl-7">初始化 <code>max_matching_parts</code> 为0，用于存储最大匹配部分的数量。</li>
+<li class="lvl-7">使用正则表达式将当前测试用例的节点 ID (<code>item.node_id</code>) 分割成部分。</li>
+<li class="lvl-7">初始化 <code>matching_item</code> 为 <code>aliases</code> 列表中的第一个测试用例。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历别名测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>aliases</code> 列表中的每个测试用例 (<code>alias_item</code>)：
+<ul class="lvl-4">
+<li class="lvl-7">使用正则表达式将 <code>alias_item.node_id</code> 分割成部分。</li>
+<li class="lvl-7">初始化 <code>nr_matching_parts</code> 为0，用于存储当前别名测试用例与当前测试用例匹配的部分数量。</li>
+<li class="lvl-7">遍历两个节点 ID 部分的列表（<code>node_id_parts</code> 和 <code>alias_node_id_parts</code>），比较每个部分是否相同：
+<ul class="lvl-6">
+<li class="lvl-9">如果不相同，则终止当前循环。</li>
+<li class="lvl-9">如果相同，则增加 <code>nr_matching_parts</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>更新匹配测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>nr_matching_parts</code> 大于 <code>max_matching_parts</code>：
+<ul class="lvl-4">
+<li class="lvl-7">更新 <code>max_matching_parts</code> 为 <code>nr_matching_parts</code>。</li>
+<li class="lvl-7">更新 <code>matching_item</code> 为当前别名测试用例 (<code>alias_item</code>)。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回最匹配的测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">返回 <code>matching_item</code>，即与当前测试用例匹配度最高的别名测试用例。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-3">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>正则表达式</strong>：使用正则表达式 <code>re.split("(::|/)", node_id)</code> 来分割节点 ID，这可以处理包含 <code>::</code> 或 <code>/</code> 的节点 ID。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在有大量测试用例和别名时，匹配过程可能会影响性能，因此在实际应用中需要考虑优化。</p>
+</li>
+</ul>
+<h3 id="module-item-groups-fang-fa">module_item_groups 方法</h3>
+<p><code>module_item_groups</code> 的函数，其作用是将测试用例按照它们所属的模块分组。</p>
+<p>这个方法通常在测试用例的组织和排序过程中被调用，尤其是在需要按模块执行测试用例时。它可以帮助测试框架或测试插件将测试用例组织成模块级别的组，从而实现更灵活的测试执行策略。</p>
+<pre><code class="language-python">def module_item_groups(items: List[Item]) -&gt; Dict[str, List[Item]]:
+    """
+    Split items into groups per module.
+    """
+    module_items: OrderedDict[str, List[Item]] = OrderedDict()
+    for item in items:
+        module_items.setdefault(item.module_path, []).append(item)
+    return module_items
+</code></pre>
+<h4 id="gong-neng-jie-shi-7">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>模块分组</strong>：该函数将测试用例按照它们所属的模块进行分组，使得同一模块内的测试用例可以一起处理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>有序字典</strong>：使用 <code>OrderedDict</code> 确保模块的顺序在最终的输出中得以保留。</p>
+</li>
+</ul>
+<h4 id="han-shu-can-shu">函数参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>items</code>：<code>List[Item]</code>，一个包含 <code>Item</code> 对象的列表，每个 <code>Item</code> 对象代表一个测试用例。</p>
+</li>
+</ul>
+<h4 id="han-shu-fan-hui-zhi">函数返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>Dict[str, List[Item]]</code>，一个字典，键是模块路径（字符串），值是该模块下所有测试用例的列表。</p>
+</li>
+</ul>
+<h4 id="han-shu-luo-ji">函数逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化有序字典</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_items: OrderedDict[str, List[Item]] = OrderedDict()</code>：创建一个 <code>OrderedDict</code>，用于存储模块路径和对应的测试用例列表。使用有序字典是为了保持模块的顺序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for item in items</code>：遍历传入的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取模块路径</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item.module_path</code>：获取当前测试用例的模块路径。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>设置默认值并添加测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_items.setdefault(item.module_path, []).append(item)</code>：使用 <code>setdefault</code> 方法确保字典中存在与模块路径对应的键。如果不存在，则创建一个空列表作为该键的值。然后将当前测试用例添加到该列表中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return module_items</code>：返回包含模块路径和测试用例列表的字典。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-4">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>模块路径</strong>：函数依赖于 <code>Item</code> 对象的 <code>module_path</code> 属性来获取模块路径，确保每个测试用例的 <code>module_path</code> 属性正确设置。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，该函数的性能是可接受的，因为它只需要遍历一次测试用例列表。但是，如果测试用例数量非常大，可能需要考虑更高效的数据结构或算法。</p>
+</li>
+</ul>
+<h3 id="directory-item-groups-fang-fa">directory_item_groups 方法</h3>
+<p><code>directory_item_groups</code> 函数将测试用例按照它们所在的目录层级分组。</p>
+<p>这个方法通常在测试用例的组织和排序过程中被调用，尤其是在需要按目录层级执行测试用例时。它可以帮助测试框架或测试插件将测试用例组织成目录级别的组，从而实现更灵活的测试执行策略。</p>
+<pre><code class="language-python">def directory_item_groups(items: List[Item], level: int) -&gt; Dict[str, List[Item]]:
+    """
+    Split items into groups per directory at the given level.
+    The level is relative to the root directory, which is at level 0.
+    """
+    module_items: OrderedDict[str, List[Item]] = OrderedDict()
+    for item in items:
+        module_items.setdefault(item.parent_path(level), []).append(item)
+    return module_items
+</code></pre>
+<h4 id="gong-neng-jie-shi-8">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>目录分组</strong>：该函数将测试用例按照它们所在的目录层级进行分组，使得同一目录内的测试用例可以一起处理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>有序字典</strong>：使用 <code>OrderedDict</code> 确保目录的顺序在最终的输出中得以保留。</p>
+</li>
+</ul>
+<h4 id="han-shu-can-shu-1">函数参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>items</code>：<code>List[Item]</code>，一个包含 <code>Item</code> 对象的列表，每个 <code>Item</code> 对象代表一个测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>level</code>：<code>int</code>，目录层级的级别。级别是相对于根目录的，根目录级别为0。</p>
+</li>
+</ul>
+<h4 id="han-shu-fan-hui-zhi-1">函数返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>Dict[str, List[Item]]</code>，一个字典，键是目录路径（字符串），值是该目录下所有测试用例的列表。</p>
+</li>
+</ul>
+<h4 id="han-shu-luo-ji-1">函数逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化有序字典</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_items: OrderedDict[str, List[Item]] = OrderedDict()</code>：创建一个 <code>OrderedDict</code>，用于存储目录路径和对应的测试用例列表。使用有序字典是为了保持目录的顺序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for item in items</code>：遍历传入的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取目录路径</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item.parent_path(level)</code>：获取当前测试用例相对于根目录的指定层级级别的目录路径。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>设置默认值并添加测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_items.setdefault(item.parent_path(level), []).append(item)</code>：使用 <code>setdefault</code> 方法确保字典中存在与目录路径对应的键。如果不存在，则创建一个空列表作为该键的值。然后将当前测试用例添加到该列表中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return module_items</code>：返回包含目录路径和测试用例列表的字典。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-5">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>目录路径</strong>：函数依赖于 <code>Item</code> 对象的 <code>parent_path</code> 方法来获取目录路径，确保每个测试用例的 <code>parent_path</code> 方法正确设置。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，该函数的性能是可接受的，因为它只需要遍历一次测试用例列表。但是，如果测试用例数量非常大，可能需要考虑更高效的数据结构或算法。</p>
+</li>
+</ul>
+<h3 id="class-item-groups-fang-fa">class_item_groups 方法</h3>
+<p><code>class_item_groups</code> 函数，其作用是将测试用例按照它们所属的类进行分组。</p>
+<p>这个方法通常在测试用例的组织和排序过程中被调用，尤其是在需要按类执行测试用例时。它可以帮助测试框架或测试插件将测试用例组织成类级别的组，从而实现更灵活的测试执行策略。</p>
+<pre><code class="language-python">def class_item_groups(items: List[Item]) -&gt; Dict[str, List[Item]]:
+    """
+    Split items into groups per class.
+    Items outside a class are sorted into a group per module.
+    """
+    class_items: OrderedDict[str, List[Item]] = OrderedDict()
+    for item in items:
+        delimiter_index = item.node_id.index("::")
+        if "::" in item.node_id[delimiter_index + 2:]:
+            delimiter_index = item.node_id.index("::", delimiter_index + 2)
+        class_path = item.node_id[:delimiter_index]
+        class_items.setdefault(class_path, []).append(item)
+    return class_items
+</code></pre>
+<h4 id="gong-neng-jie-shi-9">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>类分组</strong>：该函数将测试用例按照它们所属的类进行分组，使得同一类内的测试用例可以一起处理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>模块分组</strong>：不属于任何类的测试用例将按照它们所属的模块进行分组。</p>
+</li>
+</ul>
+<h4 id="han-shu-can-shu-2">函数参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>items</code>：<code>List[Item]</code>，一个包含 <code>Item</code> 对象的列表，每个 <code>Item</code> 对象代表一个测试用例。</p>
+</li>
+</ul>
+<h4 id="han-shu-fan-hui-zhi-2">函数返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>Dict[str, List[Item]]</code>，一个字典，键是类路径（字符串），值是该类下所有测试用例的列表。</p>
+</li>
+</ul>
+<h4 id="han-shu-luo-ji-2">函数逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化有序字典</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_items: OrderedDict[str, List[Item]] = OrderedDict()</code>：创建一个 <code>OrderedDict</code>，用于存储类路径和对应的测试用例列表。使用有序字典是为了保持类的顺序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for item in items</code>：遍历传入的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取类路径</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>delimiter_index = item.node_id.index("::")</code>：找到测试用例节点ID中第一个 <code>"::"</code> 的索引，这通常表示模块和类之间的分隔符。</li>
+<li class="lvl-5"><code>if "::" in item.node_id[delimiter_index + 2 :]</code>：检查节点ID中是否还有第二个 <code>"::"</code>，这可能表示存在嵌套的类或方法。</li>
+<li class="lvl-5"><code>delimiter_index = item.node_id.index("::", delimiter_index + 2)</code>：如果存在第二个 <code>"::"</code>，则更新 <code>delimiter_index</code> 为第二个 <code>"::"</code> 的索引。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>提取类路径</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_path = item.node_id[:delimiter_index]</code>：截取节点ID中从开始到第一个 <code>"::"</code> 之前的部分作为类路径。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>设置默认值并添加测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_items.setdefault(class_path, []).append(item)</code>：使用 <code>setdefault</code> 方法确保字典中存在与类路径对应的键。如果不存在，则创建一个空列表作为该键的值。然后将当前测试用例添加到该列表中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return class_items</code>：返回包含类路径和测试用例列表的字典。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-6">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>节点ID格式</strong>：函数依赖于 <code>Item</code> 对象的 <code>node_id</code> 属性来获取类路径，确保每个测试用例的 <code>node_id</code> 属性正确设置，并且遵循 <code>"模块名::类名::方法名"</code> 的格式。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，该函数的性能是可接受的，因为它只需要遍历一次测试用例列表。但是，如果测试用例数量非常大，可能需要考虑更高效的数据结构或算法。</p>
+</li>
+</ul>
+<h3 id="scope-sorter-lei">ScopeSorter 类</h3>
+<h4 id="lei-ding-yi-he-chu-shi-hua-1">类定义和初始化</h4>
+<pre><code class="language-python">class ScopeSorter:
+    """
+    Sorts the items for the defined scope.
+    """
+    def __init__(
+        self,
+        settings: Settings,
+        items: List[Item],
+        rel_marks: List[RelativeMark[Item]],
+        dep_marks: List[RelativeMark[Item]],
+        session_scope: bool = False,
+    ) -&gt; None:
+        self.settings = settings
+        self.items = items
+        # no need to filter items in session scope
+        if session_scope:
+            self.rel_marks = rel_marks
+            self.dep_marks = dep_marks
+        else:
+            self.rel_marks = filter_marks(rel_marks, self.items)
+            self.dep_marks = filter_marks(dep_marks, self.items)
+</code></pre>
+<p>段代码定义了一个名为 <code>ScopeSorter</code> 的类，它负责在给定的作用域内对测试用例进行排序。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>settings</code>：<code>Settings</code> 对象，包含排序相关的配置。</li>
+<li class="lvl-4"><code>items</code>：<code>List[Item]</code>，测试用例列表。</li>
+<li class="lvl-4"><code>rel_marks</code>：<code>List[RelativeMark[Item]]</code>，相对标记列表。</li>
+<li class="lvl-4"><code>dep_marks</code>：<code>List[RelativeMark[Item]]</code>，依赖标记列表。</li>
+<li class="lvl-4"><code>session_scope</code>：<code>bool</code>，指示是否是会话作用域。默认为 <code>False</code>。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>属性</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>self.settings</code>：存储传入的设置。</li>
+<li class="lvl-4"><code>self.items</code>：存储传入的测试用例列表。</li>
+<li class="lvl-4"><code>self.rel_marks</code>：存储过滤后的相对标记列表。如果是会话作用域，则直接使用传入的相对标记；否则，使用 <code>filter_marks</code> 函数过滤。</li>
+<li class="lvl-4"><code>self.dep_marks</code>：存储过滤后的依赖标记列表。处理方式与相对标记相同。</li>
+</ul>
+</li>
+</ul>
+<h4 id="sort-items-fang-fa-1">sort_items 方法</h4>
+<pre><code class="language-python">def sort_items(self) -&gt; List[Item]:
+    if self.settings.group_scope.value &lt; self.settings.scope.value:
+        if self.settings.scope == Scope.SESSION:
+            sorted_list = self.sort_in_session_scope()
+        else:  # module scope / class group scope
+            sorted_list = self.sort_in_module_scope()
+    else:
+        sorted_list = self.sort_items_in_scope(self.items, Scope.SESSION).items
+
+    return sorted_list
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：对测试用例进行排序并返回排序后的列表。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：无。</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>List[Item]</code>，排序后的测试用例列表。</p>
+</li>
+</ul>
+<p><strong>逻辑</strong>：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>作用域比较</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>group_scope</code> 的值小于 <code>scope</code> 的值，表示需要在更细粒度的作用域内进行分组和排序。</li>
+<li class="lvl-5">根据 <code>settings.scope</code> 的值确定是会话作用域还是模块/类作用域，并调用相应的排序方法。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>会话作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果是会话作用域，调用 <code>sort_in_session_scope</code> 方法进行排序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>模块/类作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果是模块或类作用域，调用 <code>sort_in_module_scope</code> 方法进行排序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>组作用域等于或大于测试用例作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>group_scope</code> 的值等于或大于 <code>scope</code> 的值，直接在会话作用域内对测试用例进行排序，调用 <code>sort_items_in_scope</code> 方法。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">返回排序后的测试用例列表。</li>
+</ul>
+</li>
+</ol>
+<h5 id="gong-neng-jie-shi-10">功能解释</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域排序</strong>：<code>ScopeSorter</code> 类根据配置文件中指定的作用域对测试用例进行分组和排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>细粒度排序</strong>：在模块或类作用域内，测试用例会根据相对和依赖标记进行细粒度的排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>会话作用域排序</strong>：在会话作用域内，测试用例会根据会话级别的相对和依赖标记进行排序。</p>
+</li>
+</ul>
+<h5 id="shi-yong-chang-jing-2">使用场景</h5>
+<p>这个类在 <code>pytest-order</code> 插件中用于实现测试用例的排序逻辑，确保测试用例按照用户指定的顺序执行，满足不同的测试需求。</p>
+<h5 id="zhu-yi-shi-xiang-7">注意事项</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域处理</strong>：在处理不同作用域的测试用例时，需要考虑作用域的层次关系，确保测试用例按照正确的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>标记过滤</strong>：在非会话作用域中，需要过滤相对和依赖标记，以确保只有属于当前作用域的测试用例被考虑在内。</p>
+</li>
+</ul>
+<h4 id="sort-in-session-scope-fang-fa">sort_in_session_scope 方法</h4>
+<p>这段代码是 <code>ScopeSorter</code> 类中的 <code>sort_in_session_scope</code> 方法，它负责在会话作用域内对测试用例进行排序。</p>
+<pre><code class="language-python">def sort_in_session_scope(self) -&gt; List[Item]:
+    sorted_list = []
+    module_items = module_item_groups(self.items)
+    if self.settings.group_scope == Scope.CLASS:
+        module_groups = self.sort_class_groups(module_items)
+    else:
+        module_groups = [
+            self.sort_items_in_scope(item, Scope.MODULE)
+            for item in module_items.values()
+        ]
+    sorter = GroupSorter(
+        Scope.MODULE, module_groups, self.rel_marks, self.dep_marks
+    )
+    for group in sorter.sorted_groups()[1]:
+        sorted_list.extend(group.items)
+    return sorted_list
+</code></pre>
+<h5 id="gong-neng-jie-shi-11">功能解释</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>会话作用域排序</strong>：该方法在会话作用域内对测试用例进行排序，考虑了模块和类的作用域。</p>
+</li>
+<li class="lvl-2">
+<p><strong>模块分组</strong>：首先将测试用例按模块分组。</p>
+</li>
+<li class="lvl-2">
+<p><strong>类作用域处理</strong>：如果配置要求，还会进一步按类分组并排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>组排序器</strong>：使用 <code>GroupSorter</code> 对模块组或类组进行排序。</p>
+</li>
+</ul>
+<h5 id="fang-fa-can-shu-8">方法参数</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>无参数。</p>
+</li>
+</ul>
+<h5 id="fang-fa-fan-hui-zhi-8">方法返回值</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>List[Item]</code>，会话作用域内排序后的测试用例列表。</p>
+</li>
+</ul>
+<h5 id="fang-fa-luo-ji-9">方法逻辑</h5>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化排序列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorted_list = []</code>：创建一个空列表，用于存储最终排序后的测试用例。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>按模块分组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_items = module_item_groups(self.items)</code>：调用 <code>module_item_groups</code> 函数，将测试用例按模块分组。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理类作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if self.settings.group_scope == Scope.CLASS</code>：如果配置的组作用域是类级别：
+<ul class="lvl-4">
+<li class="lvl-7"><code>module_groups = self.sort_class_groups(module_items)</code>：调用 <code>sort_class_groups</code> 方法，对每个模块内的类进行排序，并将结果存储在 <code>module_groups</code> 中。</li>
+</ul>
+</li>
+<li class="lvl-5">否则：
+<ul class="lvl-4">
+<li class="lvl-7"><code>module_groups = [self.sort_items_in_scope(item, Scope.MODULE) for item in module_items.values()]</code>：遍历每个模块的测试用例，调用 <code>sort_items_in_scope</code> 方法，按模块作用域对测试用例进行排序，并将结果存储在 <code>module_groups</code> 中。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>创建组排序器</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorter = GroupSorter(Scope.MODULE, module_groups, self.rel_marks, self.dep_marks)</code>：创建 <code>GroupSorter</code> 实例，传入模块组列表、相对标记和依赖标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>排序模块组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for group in sorter.sorted_groups()[1]</code>：调用 <code>sorted_groups</code> 方法获取排序后的模块组列表，并遍历这些组。</li>
+<li class="lvl-5"><code>sorted_list.extend(group.items)</code>：将每个组内的测试用例添加到 <code>sorted_list</code> 中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回排序后的列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return sorted_list</code>：返回会话作用域内排序后的测试用例列表。</li>
+</ul>
+</li>
+</ol>
+<h5 id="zhu-yi-shi-xiang-8">注意事项</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域处理</strong>：在处理不同作用域的测试用例时，需要考虑作用域的层次关系，确保测试用例按照正确的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，排序操作可能会影响性能，因此在实际应用中需要考虑优化。</p>
+</li>
+</ul>
+<p>通过这种方式，<code>pytest-order</code> 插件能够灵活地控制测试用例的执行顺序，满足不同的测试需求。</p>
+<h4 id="sort-in-module-scope-fang-fa">sort_in_module_scope 方法</h4>
+<p>这段代码是 <code>ScopeSorter</code> 类中的 <code>sort_in_module_scope</code> 方法，它负责在模块作用域内对测试用例进行排序。</p>
+<pre><code class="language-python">def sort_in_module_scope(self) -&gt; List[Item]:
+    sorted_list = []
+    class_items = class_item_groups(self.items)
+    class_groups = [
+        self.sort_items_in_scope(item, Scope.CLASS) for item in class_items.values()
+    ]
+    sorter = GroupSorter(
+        Scope.CLASS, class_groups, self.rel_marks, self.dep_marks
+    )
+    for group in sorter.sorted_groups()[1]:
+        sorted_list.extend(group.items)
+    return sorted_list
+</code></pre>
+<h5 id="gong-neng-jie-shi-12">功能解释</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>模块作用域排序</strong>：该方法在模块作用域内对测试用例进行排序，考虑了类的作用域。</p>
+</li>
+<li class="lvl-2">
+<p><strong>类分组</strong>：首先将测试用例按类分组。</p>
+</li>
+<li class="lvl-2">
+<p><strong>类组排序器</strong>：使用 <code>GroupSorter</code> 对类组进行排序。</p>
+</li>
+</ul>
+<h5 id="fang-fa-can-shu-9">方法参数</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>无参数。</p>
+</li>
+</ul>
+<h5 id="fang-fa-fan-hui-zhi-9">方法返回值</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>List[Item]</code>，模块作用域内排序后的测试用例列表。</p>
+</li>
+</ul>
+<h5 id="fang-fa-luo-ji-10">方法逻辑</h5>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化排序列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorted_list = []</code>：创建一个空列表，用于存储最终排序后的测试用例。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>按类分组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_items = class_item_groups(self.items)</code>：调用 <code>class_item_groups</code> 函数，将测试用例按类分组。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>对每个类进行排序</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_groups = [self.sort_items_in_scope(item, Scope.CLASS) for item in class_items.values()]</code>：遍历每个类的测试用例，调用 <code>sort_items_in_scope</code> 方法，按类作用域对测试用例进行排序，并将结果存储在 <code>class_groups</code> 中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>创建组排序器</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorter = GroupSorter(Scope.CLASS, class_groups, self.rel_marks, self.dep_marks)</code>：创建 <code>GroupSorter</code> 实例，传入类组列表、相对标记和依赖标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>排序类组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for group in sorter.sorted_groups()[1]</code>：调用 <code>sorted_groups</code> 方法获取排序后的类组列表，并遍历这些组。</li>
+<li class="lvl-5"><code>sorted_list.extend(group.items)</code>：将每个组内的测试用例添加到 <code>sorted_list</code> 中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回排序后的列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return sorted_list</code>：返回模块作用域内排序后的测试用例列表。</li>
+</ul>
+</li>
+</ol>
+<h5 id="zhu-yi-shi-xiang-9">注意事项</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域处理</strong>：在处理不同作用域的测试用例时，需要考虑作用域的层次关系，确保测试用例按照正确的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，排序操作可能会影响性能，因此在实际应用中需要考虑优化。</p>
+</li>
+</ul>
+<h4 id="sort-class-groups-fang-fa">sort_class_groups 方法</h4>
+<p>这段代码是 <code>ScopeSorter</code> 类中的 <code>sort_class_groups</code> 方法，它负责在模块内对测试用例按类进行分组和排序。</p>
+<pre><code class="language-python">def sort_class_groups(self, module_items: Dict[str, List[Item]]) -&gt; List[ItemGroup]:
+    module_groups = []
+    for module_item in module_items.values():
+        class_items = class_item_groups(module_item)
+        class_groups = [
+            self.sort_items_in_scope(item, Scope.CLASS) for item in class_items.values()
+        ]
+        module_group = ItemGroup()
+        sorter = GroupSorter(
+            Scope.CLASS, class_groups, self.rel_marks, self.dep_marks
+        )
+        group_order, class_groups = sorter.sorted_groups()
+        module_group.extend(class_groups, group_order)
+        module_groups.append(module_group)
+    return module_groups
+</code></pre>
+<h5 id="gong-neng-jie-shi-13">功能解释</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>模块内类分组</strong>：该方法在模块内将测试用例按类分组，并进行排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>类组排序</strong>：使用 <code>GroupSorter</code> 对类组进行排序，确保测试用例按照指定的顺序执行。</p>
+</li>
+</ul>
+<h5 id="fang-fa-can-shu-10">方法参数</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>module_items</code>：<code>Dict[str, List[Item]]</code>，一个字典，键是模块路径，值是该模块下所有测试用例的列表。</p>
+</li>
+</ul>
+<h5 id="fang-fa-fan-hui-zhi-10">方法返回值</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>List[ItemGroup]</code>，模块内排序后的测试用例组列表。</p>
+</li>
+</ul>
+<h5 id="fang-fa-luo-ji-11">方法逻辑</h5>
+<ol>
+<li class="lvl-3">
+<p><strong>初始化模块组列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_groups = []</code>：创建一个空列表，用于存储每个模块的测试用例组。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历模块内的测试用例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for module_item in module_items.values()</code>：遍历每个模块的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>按类分组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_items = class_item_groups(module_item)</code>：调用 <code>class_item_groups</code> 函数，将模块内的测试用例按类分组。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>对每个类进行排序</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class_groups = [self.sort_items_in_scope(item, Scope.CLASS) for item in class_items.values()]</code>：遍历每个类的测试用例，调用 <code>sort_items_in_scope</code> 方法，按类作用域对测试用例进行排序，并将结果存储在 <code>class_groups</code> 中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>创建模块组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_group = ItemGroup()</code>：创建一个新的 <code>ItemGroup</code> 实例，用于存储当前模块的测试用例组。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>创建组排序器</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorter = GroupSorter(Scope.CLASS, class_groups, self.rel_marks, self.dep_marks)</code>：创建 <code>GroupSorter</code> 实例，传入类组列表、相对标记和依赖标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>排序类组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>group_order, class_groups = sorter.sorted_groups()</code>：调用 <code>sorted_groups</code> 方法获取排序后的类组和组顺序值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>扩展模块组</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_group.extend(class_groups, group_order)</code>：使用 <code>extend</code> 方法将排序后的类组添加到模块组中，并指定组顺序值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加模块组到列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>module_groups.append(module_group)</code>：将当前模块的测试用例组添加到模块组列表中。</li>
+</ul>
+</li>
+<li class="lvl-4">
+<p><strong>返回模块组列表</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-6"><code>return module_groups</code>：返回包含所有模块测试用例组的列表。</li>
+</ul>
+</li>
+</ol>
+<h5 id="zhu-yi-shi-xiang-10">注意事项</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域处理</strong>：在处理不同作用域的测试用例时，需要考虑作用域的层次关系，确保测试用例按照正确的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，排序操作可能会影响性能，因此在实际应用中需要考虑优化。</p>
+</li>
+</ul>
+<h4 id="sort-items-in-scope-fang-fa">sort_items_in_scope 方法</h4>
+<p>这段代码是 <code>ScopeSorter</code> 类中的 <code>sort_items_in_scope</code> 方法，它负责在给定的作用域内对测试用例进行排序。</p>
+<pre><code class="language-python">def sort_items_in_scope(self, items: List[Item], scope: Scope) -&gt; ItemGroup:
+    item_list = ItemList(
+        items, self.settings, scope, self.rel_marks, self.dep_marks
+    )
+    for item in items:
+        item_list.collect_markers(item)
+
+    sorted_list = item_list.sort_numbered_items()
+
+    still_left = 0
+    length = item_list.number_of_rel_groups()
+    while length and still_left != length:
+        still_left = length
+        item_list.handle_rel_marks(sorted_list)
+        item_list.handle_dep_marks(sorted_list)
+        length = item_list.number_of_rel_groups()
+    if length:
+        item_list.print_unhandled_items()
+    return ItemGroup(sorted_list, item_list.group_order())
+</code></pre>
+<h5 id="gong-neng-jie-shi-14">功能解释</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域排序</strong>：该方法在给定的作用域内对测试用例进行排序，考虑了编号、相对和依赖标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>标记处理</strong>：处理测试用例上的相对和依赖标记，确保测试用例按照指定的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>未处理项警告</strong>：如果存在未处理的相对或依赖标记，打印警告信息。</p>
+</li>
+</ul>
+<h5 id="fang-fa-can-shu-11">方法参数</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>items</code>：<code>List[Item]</code>，一个包含 <code>Item</code> 对象的列表，每个 <code>Item</code> 对象代表一个测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>scope</code>：<code>Scope</code>，一个枚举值，表示排序的作用域（例如 <code>Scope.CLASS</code> 或 <code>Scope.MODULE</code>）。</p>
+</li>
+</ul>
+<h5 id="fang-fa-fan-hui-zhi-11">方法返回值</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>ItemGroup</code>，包含排序后的测试用例和组顺序值的对象。</p>
+</li>
+</ul>
+<h5 id="fang-fa-luo-ji-12">方法逻辑</h5>
+<ol>
+<li class="lvl-3">
+<p><strong>创建 <code>ItemList</code> 实例</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item_list = ItemList(items, self.settings, scope, self.rel_marks, self.dep_marks)</code>：创建一个 <code>ItemList</code> 对象，传入测试用例列表、设置、作用域、相对标记和依赖标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>收集标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for item in items: item_list.collect_markers(item)</code>：遍历测试用例列表，为每个测试用例收集标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>排序编号项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>sorted_list = item_list.sort_numbered_items()</code>：调用 <code>ItemList</code> 的 <code>sort_numbered_items</code> 方法对测试用例进行排序，返回排序后的测试用例列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理相对和依赖标记</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">初始化 <code>still_left</code> 和 <code>length</code> 变量：
+<ul class="lvl-4">
+<li class="lvl-7"><code>still_left = 0</code></li>
+<li class="lvl-7"><code>length = item_list.number_of_rel_groups()</code></li>
+</ul>
+</li>
+<li class="lvl-5">进入循环，直到没有剩余的相对或依赖组：
+<ul class="lvl-4">
+<li class="lvl-7">在循环开始时，将 <code>length</code> 的值赋给 <code>still_left</code>。</li>
+<li class="lvl-7">调用 <code>item_list.handle_rel_marks(sorted_list)</code> 处理相对标记。</li>
+<li class="lvl-7">调用 <code>item_list.handle_dep_marks(sorted_list)</code> 处理依赖标记。</li>
+<li class="lvl-7">更新 <code>length</code> 为当前的相对或依赖组数量。</li>
+</ul>
+</li>
+<li class="lvl-5">如果循环结束后 <code>length</code> 仍不为0，表示有未处理的相对或依赖标记。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>打印未处理的项</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if length: item_list.print_unhandled_items()</code>：如果有未处理的相对或依赖标记，调用 <code>print_unhandled_items</code> 方法打印警告信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回 <code>ItemGroup</code></strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return ItemGroup(sorted_list, item_list.group_order())</code>：创建一个 <code>ItemGroup</code> 对象，传入排序后的测试用例列表和组顺序值，并返回。</li>
+</ul>
+</li>
+</ol>
+<h5 id="zhu-yi-shi-xiang-11">注意事项</h5>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域处理</strong>：在处理不同作用域的测试用例时，需要考虑作用域的层次关系，确保测试用例按照正确的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例时，排序和标记处理操作可能会影响性能，因此在实际应用中需要考虑优化。</p>
+</li>
+</ul>
+<h3 id="scope-from-name-fang-fa">scope_from_name 方法</h3>
+<p>这段代码定义了一个名为 <code>scope_from_name</code> 的函数，它用于根据传入的名称字符串返回相应的 <code>Scope</code> 枚举值。</p>
+<pre><code class="language-python">def scope_from_name(name: str) -&gt; Scope:
+    if name == "module":
+        return Scope.MODULE
+    if name == "class":
+        return Scope.CLASS
+    return Scope.SESSION
+</code></pre>
+<h4 id="gong-neng-jie-shi-15">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域映射</strong>：这个函数是作用域名称到 <code>Scope</code> 枚举值的映射函数，它简化了从字符串名称到枚举值的转换。</p>
+</li>
+<li class="lvl-2">
+<p><strong>默认值</strong>：如果传入的名称不是预期的 <code>"module"</code> 或 <code>"class"</code>，函数会返回 <code>Scope.SESSION</code>，这表示会话级别的作用域。</p>
+</li>
+</ul>
+<h4 id="han-shu-can-shu-3">函数参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>name</code>：<code>str</code>，一个字符串，表示作用域的名称。</p>
+</li>
+</ul>
+<h4 id="han-shu-fan-hui-zhi-3">函数返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>Scope</code>，一个枚举值，表示测试用例的作用域。</p>
+</li>
+</ul>
+<h4 id="han-shu-luo-ji-3">函数逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>检查名称并返回对应的作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">函数首先检查传入的 <code>name</code> 是否等于 <code>"module"</code>：
+<ul class="lvl-4">
+<li class="lvl-7">如果是，返回 <code>Scope.MODULE</code>。</li>
+</ul>
+</li>
+<li class="lvl-5">接下来，检查 <code>name</code> 是否等于 <code>"class"</code>：
+<ul class="lvl-4">
+<li class="lvl-7">如果是，返回 <code>Scope.CLASS</code>。</li>
+</ul>
+</li>
+<li class="lvl-5">如果 <code>name</code> 既不是 <code>"module"</code> 也不是 <code>"class"</code>，则默认返回 <code>Scope.SESSION</code>。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-12">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>枚举值匹配</strong>：函数依赖于精确的字符串匹配来确定返回的 <code>Scope</code> 枚举值，因此传入的名称必须是预期的字符串之一。</p>
+</li>
+<li class="lvl-2">
+<p><strong>大小写敏感</strong>：由于字符串比较是区分大小写的，传入的名称必须与 <code>"module"</code> 或 <code>"class"</code> 完全匹配（包括大小写）。</p>
+</li>
+</ul>
+<p>通过这种方式，<code>scope_from_name</code> 函数提供了一种简单而直接的方法来将作用域的字符串表示转换为 <code>Scope</code> 枚举值，这在 <code>pytest-order</code> 插件中用于控制测试用例的执行顺序。</p>
+<h3 id="scoped-node-id-fang-fa">scoped_node_id 方法</h3>
+<p><code>scoped_node_id</code> 函数用于根据指定的作用域（<code>Scope</code>）从完整的节点 <code>ID</code>（<code>node_id</code>）中提取相关部分，用于控制测试用例的执行顺序和组织结构。</p>
+<pre><code class="language-python">def scoped_node_id(node_id: str, scope: Scope) -&gt; str:
+    if scope == Scope.MODULE:
+        return node_id[: node_id.index("::")]
+    if scope == Scope.CLASS:
+        return node_id[: node_id.rindex("::")]
+    return ""
+</code></pre>
+<h4 id="gong-neng-jie-shi-16">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域提取</strong>：这个函数根据指定的作用域提取节点 <code>ID</code> 的相关部分，使得可以针对不同的作用域进行操作。</p>
+</li>
+<li class="lvl-2">
+<p><strong>模块和类作用域</strong>：特别处理模块和类作用域，通过提取节点 <code>ID</code> 的相应部分来标识测试用例所属的模块或类。</p>
+</li>
+</ul>
+<h4 id="han-shu-can-shu-4">函数参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>node_id</code>：<code>str</code>，完整的节点 <code>ID</code>，通常用于唯一标识测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>scope</code>：<code>Scope</code>，一个枚举值，表示需要提取的作用域。</p>
+</li>
+</ul>
+<h4 id="han-shu-fan-hui-zhi-4">函数返回值</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>返回类型：<code>str</code>，根据作用域提取的节点 <code>ID</code> 部分。</p>
+</li>
+</ul>
+<h4 id="han-shu-luo-ji-4">函数逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>模块作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>scope</code> 是 <code>Scope.MODULE</code>：
+<ul class="lvl-4">
+<li class="lvl-7">使用 <code>node_id.index("::")</code> 查找第一个 <code>"::"</code> 的索引。</li>
+<li class="lvl-7">返回 <code>node_id</code> 从开始到第一个 <code>"::"</code> 之前的部分（不包括 <code>"::"</code>）。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>类作用域</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>scope</code> 是 <code>Scope.CLASS</code>：
+<ul class="lvl-4">
+<li class="lvl-7">使用 <code>node_id.rindex("::")</code> 查找最后一个 <code>"::"</code> 的索引。</li>
+<li class="lvl-7">返回 <code>node_id</code> 从开始到最后一个 <code>"::"</code> 之前的部分（不包括 <code>"::"</code>）。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>默认情况</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>scope</code> 不是 <code>Scope.MODULE</code> 或 <code>Scope.CLASS</code>（例如 <code>Scope.SESSION</code>），则返回一个空字符串。</li>
+</ul>
+</li>
+</ol>
+<h4 id="zhu-yi-shi-xiang-13">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>字符串操作</strong>：函数通过字符串切片操作来提取节点 ID 的相关部分，因此 <code>node_id</code> 必须是一个有效的字符串。</p>
+</li>
+<li class="lvl-2">
+<p><strong>作用域匹配</strong>：函数依赖于 <code>scope</code> 参数的匹配来决定如何提取节点 ID，因此传入的 <code>scope</code> 必须是正确的枚举值。</p>
+</li>
+</ul>
+<h3 id="group-sorter-lei">GroupSorter 类</h3>
+<p><code>GroupSorter</code> 类负责对测试用例组进行排序。</p>
+<h4 id="lei-ding-yi-he-chu-shi-hua-2">类定义和初始化</h4>
+<pre><code class="language-python">class GroupSorter:
+    """
+    Sorts groups of items.
+    """
+
+    def __init__(
+        self,
+        scope: Scope,
+        groups: List[ItemGroup],
+        rel_marks: List[RelativeMark[Item]],
+        dep_marks: List[RelativeMark[Item]],
+    ) -&gt; None:
+        self.scope: Scope = scope
+        self.groups: List[ItemGroup] = groups
+        self.rel_marks: List[RelativeMark[ItemGroup]] = self.collect_group_marks(
+            rel_marks
+        )
+        self.dep_marks: List[RelativeMark[ItemGroup]] = self.collect_group_marks(
+            dep_marks
+        )
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>scope</code>：<code>Scope</code>，作用域枚举值，表示排序的作用域。</li>
+<li class="lvl-4"><code>groups</code>：<code>List[ItemGroup]</code>，测试用例组的列表。</li>
+<li class="lvl-4"><code>rel_marks</code>：<code>List[RelativeMark[Item]]</code>，相对标记的列表。</li>
+<li class="lvl-4"><code>dep_marks</code>：<code>List[RelativeMark[Item]]</code>，依赖标记的列表。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>属性</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>self.scope</code>：存储传入的作用域。</li>
+<li class="lvl-4"><code>self.groups</code>：存储传入的测试用例组列表。</li>
+<li class="lvl-4"><code>self.rel_marks</code>：存储转换后的相对标记列表，这些标记是针对测试用例组的。</li>
+<li class="lvl-4"><code>self.dep_marks</code>：存储转换后的依赖标记列表，这些标记也是针对测试用例组的。</li>
+</ul>
+</li>
+</ul>
+<h4 id="collect-group-marks-fang-fa">collect_group_marks 方法</h4>
+<pre><code class="language-python">def collect_group_marks(
+        self, marks: List[RelativeMark[Item]]
+    ) -&gt; List[RelativeMark[ItemGroup]]:
+    group_marks: List[RelativeMark[ItemGroup]] = []
+    for mark in marks:
+        group = self.group_for_item(mark.item)
+        group_to_move = self.group_for_item(mark.item_to_move)
+        if group is not None and group_to_move is not None:
+            group_marks.append(RelativeMark(group, group_to_move, mark.move_after))
+            group_to_move.inc_rel_marks()
+    return group_marks
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：将针对测试用例的相对标记转换为针对测试用例组的相对标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>marks</code>：<code>List[RelativeMark[Item]]</code>，原始的相对标记列表。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>List[RelativeMark[ItemGroup]]</code>，转换后的相对标记列表。</p>
+</li>
+</ul>
+<h4 id="group-for-item-fang-fa">group_for_item 方法</h4>
+<pre><code class="language-python">def group_for_item(self, item: Item) -&gt; Optional[ItemGroup]:
+    for group in self.groups:
+        if item in group.items:
+            return group
+    return None
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：根据测试用例找到对应的测试用例组。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>item</code>：<code>Item</code>，测试用例。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>Optional[ItemGroup]</code>，对应的测试用例组，如果没有找到则返回 <code>None</code>。</p>
+</li>
+</ul>
+<h4 id="sorted-groups-fang-fa">sorted_groups 方法</h4>
+<pre><code class="language-python">def sorted_groups(self) -&gt; Tuple[Optional[int], List[ItemGroup]]:
+    group_order = self.sort_by_ordinal_markers()
+    length = len(self.rel_marks) + len(self.dep_marks)
+    if length == 0:
+        return group_order, self.groups
+
+    # handle relative markers the same way single items are handled
+    still_left = 0
+    while length and still_left != length:
+        still_left = length
+        self.handle_rel_marks(self.rel_marks)
+        self.handle_rel_marks(self.dep_marks)
+    return group_order, self.groups
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：对测试用例组进行排序，并返回排序后的组和组的顺序值。</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>Tuple[Optional[int], List[ItemGroup]]</code>，组的顺序值和排序后的测试用例组列表。</p>
+</li>
+</ul>
+<h4 id="sort-by-ordinal-markers-fang-fa">sort_by_ordinal_markers 方法</h4>
+<pre><code class="language-python">def sort_by_ordinal_markers(self) -&gt; Optional[int]:
+    start_groups = []
+    middle_groups = []
+    end_groups = []
+    for group in self.groups:
+        if group.order is None:
+            middle_groups.append(group)
+        elif group.order &gt;= 0:
+            start_groups.append(group)
+        else:
+            end_groups.append(group)
+    start_groups = sorted(start_groups, key=lambda g: cast(int, g.order))
+    end_groups = sorted(end_groups, key=lambda g: cast(int, g.order))
+    self.groups = start_groups + middle_groups + end_groups
+    if start_groups:
+        group_order = start_groups[0].order
+    elif end_groups:
+        group_order = end_groups[-1].order
+    else:
+        group_order = None
+    return group_order
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：根据序数标记对测试用例组进行排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>返回值</strong>：<code>Optional[int]</code>，组的顺序值。</p>
+</li>
+</ul>
+<h4 id="handle-rel-marks-fang-fa-1">handle_rel_marks 方法</h4>
+<pre><code class="language-python">def handle_rel_marks(self, marks: List[RelativeMark[ItemGroup]]) -&gt; None:
+    for mark in reversed(marks):
+        if move_item(mark, self.groups):
+            marks.remove(mark)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>功能</strong>：处理相对标记，调整测试用例组的顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>参数</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>marks</code>：<code>List[RelativeMark[ItemGroup]]</code>，相对标记列表。</li>
+</ul>
+</li>
+</ul>
+<h4 id="gong-neng-jie-shi-17">功能解释</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>测试用例组排序</strong>：<code>GroupSorter</code> 类对测试用例组进行排序，考虑了序数标记和相对标记。</p>
+</li>
+<li class="lvl-2">
+<p><strong>序数标记处理</strong>：通过 <code>sort_by_ordinal_markers</code> 方法，根据序数标记对测试用例组进行初步排序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>相对标记处理</strong>：通过 <code>handle_rel_marks</code> 方法，处理相对标记，进一步调整测试用例组的顺序。</p>
+</li>
+</ul>
+<h4 id="zhu-yi-shi-xiang-14">注意事项</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>作用域处理</strong>：在处理不同作用域的测试用例组时，需要考虑作用域的层次关系，确保测试用例组按照正确的顺序执行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能考虑</strong>：在处理大量测试用例组时，排序和标记处理操作可能会影响性能，因此在实际应用中需要考虑优化。</p>
+</li>
+</ul>
+<h1 id="pytest-order-cha-jian-de-shi-yong-yu-bi-keng">pytest-order插件的使用与闭坑</h1>
+<h2 id="an-zhuang">安装</h2>
+<pre><code class="language-shell">pip install pytest-order
+</code></pre>
+<h2 id="zhun-bei-ce-shi-yong-li">准备测试用例</h2>
+<pre><code class="language-python">root@Gavin:~/pytest_plugin/test/pytest_order_example# cat test_a.py 
+import pytest
+
+@pytest.mark.order("first")
+def test_a1():
+    print("Executing test_a1")
+
+@pytest.mark.order("last")
+def test_a2():
+    print("Executing test_a2")
+
+@pytest.mark.order(after="test_a1")
+def test_a3():
+    print("Executing test_a3")
+root@Gavin:~/pytest_plugin/test/pytest_order_example# cat test_b.py 
+import pytest
+
+@pytest.mark.order(1)
+def test_b1():
+    print("Executing test_b1")
+
+@pytest.mark.order(2, scope="module")
+def test_b2():
+    print("Executing test_b2")
+
+@pytest.mark.order(3, scope="class")
+class TestB3:
+    def test_method1(self):
+        print("Executing test_b3_method1")
+
+    def test_method2(self):
+        print("Executing test_b3_method2")
+root@Gavin:~/pytest_plugin/test/pytest_order_example# cat test_c.py 
+import pytest
+
+@pytest.mark.order(1)
+def test_c1():
+    print("Executing test_c1")
+
+@pytest.mark.order(2)
+def test_c2():
+    print("Executing test_c2")
+
+@pytest.mark.order(3)
+def test_c3():
+    print("Executing test_c3")
+root@Gavin:~/pytest_plugin/test/pytest_order_example#
+</code></pre>
+<h2 id="ce-shi-yong-li-zhi-xing">测试用例执行</h2>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/test/pytest_order_example# pytest -v
+Test session starts (platform: linux, Python 3.11.6, pytest 8.2.2, pytest-sugar 1.0.0)
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-44-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'profiling': '1.7.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'order': '1.2.1', 'progress': '1.3.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'assume': '2.4.3', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'sugar': '1.0.0', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2', 'extra-durations': '0.1.3', 'line-profiler': '0.2.1'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/pytest_plugin/test/pytest_order_example
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, profiling-1.7.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, order-1.2.1, progress-1.3.0, twisted-1.14.1, picked-0.5.0, assume-2.4.3, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, sugar-1.0.0, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2, extra-durations-0.1.3, line-profiler-0.2.1
+asyncio: mode=Mode.STRICT
+collected 10 items                                                                                                                                                                                                                                       
+
+ test_a.py::test_a1 ?                                                                                                                                                                                                                       10% █         
+ test_b.py::test_b1 ?                                                                                                                                                                                                                       20% ██        
+ test_c.py::test_c1 ?                                                                                                                                                                                                                       30% ███       
+ test_b.py::test_b2 ?                                                                                                                                                                                                                       40% ████      
+ test_c.py::test_c2 ?                                                                                                                                                                                                                       50% █████     
+ test_b.py::TestB3.test_method1 ?                                                                                                                                                                                                           60% ██████    
+ test_b.py::TestB3.test_method2 ?                                                                                                                                                                                                           70% ███████   
+ test_c.py::test_c3 ?                                                                                                                                                                                                                       80% ████████  
+ test_a.py::test_a3 ?                                                                                                                                                                                                                       90% █████████ 
+ test_a.py::test_a2 ?                                                                                                                                                                                                                      100% ██████████
+=============================================================================================================== sum of all tests durations ===============================================================================================================
+0.05s
+
+Results (0.08s):
+      10 passed
+root@Gavin:~/pytest_plugin/test/pytest_order_example# 
+</code></pre>
+<p>从上面记录可以看到，执行顺序是：</p>
+<pre><code class="language-shell"> test_a.py::test_a1                                                                                                                                                                                                                        10% █         
+ test_b.py::test_b1                                                                                                                                                                                                                        20% ██        
+ test_c.py::test_c1                                                                                                                                                                                                                        30% ███       
+ test_b.py::test_b2                                                                                                                                                                                                                        40% ████      
+ test_c.py::test_c2                                                                                                                                                                                                                        50% █████     
+ test_b.py::TestB3.test_method1                                                                                                                                                                                                            60% ██████    
+ test_b.py::TestB3.test_method2                                                                                                                                                                                                            70% ███████   
+ test_c.py::test_c3                                                                                                                                                                                                                        80% ████████  
+ test_a.py::test_a3                                                                                                                                                                                                                        90% █████████ 
+ test_a.py::test_a2   
+</code></pre>
+<h2 id="keng-dian">坑点</h2>
+<p>如果没有使用<code>pytest-order</code>插件，从测试用例文件命名来看，会先执行<code>test_a.py</code>，再执行<code>test_b.py</code>，最后执行<code>test_c.py</code>，但使用了<code>pytest-order</code>插件后,会打乱执行顺序，尤其是使用了<code>@pytest.mark.order("last")</code>，它会在当前执行会话中所有的用例都执行结束后，最最后来执行这个标记的测试用例，并非是我们所想的单个测试用例<code>py</code>文件中的最后执行，而是在所有测试用例<code>py</code>文件的最后执行。这一点，请牢牢记住，避免多个用例文件之间有环境准备/清理关系，导致<code>@pytest.mark.order("last")</code>的用例执行失败。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/02/01/pytest_order/">https://gavin-wang-note.github.io/2025/02/01/pytest_order/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2025/02/23/pytest_rerunfailures/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例失败重运行之pytest-rerunfailures源码解读">
+                        
+                        <span class="card-title">测试用例失败重运行之pytest-rerunfailures源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例失败重运行之pytest-rerunfailures源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2025-02-23
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/01/11/pytest_profiling/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例性能分析之pytest-profiling源码解读">
+                        
+                        <span class="card-title">测试用例性能分析之pytest-profiling源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例性能分析之pytest-profiling源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-01-11
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1083.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

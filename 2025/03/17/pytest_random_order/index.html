@@ -1,0 +1,2401 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例随机执行之pytest-random-order源码解读, 软硬件测试">
+    <meta name="description" content="测试用例随机执行之pytest-random-order源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例随机执行之pytest-random-order源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例随机执行之pytest-random-order源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-03-17
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    7.4k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    31 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest-random-order</code> 是一个 <code>pytest</code> 插件，它允许用户自定义测试用例的执行顺序，支持随机执行测试用例，或者将失败的测试用例重新排序到执行队列的前端，这个功能对于揭示测试之间的隐性依赖关系以及开发团队过分依赖测试执行顺序的情况非常有用。</p>
+<h2 id="zhu-yao-te-xing">主要特性</h2>
+<ol>
+<li class="lvl-3">
+<p><strong>随机执行测试</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">插件支持将所有测试用例随机执行，打破执行顺序可能带来的依赖问题。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>失败测试优先执行</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">通过命令行选项，用户可以让上次失败的测试在当前测试运行中优先执行。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>仅执行失败的测试</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">用户可以选择只重新执行上次失败的测试，而跳过其他已通过的测试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>跨会话缓存</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">插件使用 <code>pytest</code> 的缓存机制来记录测试状态，实现跨测试运行的信息维护。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>灵活的桶类型</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">用户可以指定不同的桶类型来分组测试用例，桶类型包括全局、包、模块、类、父类和自定义类型。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>配置和命令行选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">插件提供了多种配置选项和命令行参数，允许用户控制随机顺序的行为。</li>
+</ul>
+</li>
+</ol>
+<h2 id="gong-zuo-yuan-li">工作原理</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>随机化逻辑</strong>: 插件通过 <code>_shuffle_items</code> 函数在测试集合中随机分配测试用例到不同的桶中。</p>
+</li>
+<li class="lvl-2">
+<p><strong>失败测试处理</strong>: 使用缓存来识别失败的测试，并根据配置决定它们的执行顺序。</p>
+</li>
+<li class="lvl-2">
+<p><strong>命令行接口</strong>: 提供了 <code>--lf</code>（last failed）、<code>--ff</code>（failed first）等选项来控制失败测试的执行策略。</p>
+</li>
+<li class="lvl-2">
+<p><strong>缓存操作</strong>: 插件使用 <code>config.cache</code> 对象存储和检索测试状态信息，如失败测试列表。</p>
+</li>
+</ul>
+<h2 id="shi-yong-chang-jing">使用场景</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>持续集成</strong>: 在 <code>CI</code> 环境中，随机化测试顺序有助于发现潜在的隐性错误和依赖。</p>
+</li>
+<li class="lvl-2">
+<p><strong>开发调试</strong>: 开发者可以使用失败优先的策略快速定位和修复问题。</p>
+</li>
+<li class="lvl-2">
+<p><strong>性能优化</strong>: 通过优先执行失败测试，可以减少等待时间，提高测试效率。</p>
+</li>
+</ul>
+<h2 id="ji-cheng-yu-kuo-zhan">集成与扩展</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>与 pytest 集成</strong>: 插件作为 <code>pytest</code>的一部分，与 <code>pytest</code>的钩子系统和配置系统集成。</p>
+</li>
+<li class="lvl-2">
+<p><strong>扩展性</strong>: 插件允许开发者通过自定义函数和命令行选项来扩展其功能。</p>
+</li>
+</ul>
+<h2 id="pei-zhi-xuan-xiang">配置选项</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>--random-order</code>: 启用随机化测试顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>--random-order-bucket</code>: 指定测试用例的分组方式。</p>
+</li>
+<li class="lvl-2">
+<p><code>--random-order-seed</code>: 设置随机化使用的种子。</p>
+</li>
+</ul>
+<h2 id="ming-ling-xing-gong-ju">命令行工具</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>--lf</code>, <code>--last-failed</code>: 仅重新执行上次失败的测试。</p>
+</li>
+<li class="lvl-2">
+<p><code>--ff</code>, <code>--failed-first</code>: 先执行上次失败的测试，然后执行其他测试。</p>
+</li>
+<li class="lvl-2">
+<p><code>--cache-show</code>: 显示缓存内容。</p>
+</li>
+<li class="lvl-2">
+<p><code>--cache-clear</code>: 清除缓存内容。</p>
+</li>
+</ul>
+<p><code>pytest-random-order</code> 插件为 <code>pytest</code> 用户提供了强大的测试顺序控制能力，有助于创建更健壮和可靠的自动化测试套件。</p>
+<h1 id="an-zhuang-pytest-random-order">安装 pytest-random-order</h1>
+<p>使用 <code>pip</code> 安装 <code>pytest-random-order</code>：</p>
+<pre><code class="language-shell">pip install pytest-random-order
+</code></pre>
+<h1 id="shi-yong-shi-li">使用示例</h1>
+<p>在 <code>pytest</code> 测试会话中，使用 <code>--random-order</code> 参数来随机运行测试：</p>
+<pre><code class="language-shell">pytest --random-order
+</code></pre>
+<p>如果希望随机排序但要保持顺序可重复性，可以指定一个种子值：</p>
+<pre><code class="language-shell">pytest --random-order-seed=&lt;seed&gt;
+</code></pre>
+<p>比如：</p>
+<pre><code class="language-shell">pytest --random-order --random-order-seed=12345
+</code></pre>
+<p>在这个例子中，<code>12345</code> 是一个种子值。此后每次使用同一个种子值运行 <code>pytest</code> 时，测试的随机顺序将会保持一致，只要测试用例集没有变化。</p>
+<p>通常，在测试运行结束时，如果你启用了随机顺序插件，<code>pytest</code> 会打印用于该次测试顺序的种子。例如：</p>
+<pre><code class="language-shell">Using --random-order-seed=12345
+</code></pre>
+<p>这样当你想要复现测试用例的随机顺序时，就可以通过提供之前生成的种子来执行。这确保了你能够重现同样的顺序，从而方便调试和解决可能出现的顺序依赖问题。</p>
+<p>对于希望以固定顺序进行的特定测试，可以使用 <code>@pytest.mark.order</code> 标记（需要 <code>pytest-order</code> 或相似插件）：</p>
+<pre><code class="language-python"># content of test_pytest_random_order.py
+import pytest
+
+@pytest.mark.order(1)
+def test_should_run_first():
+    # 这个测试将总是首先执行
+    pass
+
+def test_random1():
+    pass
+
+def test_random2():
+    pass
+
+def test_random3():
+    pass
+
+def test_random4():
+    pass
+</code></pre>
+<p>运行结果参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/test# pytest -s -v --random-order-seed=3 test_pytest_random_order.py
+Test session starts (platform: linux, Python 3.11.6, pytest 8.2.2, pytest-sugar 1.0.0)
+cachedir: .pytest_cache
+Using --random-order-bucket=module
+Using --random-order-seed=3
+
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-44-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'profiling': '1.7.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'order': '1.2.1', 'progress': '1.3.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'assume': '2.4.3', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2', 'extra-durations': '0.1.3', 'line-profiler': '0.2.1', 'sugar': '1.0.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/pytest_plugin/test
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, profiling-1.7.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, order-1.2.1, progress-1.3.0, twisted-1.14.1, picked-0.5.0, assume-2.4.3, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2, extra-durations-0.1.3, line-profiler-0.2.1, sugar-1.0.0
+asyncio: mode=Mode.STRICT
+collected 5 items                                                                                                                                                                                                                        
+
+ test_pytest_random_order.py::test_should_run_first ✓                                                                                                                                                                       20% ██        
+ test_pytest_random_order.py::test_random1 ✓                                                                                                                                                                                40% ████      
+ test_pytest_random_order.py::test_random4 ✓                                                                                                                                                                                60% ██████    
+ test_pytest_random_order.py::test_random2 ✓                                                                                                                                                                                80% ████████  
+ test_pytest_random_order.py::test_random3 ✓                                                                                                                                                                               100% ██████████
+======================================================================================================= sum of all tests durations =======================================================================================================
+0.02s
+
+Results (0.05s):
+       5 passed
+root@Gavin:~/pytest_plugin/test#
+</code></pre>
+<p>如果希望分组测试用例，并随后随机化各组内的测试用例顺序，可以使用：</p>
+<pre><code class="language-shell">pytest --random-order --random-order-bucket
+</code></pre>
+<p><code>--random-order-bucket</code>参数接受下面几种不同的值：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>module</code>：按照模块随机化测试用例顺序。同一个模块的测试用例将首先被收集，然后作为一个整体随机化它们的顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>class</code>：按照类随机化测试用例顺序。同一个类的测试用例将首先被收集，然后作为一个整体随机化它们的顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>package</code>：按照包（即目录结构）随机化测试用例顺序。同一个包或子包内的测试用例将首先被收集，然后作为一个整体随机化它们的顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>global</code>：测试全部随机化。不做任何分组，所有的测试用例被汇集到一起并随机排序。</p>
+</li>
+<li class="lvl-2">
+<p><code>none</code>：不对测试用例执行顺序做任何干预，即保持 <code>pytest</code> 默认的顺序。</p>
+</li>
+</ul>
+<p>例如，如果你想要按照模块来随机化测试用例的执行顺序，你可以在运行 <code>pytest</code> 时采用如下命令：</p>
+<pre><code class="language-shell">pytest --random-order --random-order-bucket=module
+</code></pre>
+<p>另一方面，如果你想要全局随机化测试用例（不考虑模块、类或包的边界），可以使用：</p>
+<pre><code class="language-shell">pytest --random-order --random-order-bucket=global
+</code></pre>
+<h1 id="zhu-yi-shi-xiang">注意事项</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>独立性</strong>：确保你的测试没有依赖于特定的执行顺序，可以独立运行。</p>
+</li>
+<li class="lvl-2">
+<p><strong>环境清理</strong>：在测试结束后对环境进行彻底清理，以避免状态污染后续的测试。</p>
+</li>
+<li class="lvl-2">
+<p><strong>数据隔离</strong>：避免共享数据库或公共文件等资源，这些资源可能不安全地在测试间共享。</p>
+</li>
+<li class="lvl-2">
+<p><strong>重现问题</strong>：如果发现测试失败，需要记下当前的种子值，以便能在随后的调试过程中使用相同的顺序来重现问题。</p>
+</li>
+</ul>
+<p><code>pytest-random-order</code> 是一个有价值的工具，对于提高测试的稳健性和可靠性有潜在的好处。然而，它可能暴露那些在某些顺序条件下不易察觉的问题，因此在集成到持续集成流程之前必须谨慎对待。</p>
+<h1 id="yuan-ma-jie-shao">源码介绍</h1>
+<h2 id="mu-lu-jie-gou">目录结构</h2>
+<p>从<a target="_blank" rel="noopener" href="https://pypi.org/project/pytest-random-order/">官网</a>下载后解压缩，目录结构如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1# ll
+total 60
+drwxr-xr-x  5 1001 gdm   4096 Jan 20  2024 ./
+drwxr-xr-x 18 root root  4096 Jul 23 15:53 ../
+-rw-r--r--  1 1001 gdm   1080 Jan 20  2024 LICENSE
+-rw-r--r--  1 1001 gdm    109 Jan 20  2024 MANIFEST.in
+-rw-r--r--  1 1001 gdm  11554 Jan 20  2024 PKG-INFO
+drwxr-xr-x  2 1001 gdm   4096 Jan 20  2024 pytest_random_order.egg-info/
+drwxr-xr-x  2 1001 gdm   4096 Jan 20  2024 random_order/
+-rw-r--r--  1 1001 gdm  10452 Jan 20  2024 README.rst
+-rw-r--r--  1 1001 gdm    222 Jan 20  2024 setup.cfg
+-rw-r--r--  1 1001 gdm   1650 Jan 20  2024 setup.py
+drwxr-xr-x  2 1001 gdm   4096 Jan 20  2024 tests/
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1# cd random_order/
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# ll
+total 36
+drwxr-xr-x 2 1001 gdm 4096 Jan 20  2024 ./
+drwxr-xr-x 5 1001 gdm 4096 Jan 20  2024 ../
+-rw-r--r-- 1 1001 gdm 1572 Jan 20  2024 bucket_types.py
+-rw-r--r-- 1 1001 gdm 1116 Jan 20  2024 cache.py
+-rw-r--r-- 1 1001 gdm  957 Jan 20  2024 config.py
+-rw-r--r-- 1 1001 gdm   35 Jan 20  2024 __init__.py
+-rw-r--r-- 1 1001 gdm 3478 Jan 20  2024 plugin.py
+-rw-r--r-- 1 1001 gdm 4009 Jan 20  2024 shuffler.py
+-rw-r--r-- 1 1001 gdm  210 Jan 20  2024 xdist.py
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order#
+</code></pre>
+<p>核心文件介绍如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong><code>bucket_types.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这个文件可能定义了不同的测试用例分组（<code>bucket</code>）类型。在某些测试策略中，测试用例可能根据某些特征（如功能区域、依赖性等）被分为不同的组，在随机排序时可能需要对这些组内的测试用例执行特定的处理。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>cache.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">此文件可能包含缓存逻辑，用于存储测试执行过程中的中间状态或结果，可能用于加速测试或在并行测试环境中同步状态。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>config.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这个文件通常包含插件的配置逻辑，可能定义了命令行选项和配置参数，这些参数控制着插件的行为，比如随机种子、是否启用某项功能等。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>plugin.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这个文件是 <code>pytest</code> 插件的主要入口点。它通常包含插件的类定义，该类继承自 <code>pytest.Plugin</code>，并定义了插件的钩子实现和注册逻辑。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>shuffler.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">此文件可能包含执行测试用例随机排序逻辑的代码。它可能定义了用于打乱测试用例顺序的算法和数据结构。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>xdist.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这个文件专门处理与 <code>pytest-xdist</code> 插件的集成，确保在并行测试环境中随机排序的行为正确无误。根据之前的解读，<code>XdistHooks</code> 类配置了随机种子，以便在分布式测试中保持测试顺序的一致性。</li>
+</ul>
+</li>
+</ol>
+<p>这些文件共同构成了 <code>pytest-random-order</code> 插件，它们协同工作以实现测试用例的随机排序功能，并确保在并行测试环境中也能正确执行。</p>
+<h2 id="yuan-ma-jie-du">源码解读</h2>
+<h3 id="xdist-py-wen-jian">xdist.py文件</h3>
+<pre><code class="language-python">import pytest
+
+
+class XdistHooks:
+
+    def pytest_configure_node(self, node: pytest.Item) -&gt; None:
+        seed = node.config.getoption('random_order_seed')
+        node.workerinput['random_order_seed'] = seed
+</code></pre>
+<p>这段代码确保在使用 <code>pytest</code> 的并行执行插件（<code>pytest-xdist</code>）时，每个工作节点（<code>worker node</code>）都能够使用相同的随机种子来确定测试用例的执行顺序。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>导入 Pytest 模块</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>import pytest</code>：将 <code>pytest</code> 模块导入到当前脚本中，以便使用 <code>pytest</code> 提供的类、函数和钩子。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>定义 XdistHooks 类</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class XdistHooks:</code>：声明了一个名为 <code>XdistHooks</code> 的类。这个类可能用于挂载或定义与 <code>pytest-xdist</code> 插件相关的特定钩子或功能。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>配置节点钩子方法</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def pytest_configure_node(self, node: pytest.Item) -&gt; None:</code>：在 <code>pytest</code> 中，<code>pytest_configure_node</code> 是一个钩子方法，它会在每个工作节点开始工作前被调用。这个方法用于配置节点，传入的 <code>node</code> 参数是一个 <code>pytest</code> 的 <code>Item</code> 对象，代表当前的工作节点或测试用例集合。</li>
+<li class="lvl-5"><code>-&gt; None</code> 表示这个方法没有返回值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取随机种子配置</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>seed = node.config.getoption('random_order_seed')</code>：从当前节点的配置中获取 <code>random_order_seed</code> 选项的值。这个配置是由用户在使用 <code>pytest</code> 时通过命令行选项指定的，用于设置随机执行测试用例的种子。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>设置工作输入</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>node.workerinput['random_order_seed'] = seed</code>：将获取到的随机种子 <code>seed</code> 设置到 <code>node.workerinput</code> 字典中，以 <code>'random_order_seed'</code> 作为键。<code>workerinput</code> 是一个在 <code>pytest-xdist</code> 插件中使用的特殊字典，用于存储需要发送给工作进程的数据。这样，每个工作进程在执行测试用例时都会接收到相同的随机种子，以确保它们可以生成一致的测试执行顺序。</li>
+</ul>
+</li>
+</ol>
+<p>通过这种方式，<code>pytest-random-order</code> 插件确保了即使在并行测试环境中，测试用例的执行顺序也能保持随机性，同时在不同的工作进程中保持一致，这对于确保测试结果的可重复性非常重要。</p>
+<h3 id="shuffler-py-wen-jian">shuffler.py文件</h3>
+<p>此文件负责打乱测试项的顺序，可以根据用户定义的约束条件进行定制和集成到 <code>pytest</code> 的测试执行流程中，确保测试可以以随机顺序执行，同时尊重特定的用户定义的限制。</p>
+<pre><code class="language-python">root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# cat shuffler.py 
+# -*- coding: utf-8 -*-
+
+import random
+from collections import OrderedDict, namedtuple
+
+from random_order.cache import FAILED_FIRST_LAST_FAILED_BUCKET_KEY
+
+"""
+`bucket` is a string representing the bucket in which the item falls based on user's chosen
+bucket type.
+
+`disabled` is either a falsey value to mark that the item is ready for shuffling (shuffling is not disabled),
+or a truthy value in which case the item won't be shuffled among other items with the same key.
+
+In some cases it is important for the `disabled` to be more than just True in order
+to preserve a distinct disabled sub-bucket within a larger bucket and not mix it up with another
+disabled sub-bucket of the same larger bucket.
+"""
+ItemKey = namedtuple('ItemKey', field_names=('bucket', 'disabled', 'x'))
+ItemKey.__new__.__defaults__ = (None, None)
+
+
+def _shuffle_items(items, bucket_key=None, disable=None, seed=None, session=None):
+    """
+    Shuffles a list of `items` in place.
+
+    If `bucket_key` is None, items are shuffled across the entire list.
+
+    `bucket_key` is an optional function called for each item in `items` to
+    calculate the key of bucket in which the item falls.
+
+    Bucket defines the boundaries across which items will not
+    be shuffled.
+
+    `disable` is a function that takes an item and returns a falsey value
+    if this item is ok to be shuffled. It returns a truthy value otherwise and
+    the truthy value is used as part of the item's key when determining the bucket
+    it belongs to.
+    """
+
+    if seed is not None:
+        random.seed(seed)
+
+    # If `bucket_key` is falsey, shuffle is global.
+    if not bucket_key and not disable:
+        random.shuffle(items)
+        return
+
+    def get_full_bucket_key(item):
+        assert bucket_key or disable
+        if bucket_key and disable:
+            return ItemKey(bucket=bucket_key(item, session), disabled=disable(item, session))
+        elif disable:
+            return ItemKey(disabled=disable(item, session))
+        else:
+            return ItemKey(bucket=bucket_key(item, session))
+
+    # For a sequence of items A1, A2, B1, B2, C1, C2,
+    # where key(A1) == key(A2) == key(C1) == key(C2),
+    # items A1, A2, C1, and C2 will end up in the same bucket.
+    buckets = OrderedDict()
+    for item in items:
+        full_bucket_key = get_full_bucket_key(item)
+        if full_bucket_key not in buckets:
+            buckets[full_bucket_key] = []
+        buckets[full_bucket_key].append(item)
+
+    # Shuffle inside a bucket
+
+    bucket_keys = list(buckets.keys())
+
+    for full_bucket_key in buckets.keys():
+        if full_bucket_key.bucket == FAILED_FIRST_LAST_FAILED_BUCKET_KEY:
+            # Do not shuffle the last failed bucket
+            continue
+
+        if not full_bucket_key.disabled:
+            random.shuffle(buckets[full_bucket_key])
+
+    # Shuffle buckets
+
+    # Only the first bucket can be FAILED_FIRST_LAST_FAILED_BUCKET_KEY
+    if bucket_keys and bucket_keys[0].bucket == FAILED_FIRST_LAST_FAILED_BUCKET_KEY:
+        new_bucket_keys = list(buckets.keys())[1:]
+        random.shuffle(new_bucket_keys)
+        new_bucket_keys.insert(0, bucket_keys[0])
+    else:
+        new_bucket_keys = list(buckets.keys())
+        random.shuffle(new_bucket_keys)
+
+    items[:] = [item for bk in new_bucket_keys for item in buckets[bk]]
+    return
+
+
+def _get_set_of_item_ids(items):
+    s = {}
+    try:
+        s = set(item.nodeid for item in items)
+    finally:
+        return s
+
+
+def _disable(item, session):
+    if hasattr(item, 'get_closest_marker'):
+        marker = item.get_closest_marker('random_order')
+    else:
+        marker = item.get_marker('random_order')
+    if marker:
+        is_disabled = marker.kwargs.get('disabled', False)
+        if is_disabled:
+            # A test item can only be disabled in its parent context -- where it is part of some order.
+            # We use parent name as the key so that all children of the same parent get the same disabled key.
+            return item.parent.name
+    return False
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order#
+</code></pre>
+<ol>
+<li class="lvl-3">
+<p><strong>导入和 <code>ItemKey</code> 命名元组</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">导入 <code>random</code> 模块用于打乱顺序，以及 <code>OrderedDict</code> 和 <code>namedtuple</code> 从 <code>collections</code> 模块。</li>
+<li class="lvl-5">定义了一个 <code>ItemKey</code> 命名元组，用于表示每个测试项的键，包括 <code>bucket</code>（桶）、<code>disabled</code>（是否禁用打乱）和 <code>x</code>。这个键用于确定测试项属于哪个组。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>_shuffle_items</code> 函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这个函数负责就地（in place）打乱 <code>items</code> 列表。</li>
+<li class="lvl-5">如果 <code>bucket_key</code> 是 <code>None</code>，则整个列表中的项将被打乱。</li>
+<li class="lvl-5"><code>bucket_key</code> 是一个可选的函数，用于计算每个测试项所属的桶的键。</li>
+<li class="lvl-5">桶定义了项不会跨越的边界，即同一桶内的项不会与桶外的项混合打乱。</li>
+<li class="lvl-5"><code>disable</code> 是一个函数，它接受一个测试项并返回一个假值（<code>falsy value</code>）如果该项可以被打乱，或者返回一个真值（<code>truthy value</code>），真值将作为测试项键的一部分，用于确定它属于哪个桶。</li>
+<li class="lvl-5">如果提供了 <code>seed</code>，则使用该种子设置随机数生成器，以确保结果的可重复性。</li>
+<li class="lvl-5">如果 <code>bucket_key</code> 和 <code>disable</code> 都未提供，则进行全局打乱。</li>
+<li class="lvl-5">使用嵌套函数 <code>get_full_bucket_key</code> 确定每个测试项的完整桶键。</li>
+<li class="lvl-5">使用 <code>OrderedDict</code> 叫做 <code>buckets</code> 的字典来分组测试项。</li>
+<li class="lvl-5">在各自的桶内打乱测试项，但对最后一个失败的桶不进行打乱。</li>
+<li class="lvl-5">打乱桶的顺序，但保持最后一个失败的桶（如果有）在首位。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>_get_set_of_item_ids</code> 函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这个实用函数接收测试项列表并返回它们的 <code>node ID</code> 集合。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>_disable</code> 函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">根据 <code>random_order</code> 标记的存在和其 <code>disabled</code> 关键字参数的值，确定是否禁用对给定测试项的打乱。</li>
+<li class="lvl-5">如果 <code>disabled</code> 为真，则返回父项的名称作为禁用键，确保同一父项下的所有子项使用相同的禁用键。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>注释和文档</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">代码包含广泛的注释和文档字符串，解释了函数和 <code>ItemKey</code> 命名元组的目的和行为。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>打乱逻辑</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">打乱过程被精心设计，以尊重特定的边界（桶）和条件（禁用状态），确保测试顺序以受控的方式随机化。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>种子设置</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">设置随机种子的选项对于在调试期间或需要复制特定测试结果时重现测试结果至关重要。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>桶处理</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">桶的概念允许自定义测试项如何分组和打乱，提供了在定义打乱行为时的灵活性。</li>
+</ul>
+</li>
+</ol>
+<h3 id="plugin-py-wen-jian">plugin.py文件</h3>
+<p><code>plugin.py</code> 文件是 <code>pytest-random-order</code> 插件的主要入口点，负责插件的配置和主要逻辑。</p>
+<pre><code class="language-python">root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# cat plugin.py 
+import random
+import sys
+import traceback
+import warnings
+
+import pytest
+
+from random_order.bucket_types import bucket_type_keys, bucket_types
+from random_order.cache import process_failed_first_last_failed
+from random_order.config import Config
+from random_order.shuffler import _disable, _get_set_of_item_ids, _shuffle_items
+from random_order.xdist import XdistHooks
+
+
+def pytest_addoption(parser):
+    group = parser.getgroup('pytest-random-order options')
+    group.addoption(
+        '--random-order',
+        action='store_true',
+        dest='random_order_enabled',
+        help='Randomise test order (by default, it is disabled) with default configuration.',
+    )
+    group.addoption(
+        '--random-order-bucket',
+        action='store',
+        dest='random_order_bucket',
+        default=Config.default_value('module'),
+        choices=bucket_types,
+        help='Randomise test order within specified test buckets.',
+    )
+    group.addoption(
+        '--random-order-seed',
+        action='store',
+        dest='random_order_seed',
+        default=Config.default_value(str(random.randint(1, 1000000))),
+        help='Randomise test order using a specific seed.',
+    )
+
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        'markers',
+        'random_order(disabled=True): disable reordering of tests within a module or class'
+    )
+
+    if config.pluginmanager.hasplugin('xdist'):
+        config.pluginmanager.register(XdistHooks())
+
+    if hasattr(config, 'workerinput'):
+        # pytest-xdist: use seed generated on main.
+        seed = config.workerinput['random_order_seed']
+        if hasattr(config, 'cache'):
+            assert config.cache is not None
+            config.cache.set('random_order_seed', seed)
+        config.option.random_order_seed = seed
+
+
+def pytest_report_header(config):
+    plugin = Config(config)
+    if not plugin.is_enabled:
+        return "Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;"
+    return (
+        'Using --random-order-bucket={plugin.bucket_type}\n'
+        'Using --random-order-seed={plugin.seed}\n'
+    ).format(plugin=plugin)
+
+
+def pytest_collection_modifyitems(session, config, items):
+    failure = None
+
+    session.random_order_bucket_type_key_handlers = []
+    process_failed_first_last_failed(session, config, items)
+
+    item_ids = _get_set_of_item_ids(items)
+
+    plugin = Config(config)
+
+    try:
+        seed = plugin.seed
+        bucket_type = plugin.bucket_type
+        if bucket_type != 'none':
+            _shuffle_items(
+                items,
+                bucket_key=bucket_type_keys[bucket_type],
+                disable=_disable,
+                seed=seed,
+                session=session,
+            )
+
+    except Exception as e:
+        # See the finally block -- we only fail if we have lost user's tests.
+        _, _, exc_tb = sys.exc_info()
+        failure = 'pytest-random-order plugin has failed with {0!r}:\n{1}'.format(
+            e, ''.join(traceback.format_tb(exc_tb, 10))
+        )
+        if not hasattr(pytest, "PytestWarning"):
+            config.warn(0, failure, None)
+        else:
+            warnings.warn(pytest.PytestWarning(failure))
+
+    finally:
+        # Fail only if we have lost user's tests
+        if item_ids != _get_set_of_item_ids(items):
+            if not failure:
+                failure = 'pytest-random-order plugin has failed miserably'
+            raise RuntimeError(failure)
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order#
+</code></pre>
+<p>以下是对该代码的解读：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>导入依赖</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">导入了 <code>random</code>、<code>sys</code>、<code>traceback</code>、<code>warnings</code> 等 Python 标准库模块，以及 <code>pytest</code>。</li>
+<li class="lvl-5">从 <code>random_order</code> 包中导入了相关的模块和类。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加命令行选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pytest_addoption</code> 函数用于向 <code>pytest</code> 添加自定义命令行选项，允许用户控制随机顺序的行为。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>配置插件</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pytest_configure</code> 函数在 <code>pytest</code> 配置阶段被调用，用于注册插件和处理与 <code>pytest-xdist</code> 的集成。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>报告头部信息</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pytest_report_header</code> 函数用于在测试报告的头部添加关于插件状态的信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>修改测试集合</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pytest_collection_modifyitems</code> 函数在测试项集合构建阶段被调用，用于修改测试项的顺序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>详细解读</strong>:</p>
+</li>
+</ol>
+<pre><code class="language-python">def pytest_addoption(parser):
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>为插件添加命令行选项，包括启用随机顺序、指定桶类型和设置随机种子。</p>
+</li>
+</ul>
+<pre><code class="language-python">def pytest_configure(config):
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>在 <code>pytest</code> 配置阶段注册配置项和钩子，特别是与 <code>pytest-xdist</code> 的集成。</p>
+</li>
+</ul>
+<pre><code class="language-python">def pytest_report_header(config):
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>在测试报告的头部输出插件的配置信息，例如使用的桶类型和随机种子。</p>
+</li>
+</ul>
+<pre><code class="language-python">def pytest_collection_modifyitems(session, config, items):
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>核心函数，用于修改测试项的顺序：</p>
+<ul class="lvl-2">
+<li class="lvl-7"><code>session.random_order_bucket_type_key_handlers</code> 用于存储桶类型处理器。</li>
+<li class="lvl-7"><code>process_failed_first_last_failed</code> 处理失败的测试项，确保它们按照特定的顺序执行。</li>
+<li class="lvl-7"><code>_get_set_of_item_ids</code> 获取测试项的 <code>ID</code> 集合，用于后续检查。</li>
+<li class="lvl-7"><code>Config</code> 类用于封装插件的配置。</li>
+<li class="lvl-7"><code>_shuffle_items</code> 根据配置的桶类型和种子打乱测试项。</li>
+<li class="lvl-7">如果在打乱过程中出现异常，会捕获异常并记录失败信息。</li>
+<li class="lvl-7">无论是否发生异常，都会检查测试项集合是否发生了意外的变更。</li>
+</ul>
+</li>
+</ul>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>错误处理</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">在 <code>pytest_collection_modifyitems</code> 函数中，如果插件执行失败，并且用户的测试项丢失，则会抛出 <code>RuntimeError</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>警告</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果插件发生错误，但测试项没有丢失，会通过 <code>PytestWarning</code> 发出警告。</li>
+</ul>
+</li>
+</ol>
+<p><code>plugin.py</code> 文件体现了 <code>pytest</code> 插件的典型结构，包括命令行选项、配置、报告和测试项集合的修改。通过这些钩子函数，插件能够介入 <code>pytest</code> 的执行流程，并实现自定义的测试顺序随机化逻辑。</p>
+<h3 id="config-py-wen-jian">config.py文件</h3>
+<p><code>config.py</code> 文件包含了 <code>pytest-random-order</code> 插件的配置管理逻辑。</p>
+<pre><code class="language-python">root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# cat config.py 
+class Config:
+
+    @classmethod
+    def default_value(cls, value):
+        return "default:" + str(value)
+
+    def __init__(self, config):
+        self._config = config
+
+    @property
+    def bucket_type(self):
+        if not self.is_enabled:
+            return 'none'
+        else:
+            return self._remove_default_prefix(self._config.getoption('random_order_bucket'))
+
+    @property
+    def is_enabled(self):
+        return (
+            self._config.getoption('random_order_enabled') or
+            any(
+                not self._config.getoption(name).startswith('default:')
+                for name in ('random_order_bucket', 'random_order_seed')
+            )
+        )
+
+    @property
+    def seed(self):
+        return self._remove_default_prefix(self._config.getoption('random_order_seed'))
+
+    def _remove_default_prefix(self, value):
+        if value.startswith('default:'):
+            return value[len('default:'):]
+        return value
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order#
+</code></pre>
+<p>以下是对该文件中代码的解读：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>Config 类定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>Config</code> 类用于封装和提供插件配置的访问方法。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>默认值方法</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>@classmethod</code> 装饰的 <code>default_value</code> 类方法用于生成带有默认前缀的字符串，这有助于识别配置项是否使用了默认值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>构造函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>__init__(self, config)</code> 构造函数接收一个 <code>pytest</code> 配置对象，并将其存储为实例变量 <code>_config</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>bucket_type 属性</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>@property</code> 装饰的 <code>bucket_type</code> 属性用于获取桶类型配置。如果插件未启用，则返回 <code>'none'</code>；否则，调用 <code>_remove_default_prefix</code> 方法去除默认值前缀，并返回桶类型的值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>is_enabled 属性</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>@property</code> 装饰的 <code>is_enabled</code> 属性用于检查插件是否启用。如果 <code>--random-order-enabled</code> 选项被设置为 <code>True</code>，或者 <code>--random-order-bucket</code> 和 <code>--random-order-seed</code> 选项的值不以 <code>'default:'</code> 前缀开头，则认为插件已启用。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>seed 属性</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>@property</code> 装饰的 <code>seed</code> 属性用于获取随机种子配置。调用 <code>_remove_default_prefix</code> 方法去除默认值前缀，并返回种子的值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>去除默认前缀方法</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>_remove_default_prefix</code> 方法用于去除配置值中的 <code>'default:'</code> 前缀。如果值以该前缀开头，则去除它并返回剩余部分；否则，直接返回原始值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>配置逻辑</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">该类中的配置逻辑确保插件能够正确地从 <code>pytest</code> 配置中读取和解析选项，同时提供了一种机制来识别和处理默认值。</li>
+</ul>
+</li>
+</ol>
+<p><code>config.py</code> 文件的代码体现了插件配置管理的典型模式，包括处理默认值、检查插件启用状态和获取配置选项的值。通过 <code>Config</code> 类，插件能够灵活地管理其配置，并在 <code>pytest</code> 的测试执行流程中应用这些配置。</p>
+<h3 id="cache-py-wen-jian">cache.py文件</h3>
+<p><code>cache.py</code> 文件利用 <code>pytest</code> 的缓存机制来处理失败测试的重试逻辑。</p>
+<pre><code class="language-python">root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# cat cache.py 
+"""
+This module is called "cache" because it builds on the "cache" plugin:
+
+    https://docs.pytest.org/en/latest/cache.html
+
+"""
+
+FAILED_FIRST_LAST_FAILED_BUCKET_KEY = '&lt;failed_first_last_failed&gt;'
+
+
+def process_failed_first_last_failed(session, config, items):
+    if not hasattr(config, 'cache'):
+        return
+
+    if not config.getoption('failedfirst'):
+        return
+
+    last_failed_raw = config.cache.get('cache/lastfailed', None)
+    if not last_failed_raw:
+        return
+
+    # Get the names of last failed tests
+    last_failed = []
+    for key in last_failed_raw.keys():
+        parts = key.split('::')
+        if len(parts) == 3:
+            last_failed.append(tuple(parts))
+        elif len(parts) == 2:
+            last_failed.append((parts[0], None, parts[1]))
+        else:
+            raise NotImplementedError()
+
+    def assign_last_failed_to_same_bucket(item, key):
+        if item.nodeid in last_failed_raw:
+            return FAILED_FIRST_LAST_FAILED_BUCKET_KEY
+        else:
+            return key
+
+    session.random_order_bucket_type_key_handlers.append(assign_last_failed_to_same_bucket)
+root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# 
+</code></pre>
+<p>以下是对该文件中代码的解读：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>模块说明</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">该模块建立在 <code>pytest</code> 的 “cache” 插件之上，用于在测试运行之间存储和访问信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>失败测试处理</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">定义了一个特殊的桶键 <code>FAILED_FIRST_LAST_FAILED_BUCKET_KEY</code>，用于标识应该首先执行的失败测试。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理失败测试的函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>process_failed_first_last_failed</code> 函数用于处理上一次测试运行中失败的测试项，确保它们在下一次测试运行中首先被执行。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>缓存访问</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">函数首先检查配置对象 <code>config</code> 是否具有 <code>cache</code> 属性，这是 <code>pytest</code> 缓存插件提供的功能。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查 <code>--failed-first</code> 选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果没有启用 <code>--failed-first</code> 选项（<code>config.getoption('failedfirst')</code>），函数将不执行任何操作。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取上次失败的测试</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>config.cache.get('cache/lastfailed', None)</code> 获取上次测试运行中失败的测试项的缓存信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>解析失败测试的名称</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>last_failed_raw</code> 字典的键，解析出失败测试的路径和测试用例名称，并将它们存储在 <code>last_failed</code> 列表中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>分配失败测试到桶</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">定义了一个内部函数 <code>assign_last_failed_to_same_bucket</code>，它根据测试项的 <code>nodeid</code> 是否存在于 <code>last_failed_raw</code> 中，决定将测试项分配到特殊的失败测试桶，或者使用其原始的键。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加桶类型处理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">将 <code>assign_last_failed_to_same_bucket</code> 函数添加到 <code>session.random_order_bucket_type_key_handlers</code> 列表中，这个列表中的函数将用于确定每个测试项的桶键。</li>
+</ul>
+</li>
+</ol>
+<p>通过这种方式，<code>cache.py</code> 文件实现了在测试执行顺序随机化的同时，保证失败的测试能够按照用户配置的选项（如 <code>--failed-first</code>）优先执行。这有助于开发者更快地定位和修复测试失败的问题。</p>
+<h3 id="bucket-types-py-wen-jian">bucket_types.py文件</h3>
+<p><code>bucket_types.py</code> 文件定义了 <code>pytest-random-order</code> 插件中用于确定测试项如何分组（即放入哪个桶）的逻辑。</p>
+<pre><code class="language-python">root@Gavin:~/pytest_plugin/pytest-random-order-1.1.1/random_order# cat bucket_types.py 
+import functools
+import os.path
+from collections import OrderedDict
+
+bucket_type_keys = OrderedDict()
+
+
+def bucket_type_key(bucket_type):
+    """
+    Registers a function that calculates test item key for the specified bucket type.
+    """
+
+    def decorator(f):
+
+        @functools.wraps(f)
+        def wrapped(item, session):
+            key = f(item)
+
+            if session is not None:
+                for handler in session.random_order_bucket_type_key_handlers:
+                    key = handler(item, key)
+
+            return key
+
+        bucket_type_keys[bucket_type] = wrapped
+        return wrapped
+
+    return decorator
+
+
+@bucket_type_key('global')
+def get_global_key(item):
+    return None
+
+
+@bucket_type_key('package')
+def get_package_key(item):
+    if not hasattr(item, "module"):
+        return os.path.split(item.location[0])[0]
+    return item.module.__package__
+
+
+@bucket_type_key('module')
+def get_module_key(item):
+    return item.location[0]
+
+
+@bucket_type_key('class')
+def get_class_key(item):
+    if not hasattr(item, "cls"):
+        return item.location[0]
+    if item.cls:
+        return item.module.__name__, item.cls.__name__
+    else:
+        return item.module.__name__
+
+
+@bucket_type_key('parent')
+def get_parent_key(item):
+    return item.parent
+
+
+@bucket_type_key('grandparent')
+def get_grandparent_key(item):
+    return item.parent.parent
+
+
+@bucket_type_key('none')
+def get_none_key(item):
+    raise RuntimeError('When shuffling is disabled (bucket_type=none), item key should not be calculated')
+
+
+bucket_types = bucket_type_keys.keys()
+</code></pre>
+<p>代码解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>导入依赖</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">导入了 <code>functools</code> 用于修饰函数，<code>os.path</code> 用于路径操作，以及 <code>OrderedDict</code> 用于存储桶类型键函数。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>bucket_type_keys</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>bucket_type_keys</code> 是一个 <code>OrderedDict</code>，用于存储桶类型名称到其对应的键生成函数的映射。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>bucket_type_key 装饰器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>bucket_type_key</code> 是一个装饰器工厂，它接收一个桶类型名称 <code>bucket_type</code>，返回一个新的装饰器。</li>
+<li class="lvl-5">这个装饰器接收一个函数 <code>f</code>，这个函数用于计算测试项的键。</li>
+<li class="lvl-5">装饰器通过 <code>functools.wraps</code> 保留了原始函数的名称和文档字符串。</li>
+<li class="lvl-5">装饰器内部定义了一个包装函数 <code>wrapped</code>，它在计算键时会应用会话（<code>session</code>）中的处理器。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>桶类型函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">文件中定义了多个函数，每个函数对应一种桶类型，用于计算测试项的键：
+<ul class="lvl-4">
+<li class="lvl-7"><code>get_global_key</code>: 全局桶，所有测试项共享一个键，返回 <code>None</code>。</li>
+<li class="lvl-7"><code>get_package_key</code>: 包桶，测试项按 <code>Python</code> 包分组。</li>
+<li class="lvl-7"><code>get_module_key</code>: 模块桶，测试项按 <code>Python</code> 模块分组。</li>
+<li class="lvl-7"><code>get_class_key</code>: 类桶，测试项按 <code>Python</code> 类分组。</li>
+<li class="lvl-7"><code>get_parent_key</code>: 父项桶，测试项按父项分组。</li>
+<li class="lvl-7"><code>get_grandparent_key</code>: 祖父项桶，测试项按祖父项分组。</li>
+<li class="lvl-7"><code>get_none_key</code>: 当禁用随机打乱时调用，通常会抛出运行时错误。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>桶类型集合</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>bucket_types</code> 包含了所有可用的桶类型名称的集合。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>会话处理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">在 <code>wrapped</code> 函数中，如果会话（<code>session</code>）对象不为空，它会遍历 <code>session.random_order_bucket_type_key_handlers</code> 中的处理器，并更新键的值。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>装饰器应用</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">每个桶类型函数都用 <code>@bucket_type_key('bucket_type_name')</code> 装饰器标记，这样插件就知道如何根据桶类型计算测试项的键。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>错误处理</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">当桶类型为 <code>none</code> 时，即插件被禁用时，<code>get_none_key</code> 函数将抛出一个 <code>RuntimeError</code>，因为此时不应该计算测试项的键。</li>
+</ul>
+</li>
+</ol>
+<p>通过这些机制，<code>bucket_types.py</code> 允许插件用户通过命令行选项指定测试项的分组方式，从而控制随机打乱的范围和行为。</p>
+<h1 id="jie-yu">结语</h1>
+<p><code>pytest-random-order</code> 插件为 <code>pytest</code> 用户提供了强大的测试顺序控制能力，有助于创建更健壮和可靠的自动化测试套件。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/03/17/pytest_random_order/">https://gavin-wang-note.github.io/2025/03/17/pytest_random_order/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2025/04/27/pytest_depdendency/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例依赖之pytest-dependency源码解读">
+                        
+                        <span class="card-title">测试用例依赖之pytest-dependency源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            试用例依赖之pytest-dependency源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2025-04-27
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/02/23/pytest_rerunfailures/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例失败重运行之pytest-rerunfailures源码解读">
+                        
+                        <span class="card-title">测试用例失败重运行之pytest-rerunfailures源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例失败重运行之pytest-rerunfailures源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-02-23
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1083.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

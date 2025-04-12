@@ -1,0 +1,2207 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例依赖之pytest-dependency源码解读, 软硬件测试">
+    <meta name="description" content="试用例依赖之pytest-dependency源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例依赖之pytest-dependency源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例依赖之pytest-dependency源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-04-27
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    6.2k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    26 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest-dependency</code> 是一个 <code>pytest</code> 插件，它允许你定义测试用例之间的依赖关系。这个插件特别适用于那些测试需要按特定顺序执行的情况，比如当一个测试用例的结果依赖于另一个测试用例是否成功完成时。</p>
+<h2 id="guan-jian-te-xing">关键特性</h2>
+<ol>
+<li class="lvl-3">
+<p><strong>测试依赖关系</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">允许你指定某些测试用例必须在其他测试用例之后执行。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>显式依赖声明</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">通过装饰器或命令行参数显式声明测试之间的依赖关系。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>灵活的执行顺序</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">根据定义的依赖关系，动态调整测试执行的顺序。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>错误处理</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果依赖的测试用例失败，则依赖它的测试用例将被适当地处理（如跳过或标记为失败）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>命令行接口</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">提供命令行选项来控制依赖测试的行为。</li>
+</ul>
+</li>
+</ol>
+<h2 id="shi-yong-fang-shi">使用方式</h2>
+<ol>
+<li class="lvl-3">
+<p><strong>安装</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">通常可以通过 <code>pip</code> 安装：<code>pip install pytest-dependency</code></li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>定义依赖关系</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>pytest.mark.dependency</code> 装饰器来标记测试函数，定义它们的依赖关系。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>运行测试</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">运行 <code>pytest</code> 时，插件会自动处理测试用例的执行顺序，确保依赖关系得到满足。</li>
+</ul>
+</li>
+</ol>
+<h2 id="shi-li-dai-ma">示例代码</h2>
+<pre><code class="language-python">import pytest
+
+@pytest.mark.dependency()
+def test_a():
+    print("Running test A")
+
+@pytest.mark.dependency(depends=["test_a"])
+def test_b():
+    print("Running test B")
+
+@pytest.mark.dependency(depends=["test_b"])
+def test_c():
+    print("Running test C")
+</code></pre>
+<p>在这个示例中：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>test_a</code> 是一个基础测试，没有依赖。</p>
+</li>
+<li class="lvl-2">
+<p><code>test_b</code> 依赖于 <code>test_a</code>，只有在 <code>test_a</code> 执行后才能运行。</p>
+</li>
+<li class="lvl-2">
+<p><code>test_c</code> 依赖于 <code>test_b</code>。</p>
+</li>
+</ul>
+<p>执行效果参考：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/test# pytest -s -v test_pytest_dependency.py 
+Test session starts (platform: linux, Python 3.11.6, pytest 8.2.2, pytest-sugar 1.0.0)
+cachedir: .pytest_cache
+Test order randomisation NOT enabled. Enable with --random-order or --random-order-bucket=&lt;bucket_type&gt;
+metadata: {'Python': '3.11.6', 'Platform': 'Linux-6.5.0-44-generic-x86_64-with-glibc2.38', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.5.0'}, 'Plugins': {'random-order': '1.1.1', 'cov': '5.0.0', 'tornasync': '0.6.0.post2', 'instafail': '0.5.0', 'metadata': '3.1.1', 'check': '2.3.1', 'asyncio': '0.23.7', 'rerunfailures': '14.0', 'xdist': '3.6.1', 'selenium': '4.1.0', 'profiling': '1.7.0', 'variables': '3.1.0', 'timeout': '2.3.1', 'html': '4.1.1', 'order': '1.2.1', 'progress': '1.3.0', 'twisted': '1.14.1', 'picked': '0.5.0', 'assume': '2.4.3', 'anyio': '4.3.0', 'Faker': '24.0.0', 'trio': '0.8.0', 'repeat': '0.9.3', 'base-url': '2.1.0', 'dependency': '0.6.0', 'allure-pytest': '2.13.5', 'dotenv': '0.5.2', 'extra-durations': '0.1.3', 'line-profiler': '0.2.1', 'sugar': '1.0.0'}, 'JAVA_HOME': '/usr/lib/jdk1.8.0_171', 'Base URL': '', 'Driver': None, 'Capabilities': {}}
+sensitiveurl: .*
+rootdir: /root/pytest_plugin/test
+plugins: random-order-1.1.1, cov-5.0.0, tornasync-0.6.0.post2, instafail-0.5.0, metadata-3.1.1, check-2.3.1, asyncio-0.23.7, rerunfailures-14.0, xdist-3.6.1, selenium-4.1.0, profiling-1.7.0, variables-3.1.0, timeout-2.3.1, html-4.1.1, order-1.2.1, progress-1.3.0, twisted-1.14.1, picked-0.5.0, assume-2.4.3, anyio-4.3.0, Faker-24.0.0, trio-0.8.0, repeat-0.9.3, base-url-2.1.0, dependency-0.6.0, allure-pytest-2.13.5, dotenv-0.5.2, extra-durations-0.1.3, line-profiler-0.2.1, sugar-1.0.0
+asyncio: mode=Mode.STRICT
+collected 3 items                                                                                                                                                                                                                        
+Running test A
+
+ test_pytest_dependency.py::test_a ✓                                                                                                                                                                                        33% ███▍      Running test B
+
+ test_pytest_dependency.py::test_b ✓                                                                                                                                                                                        67% ██████▋   Running test C
+
+ test_pytest_dependency.py::test_c ✓                                                                                                                                                                                       100% ██████████
+======================================================================================================= sum of all tests durations =======================================================================================================
+0.02s
+
+Results (0.05s):
+       3 passed
+root@Gavin:~/pytest_plugin/test# 
+</code></pre>
+<h2 id="ming-ling-xing-xuan-xiang">命令行选项</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>--dependency</code>: 允许你指定一个文件，列出所有测试用例及其依赖关系。</p>
+</li>
+</ul>
+<h2 id="shi-yong-chang-jing">使用场景</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>数据库测试</strong>: 当测试需要在数据库中创建数据，并且后续测试依赖于这些数据时。</p>
+</li>
+<li class="lvl-2">
+<p><strong>集成测试</strong>: 在集成测试中，某些测试步骤可能依赖于之前步骤的结果。</p>
+</li>
+<li class="lvl-2">
+<p><strong>资源清理</strong>: 某些测试需要在执行前清理资源，或者在执行后进行资源恢复。</p>
+</li>
+</ul>
+<h2 id="xian-zhi-he-zhu-yi-shi-xiang">限制和注意事项</h2>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>确保依赖关系清晰且正确定义，否则可能导致测试执行顺序混乱。</p>
+</li>
+<li class="lvl-2">
+<p>过于复杂的依赖关系可能使测试维护变得困难。</p>
+</li>
+</ul>
+<p><code>pytest-dependency</code> 插件为需要控制测试执行顺序的场景提供了一种解决方案，使得测试用例可以根据实际的依赖关系进行组织和执行。</p>
+<h1 id="yuan-ma-jie-shao">源码介绍</h1>
+<h2 id="mu-lu-jie-gou">目录结构</h2>
+<p>从<a target="_blank" rel="noopener" href="https://pypi.org/project/pytest-dependency/">官网</a>下载源码后解压，目录结构如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/pytest-dependency-0.6.0# ll
+total 64
+drwxr-xr-x  5 gavin gavin  4096 Jan  1  2024 ./
+drwxr-xr-x 19 root  root   4096 Jul 23 16:47 ../
+-rw-r--r--  1 gavin gavin  5481 Jan  1  2024 CHANGES.rst
+drwxr-xr-x  3 gavin gavin  4096 Jan  1  2024 doc/
+-rw-r--r--  1 gavin gavin 11358 Dec 31  2023 LICENSE.txt
+-rw-r--r--  1 gavin gavin   197 Jan  1  2024 MANIFEST.in
+-rw-r--r--  1 gavin gavin    38 Jan  1  2024 _meta.py
+-rw-r--r--  1 gavin gavin  3647 Jan  1  2024 PKG-INFO
+-rw-r--r--  1 gavin gavin  1911 Jan  1  2024 README.rst
+-rwxr-xr-x  1 gavin gavin  6075 Jan  1  2024 setup.py*
+drwxr-xr-x  2 gavin gavin  4096 Jan  1  2024 src/
+drwxr-xr-x  2 gavin gavin  4096 Jan  1  2024 tests/
+root@Gavin:~/pytest_plugin/pytest-dependency-0.6.0# cd src
+root@Gavin:~/pytest_plugin/pytest-dependency-0.6.0/src# ll
+total 16
+drwxr-xr-x 2 gavin gavin 4096 Jan  1  2024 ./
+drwxr-xr-x 5 gavin gavin 4096 Jan  1  2024 ../
+-rw-r--r-- 1 gavin gavin 6341 Jan  1  2024 pytest_dependency.py
+root@Gavin:~/pytest_plugin/pytest-dependency-0.6.0/src# 
+</code></pre>
+<p>此插件的核心文件为<code>pytest_dependency.py</code>。</p>
+<h2 id="yuan-ma-jie-du">源码解读</h2>
+<h3 id="lei-dependency-item-status">类DependencyItemStatus</h3>
+<pre><code class="language-python">class DependencyItemStatus(object):
+    """Status of a test item in a dependency manager.
+    """
+
+    Phases = ('setup', 'call', 'teardown')
+
+    def __init__(self):
+        self.results = { w:None for w in self.Phases }
+
+    def __str__(self):
+        l = ["%s: %s" % (w, self.results[w]) for w in self.Phases]
+        return "Status(%s)" % ", ".join(l)
+
+    def addResult(self, rep):
+        self.results[rep.when] = rep.outcome
+
+    def isSuccess(self):
+        return list(self.results.values()) == ['passed', 'passed', 'passed']
+</code></pre>
+<p><code>DependencyItemStatus</code> 类用于跟踪单个测试项在依赖管理中的执行状态的容器（跟踪每个测试项在不同阶段的执行状态，并据此决定是否可以执行依赖于这些测试项的其他测试，确保测试的执行顺序符合定义的依赖关系）。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>类定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>class DependencyItemStatus(object)</code>: 定义了一个名为 <code>DependencyItemStatus</code> 的类，它继承自 Python 的基类 <code>object</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>类属性</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>Phases</code>: 一个元组，包含测试执行的三个阶段：<code>'setup'</code>（测试前的准备阶段）、<code>'call'</code>（测试调用阶段）、<code>'teardown'</code>（测试后的清理阶段）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>构造函数</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>__init__(self)</code>: 构造函数初始化一个字典 <code>self.results</code>，用于存储每个测试阶段的执行结果。初始时，每个阶段的结果都被设置为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>字符串表示</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>__str__(self)</code>: 定义了对象的字符串表示形式，方便打印和调试。它通过遍历 <code>self.results</code> 字典，将每个阶段及其结果格式化为字符串，并用逗号分隔。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加结果</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>addResult(self, rep)</code>: 一个方法，接受一个 <code>rep</code> 参数（代表测试报告对象），并将报告中指定阶段的结果（<code>rep.outcome</code>）存储在 <code>self.results</code> 字典中。<code>rep.when</code> 属性指示了测试报告对应的阶段。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查是否成功</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>isSuccess(self)</code>: 一个方法，检查所有测试阶段是否都成功执行。如果 <code>self.results</code> 字典中的所有值都是 <code>'passed'</code>，则返回 <code>True</code>，表示测试项成功通过了所有阶段。</li>
+</ul>
+</li>
+</ol>
+<h3 id="lei-dependency-manager-de-get-manager-fang-fa">类DependencyManager的getManager方法</h3>
+<p>获取或创建一个 <code>DependencyManager</code> 对象，该对象管理测试项的依赖关系。</p>
+<pre><code class="language-python">    @classmethod
+    def getManager(cls, item, scope):
+        """Get the DependencyManager object from the node at scope level.
+        Create it, if not yet present.
+        """
+        node = item.getparent(cls.ScopeCls[scope])
+        if not node:
+            return None
+        if not hasattr(node, 'dependencyManager'):
+            node.dependencyManager = cls(scope)
+        return node.dependencyManager
+</code></pre>
+<p>代码解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>类方法装饰器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>@classmethod</code> 表示这是一个类方法，它可以通过类而不是类的实例来调用。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>方法定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def getManager(cls, item, scope)</code>: 定义了一个名为 <code>getManager</code> 的类方法，接收三个参数：
+<ul class="lvl-4">
+<li class="lvl-7"><code>cls</code>: 类方法的第一个参数，表示类本身。</li>
+<li class="lvl-7"><code>item</code>: 表示当前的测试项（test item），通常是 <code>pytest</code> 的 <code>Item</code> 对象。</li>
+<li class="lvl-7"><code>scope</code>: 表示作用域级别，用于确定依赖管理器应该附加到哪个级别的测试节点。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取依赖管理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>node = item.getparent(cls.ScopeCls[scope])</code>: 调用 <code>item.getparent</code> 方法获取父节点，<code>cls.ScopeCls[scope]</code> 确定要获取的父节点类型，这里 <code>ScopeCls</code> 可能是一个类属性，定义了不同作用域对应的节点类型。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查节点是否存在</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if not node:</code>: 如果没有找到父节点，则返回 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖管理器是否已创建</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if not hasattr(node, 'dependencyManager'):</code>: 使用 <code>hasattr</code> 函数检查父节点是否已经有了 <code>dependencyManager</code> 属性。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>创建依赖管理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>node.dependencyManager = cls(scope)</code>: 如果没有 <code>dependencyManager</code>，创建一个新的 <code>DependencyManager</code> 实例，并将其赋值给父节点的 <code>dependencyManager</code> 属性。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回依赖管理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>return node.dependencyManager</code>: 返回父节点的 <code>dependencyManager</code> 属性，即 <code>DependencyManager</code> 对象。</li>
+</ul>
+</li>
+</ol>
+<h4 id="dai-ma-luo-ji">代码逻辑</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这个方法的目的是确保在指定作用域级别（如模块、类、函数等）的测试项的父节点上有一个 <code>DependencyManager</code> 对象。</p>
+</li>
+<li class="lvl-2">
+<p>如果这个对象不存在，它会被创建并附加到父节点上。</p>
+</li>
+<li class="lvl-2">
+<p>这允许插件在不同的测试执行阶段跟踪和管理依赖关系。</p>
+</li>
+</ul>
+<h4 id="shi-li-yong-fa">示例用法</h4>
+<p>假设你正在编写一个测试用例，并且需要确保某些测试在其他测试之前执行：</p>
+<pre><code class="language-python">import pytest
+
+@pytest.mark.dependency()
+def test_a():
+    # 测试逻辑
+    pass
+
+@pytest.mark.dependency(depends=["test_a"])
+def test_b():
+    # 测试逻辑，依赖于 test_a 的成功执行
+    pass
+
+# 在测试运行时，pytest-dependency 插件会使用 DependencyManager 来管理 test_a 和 test_b 的执行顺序
+</code></pre>
+<p>在这个例子中，<code>test_b</code> 依赖于 <code>test_a</code>。<code>pytest-dependency</code> 插件会使用 <code>DependencyManager</code> 来确保 <code>test_a</code> 在 <code>test_b</code> 之前执行。如果 <code>test_a</code> 失败，<code>test_b</code> 将不会被执行。</p>
+<h3 id="lei-dependency-manager-de-add-result-fang-fa">类DependencyManager的addResult方法</h3>
+<p>个方法用于将测试结果添加到依赖管理器中，以便跟踪和管理测试项的依赖关系。</p>
+<pre><code class="language-python">    def addResult(self, item, name, rep):
+        if not name:
+            # Old versions of pytest used to add an extra "::()" to
+            # the node ids of class methods to denote the class
+            # instance.  This has been removed in pytest 4.0.0.
+            nodeid = item.nodeid.replace("::()::", "::")
+            if self.scope == 'session' or self.scope == 'package':
+                name = nodeid
+            elif self.scope == 'module':
+                name = nodeid.split("::", 1)[1]
+            elif self.scope == 'class':
+                name = nodeid.split("::", 2)[2]
+            else:
+                raise RuntimeError("Internal error: invalid scope '%s'"
+                                   % self.scope)
+        status = self.results.setdefault(name, DependencyItemStatus())
+        logger.debug("register %s %s %s in %s scope",
+                     rep.when, name, rep.outcome, self.scope)
+        status.addResult(rep)
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这个方法的目的是确保测试结果被正确地记录和管理，以便依赖管理器可以根据这些结果来决定测试项是否可以执行。</p>
+</li>
+<li class="lvl-2">
+<p>它首先处理旧版本的 <code>pytest</code> 中可能出现的节点 <code>ID</code> 格式问题。</p>
+</li>
+<li class="lvl-2">
+<p>然后，根据作用域级别确定测试项的名称，并获取或创建对应的状态对象。</p>
+</li>
+<li class="lvl-2">
+<p>最后，将测试结果添加到状态对象中，并记录一条调试日志。</p>
+</li>
+</ul>
+<p>代码详细解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>方法定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def addResult(self, item, name, rep)</code>: 定义了一个名为 <code>addResult</code> 的方法，接收四个参数：
+<ul class="lvl-4">
+<li class="lvl-7"><code>self</code>: 类实例的引用。</li>
+<li class="lvl-7"><code>item</code>: 表示当前的测试项（<code>test item</code>），通常是 <code>pytest</code> 的 <code>Item</code> 对象。</li>
+<li class="lvl-7"><code>name</code>: 测试项的名称或标识符。</li>
+<li class="lvl-7"><code>rep</code>: 测试报告对象，包含测试执行的结果和状态。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理旧版本的 pytest</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if not name:</code>: 如果 <code>name</code> 参数为空，说明可能需要从 <code>item.nodeid</code> 构造名称。</li>
+<li class="lvl-5"><code>nodeid = item.nodeid.replace("::()::", "::")</code>: 替换旧版本的 pytest 中类方法的节点 ID 中的 <code>"::()::"</code> 为 <code>"::"</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>确定作用域和名称</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">根据 <code>self.scope</code> 的值（表示作用域级别），确定 <code>name</code> 的值：
+<ul class="lvl-4">
+<li class="lvl-7"><code>'session'</code> 或 <code>'package'</code>: 使用完整的 <code>nodeid</code> 作为名称。</li>
+<li class="lvl-7"><code>'module'</code>: 使用 <code>nodeid</code> 分割后第二部分作为名称。</li>
+<li class="lvl-7"><code>'class'</code>: 使用 <code>nodeid</code> 分割后第三部分作为名称。</li>
+</ul>
+</li>
+<li class="lvl-5">如果作用域不是以上任何一个，抛出 <code>RuntimeError</code>，表示内部错误。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取或创建状态对象</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>status = self.results.setdefault(name, DependencyItemStatus())</code>: 使用 <code>name</code> 作为键，在 <code>self.results</code> 字典中获取对应的 <code>DependencyItemStatus</code> 对象。如果不存在，则创建一个新的 <code>DependencyItemStatus</code> 实例并设置到字典中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>记录日志</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>logger.debug(...)</code>: 使用日志记录器记录一条调试信息，说明正在注册测试结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加测试结果</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>status.addResult(rep)</code>: 调用 <code>DependencyItemStatus</code> 对象的 <code>addResult</code> 方法，将测试报告对象 <code>rep</code> 的结果添加到状态对象中。</li>
+</ul>
+</li>
+</ol>
+<h3 id="lei-dependency-manager-de-check-depend-fang-fa">类DependencyManager的checkDepend方法</h3>
+<p>这个方法用于检查测试项是否满足其依赖条件。</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这个方法的目的是确保测试项在执行前，其所依赖的其他测试项已经成功执行。</p>
+</li>
+<li class="lvl-2">
+<p>它通过检查 <code>self.results</code> 字典来确定依赖项的执行状态。</p>
+</li>
+<li class="lvl-2">
+<p>如果所有依赖项都成功执行，则当前测试项可以继续执行；否则，将跳过当前测试项，并记录相应的日志信息。</p>
+</li>
+</ul>
+<pre><code class="language-python">    def checkDepend(self, depends, item):
+        logger.debug("check dependencies of %s in %s scope ...",
+                     item.name, self.scope)
+        for i in depends:
+            if i in self.results:
+                if self.results[i].isSuccess():
+                    logger.debug("... %s succeeded", i)
+                    continue
+                else:
+                    logger.debug("... %s has not succeeded", i)
+            else:
+                logger.debug("... %s is unknown", i)
+                if _ignore_unknown:
+                    continue
+            logger.info("skip %s because it depends on %s", item.name, i)
+            pytest.skip("%s depends on %s" % (item.name, i))
+</code></pre>
+<p>代码详细解读如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>方法定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def checkDepend(self, depends, item)</code>: 定义了一个名为 <code>checkDepend</code> 的方法，接收三个参数：
+<ul class="lvl-4">
+<li class="lvl-7"><code>self</code>: 类实例的引用。</li>
+<li class="lvl-7"><code>depends</code>: 一个列表，包含当前测试项 <code>item</code> 依赖的测试名称。</li>
+<li class="lvl-7"><code>item</code>: 当前的测试项（<code>test item</code>），通常是 <code>pytest</code> 的 <code>Item</code> 对象。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>记录日志</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>logger.debug(...)</code>: 使用日志记录器记录一条调试信息，说明正在检查测试项的依赖关系。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历依赖项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for i in depends</code>: 遍历 <code>depends</code> 列表中的每个依赖项名称。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖项状态</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if i in self.results</code>: 检查依赖项名称是否在 <code>self.results</code> 字典中，即是否已有该测试项的执行结果。</li>
+<li class="lvl-5"><code>if self.results[i].isSuccess()</code>: 调用 <code>DependencyItemStatus</code> 对象的 <code>isSuccess</code> 方法，检查依赖项是否成功执行。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理依赖项成功的情况</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>logger.debug("... %s succeeded", i)</code>: 如果依赖项成功执行，记录一条调试信息，并继续检查下一个依赖项。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理依赖项未成功的情况</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>logger.debug("... %s has not succeeded", i)</code>: 如果依赖项未成功执行，记录一条调试信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理未知依赖项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>else:</code>: 如果依赖项名称不在 <code>self.results</code> 字典中，表示这是一个未知的依赖项。</li>
+<li class="lvl-5"><code>logger.debug("... %s is unknown", i)</code>: 记录一条调试信息，说明依赖项未知。</li>
+<li class="lvl-5"><code>if _ignore_unknown: continue</code>: 如果全局变量 <code>_ignore_unknown</code> 为 <code>True</code>，则跳过当前依赖项，继续检查下一个。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>记录依赖项不满足的日志</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>logger.info("skip %s because it depends on %s", item.name, i)</code>: 记录一条信息日志，说明由于依赖项不满足，将跳过当前测试项。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>跳过测试项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>pytest.skip("%s depends on %s" % (item.name, i))</code>: 使用 <code>pytest</code> 的 <code>skip</code> 函数跳过当前测试项，原因为依赖项不满足。</li>
+</ul>
+</li>
+</ol>
+<h3 id="depends-fang-fa">depends方法</h3>
+<p>此函数用于在 <code>pytest</code> 测试中动态地声明测试依赖关系。</p>
+<pre><code class="language-python">def depends(request, other, scope='module'):
+    """Add dependency on other test.
+
+    Call pytest.skip() unless a successful outcome of all of the tests in
+    other has been registered previously.  This has the same effect as
+    the `depends` keyword argument to the :func:`pytest.mark.dependency`
+    marker.  In contrast to the marker, this function may be called at
+    runtime during a test.
+
+    :param request: the value of the `request` pytest fixture related
+        to the current test.
+    :param other: dependencies, a list of names of tests that this
+        test depends on.  The names of the dependencies must be
+        adapted to the scope.
+    :type other: iterable of :class:`str`
+    :param scope: the scope to search for the dependencies.  Must be
+        either `'session'`, `'package'`, `'module'`, or `'class'`.
+    :type scope: :class:`str`
+
+    .. versionadded:: 0.2
+
+    .. versionchanged:: 0.5.0
+        the scope parameter has been added.
+    """
+    item = request.node
+    manager = DependencyManager.getManager(item, scope=scope)
+    manager.checkDepend(other, item)
+</code></pre>
+<h4 id="han-shu-ding-yi-yu-can-shu">函数定义与参数</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>def depends(request, other, scope='module')</code>: 定义了 <code>depends</code> 函数，它接收三个参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>request</code>: 当前测试的 <code>request</code> fixture 的值，它提供了对当前测试项的访问。</li>
+<li class="lvl-4"><code>other</code>: 一个可迭代对象，包含当前测试依赖的测试名称列表。这些名称需要根据 <code>scope</code> 调整。</li>
+<li class="lvl-4"><code>scope</code>: 一个字符串，指定搜索依赖项的作用域。可以是 <code>'session'</code>、<code>'package'</code>、<code>'module'</code> 或 <code>'class'</code>。默认值为 <code>'module'</code>。</li>
+</ul>
+</li>
+</ul>
+<h4 id="han-shu-gong-neng">函数功能</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>函数的作用是为当前测试项添加依赖关系。它会检查所有在 <code>other</code> 中列出的测试是否之前已经成功执行。如果没有，则调用 <code>pytest.skip()</code> 跳过当前测试。</p>
+</li>
+</ul>
+<h4 id="han-shu-luo-ji">函数逻辑</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>获取当前测试项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>item = request.node</code>: 从 <code>request</code> fixture 中获取当前测试项的节点。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取依赖管理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>manager = DependencyManager.getManager(item, scope=scope)</code>: 调用 <code>DependencyManager</code> 类的 <code>getManager</code> 类方法获取或创建一个依赖管理器。这个管理器与指定作用域相关联。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖关系</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>manager.checkDepend(other, item)</code>: 使用依赖管理器的 <code>checkDepend</code> 方法检查 <code>other</code> 中列出的依赖项是否都已成功执行。如果所有依赖项都成功，则继续执行当前测试；否则，记录日志并跳过当前测试。</li>
+</ul>
+</li>
+</ol>
+<h4 id="ban-ben-li-shi">版本历史</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>.. versionadded:: 0.2</code>: 表示 <code>depends</code> 函数从版本 0.2 开始引入。</p>
+</li>
+<li class="lvl-2">
+<p><code>.. versionchanged:: 0.5.0</code>: 表示在版本 0.5.0 中添加了 <code>scope</code> 参数。</p>
+</li>
+</ul>
+<h3 id="pytest-addoption-he-pytest-configure-fang-fa">pytest_addoption和pytest_configure方法</h3>
+<p>这部分定义了如何将插件的配置选项添加到 <code>pytest</code> 中，并处理这些参数选项。</p>
+<pre><code class="language-python">def pytest_addoption(parser):
+    parser.addini("automark_dependency", 
+                  "Add the dependency marker to all tests automatically", 
+                  type="bool", default=False)
+    parser.addoption("--ignore-unknown-dependency", 
+                     action="store_true", default=False, 
+                     help="ignore dependencies whose outcome is not known")
+
+
+def pytest_configure(config):
+    global _automark, _ignore_unknown
+    _automark = config.getini("automark_dependency")
+    _ignore_unknown = config.getoption("--ignore-unknown-dependency")
+    config.addinivalue_line("markers", 
+                            "dependency(name=None, depends=[]): "
+                            "mark a test to be used as a dependency for "
+                            "other tests or to depend on other tests."
+</code></pre>
+<h4 id="dai-ma-jie-du">代码解读</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>添加配置选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def pytest_addoption(parser)</code>: 这是一个钩子函数，当 <code>pytest</code> 启动时会被调用，允许插件向 <code>pytest</code>添加额外的命令行选项和配置文件选项。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>自动标记依赖</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>parser.addini("automark_dependency", "Add the dependency marker to all tests automatically", type="bool", default=False)</code>: 添加一个配置项 <code>automark_dependency</code>，这是一个布尔值，用于控制是否自动为所有测试添加依赖标记。默认值为 <code>False</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>忽略未知依赖</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>parser.addoption("--ignore-unknown-dependency", action="store_true", default=False, help="ignore dependencies whose outcome is not known")</code>: 添加一个命令行选项 <code>--ignore-unknown-dependency</code>，当启用时，会忽略那些结果未知的依赖项。这通过 <code>store_true</code> 动作设置为 <code>True</code>，并且有默认值 <code>False</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>配置钩子</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def pytest_configure(config)</code>: 这是另一个钩子函数，在 <code>pytest</code>配置阶段被调用，允许插件进行进一步的配置。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>全局变量</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>global _automark, _ignore_unknown</code>: 声明全局变量 <code>_automark</code> 和 <code>_ignore_unknown</code>，这些变量将被用于控制插件的行为。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取配置值</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>_automark = config.getini("automark_dependency")</code>: 从 <code>pytest</code>配置中获取 <code>automark_dependency</code> 的值，并将其存储在全局变量 <code>_automark</code> 中。</li>
+<li class="lvl-5"><code>_ignore_unknown = config.getoption("--ignore-unknown-dependency")</code>: 获取命令行选项 <code>--ignore-unknown-dependency</code> 的值，并将其存储在全局变量 <code>_ignore_unknown</code> 中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加标记说明</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>config.addinivalue_line("markers", "dependency(name=None, depends=[]): mark a test to be used as a dependency for other tests or to depend on other tests.")</code>: 向 <code>pytest</code>的配置文件中添加关于 <code>dependency</code> 标记的说明。这个标记用于标记测试项作为其他测试的依赖项，或者声明当前测试依赖于其他测试项。</li>
+</ul>
+</li>
+</ol>
+<h4 id="gong-neng-shuo-ming">功能说明</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>automark_dependency</strong>: 如果设置为 <code>True</code>，则插件会自动为所有测试添加依赖标记，无需手动添加。</p>
+</li>
+<li class="lvl-2">
+<p><strong>ignore_unknown_dependency</strong>: 如果启用，插件会忽略那些结果未知的依赖项，不会因为未知依赖而跳过测试。</p>
+</li>
+</ul>
+<h4 id="shi-li-yong-fa-1">示例用法</h4>
+<p>在命令行中，你可以这样使用这些选项：</p>
+<pre><code class="language-bash">pytest --ignore-unknown-dependency
+pytest -o automark_dependency=true
+</code></pre>
+<p>这些选项允许用户在运行测试之前，通过命令行或配置文件来控制插件的行为，使得测试的依赖管理更加灵活和方便。</p>
+<h3 id="pytest-runtest-makereport-fang-fa">pytest_runtest_makereport方法</h3>
+<p>使用 <code>pytest</code> 的钩子（<code>hook</code>）机制来处理测试结果，并将其存储在依赖管理器中。</p>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Store the test outcome if this item is marked "dependency".
+    """
+    outcome = yield
+    marker = item.get_closest_marker("dependency")
+    if marker is not None or _automark:
+        rep = outcome.get_result()
+        name = marker.kwargs.get('name') if marker is not None else None
+        for scope in DependencyManager.ScopeCls:
+            manager = DependencyManager.getManager(item, scope=scope)
+            if (manager):
+                manager.addResult(item, name, rep)
+</code></pre>
+<h4 id="dai-ma-jie-du-1">代码解读</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>@pytest.hookimpl(tryfirst=True, hookwrapper=True)</code>: 这个装饰器将函数注册为 <code>pytest</code> 的钩子。<code>tryfirst=True</code> 表示该钩子会在其他钩子之前执行，<code>hookwrapper=True</code> 表示该钩子会包装其他钩子的执行。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def pytest_runtest_makereport(item, call)</code>: 定义了名为 <code>pytest_runtest_makereport</code> 的钩子函数，它接收两个参数：
+<ul class="lvl-4">
+<li class="lvl-7"><code>item</code>: 当前测试项（<code>test item</code>）。</li>
+<li class="lvl-7"><code>call</code>: 一个封装了测试调用的 <code>pytest.CallInfo</code> 对象。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>生成器和产出</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>outcome = yield</code>: 使用 <code>yield</code> 挂起函数执行，并将结果存储在 <code>outcome</code> 变量中。这是 <code>hookwrapper=True</code> 用法的一部分，允许你在其他钩子执行完成后获取结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取测试结果</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>rep = outcome.get_result()</code>: 从 <code>outcome</code> 对象获取生成的测试结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖标记</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>marker = item.get_closest_marker("dependency")</code>: 获取当前测试项上最近的 <code>dependency</code> 标记。如果没有标记，则 <code>marker</code> 为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理自动标记</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if marker is not None or _automark</code>: 检查是否存在 <code>dependency</code> 标记或者全局变量 <code>_automark</code> 是否为 <code>True</code>。如果是，则继续处理。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取标记名称</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>name = marker.kwargs.get('name') if marker is not None else None</code>: 如果存在 <code>dependency</code> 标记，则获取其 <code>name</code> 参数的值；否则，将 <code>name</code> 设置为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取作用域和依赖管理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for scope in DependencyManager.ScopeCls</code>: 遍历 <code>DependencyManager.ScopeCls</code>，这通常是一个包含不同作用域级别的类属性。</li>
+<li class="lvl-5"><code>manager = DependencyManager.getManager(item, scope=scope)</code>: 对于每个作用域级别，获取或创建依赖管理器。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加测试结果</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if (manager)</code>: 如果依赖管理器存在，则调用其 <code>addResult</code> 方法，传入当前测试项、名称和测试结果对象。</li>
+</ul>
+</li>
+</ol>
+<h4 id="dai-ma-luo-ji-1">代码逻辑</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>该钩子函数在每个测试项执行完毕后被调用，用于收集和存储测试结果。</p>
+</li>
+<li class="lvl-2">
+<p>它首先检查测试项是否有 <code>dependency</code> 标记或是否启用了自动标记功能。</p>
+</li>
+<li class="lvl-2">
+<p>然后，对于每个作用域级别，获取依赖管理器，并将其测试结果添加到管理器中。</p>
+</li>
+</ul>
+<h3 id="pytest-runtest-setup-fang-fa">pytest_runtest_setup方法</h3>
+<p>定义了一个名为 <code>pytest_runtest_setup</code> 的钩子函数，该函数在每个测试项的设置阶段被调用，用于检查测试项的依赖关系。</p>
+<pre><code class="language-python">def pytest_runtest_setup(item):
+    """Check dependencies if this item is marked "dependency".
+    Skip if any of the dependencies has not been run successfully.
+    """
+    marker = item.get_closest_marker("dependency")
+    if marker is not None:
+        depends = marker.kwargs.get('depends')
+        if depends:
+            scope = marker.kwargs.get('scope', 'module')
+            manager = DependencyManager.getManager(item, scope=scope)
+            manager.checkDepend(depends, item)
+</code></pre>
+<h4 id="dai-ma-jie-du-2">代码解读</h4>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子函数定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def pytest_runtest_setup(item)</code>: 定义了一个钩子函数，它接收一个参数 <code>item</code>，表示当前的测试项（<code>test item</code>）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖标记</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>marker = item.get_closest_marker("dependency")</code>: 获取当前测试项上最近的 <code>dependency</code> 标记。如果没有标记，则 <code>marker</code> 为 <code>None</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理依赖关系</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if marker is not None</code>: 如果存在 <code>dependency</code> 标记，则进一步处理依赖关系。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取依赖项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>depends = marker.kwargs.get('depends')</code>: 从标记的关键字参数中获取 <code>depends</code> 参数，这是一个包含当前测试依赖的测试名称列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖项是否为空</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>if depends</code>: 如果 <code>depends</code> 列表不为空，即当前测试项有依赖项。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取作用域</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>scope = marker.kwargs.get('scope', 'module')</code>: 从标记的关键字参数中获取 <code>scope</code> 参数，确定依赖项的作用域。如果没有指定，则默认为 <code>'module'</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取依赖管理器</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>manager = DependencyManager.getManager(item, scope=scope)</code>: 获取或创建一个依赖管理器，该管理器与指定作用域相关联。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查依赖项是否成功</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>manager.checkDepend(depends, item)</code>: 使用依赖管理器的 <code>checkDepend</code> 方法检查 <code>depends</code> 列表中的每个依赖项是否都已成功执行。如果所有依赖项都成功，则继续执行当前测试；否则，跳过当前测试。</li>
+</ul>
+</li>
+</ol>
+<h4 id="dai-ma-luo-ji-2">代码逻辑</h4>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>该钩子函数在每个测试项的设置阶段被调用，用于确保测试项的所有依赖项都已成功执行。</p>
+</li>
+<li class="lvl-2">
+<p>它首先检查测试项是否有 <code>dependency</code> 标记。</p>
+</li>
+<li class="lvl-2">
+<p>然后，获取依赖项和作用域，并获取相应的依赖管理器。</p>
+</li>
+<li class="lvl-2">
+<p>最后，调用依赖管理器的 <code>checkDepend</code> 方法来检查依赖项的状态。如果依赖项未成功，将跳过当前测试。</p>
+</li>
+</ul>
+<h1 id="jie-yu">结语</h1>
+<p><code>pytest-dependency</code> 是一个强大的 <code>pytest</code> 插件，它为测试用例提供了灵活的依赖管理功能：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>声明依赖</strong>：允许测试用例显式地声明它们依赖于其他测试用例的执行结果。</p>
+</li>
+<li class="lvl-3">
+<p><strong>控制执行顺序</strong>：确保测试用例按照正确的依赖关系顺序执行。</p>
+</li>
+<li class="lvl-3">
+<p><strong>动态标记</strong>：支持在运行时动态地为测试用例添加依赖标记。</p>
+</li>
+<li class="lvl-3">
+<p><strong>自动重试失败的测试</strong>：可以配置插件以自动重新执行失败的测试用例。</p>
+</li>
+<li class="lvl-3">
+<p><strong>跨会话缓存</strong>：利用  <code>pytest</code>的缓存机制来维护测试执行的状态，实现跨测试运行的信息维护。</p>
+</li>
+<li class="lvl-3">
+<p><strong>灵活的配置选项</strong>：通过命令行和配置文件选项，提供对插件行为的细粒度控制。</p>
+</li>
+</ol>
+<p>总的来说，<code>pytest-dependency</code> 插件使得自动化测试更加健壮和可靠，特别适合复杂的测试场景，其中测试用例之间存在明确的执行依赖。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/04/27/pytest_depdendency/">https://gavin-wang-note.github.io/2025/04/27/pytest_depdendency/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2999/12/28/why_choose_pytest/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="Why choose pytest?">
+                        
+                        <span class="card-title">Why choose pytest?</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            Why choose pytest? Happy testing, and may your code be as bug-free as a clear blue sky!
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2999-12-28
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/03/17/pytest_random_order/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例随机执行之pytest-random-order源码解读">
+                        
+                        <span class="card-title">测试用例随机执行之pytest-random-order源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例随机执行之pytest-random-order源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-03-17
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1083.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
