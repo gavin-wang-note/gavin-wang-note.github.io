@@ -1,0 +1,104 @@
+@startuml
+' 允许混合使用不同类型的图表元素
+allowmixing
+
+skinparam monochrome true
+skinparam classFontSize 13
+skinparam noteFontSize 12
+
+package "MkDocs自动化工具" {
+  class EnhancedRotatingHandler {
+    - handler: RotatingFileHandler
+    - formatter: Formatter
+    - last_rotate_check: datetime
+    + get_handler(): RotatingFileHandler
+    + _rotate_check(): void
+    + _do_time_rotate(): void
+    + _clean_old_logs(): void
+  }
+
+  class RunMkDocs {
+    + main(): void
+    + start_mkdocs_serve(): Process
+    + kill_process_tree(pid: int): void
+    + get_ip_address(): str
+    + handle_sigint(signum, frame): void
+  }
+
+  class GenerateMkDocs {
+    + mkdocs_prepare(): void
+    + cleanup_dirs(): void
+    + copy_file(src: str, dst: str): void
+    + _validate_path_length(path: str): bool
+  }
+
+  class GenerateMkDocsNav {
+    + generate_nav_config(root_dir: str): void
+    - _build_nav_structure(nav_dict: dict): list
+    - _should_include_dir(path: str): bool
+  }
+
+  class MergeYAML {
+    + merge_yaml_files(base: str, add: str, out: str): void
+    - _preserve_comments(yaml: ruamel.yaml.YAML): void
+  }
+
+  class MkDocsPath {
+    <<Singleton>>
+    - allowed_dirs: set
+    - ignore_dirs: set
+    + path_info(): void
+    + generate_dynamic_paths(): dict
+    -- 动态路径示例 --
+    + project_pages_path: Path
+    + mkdocs_utils_path: Path
+  }
+
+  class ProcessMonitor {
+    + track_performance(): dict
+    + alert_on_anomaly(metric: str): void
+  }
+
+  note right of EnhancedRotatingHandler
+    === 日志系统 ===
+    • 时间/大小双轮转策略
+    • 7天自动清理
+    • UTF-8编码保障
+    • 多进程安全写入
+  end note
+
+  note left of RunMkDocs
+    === 进程管理 ===
+    • 跨平台进程树终止
+    • 智能端口冲突检测
+    • 双信号处理机制
+    • PID文件生命周期
+  end note
+
+  note top of MkDocsPath
+    === 路径管理 ===
+    • 动态路径生成
+    • 目录白名单控制
+    • 路径长度校验
+    • 单例访问控制
+  end note
+
+  EnhancedRotatingHandler --> MkDocsPath : 使用 log_dir
+  RunMkDocs --> GenerateMkDocs : 调用 prepare()
+  GenerateMkDocs --> GenerateMkDocsNav : 生成 nav.yml
+  GenerateMkDocs --> MergeYAML : 合并 yaml
+  MkDocsPath <-- GenerateMkDocsNav : 查询 project_*_path
+  ProcessMonitor --> EnhancedRotatingHandler : 写入日志
+}
+
+package "第三方依赖" {
+  component "psutil\n(进程管理)" #lightblue
+  component "ruamel.yaml\n(YAML处理)" #lightgreen
+  component "mkdocs-material\n(文档主题)" #pink
+
+  RunMkDocs ..> "psutil\n(进程管理)" : 依赖
+  MergeYAML ..> "ruamel.yaml\n(YAML处理)" : 调用
+  GenerateMkDocs ..> "mkdocs-material\n(文档主题)" : 间接
+}
+
+@enduml
