@@ -1,0 +1,36 @@
+@startuml
+start
+:start run_mkdocs.py;
+
+:RunMkDocs.main();
+:RunMkDocs.check_and_terminate_other_instances();
+:psutil.process_iter(['pid', 'name', 'cmdline']);
+:RunMkDocs.kill_process_by_port();
+:psutil.net_connections();
+:psutil.Process(pid);
+:RunMkDocs.kill_process_by_pid_file();
+:os.path.exists(pid_file_path);
+:psutil.pid_exists(pid);
+:psutil.Process(pid);
+:RunMkDocs.is_port_in_use();
+:socket.socket(socket.AF_INET, socket.SOCK_STREAM);
+:socket.connect((loop_ip, port));
+:RunMkDocs.kill_process_by_port();
+:psutil.net_connections();
+:psutil.Process(pid);
+:GenerateMkDocs.mkdocs_prepare();
+:GenerateMkDocs.cleanup_dirs();
+:shutil.rmtree(docs_path);
+:os.makedirs(docs_path);
+:GenerateMkDocs.copy_file(source_file, target_path);
+:shutil.copy(source_file, target_path);
+:GenerateMkDocs.copy_dirs(source_path, target_path);
+:shutil.copytree(source_path, new_target_path);
+:RunMkDocs.start_mkdocs_serve();
+:subprocess.run(["mkdocs", "build", "--clean"], check=True);
+:platform.system().lower();
+:subprocess.Popen(command, stdout=log_file, stderr=subprocess.STDOUT);
+:RunMkDocs.handle_sigint();
+:signal.signal(signal.SIGINT, handle_sigint);
+stop
+@enduml

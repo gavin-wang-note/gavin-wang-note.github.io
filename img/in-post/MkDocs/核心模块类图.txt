@@ -1,0 +1,79 @@
+@startuml
+
+package "核心模块" {
+  class EnhancedRotatingHandler {
+    - handler: RotatingFileHandler
+    - formatter: Formatter
+    - last_rotate_check: datetime
+    + get_handler(): RotatingFileHandler
+    + _rotate_check(): void
+    + _do_time_rotate(): void
+    + _clean_old_logs(): void
+    .. 实现日志轮转策略
+    .. 每日自动归档
+    .. 7天清理机制
+  }
+  
+  class MkDocsOrchestrator {
+    + main(): void
+    + start_mkdocs_serve(): Process
+    + kill_process_by_port(): void
+    + kill_process_by_pid_file(): void
+    + check_and_terminate_other_instances(): void
+    + handle_sigint(): void
+    .. 进程生命周期管理
+    .. 跨平台适配
+    .. 信号处理
+  }
+  
+  class NavGenerator {
+    + generate_nav_config(root_dir: str): void
+    - _build_nav_structure(nav_dict: dict): list
+    - _should_include_dir(path: str): bool
+    .. 目录结构解析
+    .. 智能导航生成
+    .. Markdown模板化
+  }
+  
+  class ConfigMerger {
+    + merge_yaml_files(base: str, add: str, out: str): void
+    - _preserve_comments(yaml: ruamel.yaml.YAML): void
+    .. YAML智能合并
+    .. 注释保留算法
+    .. 配置验证
+  }
+}
+
+package "支撑系统" {
+  class PathManager {
+    <<Singleton>>
+    - project_root: Path
+    - log_dir: Path
+    - ignore_dirs: set
+    - allowed_dirs: set
+    + path_info(): void
+    + generate_dynamic_paths(): dict
+    + sanitize_name(name: str): str
+    .. 全局路径管理
+    .. 动态目录创建
+    .. 路径有效性验证
+  }
+  
+  class LogSystem {
+    + track_performance(): dict
+    + alert_on_anomaly(metric: str): void
+    .. 多级日志记录
+    .. 异常捕获
+    .. 性能监控
+  }
+}
+
+EnhancedRotatingHandler --> PathManager : 依赖路径配置
+MkDocsOrchestrator --> EnhancedRotatingHandler : 调用日志处理器
+MkDocsOrchestrator --> NavGenerator : 驱动导航生成
+MkDocsOrchestrator --> ConfigMerger : 驱动配置合并
+NavGenerator --> PathManager : 使用路径信息
+ConfigMerger --> PathManager : 使用基础路径
+LogSystem --> EnhancedRotatingHandler : 扩展日志功能
+
+@enduml
