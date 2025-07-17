@@ -1,0 +1,2404 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例依赖之pytest-lazy-fixtures源码解读, 软硬件测试">
+    <meta name="description" content="试用例依赖之pytest-lazy-fixtures源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例依赖之pytest-lazy-fixtures源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例依赖之pytest-lazy-fixtures源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-07-20
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    6.4k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    26 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest-lazy-fixtures</code> 是一个 <code>pytest</code> 插件，它允许你以惰性（延迟）的方式使用 <code>fixtures</code>。这意味着 <code>fixtures</code> 将不会在测试开始时立即执行，而是在真正需要它们的时候才进行加载和执行。这种特性对于以下几种情况特别有用：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>减少资源消耗</strong>：当 <code>fixtures</code> 的设置或拆除过程成本高昂时，延迟它们的执行可以节省资源。</p>
+</li>
+<li class="lvl-3">
+<p><strong>避免不必要的执行</strong>：如果某些 <code>fixtures</code> 只在特定条件下需要，惰性加载可以避免在不需要时执行它们。</p>
+</li>
+<li class="lvl-3">
+<p><strong>提高测试速度</strong>：通过延迟非必要的 <code>fixtures</code> 加载，可以减少测试套件的整体启动时间。</p>
+</li>
+<li class="lvl-3">
+<p><strong>复杂的测试依赖</strong>：在测试依赖于多个复杂的 <code>fixtures</code> 时，可以更灵活地控制它们的加载顺序。</p>
+</li>
+<li class="lvl-3">
+<p><strong>参数化测试</strong>：它支持与参数化测试结合使用，允许更复杂的测试场景定义。</p>
+</li>
+</ol>
+<p>使用 <code>pytest-lazy-fixtures</code> 插件，你可以定义一个 <code>fixture</code>，然后在测试函数中以惰性方式引用它。当测试运行到需要该 <code>fixture</code> 的时候，它才会被加载和执行。</p>
+<p>安装 <code>pytest-lazy-fixtures</code> 插件非常简单，可以通过 <code>pip</code> 进行安装：</p>
+<pre><code class="language-ellh">pip install pytest-lazy-fixtures
+</code></pre>
+<p>使用插件后，你可以通过 <code>lazy_fixture</code> 函数来引用 <code>fixtures</code>，该函数接受一个或多个 <code>fixture</code> 名称作为参数，并返回一个或多个 <code>LazyFixture</code> 对象。在测试函数中使用这些对象，<code>pyteset</code> 会在适当的时候解析并加载相应的 <code>fixtures</code>。</p>
+<p>例如：</p>
+<pre><code class="language-python">import pytest
+from pytest_lazy_fixtures import lazy_fixture
+
+@pytest.mark.usefixtures("db_fixture")
+def test_example(lazy_fixture("db_session")):
+    # 在这里，db_session fixture 将被延迟加载
+    session = lazy_fixture("db_session")  # 获取实际的 fixture 实例
+    # 使用 session 进行测试...
+</code></pre>
+<p>在这个例子中，<code>db_session fixture</code> 只有在 <code>test_example</code> 测试函数实际需要它时才会被加载。如果测试函数有多个参数，所有参数都将按需加载。这为测试提供了更高的灵活性和效率。</p>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="yuan-ma-mu-lu-jie-gou">源码目录结构</h2>
+<p>从<a target="_blank" rel="noopener" href="https://pypi.org/project/pytest-lazy-fixtures">官网</a>下载解压到本地：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/pytest_lazy_fixtures-1.1.1# ll
+total 36
+drwxr-xr-x  4 root root 4096 Jul 24 13:46 ./
+drwxr-xr-x 21 root root 4096 Jul 24 13:46 ../
+-rw-r--r--  1 root root 1069 Jul 23 05:39 LICENSE
+-rw-r--r--  1 root root 4502 Jan  1  1970 PKG-INFO
+-rw-r--r--  1 root root 1666 Jul 23 05:39 pyproject.toml
+drwxr-xr-x  2 root root 4096 Jul 24 13:46 pytest_lazy_fixtures/
+-rw-r--r--  1 root root 3683 Jul 23 05:39 README.md
+drwxr-xr-x  2 root root 4096 Jul 24 13:46 tests/
+root@Gavin:~/pytest_plugin/pytest_lazy_fixtures-1.1.1# cd pytest_lazy_fixtures/
+root@Gavin:~/pytest_plugin/pytest_lazy_fixtures-1.1.1/pytest_lazy_fixtures# ll
+total 32
+drwxr-xr-x 2 root root 4096 Jul 24 13:46 ./
+drwxr-xr-x 4 root root 4096 Jul 24 13:46 ../
+-rw-r--r-- 1 root root   93 Jul 23 05:39 __init__.py
+-rw-r--r-- 1 root root  966 Jul 23 05:39 lazy_fixture_callable.py
+-rw-r--r-- 1 root root  839 Jul 23 05:39 lazy_fixture.py
+-rw-r--r-- 1 root root  864 Jul 23 05:39 loader.py
+-rw-r--r-- 1 root root 3322 Jul 23 05:39 normalizer.py
+-rw-r--r-- 1 root root  600 Jul 23 05:39 plugin.py
+-rw-r--r-- 1 root root    0 Jul 23 05:39 py.typed
+root@Gavin:~/pytest_plugin/pytest_lazy_fixtures-1.1.1/pytest_lazy_fixtures# 
+</code></pre>
+<h2 id="lazy-fixture-py-wen-jian">lazy_fixture.py文件</h2>
+<pre><code class="language-python">from dataclasses import dataclass
+from operator import attrgetter
+from typing import Optional
+
+import pytest
+
+
+@dataclass
+class LazyFixtureWrapper:
+    name: str
+
+    @property
+    def fixture_name(self) -&gt; str:
+        return self.name.split(".", maxsplit=1)[0]
+
+    def _get_attr(self, fixture) -&gt; Optional[str]:
+        splitted = self.name.split(".", maxsplit=1)
+        if len(splitted) == 1:
+            return fixture
+        return attrgetter(splitted[1])(fixture)
+
+    def __repr__(self) -&gt; str:
+        return self.name
+
+    def load_fixture(self, request: pytest.FixtureRequest):
+        return self._get_attr(request.getfixturevalue(self.fixture_name))
+
+    def __hash__(self) -&gt; int:
+        return hash(self.name)
+
+
+def lf(name: str) -&gt; LazyFixtureWrapper:
+    """lf is a lazy fixture."""
+    return LazyFixtureWrapper(name)
+</code></pre>
+<h3 id="luo-ji-shuo-ming">逻辑说明</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>LazyFixtureWrapper</code> 类封装了延迟加载 <code>fixture</code> 的逻辑，允许用户通过字符串名称引用 <code>fixture</code>，并在实际使用时才加载其值。</p>
+</li>
+<li class="lvl-2">
+<p><code>load_fixture</code> 方法是核心，它使用 <code>pytest</code> 的 <code>request</code> 对象来获取 <code>fixture</code> 的值，并根据需要获取其属性。</p>
+</li>
+<li class="lvl-2">
+<p><code>lf</code> 函数提供了一个简洁的接口，用于创建 <code>LazyFixtureWrapper</code> 实例。</p>
+</li>
+</ul>
+<p>详细介绍如下：</p>
+<p><strong>导入依赖</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>导入 Python 标准库中的 <code>dataclasses</code> 模块，用于创建数据类。</p>
+</li>
+<li class="lvl-5">
+<p>导入 <code>operator</code> 模块中的 <code>attrgetter</code> 函数，用于获取对象的属性。</p>
+</li>
+<li class="lvl-5">
+<p>导入 <code>typing</code> 模块中的 <code>Optional</code> 类型注解。</p>
+</li>
+<li class="lvl-5">
+<p>导入 <code>pytest</code> 模块，用于与 <code>pytest</code> 框架集成。</p>
+</li>
+</ul>
+<p><strong>定义 LazyFixtureWrapper 数据类</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>使用 <code>@dataclass</code> 装饰器定义了一个名为 <code>LazyFixtureWrapper</code> 的数据类，用于包装延迟加载的 <code>fixture</code>。</p>
+</li>
+<li class="lvl-5">
+<p><code>name</code>: 一个字符串属性，存储 <code>fixture</code> 的名称或其路径（如果需要访问 <code>fixture</code> 的属性）。</p>
+</li>
+</ul>
+<p><strong>fixture_name 属性</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>一个只读属性，返回 <code>name</code> 属性的第一部分（通过 <code>.</code> 分隔），这通常是 <code>fixture</code> 的基本名称。</p>
+</li>
+</ul>
+<p>. <strong>_get_attr 方法</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>一个私有方法，如果 <code>name</code> 只包含一个部分，直接返回 <code>fixture</code>；如果包含多个部分，使用 <code>attrgetter</code> 获取 <code>fixture</code> 对象的指定属性。</p>
+</li>
+</ul>
+<p><strong><code>__repr__</code> 方法</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>定义了类的字符串表示方法，返回 <code>name</code> 属性的值。</p>
+</li>
+</ul>
+<p><strong>load_fixture 方法</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>一个公共方法，接受一个 <code>request</code> 参数（<code>pytest.FixtureRequest</code> 类型），调用 <code>request.getfixturevalue</code> 方法获取 <code>fixture</code> 的值，然后使用 <code>_get_attr</code> 方法获取最终的属性值。</p>
+</li>
+</ul>
+<p><strong><code>__hash__</code> 方法</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>定义了类的哈希方法，基于 <code>name</code> 属性的哈希值。</p>
+</li>
+</ul>
+<p><strong>lf 函数</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>一个工厂函数，接受一个字符串参数 <code>name</code>，创建并返回一个新的 <code>LazyFixtureWrapper</code> 实例。</p>
+</li>
+</ul>
+<h3 id="shi-li">示例</h3>
+<p>假设有一个 <code>fixture db_session</code>，你可能想在测试中引用它，但只在实际需要时才加载它：</p>
+<pre><code class="language-python">def test_query(lf("db_session.my_attribute")):
+    # 只有在这一行时，db_session 及其 my_attribute 才会被加载
+    my_attribute = lf("db_session.my_attribute").load_fixture(request)
+    # 使用 my_attribute 进行测试...
+</code></pre>
+<p>在这个例子中，<code>lf</code> 函数用于创建一个延迟加载的 <code>fixture</code> 引用，只有当 <code>load_fixture</code> 被调用时，<code>db_session</code> 和它的 <code>my_attribute</code> 属性才会被实际加载。这有助于减少不必要的资源消耗和初始化。</p>
+<h2 id="lazy-fixture-callable-py-wen-jian">lazy_fixture_callable.py文件</h2>
+<pre><code class="language-python">from typing import Callable, Optional, Union
+
+import pytest
+
+from .lazy_fixture import LazyFixtureWrapper
+
+
+class LazyFixtureCallableWrapper(LazyFixtureWrapper):
+    _func: Optional[Callable]
+    args: tuple
+    kwargs: dict
+
+    def __init__(self, func_or_name: Union[Callable, str], *args, **kwargs):
+        if callable(func_or_name):
+            self._func = func_or_name
+            self.name = func_or_name.__name__
+        else:
+            self.name = func_or_name
+            self._func = None
+        self.args = args
+        self.kwargs = kwargs
+
+    def get_func(self, request: pytest.FixtureRequest) -&gt; Callable:
+        func = self._func
+        if func is None:
+            func = self.load_fixture(request)
+            assert callable(func)
+        return func
+
+
+def lfc(name: Union[Callable, str], *args, **kwargs) -&gt; LazyFixtureCallableWrapper:
+    """lfc is a lazy fixture callable."""
+    return LazyFixtureCallableWrapper(name, *args, **kwargs)
+</code></pre>
+<p>这段代码提供了一种方式来延迟调用 <code>fixtures</code> 或任意可调用对象，直到它们真正需要被使用时。</p>
+<h3 id="luo-ji-shuo-ming-1">逻辑说明</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>LazyFixtureCallableWrapper</code> 类封装了延迟调用 <code>fixture</code> 或任意可调用对象的逻辑。</p>
+</li>
+<li class="lvl-2">
+<p>如果提供的名称是一个可调用对象，它将被直接存储；如果是一个字符串，则在需要时通过 <code>pytest</code> 的 <code>fixture</code> 系统加载。</p>
+</li>
+<li class="lvl-2">
+<p><code>get_func</code> 方法用于获取实际的函数对象，如果之前没有提供函数，则通过加载 <code>fixture</code> 获取。</p>
+</li>
+<li class="lvl-2">
+<p><code>lfc</code> 函数提供了一个简洁的接口，用于创建 <code>LazyFixtureCallableWrapper</code> 实例。</p>
+</li>
+</ul>
+<p>详细介绍如下：</p>
+<p><strong>导入依赖</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>导入 <code>Callable</code>, <code>Optional</code>, <code>Union</code> 等类型注解，用于注解函数和方法的参数和返回值。</p>
+</li>
+<li class="lvl-5">
+<p>导入 <code>pytest</code> 模块，用于与 <code>pytest</code> 框架集成。</p>
+</li>
+<li class="lvl-5">
+<p>从 <code>lazy_fixture</code> 模块导入 <code>LazyFixtureWrapper</code> 类。</p>
+</li>
+</ul>
+<p><strong>定义 LazyFixtureCallableWrapper 类</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>LazyFixtureCallableWrapper</code> 类继承自 <code>LazyFixtureWrapper</code>。</p>
+</li>
+</ul>
+<p><strong>类属性</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>_func</code>: 用于存储延迟调用的函数或 None。</p>
+</li>
+<li class="lvl-5">
+<p><code>args</code>: 存储传递给延迟调用函数的位置参数。</p>
+</li>
+<li class="lvl-5">
+<p><code>kwargs</code>: 存储传递给延迟调用函数的关键字参数。</p>
+</li>
+</ul>
+<p><strong>构造函数</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>接受 <code>func_or_name</code> 参数，它可以是一个可调用对象或一个字符串名称。</p>
+</li>
+<li class="lvl-5">
+<p>如果 <code>func_or_name</code> 是可调用的，将其存储在 <code>_func</code> 中，并使用 <code>__name__</code> 属性作为 <code>name</code>。</p>
+</li>
+<li class="lvl-5">
+<p>如果 <code>func_or_name</code> 不是可调用的，假定它是一个 fixture 名称，存储在 <code>name</code> 中，并将 <code>_func</code> 设置为 None。</p>
+</li>
+<li class="lvl-5">
+<p><code>args</code> 和 <code>kwargs</code> 分别存储构造函数的位置参数和关键字参数。</p>
+</li>
+</ul>
+<p><strong>get_func 方法</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>接受一个 <code>request</code> 参数（<code>pytest.FixtureRequest</code> 类型）。</p>
+</li>
+<li class="lvl-5">
+<p>如果 <code>_func</code> 是 None，则使用 <code>load_fixture</code> 方法加载 <code>fixture</code>，并断言加载的结果是可调用的。</p>
+</li>
+<li class="lvl-5">
+<p>返回加载的函数或之前存储的 <code>_func</code>。</p>
+</li>
+</ul>
+<p><strong>lfc 函数</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>一个工厂函数，接受 <code>name</code> 参数（可以是函数或字符串名称），以及任意数量的位置参数和关键字参数。</p>
+</li>
+<li class="lvl-5">
+<p>创建并返回一个新的 <code>LazyFixtureCallableWrapper</code> 实例。</p>
+</li>
+</ul>
+<h3 id="shi-li-1">示例</h3>
+<p>假设有一个 <code>fixture db_session</code>，你可能想延迟调用它，直到实际需要执行数据库操作：</p>
+<pre><code class="language-python">def test_query(lfc(db_session)):
+    # 只有在这一行时，db_session 才会被加载和调用
+    db = lfc(db_session).get_func(request)
+    result = db.execute("SELECT * FROM table")
+    # 使用 result 进行测试...
+</code></pre>
+<p>在这个例子中，<code>lfc</code> 函数用于创建一个延迟调用的 <code>fixture</code> 引用，只有当 <code>get_func</code> 被调用时，<code>db_session</code> 才会被实际加载和调用。这有助于减少不必要的初始化和延迟执行。</p>
+<h2 id="loader-py-wen-jian">loader.py文件</h2>
+<pre><code class="language-python">import pytest
+
+from .lazy_fixture import LazyFixtureWrapper
+from .lazy_fixture_callable import LazyFixtureCallableWrapper
+
+
+def load_lazy_fixtures(value, request: pytest.FixtureRequest):
+    if isinstance(value, LazyFixtureCallableWrapper):
+        return value.get_func(request)(
+            *load_lazy_fixtures(value.args, request),
+            **load_lazy_fixtures(value.kwargs, request),
+        )
+    if isinstance(value, LazyFixtureWrapper):
+        return value.load_fixture(request)
+    # we need to check exact type
+    if type(value) is dict:  # noqa: E721
+        return {load_lazy_fixtures(key, request): load_lazy_fixtures(value, request) for key, value in value.items()}
+    # we need to check exact type
+    elif type(value) in {list, tuple, set}:
+        return type(value)([load_lazy_fixtures(value, request) for value in value])
+    return value
+</code></pre>
+<p>递归地加载延迟加载的 <code>fixtures</code>。</p>
+<h3 id="dai-ma-luo-ji">代码逻辑</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>load_lazy_fixtures</code> 函数负责处理延迟加载的 <code>fixtures</code>，包括 <code>LazyFixtureWrapper</code> 和 <code>LazyFixtureCallableWrapper</code> 实例。</p>
+</li>
+<li class="lvl-2">
+<p>它递归地加载 <code>value</code> 中的 <code>fixtures</code>，无论是作为位置参数、关键字参数，还是嵌套在字典、列表、元组或集合中。</p>
+</li>
+<li class="lvl-2">
+<p>函数使用类型检查（<code>isinstance</code>）来确定如何处理 <code>value</code>，对于 <code>dict</code>、<code>list</code>、<code>tuple</code> 和 <code>set</code>，它使用确切的类型检查（<code>type</code>），以避免错误地处理继承自这些类型的自定义类型。</p>
+</li>
+</ul>
+<p>详细信息描述如下：</p>
+<p><strong>导入依赖</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>导入 <code>pytest</code> 模块，用于与 <code>pytest</code> 框架集成。</p>
+</li>
+<li class="lvl-5">
+<p>从 <code>lazy_fixture</code> 模块导入 <code>LazyFixtureWrapper</code> 类，用于包装延迟加载的 <code>fixture</code>。</p>
+</li>
+<li class="lvl-5">
+<p>从 <code>lazy_fixture_callable</code> 模块导入 <code>LazyFixtureCallableWrapper</code> 类，用于包装延迟调用的 <code>fixture</code>。</p>
+</li>
+</ul>
+<p><strong>load_lazy_fixtures 函数</strong>:</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p>函数接受两个参数：<code>value</code>，可能是延迟加载的 <code>fixture</code> 或其他值；<code>request</code>，<code>pytest</code> 的 <code>FixtureRequest</code> 对象，用于访问 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-5">
+<p>函数首先检查 <code>value</code> 是否是 <code>LazyFixtureCallableWrapper</code> 的实例。如果是，调用 <code>get_func</code> 方法获取实际的函数，并使用 <code>load_lazy_fixtures</code> 递归加载 <code>args</code> 和 <code>kwargs</code>，然后调用该函数。</p>
+</li>
+<li class="lvl-5">
+<p>接下来，检查 <code>value</code> 是否是 <code>LazyFixtureWrapper</code> 的实例。如果是，调用 <code>load_fixture</code> 方法加载 <code>fixture</code>。</p>
+</li>
+<li class="lvl-5">
+<p>然后，检查 <code>value</code> 是否是字典（<code>dict</code>）的确切类型。如果是，递归地加载字典的键和值。</p>
+</li>
+<li class="lvl-5">
+<p>检查 <code>value</code> 是否是列表（<code>list</code>）、元组（<code>tuple</code>）或集合（<code>set</code>）的确切类型。如果是，递归地加载这些可迭代对象中的每个元素，并返回相应的类型。</p>
+</li>
+<li class="lvl-5">
+<p>如果 <code>value</code> 不是上述任何一种类型，直接返回 <code>value</code>。</p>
+</li>
+</ul>
+<h3 id="shi-li-2">示例</h3>
+<p>假设你有一些延迟加载的 <code>fixtures</code> 和一个需要这些 <code>fixtures</code> 的测试函数：</p>
+<pre><code class="language-python">def test_example(lfc(db_session)):
+    # 加载 fixtures 并执行测试逻辑
+    session = load_lazy_fixtures(lfc(db_session), request)
+    # 使用 session 进行测试...
+</code></pre>
+<p>在这个例子中，<code>lfc(db_session)</code> 创建了一个延迟加载的 <code>fixture</code> 引用。<code>load_lazy_fixtures</code> 函数用于在需要时加载这个 <code>fixture</code>，并可以处理更复杂的参数，如字典、列表等，确保所有延迟加载的 <code>fixtures</code> 都被正确加载。</p>
+<h2 id="normalizer-py-wen-jian">normalizer.py文件</h2>
+<pre><code class="language-python">import copy
+from typing import Any, Dict, List, Tuple
+
+import pytest
+
+from .lazy_fixture import LazyFixtureWrapper
+from .lazy_fixture_callable import LazyFixtureCallableWrapper
+
+
+def _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, value) -&gt; Tuple[List[str], Dict[str, Any]]:
+    if isinstance(value, LazyFixtureCallableWrapper):
+        extra_fixturenames_args, arg2fixturedefs_args = _get_fixturenames_closure_and_arg2fixturedefs(
+            fm,
+            metafunc,
+            value.args,
+        )
+        extra_fixturenames_kwargs, arg2fixturedefs_kwargs = _get_fixturenames_closure_and_arg2fixturedefs(
+            fm,
+            metafunc,
+            value.kwargs,
+        )
+        return [*extra_fixturenames_args, *extra_fixturenames_kwargs], {
+            **arg2fixturedefs_args,
+            **arg2fixturedefs_kwargs,
+        }
+    if isinstance(value, LazyFixtureWrapper):
+        if pytest.version_tuple &gt;= (8, 0, 0):
+            fixturenames_closure, arg2fixturedefs = fm.getfixtureclosure(metafunc.definition.parent, [value.name], {})
+        else:  # pragma: no cover
+            # TODO: add tox
+            _, fixturenames_closure, arg2fixturedefs = fm.getfixtureclosure([value.name], metafunc.definition.parent)
+
+        return fixturenames_closure, arg2fixturedefs
+    extra_fixturenames, arg2fixturedefs = [], {}
+    # we need to check exact type
+    if type(value) is dict:  # noqa: E721
+        value = list(value.values())
+    # we need to check exact type
+    if type(value) in {list, tuple, set}:
+        for val in value:
+            ef, arg2f = _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, val)
+            extra_fixturenames.extend(ef)
+            arg2fixturedefs.update(arg2f)
+    return extra_fixturenames, arg2fixturedefs
+
+
+def normalize_metafunc_calls(metafunc, used_keys=None):
+    newcalls = []
+    for callspec in metafunc._calls:
+        calls = _normalize_call(callspec, metafunc, used_keys)
+        newcalls.extend(calls)
+    metafunc._calls = newcalls
+
+
+def _copy_metafunc(metafunc):
+    copied = copy.copy(metafunc)
+    copied.fixturenames = copy.copy(metafunc.fixturenames)
+    copied._calls = []
+    copied._arg2fixturedefs = copy.copy(metafunc._arg2fixturedefs)
+    return copied
+
+
+def _normalize_call(callspec, metafunc, used_keys):
+    fm = metafunc.config.pluginmanager.get_plugin("funcmanage")
+
+    used_keys = used_keys or set()
+    params = callspec.params.copy() if pytest.version_tuple &gt;= (8, 0, 0) else {**callspec.params, **callspec.funcargs}
+    valtype_keys = params.keys() - used_keys
+
+    for arg in valtype_keys:
+        value = params[arg]
+        fixturenames_closure, arg2fixturedefs = _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, value)
+
+        if fixturenames_closure and arg2fixturedefs:
+            extra_fixturenames = [fname for fname in fixturenames_closure if fname not in params]
+
+            newmetafunc = _copy_metafunc(metafunc)
+            newmetafunc.fixturenames = extra_fixturenames
+            newmetafunc._arg2fixturedefs.update(arg2fixturedefs)
+            newmetafunc._calls = [callspec]
+            fm.pytest_generate_tests(newmetafunc)
+            normalize_metafunc_calls(newmetafunc, used_keys | {arg})
+            return newmetafunc._calls
+
+        used_keys.add(arg)
+    return [callspec]
+</code></pre>
+<h3 id="get-fixturenames-closure-and-arg-2-fixturedefs-fang-fa">_get_fixturenames_closure_and_arg2fixturedefs方法</h3>
+<p><code>_get_fixturenames_closure_and_arg2fixturedefs</code> 函数递归地处理输入值，以提取与 <code>pytest fixtures</code> 相关的信息。这个函数的目的是找出所有由延迟加载的 <code>fixtures</code> 引用所隐含的 <code>fixtures</code> 名称，并收集它们的详细信息。</p>
+<p>代码逻辑：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>函数首先检查 <code>value</code> 是否是 <code>LazyFixtureCallableWrapper</code> 或 <code>LazyFixtureWrapper</code> 的实例，并相应地递归处理。</p>
+</li>
+<li class="lvl-2">
+<p>对于 <code>LazyFixtureCallableWrapper</code>，处理附加的位置参数和关键字参数。</p>
+</li>
+<li class="lvl-2">
+<p>对于 <code>LazyFixtureWrapper</code>，调用 <code>fm.getfixtureclosure</code> 获取 <code>fixtures</code> 的名称闭包和详细信息。</p>
+</li>
+<li class="lvl-2">
+<p>对于字典、列表、元组或集合，递归地处理其中的每个元素，以提取所有相关的 <code>fixtures</code> 信息。</p>
+</li>
+<li class="lvl-2">
+<p>函数通过递归和类型检查，确保所有可能包含 <code>fixtures</code> 引用的地方都被检查并处理。</p>
+</li>
+</ul>
+<p>详细介绍如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数签名</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, value)</code>: 定义了函数及其参数：
+<ul class="lvl-4">
+<li class="lvl-7"><code>fm</code>: <code>pytest</code> 的 <code>funcmanage</code> 插件实例，用于管理 <code>fixtures</code>。</li>
+<li class="lvl-7"><code>metafunc</code>: 代表当前测试函数的元数据的对象。</li>
+<li class="lvl-7"><code>value</code>: 可能是 <code>LazyFixtureWrapper</code> 或 <code>LazyFixtureCallableWrapper</code> 的实例，或者是要检查的值。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回类型注解</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>-&gt; Tuple[List[str], Dict[str, Any]]</code>: 函数返回一个元组，包含一个字符串列表（<code>fixtures</code> 名称的闭包）和一个字典（<code>fixtures</code> 的详细信息）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理 LazyFixtureCallableWrapper</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>value</code> 是 <code>LazyFixtureCallableWrapper</code> 的实例，递归地处理 <code>args</code> 和 <code>kwargs</code>，合并结果并返回。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理 LazyFixtureWrapper</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>value</code> 是 <code>LazyFixtureWrapper</code> 的实例，根据 <code>pytest</code> 的版本使用不同的方法从 <code>fm</code> 获取 <code>fixtures</code> 的名称闭包和详细信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>版本兼容处理</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">根据 <code>pytest</code> 的版本（8.0.0 及以上），使用不同的参数顺序调用 <code>fm.getfixtureclosure</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回 fixtures 信息</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">对于 <code>LazyFixtureWrapper</code>，返回获取的 `fixtures 名称闭包和详细信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理字典</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>value</code> 是字典的确切类型，将值转换为列表并递归处理。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理列表、元组、集合</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>value</code> 是列表、元组或集合的确切类型，遍历每个元素，递归调用 <code>_get_fixturenames_closure_and_arg2fixturedefs</code>，并更新结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回空结果</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>value</code> 不是上述任何类型，返回空列表和空字典作为默认结果。</li>
+</ul>
+</li>
+</ol>
+<h3 id="copy-metafunc-fang-fa">_copy_metafunc方法</h3>
+<p>这个函数的作用是创建一个与传入的 <code>metafunc</code> 对象相似但某些属性被重新初始化或复制的新对象。这种复制操作在一些需要对对象进行修改但又不想影响原始对象的场景中可能会用到。</p>
+<p>逐步解释：</p>
+<ol>
+<li class="lvl-3">
+<p><code>copied = copy.copy(metafunc)</code>：使用 <code>copy.copy</code> 函数创建了 <code>metafunc</code> 的浅复制，并将其存储在 <code>copied</code> 变量中。</p>
+</li>
+<li class="lvl-3">
+<p><code>copied.fixturenames = copy.copy(metafunc.fixturenames)</code>：复制了 <code>metafunc</code> 对象的 <code>fixturenames</code> 属性。</p>
+</li>
+<li class="lvl-3">
+<p><code>copied._calls = []</code>：将 <code>copied</code> 对象的 <code>_calls</code> 属性初始化为一个空列表。</p>
+</li>
+<li class="lvl-3">
+<p><code>copied._arg2fixturedefs = copy.copy(metafunc._arg2fixturedefs)</code>：复制了 <code>metafunc</code> 对象的 <code>_arg2fixturedefs</code> 属性。</p>
+</li>
+<li class="lvl-3">
+<p>最后，函数返回复制后的 <code>copied</code> 对象。</p>
+</li>
+</ol>
+<h3 id="normalize-call-fang-fa">_normalize_call方法</h3>
+<p><code>_normalize_call</code> 函数用于处理 <code>pytest</code> 的调用规范（<code>callspec</code>）和元数据（<code>metafunc</code>）。</p>
+<p>代码逻辑如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>函数的主要目的是处理 <code>callspec</code> 中的参数，特别是那些可能是延迟加载 <code>fixtures</code> 的参数。</p>
+</li>
+<li class="lvl-2">
+<p>它通过 <code>_get_fixturenames_closure_and_arg2fixturedefs</code> 函数来提取 <code>fixtures</code> 信息，并根据这些信息创建新的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p>如果参数值包含延迟加载的 <code>fixtures</code>，会创建 <code>metafunc</code> 的副本并更新其属性，然后生成新的测试。</p>
+</li>
+<li class="lvl-2">
+<p>函数递归地处理 <code>metafunc</code>，以确保所有相关的 <code>fixtures</code> 都被正确处理。</p>
+</li>
+</ul>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def _normalize_call(callspec, metafunc, used_keys)</code>: 定义了函数，接受三个参数：<code>callspec</code>（调用规范），<code>metafunc</code>（元数据函数），<code>used_keys</code>（已使用的关键字参数集合）。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>获取 funcmanage 插件</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>fm = metafunc.config.pluginmanager.get_plugin("funcmanage")</code>: 从 <code>pytest</code> 的插件管理器中获取 <code>funcmanage</code> 插件的实例。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>初始化 used_keys</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>used_keys = used_keys or set()</code>: 如果 <code>used_keys</code> 未提供或为 <code>None</code>，则初始化为一个新的空集合。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>复制 params</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>params = callspec.params.copy()</code>: 复制 <code>callspec</code> 中的 <code>params</code> 字典。对于 <code>pytest 8.0.0</code> 及以上版本，<code>params</code> 已经包含了所有参数；对于更低版本，还需要合并 <code>callspec.funcargs</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>计算 valtype_keys</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>valtype_keys = params.keys() - used_keys</code>: 找出 <code>params</code> 中尚未使用的关键字参数键。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历 valtype_keys</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">遍历 <code>valtype_keys</code> 中的每个参数名 <code>arg</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>提取 fixtures 信息</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>fixturenames_closure, arg2fixturedefs = _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, value)</code>: 对于每个参数值 <code>value</code>，调用 <code>_get_fixturenames_closure_and_arg2fixturedefs</code> 函数来获取 <code>fixtures</code> 名称闭包和详细信息。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理额外的 fixtures</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">如果 <code>fixturenames_closure</code> 和 <code>arg2fixturedefs</code> 都不为空，表示找到了额外的 <code>fixtures</code>：
+<ul class="lvl-4">
+<li class="lvl-7">从 <code>fixturenames_closure</code> 中筛选出尚未在 <code>params</code> 中的 <code>fixtures</code> 名称。</li>
+<li class="lvl-7">创建 <code>metafunc</code> 的副本 <code>newmetafunc</code>。</li>
+<li class="lvl-7">更新 <code>newmetafunc</code> 的 <code>fixturenames</code> 和 <code>_arg2fixturedefs</code>。</li>
+<li class="lvl-7">设置 <code>newmetafunc._calls</code> 为当前的 <code>callspec</code>。</li>
+<li class="lvl-7">调用 <code>fm.pytest_generate_tests(newmetafunc)</code> 来生成新的测试。</li>
+<li class="lvl-7">递归调用 <code>normalize_metafunc_calls</code> 来进一步处理 <code>newmetafunc</code>。</li>
+<li class="lvl-7">返回 <code>newmetafunc._calls</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>更新 used_keys</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>used_keys.add(arg)</code>: 将当前处理的参数名 <code>arg</code> 添加到 <code>used_keys</code> 集合中。</li>
+</ul>
+</li>
+<li class="lvl-4">
+<p><strong>返回 callspec</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-6">如果没有额外的 <code>fixtures</code> 需要处理，或者在处理过程中没有找到新的 <code>fixtures</code>，返回原始的 <code>callspec</code> 列表。</li>
+</ul>
+</li>
+</ol>
+<h3 id="normalize-metafunc-calls-fang-fa">normalize_metafunc_calls方法</h3>
+<p><code>normalize_metafunc_calls</code>函数用于处理 <code>pytest</code> 的元数据函数（<code>metafunc</code>）和调用规范（<code>callspec</code>）。</p>
+<p>代码逻辑如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>函数的目的是规范化 <code>metafunc</code> 中的调用规范，特别是处理延迟加载的 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-2">
+<p>它通过 <code>_normalize_call</code> 函数来处理每个 <code>callspec</code>，这可能会生成新的调用规范，特别是当参数值包含延迟加载的 <code>fixtures</code> 时。</p>
+</li>
+<li class="lvl-2">
+<p>处理后的调用规范被收集到 <code>newcalls</code> 列表中，并最终替换 <code>metafunc</code> 的原始 <code>_calls</code> 列表。</p>
+</li>
+</ul>
+<p>详细解释如下：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>def normalize_metafunc_calls(metafunc, used_keys=None)</code>: 定义了函数，接受两个参数：
+<ul class="lvl-4">
+<li class="lvl-7"><code>metafunc</code>: 一个 <code>pytest</code> 测试函数的元数据对象，包含有关测试函数的信息，如参数和 <code>fixtures</code>。</li>
+<li class="lvl-7"><code>used_keys</code>: 一个可选参数，表示已经使用的关键字参数的集合。如果没有提供，它将被初始化为 <code>None</code>。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>初始化新调用列表</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>newcalls = []</code>: 创建一个新的空列表 <code>newcalls</code>，用于存储处理后的调用规范。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>遍历原始调用规范</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>for callspec in metafunc._calls</code>: 遍历 <code>metafunc</code> 中的 <code>_calls</code> 属性，这是一个包含所有调用规范的列表。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理每个调用规范</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>calls = _normalize_call(callspec, metafunc, used_keys)</code>: 对每个 <code>callspec</code> 调用 <code>_normalize_call</code> 函数，传入当前的 <code>callspec</code>、<code>metafunc</code> 和 <code>used_keys</code>。这将处理延迟加载的 fixtures 并生成新的调用规范。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>扩展新调用列表</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>newcalls.extend(calls)</code>: 将 <code>_normalize_call</code> 函数返回的新调用规范列表扩展到 <code>newcalls</code> 列表中。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>更新元数据函数的调用规范</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>metafunc._calls = newcalls</code>: 用处理后的 <code>newcalls</code> 列表更新 <code>metafunc</code> 的 <code>_calls</code> 属性。</li>
+</ul>
+</li>
+</ol>
+<h2 id="normalizer-py-wen-jian-1">normalizer.py文件</h2>
+<pre><code class="language-python">import copy
+from typing import Any, Dict, List, Tuple
+
+import pytest
+
+from .lazy_fixture import LazyFixtureWrapper
+from .lazy_fixture_callable import LazyFixtureCallableWrapper
+
+
+def _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, value) -&gt; Tuple[List[str], Dict[str, Any]]:
+    if isinstance(value, LazyFixtureCallableWrapper):
+        extra_fixturenames_args, arg2fixturedefs_args = _get_fixturenames_closure_and_arg2fixturedefs(
+            fm,
+            metafunc,
+            value.args,
+        )
+        extra_fixturenames_kwargs, arg2fixturedefs_kwargs = _get_fixturenames_closure_and_arg2fixturedefs(
+            fm,
+            metafunc,
+            value.kwargs,
+        )
+        return [*extra_fixturenames_args, *extra_fixturenames_kwargs], {
+            **arg2fixturedefs_args,
+            **arg2fixturedefs_kwargs,
+        }
+    if isinstance(value, LazyFixtureWrapper):
+        if pytest.version_tuple &gt;= (8, 0, 0):
+            fixturenames_closure, arg2fixturedefs = fm.getfixtureclosure(metafunc.definition.parent, [value.name], {})
+        else:  # pragma: no cover
+            # TODO: add tox
+            _, fixturenames_closure, arg2fixturedefs = fm.getfixtureclosure([value.name], metafunc.definition.parent)
+
+        return fixturenames_closure, arg2fixturedefs
+    extra_fixturenames, arg2fixturedefs = [], {}
+    # we need to check exact type
+    if type(value) is dict:  # noqa: E721
+        value = list(value.values())
+    # we need to check exact type
+    if type(value) in {list, tuple, set}:
+        for val in value:
+            ef, arg2f = _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, val)
+            extra_fixturenames.extend(ef)
+            arg2fixturedefs.update(arg2f)
+    return extra_fixturenames, arg2fixturedefs
+
+
+def normalize_metafunc_calls(metafunc, used_keys=None):
+    newcalls = []
+    for callspec in metafunc._calls:
+        calls = _normalize_call(callspec, metafunc, used_keys)
+        newcalls.extend(calls)
+    metafunc._calls = newcalls
+
+
+def _copy_metafunc(metafunc):
+    copied = copy.copy(metafunc)
+    copied.fixturenames = copy.copy(metafunc.fixturenames)
+    copied._calls = []
+    copied._arg2fixturedefs = copy.copy(metafunc._arg2fixturedefs)
+    return copied
+
+
+def _normalize_call(callspec, metafunc, used_keys):
+    fm = metafunc.config.pluginmanager.get_plugin("funcmanage")
+
+    used_keys = used_keys or set()
+    params = callspec.params.copy() if pytest.version_tuple &gt;= (8, 0, 0) else {**callspec.params, **callspec.funcargs}
+    valtype_keys = params.keys() - used_keys
+
+    for arg in valtype_keys:
+        value = params[arg]
+        fixturenames_closure, arg2fixturedefs = _get_fixturenames_closure_and_arg2fixturedefs(fm, metafunc, value)
+
+        if fixturenames_closure and arg2fixturedefs:
+            extra_fixturenames = [fname for fname in fixturenames_closure if fname not in params]
+
+            newmetafunc = _copy_metafunc(metafunc)
+            newmetafunc.fixturenames = extra_fixturenames
+            newmetafunc._arg2fixturedefs.update(arg2fixturedefs)
+            newmetafunc._calls = [callspec]
+            fm.pytest_generate_tests(newmetafunc)
+            normalize_metafunc_calls(newmetafunc, used_keys | {arg})
+            return newmetafunc._calls
+
+        used_keys.add(arg)
+    return [callspec]
+</code></pre>
+<p>对代解析如下：</p>
+<h3 id="dao-ru-yi-lai">导入依赖</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>import copy</code>：导入 <code>Python</code> 标准库中的 <code>copy</code> 模块，用于复制对象。</p>
+</li>
+<li class="lvl-2">
+<p><code>from typing import Any, Dict, List, Tuple</code>：导入类型注解，用于函数返回类型和参数类型。</p>
+</li>
+<li class="lvl-2">
+<p><code>import pytest</code>：导入 <code>pytest</code> 模块，用于与 <code>pytest</code> 框架集成。</p>
+</li>
+<li class="lvl-2">
+<p><code>from .lazy_fixture import LazyFixtureWrapper</code> 和 <code>from .lazy_fixture_callable import LazyFixtureCallableWrapper</code>：从同一包中导入 <code>LazyFixtureWrapper</code> 和 <code>LazyFixtureCallableWrapper</code> 类。</p>
+</li>
+</ul>
+<h3 id="get-fixturenames-closure-and-arg-2-fixturedefs-han-shu">_get_fixturenames_closure_and_arg2fixturedefs 函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>功能：获取与延迟加载的 <code>fixture</code> 相关的 <code>fixtures</code> 名称闭包和 <code>fixtures</code> 定义。</p>
+</li>
+<li class="lvl-2">
+<p>参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>fm</code>：<code>pytest</code> 的 <code>funcmanage</code> 插件实例。</li>
+<li class="lvl-4"><code>metafunc</code>：代表当前测试函数的元数据对象。</li>
+<li class="lvl-4"><code>value</code>：可能是延迟加载的 <code>fixture</code> 或其他值。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>返回值：一个元组，包含 <code>fixtures</code> 名称的列表和 <code>fixtures</code> 定义的字典。</p>
+</li>
+</ul>
+<h3 id="normalize-metafunc-calls-han-shu">normalize_metafunc_calls 函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>功能：规范化 <code>metafunc</code> 中的调用规范，处理延迟加载的 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-2">
+<p>参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>metafunc</code>：<code>pytest</code> 测试函数的元数据对象。</li>
+<li class="lvl-4"><code>used_keys</code>：一个可选参数，表示已经使用的关键字参数的集合。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>逻辑：遍历 <code>metafunc._calls</code> 中的每个 <code>callspec</code>，调用 <code>_normalize_call</code> 函数处理，并更新 <code>metafunc._calls</code>。</p>
+</li>
+</ul>
+<h3 id="copy-metafunc-han-shu">_copy_metafunc 函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>功能：复制 <code>metafunc</code> 对象，创建一个新的元数据对象。</p>
+</li>
+<li class="lvl-2">
+<p>参数：<code>metafunc</code>。</p>
+</li>
+<li class="lvl-2">
+<p>返回值：一个新的 <code>metafunc</code> 副本。</p>
+</li>
+</ul>
+<h3 id="normalize-call-han-shu">_normalize_call 函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>功能：处理单个调用规范，提取延迟加载的 <code>fixtures</code> 并生成新的调用规范。</p>
+</li>
+<li class="lvl-2">
+<p>参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>callspec</code>：当前的调用规范。</li>
+<li class="lvl-4"><code>metafunc</code>：<code>pytest</code> 测试函数的元数据对象。</li>
+<li class="lvl-4"><code>used_keys</code>：表示已经使用的关键字参数的集合。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>逻辑：</p>
+<ul class="lvl-2">
+<li class="lvl-4">获取 <code>funcmanage</code> 插件实例。</li>
+<li class="lvl-4">复制 <code>params</code> 字典，并计算未使用的关键字参数键（<code>valtype_keys</code>）。</li>
+<li class="lvl-4">遍历 <code>valtype_keys</code>，对于每个参数值 <code>value</code>，调用 <code>_get_fixturenames_closure_and_arg2fixturedefs</code> 函数获取 <code>fixtures</code> 名称闭包和定义。</li>
+<li class="lvl-4">如果获取到额外的 <code>fixtures</code> 名称和定义，创建 <code>metafunc</code> 的副本，更新其 <code>fixturenames</code> 和 <code>_arg2fixturedefs</code>，生成新的调用规范并返回。</li>
+<li class="lvl-4">如果没有额外的 <code>fixtures</code>，将当前的 <code>callspec</code> 添加到 <code>used_keys</code> 并返回。</li>
+</ul>
+</li>
+</ul>
+<h3 id="dai-ma-luo-ji-zong-jie">代码逻辑总结</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这段代码通过递归和类型检查，确保所有可能包含延迟加载 <code>fixtures</code> 的参数都被检查并处理。</p>
+</li>
+<li class="lvl-2">
+<p><code>_get_fixturenames_closure_and_arg2fixturedefs</code> 函数是核心，它负责提取 <code>fixtures</code> 信息。</p>
+</li>
+<li class="lvl-2">
+<p><code>normalize_metafunc_calls</code> 和 <code>_normalize_call</code> 函数处理调用规范，生成新的测试用例。</p>
+</li>
+<li class="lvl-2">
+<p><code>_copy_metafunc</code> 函数用于创建 <code>metafunc</code> 的副本，以便在生成新测试时保持原始 <code>metafunc</code> 不变。</p>
+</li>
+</ul>
+<h2 id="plugin-py-wen-jian">plugin.py文件</h2>
+<pre><code class="language-python">import pytest
+
+from .lazy_fixture import LazyFixtureWrapper
+from .loader import load_lazy_fixtures
+from .normalizer import normalize_metafunc_calls
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_fixture_setup(fixturedef, request):
+    val = getattr(request, "param", None)
+    if val is not None:
+        request.param = load_lazy_fixtures(val, request)
+
+
+def pytest_make_parametrize_id(config, val, argname):
+    if isinstance(val, LazyFixtureWrapper):
+        return val.name
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_generate_tests(metafunc):
+    yield
+
+    normalize_metafunc_calls(metafunc)
+</code></pre>
+<p>代码详细解析：</p>
+<h3 id="dao-ru-yi-lai-1">导入依赖</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>import pytest</code>：导入 <code>pytest</code> 模块，用于与 <code>pytest</code> 框架集成。</p>
+</li>
+<li class="lvl-2">
+<p><code>from .lazy_fixture import LazyFixtureWrapper</code>：从同一包中导入 <code>LazyFixtureWrapper</code> 类，用于包装延迟加载的 <code>fixture</code>。</p>
+</li>
+<li class="lvl-2">
+<p><code>from .loader import load_lazy_fixtures</code>：从 <code>loader</code> 模块导入 <code>load_lazy_fixtures</code> 函数，用于加载延迟加载的 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-2">
+<p><code>from .normalizer import normalize_metafunc_calls</code>：从 <code>normalizer</code> 模块导入 <code>normalize_metafunc_calls</code> 函数，用于规范化 <code>metafunc</code> 中的调用规范。</p>
+</li>
+</ul>
+<h3 id="pytest-fixture-setup-gou-zi-han-shu">pytest_fixture_setup 钩子函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>@pytest.hookimpl(tryfirst=True)</code>：装饰器，将函数注册为 <code>pytest</code> 的钩子，<code>tryfirst=True</code> 表示尽可能早地执行此钩子。</p>
+</li>
+<li class="lvl-2">
+<p>功能：在 fixture 设置阶段被调用，用于处理延迟加载的 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-2">
+<p>参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>fixturedef</code>：<code>fixture</code> 的定义。</li>
+<li class="lvl-4"><code>request</code>：包含测试函数和 <code>fixture</code> 请求的上下文。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>逻辑：</p>
+<ul class="lvl-2">
+<li class="lvl-4">获取 <code>request</code> 的 <code>param</code> 属性，如果存在，则使用 <code>load_lazy_fixtures</code> 函数加载延迟加载的 <code>fixtures</code>，并将结果重新赋值给 <code>request.param</code>。</li>
+</ul>
+</li>
+</ul>
+<h3 id="pytest-make-parametrize-id-gou-zi-han-shu">pytest_make_parametrize_id 钩子函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>功能：用于生成参数化测试的 ID。</p>
+</li>
+<li class="lvl-2">
+<p>参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>config</code>：<code>pytest</code> 的配置对象。</li>
+<li class="lvl-4"><code>val</code>：参数值。</li>
+<li class="lvl-4"><code>argname</code>：参数名称。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>逻辑：</p>
+<ul class="lvl-2">
+<li class="lvl-4">如果 <code>val</code> 是 <code>LazyFixtureWrapper</code> 的实例，返回其名称 <code>name</code> 作为参数化测试的 <code>ID</code>。</li>
+</ul>
+</li>
+</ul>
+<h3 id="pytest-generate-tests-gou-zi-han-shu">pytest_generate_tests 钩子函数</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>@pytest.hookimpl(hookwrapper=True)</code>：装饰器，将函数注册为 <code>pytest</code> 的钩子，<code>hookwrapper=True</code> 表示此钩子会包装其他钩子的执行。</p>
+</li>
+<li class="lvl-2">
+<p>功能：在生成测试用例时被调用，用于处理延迟加载的 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-2">
+<p>参数：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>metafunc</code>：代表当前测试函数的元数据对象。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p>逻辑：</p>
+<ul class="lvl-2">
+<li class="lvl-4">使用 <code>yield</code> 挂起函数执行，等待其他钩子执行完毕后再继续。</li>
+<li class="lvl-4">调用 <code>normalize_metafunc_calls</code> 函数处理 <code>metafunc</code>，确保所有延迟加载的 <code>fixtures</code> 被正确处理。</li>
+</ul>
+</li>
+</ul>
+<h3 id="dai-ma-luo-ji-zong-jie-1">代码逻辑总结</h3>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这段代码通过 <code>pytest</code> 的钩子机制，实现了对延迟加载 <code>fixtures</code> 的支持。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_fixture_setup</code> 钩子在 <code>fixture</code> 设置阶段加载延迟加载的 <code>fixtures</code>，并更新 <code>request.param</code>。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_make_parametrize_id</code> 钩子为参数化测试生成 ID，特别处理 <code>LazyFixtureWrapper</code> 实例。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_generate_tests</code> 钩子在生成测试用例时规范化 <code>metafunc</code>，确保所有延迟加载的 <code>fixtures</code> 被正确处理。</p>
+</li>
+</ul>
+<h1 id="jie-yu">结语</h1>
+<p><code>pytest_lazy_fixtures</code> 是一个 <code>pytest</code> 插件，它允许你以惰性方式加载 <code>fixtures</code>，即直到真正需要它们时才进行加载。这可以减少测试的初始化时间，并降低资源消耗，特别是在处理复杂的或耗时的 <code>fixture</code> 时非常有用。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>编写测试</strong>：在你的测试模块中，使用 <code>lf</code> 或 <code>lfc</code> 函数来引用 <code>fixtures</code>，而不是直接使用 <code>pytest.fixture</code> 装饰器。</p>
+</li>
+<li class="lvl-3">
+<p><strong>使用 LazyFixtureWrapper</strong>：<code>lf</code> 函数返回一个 <code>LazyFixtureWrapper</code> 对象，它包装了 <code>fixture</code> 的名称，并在运行时才加载它。</p>
+</li>
+<li class="lvl-3">
+<p><strong>使用 LazyFixtureCallableWrapper</strong>：<code>lfc</code> 函数允许你延迟调用 <code>fixtures</code>，并且可以传递参数和关键字参数。</p>
+</li>
+<li class="lvl-3">
+<p><strong>运行测试</strong>：使用 <code>pytest</code> 运行测试，插件会自动处理延迟加载的 <code>fixtures</code>。</p>
+</li>
+<li class="lvl-3">
+<p><strong>配置 pytest</strong>：如果需要，你可以在 <code>conftest.py</code> 或测试模块中配置插件，例如设置默认的 <code>fixtures</code>。</p>
+</li>
+</ol>
+<p>通过使用 <code>pytest_lazy_fixtures</code> 插件，你可以使测试套件更加高效，特别是在处理多个或复杂的 <code>fixtures</code> 时。它提供了一种灵活的方式来组织和执行测试，同时保持了测试的清晰性和可维护性。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/07/20/pytest_lazy_fixtures/">https://gavin-wang-note.github.io/2025/07/20/pytest_lazy_fixtures/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2999/12/28/why_choose_pytest/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="Why choose pytest?">
+                        
+                        <span class="card-title">Why choose pytest?</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            Why choose pytest? Happy testing, and may your code be as bug-free as a clear blue sky!
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2999-12-28
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/06/29/pytest_lazyfixture/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例依赖之pytest-lazy-fixture源码解读">
+                        
+                        <span class="card-title">测试用例依赖之pytest-lazy-fixture源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            试用例依赖之pytest-lazy-fixture源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-06-29
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1095.4k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
