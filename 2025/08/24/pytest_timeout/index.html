@@ -1,0 +1,3579 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例超时之pytest-timeout源码解读, 软硬件测试">
+    <meta name="description" content="测试用例超时之pytest-timeout源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例超时之pytest-timeout源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例超时之pytest-timeout源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-08-24
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    13.8k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    58 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<h2 id="guan-fang-shi-yong-jie-shao">官方使用介绍</h2>
+<p>直接从官方文档中摘抄，内容参考如下：</p>
+<pre><code class="language-shell">1. You can set a global timeout in the `pytest configuration file`__
+   using the ``timeout`` option.  E.g.:
+
+   .. code:: ini
+
+      [pytest]
+      timeout = 300
+
+2. The ``PYTEST_TIMEOUT`` environment variable sets a global timeout
+   overriding a possible value in the configuration file.
+
+3. The ``--timeout`` command line option sets a global timeout
+   overriding both the environment variable and configuration option.
+
+4. Using the ``timeout`` marker_ on test items you can specify
+   timeouts on a per-item basis:
+
+   .. code:: python
+
+      @pytest.mark.timeout(300)
+      def test_foo():
+          pass
+</code></pre>
+<p>总结一下：<br>
+1.写入<code>pytest.ini</code>文件<br>
+2.使用环境变量<code>PYTEST_TIMEOUT</code><br>
+3.<code>pytest</code>执行时指定参数<code>--timeout</code><br>
+4.测试用例中使用<code>timeout</code>标记</p>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="yuan-ma-mu-lu-jie-gou">源码目录结构</h2>
+<p>从<a target="_blank" rel="noopener" href="https://pypi.org/project/pytest-timeout">官网</a>下载解压到本地：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin# cd pytest-timeout-2.3.1/
+root@Gavin:~/pytest_plugin/pytest-timeout-2.3.1# ll
+total 116
+drwxr-xr-x  3 gavin gavin  4096 Mar  8 05:03 ./
+drwxr-xr-x 24 root  root   4096 Jul 25 10:30 ../
+-rw-r--r--  1 gavin gavin   681 Jul 19  2021 failure_demo.py
+-rw-r--r--  1 gavin gavin  1085 Nov 21  2019 LICENSE
+-rw-r--r--  1 gavin gavin   107 Nov 21  2019 MANIFEST.in
+-rw-r--r--  1 gavin gavin 20008 Mar  8 05:03 PKG-INFO
+-rw-r--r--  1 gavin gavin    81 Oct  8  2023 pyproject.toml
+drwxr-xr-x  2 gavin gavin  4096 Mar  8 05:03 pytest_timeout.egg-info/
+-rw-r--r--  1 gavin gavin 18801 Mar  8 04:51 pytest_timeout.py
+-rw-r--r--  1 gavin gavin 18738 Mar  8 05:02 README.rst
+-rw-r--r--  1 gavin gavin  1236 Mar  8 05:03 setup.cfg
+-rw-r--r--  1 gavin gavin   121 Oct  8  2023 setup.py
+-rw-r--r--  1 gavin gavin 15989 Mar  8 04:51 test_pytest_timeout.py
+-rw-r--r--  1 gavin gavin   428 Feb  9 03:02 tox.ini
+root@Gavin:~/pytest_plugin/pytest-timeout-2.3.1# 
+</code></pre>
+<p>核心文件是<code>pytest_timeout.py</code>.</p>
+<h2 id="he-xin-wen-jian-dai-ma-jie-du">核心文件代码解读</h2>
+<h3 id="bian-liang-sheng-ming-xiang-guan">变量声明相关</h3>
+<pre><code class="language-python">__all__ = ("is_debugging", "Settings")
+SESSION_TIMEOUT_KEY = pytest.StashKey[float]()
+SESSION_EXPIRE_KEY = pytest.StashKey[float]()
+
+
+HAVE_SIGALRM = hasattr(signal, "SIGALRM")
+if HAVE_SIGALRM:
+    DEFAULT_METHOD = "signal"
+else:
+    DEFAULT_METHOD = "thread"
+TIMEOUT_DESC = """ 
+Timeout in seconds before dumping the stacks.  Default is 0 which
+means no timeout.
+""".strip()
+METHOD_DESC = """ 
+Timeout mechanism to use.  'signal' uses SIGALRM, 'thread' uses a timer
+thread.  If unspecified 'signal' is used on platforms which support
+SIGALRM, otherwise 'thread' is used.
+""".strip()
+FUNC_ONLY_DESC = """ 
+When set to True, defers the timeout evaluation to only the test
+function body, ignoring the time it takes when evaluating any fixtures
+used in the test.
+""".strip()
+DISABLE_DEBUGGER_DETECTION_DESC = """ 
+When specified, disables debugger detection. breakpoint(), pdb.set_trace(), etc.
+will be interrupted by the timeout.
+""".strip()
+SESSION_TIMEOUT_DESC = """ 
+Timeout in seconds for entire session.  Default is None which
+means no timeout. Timeout is checked between tests, and will not interrupt a test
+in progress.
+""".strip()
+
+# bdb covers pdb, ipdb, and possibly others
+# pydevd covers PyCharm, VSCode, and possibly others
+KNOWN_DEBUGGING_MODULES = {"pydevd", "bdb", "pydevd_frame_evaluator"}
+Settings = namedtuple(
+    "Settings", ["timeout", "method", "func_only", "disable_debugger_detection"]
+)
+</code></pre>
+<p>这段代码用于配置和处理与测试相关的超时设置，特别是与 <code>pytest</code> 集成的某种测试超时插件或工具。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>导出的名称</strong>:</p>
+<pre><code class="language-python">__all__ = ("is_debugging", "Settings")
+</code></pre>
+<p>这个模块导出了两个名称：<code>is_debugging</code> 和 <code>Settings</code>，这可用于在导入时明确模块提供的功能。</p>
+</li>
+<li class="lvl-3">
+<p><strong>会话超时和过期的 StashKey</strong>:</p>
+<pre><code class="language-python">SESSION_TIMEOUT_KEY = pytest.StashKey[float]()
+SESSION_EXPIRE_KEY = pytest.StashKey[float]()
+</code></pre>
+<p>这里定义了两个 <code>StashKey</code>，分别用于存储会话超时和会话过期时间的键。<code>pytest.StashKey</code> 可能是 <code>pytest</code> 用于存储测试相关数据的机制。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查 SIGALRM 信号</strong>:</p>
+<pre><code class="language-python">HAVE_SIGALRM = hasattr(signal, "SIGALRM")
+</code></pre>
+<p>检查 <code>Python</code> 的 <code>signal</code> 模块是否定义了 <code>SIGALRM</code> 信号。</p>
+</li>
+<li class="lvl-3">
+<p><strong>默认方法设置</strong>:</p>
+<pre><code class="language-python">if HAVE_SIGALRM:
+    DEFAULT_METHOD = "signal"
+else:
+    DEFAULT_METHOD = "thread"
+</code></pre>
+<p>根据是否支持 <code>SIGALRM</code> 信号，设置默认的超时机制。如果支持，则默认使用信号（<code>"signal"</code>），否则使用线程（<code>"thread"</code>）。</p>
+</li>
+<li class="lvl-3">
+<p><strong>描述文本</strong>:</p>
+<pre><code class="language-python">TIMEOUT_DESC = """ ... """.strip()
+METHOD_DESC = """ ... """.strip()
+FUNC_ONLY_DESC = """ ... """.strip()
+DISABLE_DEBUGGER_DETECTION_DESC = """ ... """.strip()
+SESSION_TIMEOUT_DESC = """ ... """.strip()
+</code></pre>
+<p>定义了多段描述性文本，解释了超时设置、机制选择、函数仅超时评估、禁用调试器检测和会话超时等配置项的含义。</p>
+</li>
+<li class="lvl-3">
+<p><strong>已知的调试模块</strong>:</p>
+<pre><code class="language-python">KNOWN_DEBUGGING_MODULES = {"pydevd", "bdb", "pydevd_frame_evaluator"}
+</code></pre>
+<p>定义了一个集合，包含了已知的调试器模块名称，如 <code>pydevd</code>（通常与 PyCharm IDE 相关）、<code>bdb</code> 和 <code>pydevd_frame_evaluator</code>。</p>
+</li>
+<li class="lvl-3">
+<p><strong>设置命名元组</strong>:</p>
+<pre><code class="language-python">Settings = namedtuple("Settings", ["timeout", "method", "func_only", "disable_debugger_detection"])
+</code></pre>
+<p>使用 <code>collections.namedtuple</code> 创建了一个名为 <code>Settings</code> 的命名元组，用于存储超时设置，包括：</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>timeout</code>：超时时间。</li>
+<li class="lvl-5"><code>method</code>：超时机制，可以是 <code>"signal"</code> 或 <code>"thread"</code>。</li>
+<li class="lvl-5"><code>func_only</code>：是否仅在测试函数体中计算超时时间，忽略 <code>fixtures</code> 执行时间。</li>
+<li class="lvl-5"><code>disable_debugger_detection</code>：是否禁用调试器检测。</li>
+</ul>
+</li>
+</ol>
+<h3 id="can-shu-xiang-guan">参数相关</h3>
+<pre><code class="language-python">@pytest.hookimpl
+def pytest_addoption(parser):
+    """Add options to control the timeout plugin."""
+    group = parser.getgroup(
+        "timeout",
+        "Interrupt test run and dump stacks of all threads after a test times out",
+    )
+    group.addoption("--timeout", type=float, help=TIMEOUT_DESC)
+    group.addoption(
+        "--timeout_method",
+        action="store",
+        choices=["signal", "thread"],
+        help="Deprecated, use --timeout-method",
+    )
+    group.addoption(
+        "--timeout-method",
+        dest="timeout_method",
+        action="store",
+        choices=["signal", "thread"],
+        help=METHOD_DESC,
+    )
+    group.addoption(
+        "--timeout-disable-debugger-detection",
+        dest="timeout_disable_debugger_detection",
+        action="store_true",
+        help=DISABLE_DEBUGGER_DETECTION_DESC,
+    )
+    group.addoption(
+        "--session-timeout",
+        action="store",
+        dest="session_timeout",
+        default=None,
+        type=float,
+        metavar="SECONDS",
+        help=SESSION_TIMEOUT_DESC,
+    )
+    parser.addini("timeout", TIMEOUT_DESC)
+    parser.addini("timeout_method", METHOD_DESC)
+    parser.addini("timeout_func_only", FUNC_ONLY_DESC, type="bool", default=False)
+    parser.addini(
+        "timeout_disable_debugger_detection",
+        DISABLE_DEBUGGER_DETECTION_DESC,
+        type="bool",
+        default=False,
+    )
+    parser.addini("session_timeout", SESSION_TIMEOUT_DESC)
+</code></pre>
+<p>这个函数的主要作用是为 <code>pytest</code> 添加了丰富的配置选项，允许用户通过命令行或配置文件来控制测试的超时行为，包括超时时间、超时机制、调试器检测等，这为用户提供了灵活的测试控制能力。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl
+</code></pre>
+</li>
+</ol>
+<p>这行代码使用 <code>pytest.hookimpl</code> 装饰器，将下面的函数注册为 <code>pytest</code> 的钩子。</p>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def pytest_addoption(parser):
+</code></pre>
+</li>
+</ol>
+<p>定义了 <code>pytest_addoption</code> 函数，它接收一个参数 <code>parser</code>，这是 <code>pytest</code> 的命令行解析器。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>创建选项组</strong>:</p>
+<pre><code class="language-python">group = parser.getgroup(
+    "timeout",
+    "Interrupt test run and dump stacks of all threads after a test times out",
+)
+</code></pre>
+</li>
+</ol>
+<p>使用 <code>parser.getgroup</code> 方法创建或获取一个名为 “timeout” 的选项组，并为其提供一个描述。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>添加命令行选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>group.addoption("--timeout", type=float, help=TIMEOUT_DESC)</code>: 添加一个 <code>--timeout</code> 命令行选项，用于设置测试超时时间（以秒为单位）。这个选项的类型是浮点数，提供了帮助描述。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加弃用的命令行选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>group.addoption("--timeout_method", ... help="Deprecated, use --timeout-method")</code>: 添加一个 <code>--timeout_method</code> 命令行选项，但指出它已被弃用，建议使用 <code>--timeout-method</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加新的命令行选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>group.addoption("--timeout-method", ... help=METHOD_DESC)</code>: 添加一个 <code>--timeout-method</code> 命令行选项，用于设置超时机制（使用信号或线程）。选项的值必须在 <code>choices</code> 中指定的选项中选择。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加调试器检测禁用选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>group.addoption("--timeout-disable-debugger-detection", ... help=DISABLE_DEBUGGER_DETECTION_DESC)</code>: 添加一个命令行选项，用于禁用调试器检测。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加会话超时选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>group.addoption("--session-timeout", ... help=SESSION_TIMEOUT_DESC)</code>: 添加一个 <code>--session-timeout</code> 命令行选项，用于设置整个测试会话的超时时间。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>添加配置文件选项</strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5"><code>parser.addini("timeout", TIMEOUT_DESC)</code>: 添加一个配置文件选项，允许用户在 <code>pytest</code> 的配置文件中设置测试超时时间。</li>
+<li class="lvl-5"><code>parser.addini("timeout_method", METHOD_DESC)</code>: 添加一个配置文件选项，用于设置超时机制。</li>
+<li class="lvl-5"><code>parser.addini("timeout_func_only", FUNC_ONLY_DESC, type="bool", default=False)</code>: 添加一个配置文件选项，用于设置是否仅在测试函数体中计算超时时间。</li>
+<li class="lvl-5"><code>parser.addini("timeout_disable_debugger_detection", ... default=False)</code>: 添加一个配置文件选项，用于设置是否禁用调试器检测。</li>
+<li class="lvl-5"><code>parser.addini("session_timeout", SESSION_TIMEOUT_DESC)</code>: 添加一个配置文件选项，用于设置会话超时时间。</li>
+</ul>
+</li>
+</ol>
+<h3 id="class-timeout-hooks">class TimeoutHooks</h3>
+<pre><code class="language-python">class TimeoutHooks:
+    """Timeout specific hooks."""
+
+    @pytest.hookspec(firstresult=True)
+    def pytest_timeout_set_timer(item, settings):
+        """Called at timeout setup.
+
+        'item' is a pytest node to setup timeout for.
+
+        Can be overridden by plugins for alternative timeout implementation strategies.
+
+        """
+
+    @pytest.hookspec(firstresult=True)
+    def pytest_timeout_cancel_timer(item):
+        """Called at timeout teardown.
+
+        'item' is a pytest node which was used for timeout setup.
+
+        Can be overridden by plugins for alternative timeout implementation strategies.
+
+def pytest_addhooks(pluginmanager):
+    """Register timeout-specific hooks."""
+    pluginmanager.add_hookspecs(TimeoutHooks)
+</code></pre>
+<p><code>TimeoutHooks</code>类包含了与 <code>pytest</code> 超时相关的钩子（<code>hooks</code>），这些钩子允许插件或测试框架的其他部分介入测试用例的超时设置和取消逻辑。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>类定义</strong>:</p>
+<pre><code class="language-python">class TimeoutHooks:
+</code></pre>
+<p>定义了一个名为 <code>TimeoutHooks</code> 的类，用于封装与超时相关的钩子。</p>
+</li>
+<li class="lvl-3">
+<p><strong>pytest_timeout_set_timer 钩子</strong>:</p>
+<pre><code class="language-python">@pytest.hookspec(firstresult=True)
+def pytest_timeout_set_timer(item, settings):
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>@pytest.hookspec</code> 装饰器注册一个钩子，<code>firstresult=True</code> 参数表示 <code>pytest</code> 会使用第一个插件返回的结果。</li>
+<li class="lvl-5">定义了 <code>pytest_timeout_set_timer</code> 钩子函数，它在每个测试用例的超时设置阶段被调用。</li>
+<li class="lvl-5">参数 <code>item</code> 是一个 <code>pytest</code> 节点（<code>node</code>），表示当前的测试用例。</li>
+<li class="lvl-5">参数 <code>settings</code> 是一个包含超时设置的对象。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>钩子函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_timeout_set_timer(item, settings):
+    """Called at timeout setup.
+
+    'item' is a pytest node to setup timeout for.
+
+    Can be overridden by plugins for alternative timeout implementation strategies.
+
+    """
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-5">钩子函数的文档字符串说明了它在测试用例的超时设置阶段被调用。</li>
+<li class="lvl-5"><code>item</code> 参数是用于设置超时的 <code>pytest</code> 节点。</li>
+<li class="lvl-5">提到这个钩子可以被插件覆盖，以实现替代的超时实现策略。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>pytest_timeout_cancel_timer 钩子</strong>:</p>
+<pre><code class="language-python">@pytest.hookspec(firstresult=True)
+def pytest_timeout_cancel_timer(item):
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-5">使用 <code>@pytest.hookspec</code> 装饰器注册另一个钩子。</li>
+<li class="lvl-5">定义了 <code>pytest_timeout_cancel_timer</code> 钩子函数，它在每个测试用例的超时取消阶段被调用。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>钩子函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_timeout_cancel_timer(item):
+    """Called at timeout teardown.
+
+    'item' is a pytest node which was used for timeout setup.
+
+    Can be overridden by plugins for alternative timeout implementation strategies.
+
+    """
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-5">钩子函数的文档字符串说明了它在测试用例的超时取消阶段被调用。</li>
+<li class="lvl-5"><code>item</code> 参数是用于取消超时的 <code>pytest</code> 节点，通常与 <code>pytest_timeout_set_timer</code> 中的节点相同。</li>
+<li class="lvl-5">提到这个钩子也可以被插件覆盖，以实现替代的超时取消策略。</li>
+</ul>
+</li>
+</ol>
+<h3 id="pytest-configure-fang-fa">pytest_configure方法</h3>
+<pre><code class="language-python">@pytest.hookimpl
+def pytest_configure(config):
+    """Register the marker so it shows up in --markers output."""
+    config.addinivalue_line(
+        "markers",
+        "timeout(timeout, method=None, func_only=False, "
+        "disable_debugger_detection=False): Set a timeout, timeout "
+        "method and func_only evaluation on just one test item.  The first "
+        "argument, *timeout*, is the timeout in seconds while the keyword, "
+        "*method*, takes the same values as the --timeout-method option. The "
+        "*func_only* keyword, when set to True, defers the timeout evaluation "
+        "to only the test function body, ignoring the time it takes when "
+        "evaluating any fixtures used in the test. The "
+        "*disable_debugger_detection* keyword, when set to True, disables "
+        "debugger detection, allowing breakpoint(), pdb.set_trace(), etc. "
+        "to be interrupted",
+    )
+
+    settings = get_env_settings(config)
+    config._env_timeout = settings.timeout
+    config._env_timeout_method = settings.method
+    config._env_timeout_func_only = settings.func_only
+    config._env_timeout_disable_debugger_detection = settings.disable_debugger_detection
+
+    timeout = config.getoption("session_timeout")
+    if timeout is None:
+        ini = config.getini("session_timeout")
+        if ini:
+            timeout = _validate_timeout(config.getini("session_timeout"), "config file")
+    if timeout is not None:
+        expire_time = time.time() + timeout
+    else:
+        expire_time = 0
+        timeout = 0
+    config.stash[SESSION_TIMEOUT_KEY] = timeout
+    config.stash[SESSION_EXPIRE_KEY] = expire_time
+</code></pre>
+<p>这段代码是一个 <code>pytest</code> 插件钩子函数 <code>pytest_configure</code> 的实现，它在 <code>pytest</code> 配置阶段被调用，用于注册和处理与超时相关的设置。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl
+def pytest_configure(config):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数。</p>
+</li>
+<li class="lvl-3">
+<p><strong>注册标记</strong>:</p>
+<pre><code class="language-python">config.addinivalue_line(
+    "markers",
+    "timeout(timeout, method=None, func_only=False, "
+    "disable_debugger_detection=False): Set a timeout, timeout "
+    "method and func_only evaluation on just one test item.  The first "
+    "argument, *timeout*, is the timeout in seconds while the keyword, "
+    "*method*, takes the same values as the --timeout-method option. The "
+    "*func_only* keyword, when set to True, defers the timeout evaluation "
+    "to only the test function body, ignoring the time it takes when "
+    "evaluating any fixtures used in the test. The "
+    "*disable_debugger_detection* keyword, when set to True, disables "
+    "debugger detection, allowing breakpoint(), pdb.set_trace(), etc. "
+    "to be interrupted",
+)
+</code></pre>
+<p>使用 <code>config.addinivalue_line</code> 方法向 <code>pytest</code> 的配置文件中添加一个标记 <code>timeout</code> 的说明。这个标记允许用户在测试项上设置超时时间、超时方法、函数体评估和调试器检测禁用选项。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取环境设置</strong>:</p>
+<pre><code class="language-python">settings = get_env_settings(config)
+</code></pre>
+<p>调用 <code>get_env_settings</code> 函数（未在代码中定义）获取环境设置，这些设置可能包括超时相关的配置。</p>
+</li>
+<li class="lvl-3">
+<p><strong>设置环境超时变量</strong>:</p>
+<pre><code class="language-python">config._env_timeout = settings.timeout
+config._env_timeout_method = settings.method
+config._env_timeout_func_only = settings.func_only
+config._env_timeout_disable_debugger_detection = settings.disable_debugger_detection
+</code></pre>
+<p>将获取到的环境设置存储在 <code>config</code> 对象的属性中，这些属性可能用于后续的超时逻辑。</p>
+</li>
+<li class="lvl-3">
+<p><strong>处理会话超时</strong>:</p>
+<pre><code class="language-python">timeout = config.getoption("session_timeout")
+</code></pre>
+<p>获取命令行选项 <code>--session-timeout</code> 的值。</p>
+</li>
+<li class="lvl-3">
+<p><strong>验证和设置会话超时</strong>:</p>
+<pre><code class="language-python">if timeout is None:
+    ini = config.getini("session_timeout")
+    if ini:
+        timeout = _validate_timeout(config.getini("session_timeout"), "config file")
+</code></pre>
+<p>如果命令行中没有设置会话超时，则检查配置文件中是否有设置，并使用 <code>_validate_timeout</code> 函数（未在代码中定义）验证超时值。</p>
+</li>
+<li class="lvl-3">
+<p><strong>计算过期时间</strong>:</p>
+<pre><code class="language-python">if timeout is not None:
+    expire_time = time.time() + timeout
+else:
+    expire_time = 0
+    timeout = 0
+</code></pre>
+<p>如果设置了超时时间，则计算出过期时间；否则，将过期时间和超时时间设置为 0。</p>
+</li>
+<li class="lvl-3">
+<p><strong>存储超时信息</strong>:</p>
+<pre><code class="language-python">config.stash[SESSION_TIMEOUT_KEY] = timeout
+config.stash[SESSION_EXPIRE_KEY] = expire_time
+</code></pre>
+<p>将超时时间和过期时间存储在 <code>config.stash</code> 字典中，以便在测试执行过程中使用。</p>
+</li>
+</ol>
+<h3 id="pytest-runtest-protocol-fang-fa">pytest_runtest_protocol方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item):
+    """Hook in timeouts to the runtest protocol.
+
+    If the timeout is set on the entire test, including setup and
+    teardown, then this hook installs the timeout.  Otherwise
+    pytest_runtest_call is used.
+    """
+    hooks = item.config.pluginmanager.hook
+    settings = _get_item_settings(item)
+    is_timeout = settings.timeout is not None and settings.timeout &gt; 0
+    if is_timeout and settings.func_only is False:
+        hooks.pytest_timeout_set_timer(item=item, settings=settings)
+    yield
+    if is_timeout and settings.func_only is False:
+        hooks.pytest_timeout_cancel_timer(item=item)
+
+    #  check session timeout
+    expire_time = item.session.config.stash[SESSION_EXPIRE_KEY]
+    if expire_time and (expire_time &lt; time.time()):
+        timeout = item.session.config.stash[SESSION_TIMEOUT_KEY]
+        item.session.shouldfail = f"session-timeout: {timeout} sec exceeded"
+</code></pre>
+<p>这段代码是 <code>pytest</code> 插件中用于处理测试超时的钩子函数 <code>pytest_runtest_protocol</code> 的实现，主要作用是在 <code>pytest</code> 的测试运行协议中集成超时逻辑，确保测试项的执行时间不会超过用户指定的超时时间，并且处理会话级别的超时。通过这种方式，可以避免测试因等待过长而挂起，提高测试的效率和响应性。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_protocol(item):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数，并使用 <code>hookwrapper=True</code> 参数来包装其他钩子的执行。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_runtest_protocol(item):
+    """Hook in timeouts to the runtest protocol.
+    """
+</code></pre>
+<p>文档字符串说明了这个钩子函数的作用是将超时逻辑集成到测试协议中。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取插件钩子</strong>:</p>
+<pre><code class="language-python">hooks = item.config.pluginmanager.hook
+</code></pre>
+<p>从测试项的配置管理器中获取插件钩子，这些钩子可以被其他插件用来介入测试执行的不同阶段。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取测试项设置</strong>:</p>
+<pre><code class="language-python">settings = _get_item_settings(item)
+</code></pre>
+<p>调用 <code>_get_item_settings</code> 函数（未在代码中定义）获取当前测试项的设置，这些设置可能包括超时时间等。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查是否设置了超时</strong>:</p>
+<pre><code class="language-python">is_timeout = settings.timeout is not None and settings.timeout &gt; 0
+</code></pre>
+<p>判断是否设置了超时时间，并且超时时间大于 0。</p>
+</li>
+<li class="lvl-3">
+<p><strong>设置超时计时器</strong>:</p>
+<pre><code class="language-python">if is_timeout and settings.func_only is False:
+    hooks.pytest_timeout_set_timer(item=item, settings=settings)
+</code></pre>
+<p>如果设置了超时时间并且 <code>func_only</code> 设置为 <code>False</code>（表示超时包括整个测试过程，不仅仅是测试函数体），则调用 <code>pytest_timeout_set_timer</code> 钩子来设置超时计时器。</p>
+</li>
+<li class="lvl-3">
+<p><strong>挂起执行</strong>:</p>
+<pre><code class="language-python">yield
+</code></pre>
+<p>使用 <code>yield</code> 挂起当前钩子的执行，允许其他钩子在测试运行的不同阶段介入。</p>
+</li>
+<li class="lvl-3">
+<p><strong>取消超时计时器</strong>:</p>
+<pre><code class="language-python">if is_timeout and settings.func_only is False:
+    hooks.pytest_timeout_cancel_timer(item=item)
+</code></pre>
+<p>在测试项执行完毕后，如果设置了超时计时器，则调用 <code>pytest_timeout_cancel_timer</code> 钩子来取消超时计时器。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查会话超时</strong>:</p>
+<pre><code class="language-python">expire_time = item.session.config.stash[SESSION_EXPIRE_KEY]
+if expire_time and (expire_time &lt; time.time()):
+    timeout = item.session.config.stash[SESSION_TIMEOUT_KEY]
+    item.session.shouldfail = f"session-timeout: {timeout} sec exceeded"
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-5">获取会话的过期时间，如果设置了过期时间并且当前时间已经超过了过期时间，则表示会话超时。</li>
+<li class="lvl-5">获取会话超时时间，如果存在会话超时，则设置 <code>shouldfail</code> 属性，表示测试会话因超时而失败。</li>
+</ul>
+</li>
+</ol>
+<h3 id="pytest-runtest-call-fang-fa">pytest_runtest_call方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+    """Hook in timeouts to the test function call only.
+
+    If the timeout is set on only the test function this hook installs
+    the timeout, otherwise pytest_runtest_protocol is used.
+    """
+    hooks = item.config.pluginmanager.hook
+    settings = _get_item_settings(item)
+    is_timeout = settings.timeout is not None and settings.timeout &gt; 0
+    if is_timeout and settings.func_only is True:
+        hooks.pytest_timeout_set_timer(item=item, settings=settings)
+    yield
+    if is_timeout and settings.func_only is True:
+        hooks.pytest_timeout_cancel_timer(item=item)
+</code></pre>
+<p>这段代码是 <code>pytest</code> 插件中用于处理测试函数调用时的超时逻辑的钩子函数 <code>pytest_runtest_call</code> 的实现，主要作用是在 <code>pytest</code> 的测试运行协议中仅对测试函数调用阶段集成超时逻辑，确保测试函数的执行时间不会超过用户指定的超时时间。这对于控制测试执行时间特别有用，尤其是在测试函数可能执行长时间运行操作时。通过这种方式，可以避免测试因执行时间过长而挂起，提高测试的效率和响应性。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_call(item):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数，并使用 <code>hookwrapper=True</code> 参数来包装其他钩子的执行。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_runtest_call(item):
+    """Hook in timeouts to the test function call only.
+    """
+</code></pre>
+<p>文档字符串说明了这个钩子函数的作用是仅在测试函数调用时介入超时逻辑。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取插件钩子</strong>:</p>
+<pre><code class="language-python">hooks = item.config.pluginmanager.hook
+</code></pre>
+<p>从测试项的配置管理器中获取插件钩子，这些钩子可以被其他插件用来介入测试执行的不同阶段。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取测试项设置</strong>:</p>
+<pre><code class="language-python">settings = _get_item_settings(item)
+</code></pre>
+<p>调用 <code>_get_item_settings</code> 函数（未在代码中定义）获取当前测试项的设置，这些设置可能包括超时时间等。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查是否设置了超时</strong>:</p>
+<pre><code class="language-python">is_timeout = settings.timeout is not None and settings.timeout &gt; 0
+</code></pre>
+<p>判断是否设置了超时时间，并且超时时间大于 0。</p>
+</li>
+<li class="lvl-3">
+<p><strong>设置超时计时器</strong>:</p>
+<pre><code class="language-python">if is_timeout and settings.func_only is True:
+    hooks.pytest_timeout_set_timer(item=item, settings=settings)
+</code></pre>
+<p>如果设置了超时时间并且 <code>func_only</code> 设置为 <code>True</code>（表示超时仅适用于测试函数体，不包括 <code>setup</code> 和 <code>teardown</code>），则调用 <code>pytest_timeout_set_timer</code> 钩子来设置超时计时器。</p>
+</li>
+<li class="lvl-3">
+<p><strong>挂起执行</strong>:</p>
+<pre><code class="language-python">yield
+</code></pre>
+<p>使用 <code>yield</code> 挂起当前钩子的执行，允许其他钩子在测试运行的不同阶段介入。</p>
+</li>
+<li class="lvl-3">
+<p><strong>取消超时计时器</strong>:</p>
+<pre><code class="language-python">if is_timeout and settings.func_only is True:
+    hooks.pytest_timeout_cancel_timer(item=item)
+</code></pre>
+<p>在测试函数调用完毕后，如果设置了超时计时器，则调用 <code>pytest_timeout_cancel_timer</code> 钩子来取消超时计时器。</p>
+</li>
+</ol>
+<h3 id="pytest-report-header-fang-fa">pytest_report_header方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True)
+def pytest_report_header(config):
+    """Add timeout config to pytest header."""
+    timeout_header = []
+
+    if config._env_timeout:
+        timeout_header.append(
+            "timeout: %ss\ntimeout method: %s\ntimeout func_only: %s"
+            % (
+                config._env_timeout,
+                config._env_timeout_method,
+                config._env_timeout_func_only,
+            )
+        )
+
+    session_timeout = config.getoption("session_timeout")
+    if session_timeout:
+        timeout_header.append("session timeout: %ss" % session_timeout)
+    if timeout_header:
+        return timeout_header
+</code></pre>
+<p>这段代码是一个 <code>pytest</code> 插件钩子函数 <code>pytest_report_header</code> 的实现，它用于在 <code>pytest</code> 测试报告的头部添加关于超时配置的信息，主要作用是在 <code>pytest</code> 测试报告的头部显示超时相关的配置信息，包括环境级别的超时设置和会话超时设置。这为用户提供了清晰的测试配置概览，有助于理解测试的执行环境和限制。通过在报告头部显示这些信息，用户可以快速了解测试的超时策略。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True)
+def pytest_report_header(config):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数，并使用 <code>tryfirst=True</code> 参数来确保这个钩子是第一个执行的。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_report_header(config):
+    """Add timeout config to pytest header."""
+</code></pre>
+<p>文档字符串说明了这个钩子函数的作用是在 <code>pytest</code> 报告的头部添加超时配置的信息。</p>
+</li>
+<li class="lvl-3">
+<p><strong>初始化超时头部信息列表</strong>:</p>
+<pre><code class="language-python">timeout_header = []
+</code></pre>
+<p>创建一个空列表 <code>timeout_header</code>，用于存储超时配置的文本信息。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查环境超时设置</strong>:</p>
+<pre><code class="language-python">if config._env_timeout:
+</code></pre>
+<p>检查是否存在环境级别的超时设置。</p>
+</li>
+<li class="lvl-3">
+<p><strong>添加环境超时信息</strong>:</p>
+<pre><code class="language-python">timeout_header.append(
+    "timeout: %ss\ntimeout method: %s\ntimeout func_only: %s"
+    % (
+        config._env_timeout,
+        config._env_timeout_method,
+        config._env_timeout_func_only,
+    )
+)
+</code></pre>
+<p>如果存在环境级别的超时设置，将其格式化为字符串并添加到 <code>timeout_header</code> 列表中。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查会话超时设置</strong>:</p>
+<pre><code class="language-python">session_timeout = config.getoption("session_timeout")
+if session_timeout:
+</code></pre>
+<p>获取命令行选项 <code>--session-timeout</code> 的值，并检查是否设置了会话超时。</p>
+</li>
+<li class="lvl-3">
+<p><strong>添加会话超时信息</strong>:</p>
+<pre><code class="language-python">timeout_header.append("session timeout: %ss" % session_timeout)
+</code></pre>
+<p>如果设置了会话超时，将其格式化为字符串并添加到 <code>timeout_header</code> 列表中。</p>
+</li>
+<li class="lvl-3">
+<p><strong>返回超时头部信息</strong>:</p>
+<pre><code class="language-python">if timeout_header:
+    return timeout_header
+</code></pre>
+<p>如果 <code>timeout_header</code> 列表中有信息，则返回这些信息，它们将被添加到 <code>pytest</code> 报告的头部。</p>
+</li>
+</ol>
+<h3 id="pytest-exception-interact-fang-fa">pytest_exception_interact方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True)
+def pytest_exception_interact(node):
+    """Stop the timeout when pytest enters pdb in post-mortem mode."""
+    hooks = node.config.pluginmanager.hook
+    hooks.pytest_timeout_cancel_timer(item=node)
+</code></pre>
+<p>这段代码是 <code>pytest</code> 插件中用于处理异常交互的钩子函数 <code>pytest_exception_interact</code> 的实现。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True)
+def pytest_exception_interact(node):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数，并使用 <code>tryfirst=True</code> 参数来确保这个钩子是第一个执行的。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_exception_interact(node):
+    """Stop the timeout when pytest enters pdb in post-mortem mode."""
+</code></pre>
+<p>文档字符串说明了这个钩子函数的作用是在 <code>pytest</code> 进入 <code>pdb</code>（<code>Python Debugger</code>）的事后模式时停止超时计时器。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取插件钩子</strong>:</p>
+<pre><code class="language-python">hooks = node.config.pluginmanager.hook
+</code></pre>
+<p>从测试节点的配置管理器中获取插件钩子，这些钩子可以被其他插件用来介入测试执行的不同阶段。</p>
+</li>
+<li class="lvl-3">
+<p><strong>取消超时计时器</strong>:</p>
+<pre><code class="language-python">hooks.pytest_timeout_cancel_timer(item=node)
+</code></pre>
+<p>调用 <code>pytest_timeout_cancel_timer</code> 钩子来取消与测试节点 <code>node</code> 关联的超时计时器。</p>
+</li>
+</ol>
+<p>这个钩子函数的主要作用是在 <code>pytest</code> 测试执行过程中，如果用户在异常发生后进入 <code>pdb</code> 进行调试（即进入事后模式），则停止超时计时器。这可以防止在调试过程中测试因为超时而中断。</p>
+<p>详细说明如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>事后模式（post-mortem mode）</strong>：当测试发生错误或异常时，<code>pdb</code> 会启动，允许用户对错误现场进行调试。这通常在测试失败后发生，用户可以通过它来检查变量状态、调用堆栈等信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>取消超时</strong>：在用户进入 pdb 调试时，测试的执行已经暂停，因此继续计时是没有意义的。通过取消超时，可以防止测试因为超时而提前终止，从而允许用户不受干扰地进行调试。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>pytest_exception_interact</code> 钩子</strong>：这个钩子在 <code>pytest</code> 捕获到异常并且用户选择与异常交互时被调用。通过这个钩子，插件可以介入并执行一些操作，比如这里实现的取消超时计时器。</p>
+</li>
+</ul>
+<p>通过这种方式，<code>pytest-timeout</code> 插件提供了一种机制，确保在用户需要调试时，不会因为超时而干扰调试过程。这对于开发和调试测试用例非常有用。</p>
+<h3 id="pytest-enter-pdb-fang-fa">pytest_enter_pdb方法</h3>
+<pre><code class="language-python">def pytest_enter_pdb():
+    """Stop the timeouts when we entered pdb.
+
+    This stops timeouts from triggering when pytest's builting pdb
+    support notices we entered pdb.
+    """
+    # Since pdb.set_trace happens outside of any pytest control, we don't have
+    # any pytest ``item`` here, so we cannot use timeout_teardown. Thus, we
+    # need another way to signify that the timeout should not be performed.
+    global SUPPRESS_TIMEOUT
+    SUPPRESS_TIMEOUT = True
+</code></pre>
+<p>这段代码的作用是在进入 <code>Python Debugger (pdb)</code> 时停止超时计时器。这通常用于 <code>pytest</code> 测试中，当用户在测试失败后进入 <code>pdb</code> 进行调试时，防止测试因为超时而中断。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_enter_pdb():
+    """Stop the timeouts when we entered pdb.
+    This stops timeouts from triggering when pytest's builting pdb
+    support notices we entered pdb.
+    """
+</code></pre>
+<p>文档字符串说明了函数的目的：在进入 <code>pdb</code> 时停止超时，防止在调试时因超时而中断。</p>
+</li>
+<li class="lvl-3">
+<p><strong>停止超时的逻辑</strong>:</p>
+<pre><code class="language-python"># Since pdb.set_trace happens outside of any pytest control, we don't have
+# any pytest ``item`` here, so we cannot use timeout_teardown. Thus, we
+# need another way to signify that the timeout should not be performed.
+global SUPPRESS_TIMEOUT
+SUPPRESS_TIMEOUT = True
+</code></pre>
+<ul class="lvl-2">
+<li class="lvl-5">这段注释说明了 <code>pdb.set_trace()</code> 是在 <code>pytest</code> 控制之外触发的，因此在这个上下文中没有 <code>pytest</code> 的 <code>item</code> 对象。</li>
+<li class="lvl-5">由于没有 <code>item</code> 对象，不能使用 <code>timeout_teardown</code> 钩子来取消超时，因此需要另一种方式来指示不应该执行超时。</li>
+<li class="lvl-5">声明了一个全局变量 <code>SUPPRESS_TIMEOUT</code> 并将其设置为 <code>True</code>。这个全局变量作为一个标志，告诉超时机制在调试时不要触发。</li>
+</ul>
+</li>
+</ol>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>pdb.set_trace()</strong>：这是一个 <code>Python</code> 内置函数，用于启动 <code>pdb</code> 调试器。当在代码中调用此函数时，程序会进入调试模式，允许用户检查当前的执行状态和变量值。</p>
+</li>
+<li class="lvl-2">
+<p><strong>全局变量 <code>SUPPRESS_TIMEOUT</code></strong>：通过设置这个全局变量，插件或测试框架的其他部分可以检查是否进入了 <code>pdb</code> 调试模式，并据此决定是否应该取消超时计时器。</p>
+</li>
+<li class="lvl-2">
+<p><strong>调试模式下的超时处理</strong>：在调试模式下，测试的执行已经暂停，继续计时是没有意义的。通过设置 <code>SUPPRESS_TIMEOUT</code>，可以防止在调试过程中因超时而中断测试。</p>
+</li>
+</ul>
+<h3 id="is-debugging-fang-fa">is_debugging方法</h3>
+<pre><code class="language-python">def is_debugging(trace_func=None):
+    """Detect if a debugging session is in progress.
+
+    This looks at both pytest's builtin pdb support as well as
+    externally installed debuggers using some heuristics.
+
+     This is done by checking if either of the following conditions is
+     true:
+
+     1. Examines the trace function to see if the module it originates
+        from is in KNOWN_DEBUGGING_MODULES.
+     2. Check is SUPPRESS_TIMEOUT is set to True.
+
+    :param trace_func: the current trace function, if not given will use
+        sys.gettrace(). Used to unit-test this function.
+    """
+    global SUPPRESS_TIMEOUT, KNOWN_DEBUGGING_MODULES
+    if SUPPRESS_TIMEOUT:
+        return True
+    if trace_func is None:
+        trace_func = sys.gettrace()
+    trace_module = None
+    if trace_func:
+        trace_module = inspect.getmodule(trace_func) or inspect.getmodule(
+            trace_func.__class__
+        )
+    if trace_module:
+        parts = trace_module.__name__.split(".")
+        for name in KNOWN_DEBUGGING_MODULES:
+            if any(part.startswith(name) for part in parts):
+                return True
+    return False
+
+
+SUPPRESS_TIMEOUT = False
+</code></pre>
+<p>这段代码提供了一个用于检测是否正在进行调试会话的函数 <code>is_debugging</code>，并且定义了一个全局变量 <code>SUPPRESS_TIMEOUT</code>。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def is_debugging(trace_func=None):
+</code></pre>
+<p>定义了一个名为 <code>is_debugging</code> 的函数，它接受一个可选参数 <code>trace_func</code>，该参数用于指定当前的跟踪函数。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def is_debugging(trace_func=None):
+    """Detect if a debugging session is in progress.
+    """
+</code></pre>
+<p>文档字符串说明了这个函数的目的是检测是否正在进行调试会话。</p>
+</li>
+<li class="lvl-3">
+<p><strong>全局变量声明</strong>:</p>
+<pre><code class="language-python">global SUPPRESS_TIMEOUT, KNOWN_DEBUGGING_MODULES
+</code></pre>
+<p>声明了两个全局变量 <code>SUPPRESS_TIMEOUT</code> 和 <code>KNOWN_DEBUGGING_MODULES</code>，这两个变量在函数中将被使用。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检测 SUPPRESS_TIMEOUT</strong>:</p>
+<pre><code class="language-python">if SUPPRESS_TIMEOUT:
+    return True
+</code></pre>
+<p>如果 <code>SUPPRESS_TIMEOUT</code> 被设置为 <code>True</code>，则函数直接返回 <code>True</code>，表示正在调试。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取当前跟踪函数</strong>:</p>
+<pre><code class="language-python">if trace_func is None:
+    trace_func = sys.gettrace()
+</code></pre>
+<p>如果 <code>trace_func</code> 参数没有被提供，则使用 <code>sys.gettrace()</code> 获取当前的跟踪函数。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取跟踪函数的模块</strong>:</p>
+<pre><code class="language-python">trace_module = inspect.getmodule(trace_func) or inspect.getmodule(
+    trace_func.__class__
+)
+</code></pre>
+<p>使用 <code>inspect.getmodule</code> 获取跟踪函数的模块，如果跟踪函数本身没有关联的模块，则尝试获取其类关联的模块。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检测已知调试模块</strong>:</p>
+<pre><code class="language-python">if trace_module:
+    parts = trace_module.__name__.split(".")
+    for name in KNOWN_DEBUGGING_MODULES:
+        if any(part.startswith(name) for part in parts):
+            return True
+</code></pre>
+<p>如果跟踪函数的模块存在，则检查其名称是否与已知的调试模块名称有匹配。如果有匹配，则返回 <code>True</code>，表示正在调试。</p>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>:</p>
+<pre><code class="language-python">return False
+</code></pre>
+<p>如果没有检测到调试会话，则函数返回 <code>False</code>。</p>
+</li>
+<li class="lvl-3">
+<p><strong>全局变量初始化</strong>:</p>
+<pre><code class="language-python">SUPPRESS_TIMEOUT = False
+</code></pre>
+<p>初始化全局变量 <code>SUPPRESS_TIMEOUT</code> 为 <code>False</code>，表示默认情况下不抑制超时。</p>
+</li>
+</ol>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>KNOWN_DEBUGGING_MODULES</code></strong>：这是一个全局集合，包含了已知的调试器模块名称，如 <code>"pydevd"</code>、<code>"bdb"</code> 和 <code>"pydevd_frame_evaluator"</code>。这些名称用于检测是否正在使用这些调试器。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>SUPPRESS_TIMEOUT</code></strong>：这是一个全局变量，用于指示是否应该抑制超时。如果设置为 <code>True</code>，则在调试时不会触发超时。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>trace_func</code></strong>：这个参数允许用户传递一个自定义的跟踪函数，主要用于单元测试。</p>
+</li>
+</ul>
+<h3 id="pytest-timeout-set-timer-fang-fa">pytest_timeout_set_timer方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(trylast=True)
+def pytest_timeout_set_timer(item, settings):
+    """Setup up a timeout trigger and handler."""
+    timeout_method = settings.method
+    if (
+        timeout_method == "signal"
+        and threading.current_thread() is not threading.main_thread()
+    ):
+        timeout_method = "thread"
+
+    if timeout_method == "signal":
+
+        def handler(signum, frame):
+            __tracebackhide__ = True
+            timeout_sigalrm(item, settings)
+
+        def cancel():
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, signal.SIG_DFL)
+
+        item.cancel_timeout = cancel
+        signal.signal(signal.SIGALRM, handler)
+        signal.setitimer(signal.ITIMER_REAL, settings.timeout)
+    elif timeout_method == "thread":
+        timer = threading.Timer(settings.timeout, timeout_timer, (item, settings))
+        timer.name = "%s %s" % (__name__, item.nodeid)
+
+        def cancel():
+            timer.cancel()
+            timer.join()
+
+        item.cancel_timeout = cancel
+        timer.start()
+    return True
+</code></pre>
+<p>这段代码是 <code>pytest</code> 插件中用于设置测试用例超时计时器的钩子函数 <code>pytest_timeout_set_timer</code> 的实现，主要作用是在 <code>pytest</code> 测试执行过程中，根据用户配置的超时方法，设置相应的超时计时器。当测试用例的执行时间超过指定的超时时间时，超时处理函数会被触发，从而中断测试用例的执行。这对于防止测试用例因执行时间过长而挂起非常有用。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl(trylast=True)
+def pytest_timeout_set_timer(item, settings):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数，并使用 <code>trylast=True</code> 参数来确保这个钩子是最后一个执行的。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_timeout_set_timer(item, settings):
+    """Setup up a timeout trigger and handler."""
+</code></pre>
+<p>文档字符串说明了这个钩子函数的作用是设置一个超时触发器和处理器。</p>
+</li>
+<li class="lvl-3">
+<p><strong>获取超时方法</strong>:</p>
+<pre><code class="language-python">timeout_method = settings.method
+</code></pre>
+<p>从测试项的设置中获取超时方法。</p>
+</li>
+<li class="lvl-3">
+<p><strong>检查是否在主线程</strong>:</p>
+<pre><code class="language-python">if (
+    timeout_method == "signal"
+    and threading.current_thread() is not threading.main_thread()
+):
+    timeout_method = "thread"
+</code></pre>
+<p>如果超时方法设置为 <code>"signal"</code> 且当前线程不是主线程，则将超时方法改为 <code>"thread"</code>。</p>
+</li>
+<li class="lvl-3">
+<p><strong>处理信号超时</strong>:</p>
+<pre><code class="language-python">if timeout_method == "signal":
+</code></pre>
+<p>如果使用信号超时方法，则执行以下操作：</p>
+<ul class="lvl-2">
+<li class="lvl-5">定义一个 <code>handler</code> 函数来处理 <code>SIGALRM</code> 信号。</li>
+<li class="lvl-5">定义一个 <code>cancel</code> 函数来取消信号超时。</li>
+<li class="lvl-5">设置 <code>item.cancel_timeout</code> 为 <code>cancel</code> 函数，以便在需要时可以取消超时。</li>
+<li class="lvl-5">使用 <code>signal.signal</code> 设置 <code>SIGALRM</code> 信号的处理函数。</li>
+<li class="lvl-5">使用 <code>signal.setitimer</code> 设置实时定时器。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>处理线程超时</strong>:</p>
+<pre><code class="language-python">elif timeout_method == "thread":
+</code></pre>
+<p>如果使用线程超时方法，则执行以下操作：</p>
+<ul class="lvl-2">
+<li class="lvl-5">创建一个 <code>threading.Timer</code> 对象来触发超时。</li>
+<li class="lvl-5">定义一个 <code>cancel</code> 函数来取消线程超时。</li>
+<li class="lvl-5">设置 <code>item.cancel_timeout</code> 为 <code>cancel</code> 函数，以便在需要时可以取消超时。</li>
+<li class="lvl-5">启动定时器。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>:</p>
+<pre><code class="language-python">return True
+</code></pre>
+<p>函数返回 <code>True</code>，表示钩子逻辑正常结束。</p>
+</li>
+</ol>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>信号超时 (<code>signal</code>)</strong>：使用 <code>signal</code> 模块设置 <code>SIGALRM</code> 信号，当超时发生时，信号处理函数会被调用，触发超时处理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>线程超时 (<code>thread</code>)</strong>：使用 <code>threading.Timer</code> 创建一个定时器线程，当超时发生时，定时器会触发超时处理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>取消超时</strong>：通过 <code>item.cancel_timeout</code> 方法，可以在测试用例执行过程中取消超时，防止不必要的超时中断。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>settings.timeout</code></strong>：超时时间，用于设置信号超时或线程超时。</p>
+</li>
+</ul>
+<h3 id="pytest-timeout-cancel-timer-fang-fa">pytest_timeout_cancel_timer方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(trylast=True)
+def pytest_timeout_cancel_timer(item):
+    """Cancel the timeout trigger if it was set."""
+    # When skipping is raised from a pytest_runtest_setup function
+    # (as is the case when using the pytest.mark.skipif marker) we
+    # may be called without our setup counterpart having been
+    # called.
+    cancel = getattr(item, "cancel_timeout", None)
+    if cancel:
+        cancel()
+    return True
+</code></pre>
+<p>这段代码是 <code>pytest</code> 插件中用于取消测试用例超时计时器的钩子函数 <code>pytest_timeout_cancel_timer</code> 的实现，通过这个钩子函数，插件可以确保在不需要超时限制的情况下，及时取消超时计时器，避免对测试执行产生干扰。这对于提高测试的灵活性和可靠性非常重要。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>钩子装饰器</strong>:</p>
+<pre><code class="language-python">@pytest.hookimpl(trylast=True)
+def pytest_timeout_cancel_timer(item):
+</code></pre>
+<p>使用 <code>@pytest.hookimpl</code> 装饰器，将函数注册为 <code>pytest</code> 的钩子函数，并使用 <code>trylast=True</code> 参数来确保这个钩子是最后一个执行的。</p>
+</li>
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def pytest_timeout_cancel_timer(item):
+    """Cancel the timeout trigger if it was set."""
+</code></pre>
+<p>文档字符串说明了这个钩子函数的作用是取消之前设置的超时触发器（如果已经设置）。</p>
+</li>
+<li class="lvl-3">
+<p><strong>处理跳过测试的情况</strong>:</p>
+<pre><code class="language-python">cancel = getattr(item, "cancel_timeout", None)
+</code></pre>
+<p>使用 <code>getattr</code> 从测试项 <code>item</code> 中获取 <code>cancel_timeout</code> 方法。这个方法应该在设置超时时被赋值。如果没有找到，则默认为 <code>None</code>。</p>
+</li>
+<li class="lvl-3">
+<p><strong>取消超时</strong>:</p>
+<pre><code class="language-python">if cancel:
+    cancel()
+</code></pre>
+<p>如果存在 <code>cancel_timeout</code> 方法，则调用它来取消超时。这通常发生在测试用例被跳过或在测试用例的 setup 阶段发生错误时。</p>
+</li>
+<li class="lvl-3">
+<p><strong>返回结果</strong>:</p>
+<pre><code class="language-python">return True
+</code></pre>
+<p>函数返回 <code>True</code>，表示钩子逻辑正常结束。</p>
+</li>
+</ol>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>超时取消</strong>：这个钩子函数的主要目的是取消测试用例的超时计时器。这在测试用例被跳过或提前终止时非常有用，可以防止不必要的超时中断。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>item.cancel_timeout</code></strong>：这是一个在设置超时时赋值的方法，用于取消超时。它在 <code>pytest_timeout_set_timer</code> 钩子函数中被设置。</p>
+</li>
+<li class="lvl-2">
+<p><strong>跳过测试</strong>：当使用 <code>pytest</code> 的 <code>skipif</code> 标记或其他原因导致测试用例被跳过时，<code>pytest_runtest_setup</code> 钩子可能不会被调用，因此 <code>cancel_timeout</code> 方法可能不会被设置。这种情况下，<code>getattr</code> 会返回 <code>None</code>，取消操作将不会执行。</p>
+</li>
+</ul>
+<h3 id="get-env-settings-fang-fa">get_env_settings方法</h3>
+<pre><code class="language-python">def get_env_settings(config):
+    """Return the configured timeout settings.
+
+    This looks up the settings in the environment and config file.
+    """
+    timeout = config.getvalue("timeout")
+    if timeout is None:
+        timeout = _validate_timeout(
+            os.environ.get("PYTEST_TIMEOUT"), "PYTEST_TIMEOUT environment variable"
+        )
+    if timeout is None:
+        ini = config.getini("timeout")
+        if ini:
+            timeout = _validate_timeout(ini, "config file")
+
+    method = config.getvalue("timeout_method")
+    if method is None:
+        ini = config.getini("timeout_method")
+        if ini:
+            method = _validate_method(ini, "config file")
+    if method is None:
+        method = DEFAULT_METHOD
+
+    func_only = config.getini("timeout_func_only")
+
+    disable_debugger_detection = config.getvalue("timeout_disable_debugger_detection")
+    if disable_debugger_detection is None:
+        ini = config.getini("timeout_disable_debugger_detection")
+        if ini:
+            disable_debugger_detection = _validate_disable_debugger_detection(
+                ini, "config file"
+            )
+
+    return Settings(timeout, method, func_only, disable_debugger_detection)
+</code></pre>
+<p>这段代码定义了一个名为 <code>get_env_settings</code> 的函数，它用于从环境变量、配置文件和 <code>pytest</code> 配置中获取超时设置。这个函数的主要作用是统一获取和验证超时相关的设置，确保它们在测试执行中正确应用。通过从不同的来源（<code>pytest</code> 配置、环境变量、配置文件）获取设置，并提供默认值，它提供了灵活且健壮的配置管理。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def get_env_settings(config):
+</code></pre>
+</li>
+</ol>
+<p>定义了一个函数 <code>get_env_settings</code>，它接收一个参数 <code>config</code>，这是 <code>pytest</code> 的配置对象。</p>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def get_env_settings(config):
+    """Return the configured timeout settings.
+    This looks up the settings in the environment and config file.
+    """
+</code></pre>
+</li>
+</ol>
+<p>文档字符串说明了这个函数的目的是返回配置的超时设置，它会在环境变量和配置文件中查找这些设置。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>获取超时时间</strong>:</p>
+<pre><code class="language-python">timeout = config.getvalue("timeout")
+</code></pre>
+</li>
+</ol>
+<p>从 <code>pytest</code> 配置中获取 <code>timeout</code> 设置。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>从环境变量获取超时时间</strong>:</p>
+<pre><code class="language-python">if timeout is None:
+    timeout = _validate_timeout(
+        os.environ.get("PYTEST_TIMEOUT"), "PYTEST_TIMEOUT environment variable"
+    )
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>pytest</code> 配置中没有设置超时时间，则尝试从环境变量 <code>PYTEST_TIMEOUT</code> 中获取，并使用 <code>_validate_timeout</code> 函数验证其有效性。</p>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>从配置文件获取超时时间</strong>:</p>
+<pre><code class="language-python">if timeout is None:
+    ini = config.getini("timeout")
+    if ini:
+        timeout = _validate_timeout(ini, "config file")
+</code></pre>
+</li>
+</ol>
+<p>如果环境变量中也没有设置超时时间，则尝试从 <code>pytest</code> 配置文件中获取，并使用 <code>_validate_timeout</code> 函数验证其有效性。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>获取超时方法</strong>:</p>
+<pre><code class="language-python">method = config.getvalue("timeout_method")
+</code></pre>
+</li>
+</ol>
+<p>从 <code>pytest</code> 配置中获取 <code>timeout_method</code> 设置。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>从配置文件获取超时方法</strong>:</p>
+<pre><code class="language-python">if method is None:
+    ini = config.getini("timeout_method")
+    if ini:
+        method = _validate_method(ini, "config file")
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>pytest</code> 配置中没有设置超时方法，则尝试从配置文件中获取，并使用 <code>_validate_method</code> 函数验证其有效性。</p>
+<ol start="8">
+<li class="lvl-3">
+<p><strong>设置默认超时方法</strong>:</p>
+<pre><code class="language-python">if method is None:
+    method = DEFAULT_METHOD
+</code></pre>
+</li>
+</ol>
+<p>如果配置文件中也没有设置超时方法，则使用默认值 <code>DEFAULT_METHOD</code>。</p>
+<ol start="9">
+<li class="lvl-3">
+<p><strong>获取函数体超时评估</strong>:</p>
+<pre><code class="language-python">func_only = config.getini("timeout_func_only")
+</code></pre>
+</li>
+</ol>
+<p>从 <code>pytest</code> 配置文件中获取 <code>timeout_func_only</code> 设置，这决定了是否仅在测试函数体中计算超时时间。</p>
+<ol start="10">
+<li class="lvl-4">
+<p><strong>获取调试器检测禁用设置</strong>:</p>
+<pre><code class="language-python">disable_debugger_detection = config.getvalue("timeout_disable_debugger_detection")
+</code></pre>
+</li>
+</ol>
+<p>从 <code>pytest</code> 配置中获取 <code>timeout_disable_debugger_detection</code> 设置。</p>
+<ol start="11">
+<li class="lvl-4">
+<p><strong>从配置文件获取调试器检测禁用设置</strong>:</p>
+<pre><code class="language-python">if disable_debugger_detection is None:
+    ini = config.getini("timeout_disable_debugger_detection")
+    if ini:
+        disable_debugger_detection = _validate_disable_debugger_detection(
+            ini, "config file"
+        )
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>pytest</code> 配置中没有设置调试器检测禁用，则尝试从配置文件中获取，并使用 <code>_validate_disable_debugger_detection</code> 函数验证其有效性。</p>
+<ol start="12">
+<li class="lvl-4">
+<p><strong>返回设置</strong>:</p>
+<pre><code class="language-python">return Settings(timeout, method, func_only, disable_debugger_detection)
+</code></pre>
+</li>
+</ol>
+<p>返回一个 <code>Settings</code> 对象，包含超时时间、超时方法、函数体超时评估和调试器检测禁用设置。</p>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>_validate_timeout</code> 函数</strong>：用于验证超时时间的有效性，确保它是合理的数值。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>_validate_method</code> 函数</strong>：用于验证超时方法的有效性，确保它是一个允许的值（如 <code>"signal"</code> 或 <code>"thread"</code>）。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>_validate_disable_debugger_detection</code> 函数</strong>：用于验证调试器检测禁用设置的有效性，确保它是布尔值。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>Settings</code> 对象</strong>：是一个命名元组，用于存储和传递超时相关的设置。</p>
+</li>
+</ul>
+<h3 id="get-item-settings-fang-fa">_get_item_settings方法</h3>
+<pre><code class="language-python">def _get_item_settings(item, marker=None):
+    """Return (timeout, method) for an item."""
+    timeout = method = func_only = disable_debugger_detection = None
+    if not marker:
+        marker = item.get_closest_marker("timeout")
+    if marker is not None:
+        settings = _parse_marker(item.get_closest_marker(name="timeout"))
+        timeout = _validate_timeout(settings.timeout, "marker")
+        method = _validate_method(settings.method, "marker")
+        func_only = _validate_func_only(settings.func_only, "marker")
+        disable_debugger_detection = _validate_disable_debugger_detection(
+            settings.disable_debugger_detection, "marker"
+        )
+    if timeout is None:
+        timeout = item.config._env_timeout
+    if method is None:
+        method = item.config._env_timeout_method
+    if func_only is None:
+        func_only = item.config._env_timeout_func_only
+    if disable_debugger_detection is None:
+        disable_debugger_detection = item.config._env_timeout_disable_debugger_detection
+    return Settings(timeout, method, func_only, disable_debugger_detection)
+</code></pre>
+<p>这个函数的主要作用是统一获取和验证超时相关的设置，确保它们在测试执行中正确应用。通过从不同的来源（测试项的标记、配置）获取设置，并提供默认值，它提供了灵活且健壮的配置管理。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def _get_item_settings(item, marker=None):
+</code></pre>
+</li>
+</ol>
+<p>定义了一个函数 <code>_get_item_settings</code>，接收两个参数：<code>item</code> 是 <code>pytest</code> 的测试项对象，<code>marker</code> 是一个可选参数，用于指定特定的标记。</p>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def _get_item_settings(item, marker=None):
+    """Return (timeout, method) for an item."""
+</code></pre>
+</li>
+</ol>
+<p>文档字符串说明了这个函数的目的是返回测试项的超时和方法设置。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>初始化设置变量</strong>:</p>
+<pre><code class="language-python">timeout = method = func_only = disable_debugger_detection = None
+</code></pre>
+</li>
+</ol>
+<p>初始化四个变量，分别用于存储超时时间、超时方法、函数体超时评估和调试器检测禁用设置。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>获取标记</strong>:</p>
+<pre><code class="language-python">if not marker:
+    marker = item.get_closest_marker("timeout")
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>marker</code> 参数未提供，则尝试获取测试项上最近的 <code>"timeout"</code> 标记。</p>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>解析标记设置</strong>:</p>
+<pre><code class="language-python">if marker is not None:
+    settings = _parse_marker(item.get_closest_marker(name="timeout"))
+    timeout = _validate_timeout(settings.timeout, "marker")
+    method = _validate_method(settings.method, "marker")
+    func_only = _validate_func_only(settings.func_only, "marker")
+    disable_debugger_detection = _validate_disable_debugger_detection(
+        settings.disable_debugger_detection, "marker"
+    )
+</code></pre>
+</li>
+</ol>
+<p>如果存在 <code>"timeout"</code> 标记，则解析该标记，并验证超时时间、方法、函数体超时评估和调试器检测禁用设置。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>从配置获取超时时间</strong>:</p>
+<pre><code class="language-python">if timeout is None:
+    timeout = item.config._env_timeout
+</code></pre>
+</li>
+</ol>
+<p>如果未从标记中获取到超时时间，则从测试项的配置中获取。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>从配置获取超时方法</strong>:</p>
+<pre><code class="language-python">if method is None:
+    method = item.config._env_timeout_method
+</code></pre>
+</li>
+</ol>
+<p>如果未从标记中获取到超时方法，则从测试项的配置中获取。</p>
+<ol start="8">
+<li class="lvl-3">
+<p><strong>从配置获取函数体超时评估</strong>:</p>
+<pre><code class="language-python">if func_only is None:
+    func_only = item.config._env_timeout_func_only
+</code></pre>
+</li>
+</ol>
+<p>如果未从标记中获取到函数体超时评估设置，则从测试项的配置中获取。</p>
+<ol start="9">
+<li class="lvl-3">
+<p><strong>从配置获取调试器检测禁用设置</strong>:</p>
+<pre><code class="language-python">if disable_debugger_detection is None:
+    disable_debugger_detection = item.config._env_timeout_disable_debugger_detection
+</code></pre>
+</li>
+</ol>
+<p>如果未从标记中获取到调试器检测禁用设置，则从测试项的配置中获取。</p>
+<ol start="10">
+<li class="lvl-4">
+<p><strong>返回设置</strong>:</p>
+<pre><code class="language-python">return Settings(timeout, method, func_only, disable_debugger_detection)
+</code></pre>
+</li>
+</ol>
+<p>返回一个 <code>Settings</code> 对象，包含超时时间、超时方法、函数体超时评估和调试器检测禁用设置。</p>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>_parse_marker</code> 函数</strong>：用于解析 <code>"timeout"</code> 标记的内容，提取超时相关的设置。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>_validate_timeout</code> 函数</strong>：验证超时时间的有效性，确保它是合理的数值。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>_validate_method</code> 函数</strong>：验证超时方法的有效性，确保它是一个允许的值（如 <code>"signal"</code> 或 <code>"thread"</code>）。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>_validate_func_only</code> 函数</strong>：验证函数体超时评估设置的有效性，确保它是布尔值。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>_validate_disable_debugger_detection</code> 函数</strong>：验证调试器检测禁用设置的有效性，确保它是布尔值。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>Settings</code> 对象</strong>：是一个命名元组，用于存储和传递超时相关的设置。</p>
+</li>
+</ul>
+<h3 id="parse-marker-fang-fa">_parse_marker方法</h3>
+<pre><code class="language-python">def _parse_marker(marker):
+    """Return (timeout, method) tuple from marker.
+
+    Either could be None.  The values are not interpreted, so
+    could still be bogus and even the wrong type.
+    """
+    if not marker.args and not marker.kwargs:
+        raise TypeError("Timeout marker must have at least one argument")
+    timeout = method = func_only = NOTSET = object()
+    for kw, val in marker.kwargs.items():
+        if kw == "timeout":
+            timeout = val
+        elif kw == "method":
+            method = val
+        elif kw == "func_only":
+            func_only = val
+        else:
+            raise TypeError("Invalid keyword argument for timeout marker: %s" % kw)
+    if len(marker.args) &gt;= 1 and timeout is not NOTSET:
+        raise TypeError("Multiple values for timeout argument of timeout marker")
+    elif len(marker.args) &gt;= 1:
+        timeout = marker.args[0]
+    if len(marker.args) &gt;= 2 and method is not NOTSET:
+        raise TypeError("Multiple values for method argument of timeout marker")
+    elif len(marker.args) &gt;= 2:
+        method = marker.args[1]
+    if len(marker.args) &gt; 2:
+        raise TypeError("Too many arguments for timeout marker")
+    if timeout is NOTSET:
+        timeout = None
+    if method is NOTSET:
+        method = None
+    if func_only is NOTSET:
+        func_only = None
+    return Settings(timeout, method, func_only, None)
+</code></pre>
+<p>这个函数的主要作用是将 <code>pytest</code> 标记中的超时设置解析出来，并提供一种一致的方式来获取这些设置。这对于实现超时功能的自定义和验证非常有用。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def _parse_marker(marker):
+</code></pre>
+</li>
+</ol>
+<p>定义了一个函数 <code>_parse_marker</code>，它接收一个参数 <code>marker</code>，这是 <code>pytest</code> 的标记对象。</p>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def _parse_marker(marker):
+    """Return (timeout, method) tuple from marker.
+    Either could be None.  The values are not interpreted, so
+    could still be bogus and even the wrong type.
+    """
+</code></pre>
+</li>
+</ol>
+<p>文档字符串说明了这个函数的目的是从一个标记中返回一个包含超时时间和方法的元组。同时指出这些值尚未被解释，因此可能是错误的或甚至类型不正确。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>检查标记参数</strong>:</p>
+<pre><code class="language-python">if not marker.args and not marker.kwargs:
+    raise TypeError("Timeout marker must have at least one argument")
+</code></pre>
+</li>
+</ol>
+<p>如果标记没有位置参数 (<code>args</code>) 也没有关键字参数 (<code>kwargs</code>)，则抛出 <code>TypeError</code>。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>初始化变量</strong>:</p>
+<pre><code class="language-python">timeout = method = func_only = NOTSET = object()
+</code></pre>
+</li>
+</ol>
+<p>初始化 <code>timeout</code>、<code>method</code> 和 <code>func_only</code> 变量，并设置为 <code>NOTSET</code>。<code>NOTSET</code> 是一个对象，用于标识这些值尚未被设置。</p>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>解析关键字参数</strong>:</p>
+<pre><code class="language-python">for kw, val in marker.kwargs.items():
+    if kw == "timeout":
+        timeout = val
+    elif kw == "method":
+        method = val
+    elif kw == "func_only":
+        func_only = val
+    else:
+        raise TypeError("Invalid keyword argument for timeout marker: %s" % kw)
+</code></pre>
+</li>
+</ol>
+<p>遍历标记的关键字参数，并根据参数名称设置相应的变量。如果遇到无效的关键字参数，则抛出 <code>TypeError</code>。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>解析位置参数</strong>:</p>
+<pre><code class="language-python">if len(marker.args) &gt;= 1 and timeout is not NOTSET:
+    raise TypeError("Multiple values for timeout argument of timeout marker")
+elif len(marker.args) &gt;= 1:
+    timeout = marker.args[0]
+</code></pre>
+</li>
+</ol>
+<p>如果标记有位置参数，并且 <code>timeout</code> 已经被设置，则抛出 <code>TypeError</code>。否则，将第一个位置参数赋值给 <code>timeout</code>。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>解析方法参数</strong>:</p>
+<pre><code class="language-python">if len(marker.args) &gt;= 2 and method is not NOTSET:
+    raise TypeError("Multiple values for method argument of timeout marker")
+elif len(marker.args) &gt;= 2:
+    method = marker.args[1]
+</code></pre>
+</li>
+</ol>
+<p>如果标记有第二个位置参数，并且 <code>method</code> 已经被设置，则抛出 <code>TypeError</code>。否则，将第二个位置参数赋值给 <code>method</code>。</p>
+<ol start="8">
+<li class="lvl-3">
+<p><strong>检查参数数量</strong>:</p>
+<pre><code class="language-python">if len(marker.args) &gt; 2:
+    raise TypeError("Too many arguments for timeout marker")
+</code></pre>
+</li>
+</ol>
+<p>如果标记有超过两个位置参数，则抛出 <code>TypeError</code>。</p>
+<ol start="9">
+<li class="lvl-3">
+<p><strong>处理未设置的值</strong>:</p>
+<pre><code class="language-python">if timeout is NOTSET:
+    timeout = None
+if method is NOTSET:
+    method = None
+if func_only is NOTSET:
+    func_only = None
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>timeout</code>、<code>method</code> 或 <code>func_only</code> 仍然为 <code>NOTSET</code>，则将它们设置为 <code>None</code>。</p>
+<ol start="10">
+<li class="lvl-4">
+<p><strong>返回设置</strong>:</p>
+<pre><code class="language-python">return Settings(timeout, method, func_only, None)
+</code></pre>
+</li>
+</ol>
+<p>返回一个 <code>Settings</code> 对象，包含超时时间、超时方法、函数体超时评估和调试器检测禁用设置。</p>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>参数解析</strong>：函数首先检查标记是否有参数，然后分别解析位置参数和关键字参数。</p>
+</li>
+<li class="lvl-2">
+<p><strong>错误处理</strong>：如果标记的参数数量不正确或参数名称无效，函数会抛出 <code>TypeError</code>。</p>
+</li>
+<li class="lvl-2">
+<p><strong>默认值处理</strong>：如果参数未在标记中设置，则在函数结束时将它们设置为 <code>None</code>。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>Settings</code> 对象</strong>：返回的 <code>Settings</code> 对象包含了所有解析出的设置，方便后续使用。</p>
+</li>
+</ul>
+<h3 id="ji-ge-si-you-validate-fang-fa">几个私有validate方法</h3>
+<pre><code class="language-python">def _validate_timeout(timeout, where):
+    if timeout is None:
+        return None
+    try:
+        return float(timeout)
+    except ValueError:
+        raise ValueError("Invalid timeout %s from %s" % (timeout, where))
+
+
+def _validate_method(method, where):
+    if method is None:
+        return None
+    if method not in ["signal", "thread"]:
+        raise ValueError("Invalid method %s from %s" % (method, where))
+    return method
+
+
+def _validate_func_only(func_only, where):
+    if func_only is None:
+        return None
+    if not isinstance(func_only, bool):
+        raise ValueError("Invalid func_only value %s from %s" % (func_only, where))
+    return func_only
+
+
+def _validate_disable_debugger_detection(disable_debugger_detection, where):
+    if disable_debugger_detection is None:
+        return None
+    if not isinstance(disable_debugger_detection, bool):
+        raise ValueError(
+            "Invalid disable_debugger_detection value %s from %s"
+            % (disable_debugger_detection, where)
+        )
+    return disable_debugger_detection
+</code></pre>
+<p>这段代码包含了一系列用于验证超时设置的函数，它们确保从 <code>pytest</code> 标记、环境变量或配置文件中获取的值是有效的。</p>
+<ol>
+<li class="lvl-3">
+<p><strong><code>_validate_timeout</code> 函数</strong>:</p>
+<pre><code class="language-python">def _validate_timeout(timeout, where):
+</code></pre>
+</li>
+</ol>
+<p>用于验证超时时间设置：</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>timeout</code>: 超时时间值。</p>
+</li>
+<li class="lvl-5">
+<p><code>where</code>: 值来源的描述，例如 “marker”、“environment variable” 或 “config file”。</p>
+</li>
+</ul>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>处理 <code>None</code> 值</strong>:</p>
+<pre><code class="language-python">if timeout is None:
+    return None
+</code></pre>
+</li>
+</ol>
+<p>如果超时时间设置为 <code>None</code>，则直接返回 <code>None</code>。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>转换为浮点数</strong>:</p>
+<pre><code class="language-python">try:
+    return float(timeout)
+except ValueError:
+    raise ValueError("Invalid timeout %s from %s" % (timeout, where))
+</code></pre>
+</li>
+</ol>
+<p>尝试将超时时间转换为浮点数。如果转换失败（例如，值不是数字），则抛出 <code>ValueError</code>。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong><code>_validate_method</code> 函数</strong>:</p>
+<pre><code class="language-python">def _validate_method(method, where):
+</code></pre>
+</li>
+</ol>
+<p>用于验证超时方法设置：</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>method</code>: 超时方法值。</p>
+</li>
+<li class="lvl-5">
+<p><code>where</code>: 值来源的描述。</p>
+</li>
+</ul>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>处理 <code>None</code> 值</strong>:</p>
+<pre><code class="language-python">if method is None:
+    return None
+</code></pre>
+</li>
+</ol>
+<p>如果超时方法设置为 <code>None</code>，则直接返回 <code>None</code>。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>检查有效性</strong>:</p>
+<pre><code class="language-python">if method not in ["signal", "thread"]:
+    raise ValueError("Invalid method %s from %s" % (method, where))
+</code></pre>
+</li>
+</ol>
+<p>检查超时方法是否为 “signal” 或 “thread”。如果不是，则抛出 <code>ValueError</code>。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong><code>_validate_func_only</code> 函数</strong>:</p>
+<pre><code class="language-python">def _validate_func_only(func_only, where):
+</code></pre>
+</li>
+</ol>
+<p>用于验证函数体超时评估设置。</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>func_only</code>: 函数体超时评估值。</p>
+</li>
+<li class="lvl-5">
+<p><code>where</code>: 值来源的描述。</p>
+</li>
+</ul>
+<ol start="8">
+<li class="lvl-3">
+<p><strong>处理 <code>None</code> 值</strong>:</p>
+<pre><code class="language-python">if func_only is None:
+    return None
+</code></pre>
+</li>
+</ol>
+<p>如果函数体超时评估设置为 <code>None</code>，则直接返回 <code>None</code>。</p>
+<ol start="9">
+<li class="lvl-3">
+<p><strong>检查布尔值</strong>:</p>
+<pre><code class="language-python">if not isinstance(func_only, bool):
+    raise ValueError("Invalid func_only value %s from %s" % (func_only, where))
+</code></pre>
+</li>
+</ol>
+<p>检查函数体超时评估值是否为布尔类型。如果不是，则抛出 <code>ValueError</code>。</p>
+<ol start="10">
+<li class="lvl-4">
+<p><strong><code>_validate_disable_debugger_detection</code> 函数</strong>:</p>
+<pre><code class="language-python">def _validate_disable_debugger_detection(disable_debugger_detection, where):
+</code></pre>
+</li>
+</ol>
+<p>用于验证调试器检测禁用设置：<br>
+- <code>disable_debugger_detection</code>: 调试器检测禁用值。<br>
+- <code>where</code>: 值来源的描述。</p>
+<ol start="11">
+<li class="lvl-4">
+<p><strong>处理 <code>None</code> 值</strong>:</p>
+<pre><code class="language-python">if disable_debugger_detection is None:
+    return None
+</code></pre>
+</li>
+</ol>
+<p>如果调试器检测禁用设置为 <code>None</code>，则直接返回 <code>None</code>。</p>
+<ol start="12">
+<li class="lvl-4">
+<p><strong>检查布尔值</strong>:</p>
+<pre><code class="language-python">if not isinstance(disable_debugger_detection, bool):
+    raise ValueError(
+        "Invalid disable_debugger_detection value %s from %s"
+        % (disable_debugger_detection, where)
+    )
+</code></pre>
+</li>
+</ol>
+<p>检查调试器检测禁用值是否为布尔类型。如果不是，则抛出 <code>ValueError</code>。</p>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>这些函数通过检查和转换确保超时相关的设置是有效的，并且符合预期的类型和值。</p>
+</li>
+<li class="lvl-2">
+<p>它们在获取设置时提供了一种一致的验证机制，有助于避免因配置错误而导致的测试执行问题。</p>
+</li>
+<li class="lvl-2">
+<p>通过在抛出异常时包含值来源的描述，可以更容易地定位和解决问题。</p>
+</li>
+</ul>
+<h3 id="timeout-sigalrm-fang-fa">timeout_sigalrm方法</h3>
+<pre><code class="language-python">def timeout_sigalrm(item, settings):
+    """Dump stack of threads and raise an exception.
+
+    This will output the stacks of any threads other then the
+    current to stderr and then raise an AssertionError, thus
+    terminating the test.
+    """
+    if not settings.disable_debugger_detection and is_debugging():
+        return
+    __tracebackhide__ = True
+    nthreads = len(threading.enumerate())
+    terminal = item.config.get_terminal_writer()
+    if nthreads &gt; 1:
+        terminal.sep("+", title="Timeout")
+    dump_stacks(terminal)
+    if nthreads &gt; 1:
+        terminal.sep("+", title="Timeout")
+    pytest.fail("Timeout &gt;%ss" % settings.timeout)
+</code></pre>
+<p>这个函数的主要作用是在测试用例超时时提供详细的调试信息，并明确地终止测试。这对于识别和处理测试执行过程中的长时间运行或死锁非常有用。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def timeout_sigalrm(item, settings):
+</code></pre>
+</li>
+</ol>
+<p>定义了一个函数 <code>timeout_sigalrm</code>，接收两个参数：</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>item</code>：<code>pytest</code> 的测试项对象。</p>
+</li>
+<li class="lvl-5">
+<p><code>settings</code>：包含超时设置的 <code>Settings</code> 对象。</p>
+</li>
+</ul>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def timeout_sigalrm(item, settings):
+    """Dump stack of threads and raise an exception.
+    This will output the stacks of any threads other then the
+    current to stderr and then raise an AssertionError, thus
+    terminating the test.
+    """
+</code></pre>
+</li>
+</ol>
+<p>文档字符串说明了这个函数的作用是在超时发生时转储线程栈，并引发异常以终止测试。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>调试器检测</strong>:</p>
+<pre><code class="language-python">if not settings.disable_debugger_detection and is_debugging():
+    return
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>settings.disable_debugger_detection</code> 为 <code>False</code> 并且检测到正在调试（<code>is_debugging()</code> 返回 <code>True</code>），则函数返回，不执行超时处理。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>设置 traceback 隐藏</strong>:</p>
+<pre><code class="language-python">__tracebackhide__ = True
+</code></pre>
+</li>
+</ol>
+<p>设置一个特殊的变量 <code>__tracebackhide__</code> 为 <code>True</code>，这告诉 <code>pytest</code> 在显示 <code>traceback</code> 时隐藏这部分的堆栈跟踪。</p>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>获取线程数</strong>:</p>
+<pre><code class="language-python">nthreads = len(threading.enumerate())
+</code></pre>
+</li>
+</ol>
+<p>使用 <code>threading.enumerate()</code> 获取当前线程的列表，并计算线程的数量。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>获取终端写入器</strong>:</p>
+<pre><code class="language-python">terminal = item.config.get_terminal_writer()
+</code></pre>
+</li>
+</ol>
+<p>从测试项的配置中获取终端写入器，用于向终端输出信息。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>输出超时信息</strong>:</p>
+<pre><code class="language-python">if nthreads &gt; 1:
+    terminal.sep("+", title="Timeout")
+</code></pre>
+</li>
+</ol>
+<p>如果有多个线程，则在终端输出一个分隔线，并标注标题为 “Timeout”。</p>
+<ol start="8">
+<li class="lvl-3">
+<p><strong>转储线程栈</strong>:</p>
+<pre><code class="language-python">dump_stacks(terminal)
+</code></pre>
+</li>
+</ol>
+<p>调用 <code>dump_stacks</code> 函数（未在代码中定义），将所有线程的栈信息输出到终端。</p>
+<ol start="9">
+<li class="lvl-3">
+<p><strong>再次输出超时信息</strong>:</p>
+<pre><code class="language-python">if nthreads &gt; 1:
+    terminal.sep("+", title="Timeout")
+</code></pre>
+</li>
+</ol>
+<p>如果有多个线程，则再次在终端输出一个分隔线，并标注标题为 “Timeout”。</p>
+<ol start="10">
+<li class="lvl-4">
+<p><strong>引发超时失败</strong>:</p>
+<pre><code class="language-python">pytest.fail("Timeout &gt;%ss" % settings.timeout)
+</code></pre>
+</li>
+</ol>
+<p>使用 <code>pytest</code> 的 <code>fail</code> 函数引发一个失败，消息中包含超时时间。</p>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>线程栈转储</strong>：当测试用例执行超过指定的超时时间时，这个函数会被调用，输出所有线程的栈信息，有助于调试和诊断问题。</p>
+</li>
+<li class="lvl-2">
+<p><strong>调试器检测</strong>：如果设置了不检测调试器，或者当前不在调试模式，则会跳过超时处理。</p>
+</li>
+<li class="lvl-2">
+<p><strong>超时失败</strong>：最终，函数会引发一个 <code>AssertionError</code>，导致测试失败，并显示超时信息。</p>
+</li>
+</ul>
+<h3 id="timeout-timer-fang-fa">timeout_timer方法</h3>
+<pre><code class="language-python">def timeout_timer(item, settings):
+    """Dump stack of threads and call os._exit().
+
+    This disables the capturemanager and dumps stdout and stderr.
+    Then the stacks are dumped and os._exit(1) is called.
+    """
+    if not settings.disable_debugger_detection and is_debugging():
+        return
+    terminal = item.config.get_terminal_writer()
+    try:
+        capman = item.config.pluginmanager.getplugin("capturemanager")
+        if capman:
+            capman.suspend_global_capture(item)
+            stdout, stderr = capman.read_global_capture()
+        else:
+            stdout, stderr = None, None
+        terminal.sep("+", title="Timeout")
+        caplog = item.config.pluginmanager.getplugin("_capturelog")
+        if caplog and hasattr(item, "capturelog_handler"):
+            log = item.capturelog_handler.stream.getvalue()
+            if log:
+                terminal.sep("~", title="Captured log")
+                terminal.write(log)
+        if stdout:
+            terminal.sep("~", title="Captured stdout")
+            terminal.write(stdout)
+        if stderr:
+            terminal.sep("~", title="Captured stderr")
+            terminal.write(stderr)
+        dump_stacks(terminal)
+        terminal.sep("+", title="Timeout")
+    except Exception:
+        traceback.print_exc()
+    finally:
+        terminal.flush()
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(1)
+</code></pre>
+<p>这个函数的主要作用是在测试用例超时时提供详细的调试信息（特别是当使用线程超时方法时），并强制终止测试。这对于识别和处理测试执行过程中的长时间运行或死锁非常有用。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def timeout_timer(item, settings):
+</code></pre>
+</li>
+</ol>
+<p>定义了一个函数 <code>timeout_timer</code>，接收两个参数：</p>
+<ul class="lvl-0">
+<li class="lvl-5">
+<p><code>item</code>：<code>pytest</code> 的测试项对象。</p>
+</li>
+<li class="lvl-5">
+<p><code>settings</code>：包含超时设置的 <code>Settings</code> 对象。</p>
+</li>
+</ul>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def timeout_timer(item, settings):
+    """Dump stack of threads and call os._exit().
+    This disables the capturemanager and dumps stdout and stderr.
+    Then the stacks are dumped and os._exit(1) is called.
+    """
+</code></pre>
+</li>
+</ol>
+<p>文档字符串说明了这个函数的作用是在超时发生时转储线程栈，输出捕获的标准输出和标准错误，然后调用 <code>os._exit(1)</code> 终止进程。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>调试器检测</strong>:</p>
+<pre><code class="language-python">if not settings.disable_debugger_detection and is_debugging():
+    return
+</code></pre>
+</li>
+</ol>
+<p>如果 <code>settings.disable_debugger_detection</code> 为 <code>False</code> 并且检测到正在调试（<code>is_debugging()</code> 返回 <code>True</code>），则函数返回，不执行超时处理。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>获取终端写入器</strong>:</p>
+<pre><code class="language-python">terminal = item.config.get_terminal_writer()
+</code></pre>
+</li>
+</ol>
+<p>从测试项的配置中获取终端写入器，用于向终端输出信息。</p>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>获取捕获管理器</strong>:</p>
+<pre><code class="language-python">capman = item.config.pluginmanager.getplugin("capturemanager")
+</code></pre>
+</li>
+</ol>
+<p>尝试获取捕获管理器插件，该插件负责捕获测试中的输出。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>暂停全局捕获</strong>:</p>
+<pre><code class="language-python">if capman:
+    capman.suspend_global_capture(item)
+    stdout, stderr = capman.read_global_capture()
+else:
+    stdout, stderr = None, None
+</code></pre>
+</li>
+</ol>
+<p>如果捕获管理器存在，暂停全局捕获并读取捕获到的标准输出和标准错误。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>输出超时信息</strong>:</p>
+<pre><code class="language-python">terminal.sep("+", title="Timeout")
+</code></pre>
+</li>
+</ol>
+<p>在终端输出一个分隔线，并标注标题为 “Timeout”。</p>
+<ol start="8">
+<li class="lvl-3">
+<p><strong>获取日志捕获插件</strong>:</p>
+<pre><code class="language-python">caplog = item.config.pluginmanager.getplugin("_capturelog")
+</code></pre>
+</li>
+</ol>
+<p>尝试获取日志捕获插件。</p>
+<ol start="9">
+<li class="lvl-3">
+<p><strong>输出捕获的日志</strong>:</p>
+<pre><code class="language-python">if caplog and hasattr(item, "capturelog_handler"):
+    log = item.capturelog_handler.stream.getvalue()
+    if log:
+        terminal.sep("~", title="Captured log")
+        terminal.write(log)
+</code></pre>
+</li>
+</ol>
+<p>如果日志捕获插件存在，输出捕获的日志。</p>
+<ol start="10">
+<li class="lvl-4">
+<p><strong>输出捕获的标准输出</strong>:</p>
+<pre><code class="language-python">if stdout:
+    terminal.sep("~", title="Captured stdout")
+    terminal.write(stdout)
+</code></pre>
+</li>
+</ol>
+<p>如果存在捕获的标准输出，输出它。</p>
+<ol start="11">
+<li class="lvl-4">
+<p><strong>输出捕获的标准错误</strong>:</p>
+<pre><code class="language-python">if stderr:
+    terminal.sep("~", title="Captured stderr")
+    terminal.write(stderr)
+</code></pre>
+</li>
+</ol>
+<p>如果存在捕获的标准错误，输出它。</p>
+<ol start="12">
+<li class="lvl-4">
+<p><strong>转储线程栈</strong>:</p>
+<pre><code class="language-python">dump_stacks(terminal)
+</code></pre>
+</li>
+</ol>
+<p>调用 <code>dump_stacks</code> 函数（未在代码中定义），将所有线程的栈信息输出到终端。</p>
+<ol start="13">
+<li class="lvl-4">
+<p><strong>再次输出超时信息</strong>:</p>
+<pre><code class="language-python">terminal.sep("+", title="Timeout")
+</code></pre>
+</li>
+</ol>
+<p>再次在终端输出一个分隔线，并标注标题为 “Timeout”。</p>
+<ol start="14">
+<li class="lvl-4">
+<p><strong>异常处理</strong>:</p>
+<pre><code class="language-python">except Exception:
+    traceback.print_exc()
+</code></pre>
+</li>
+</ol>
+<p>如果在处理过程中发生异常，输出异常的 <code>traceback</code>。</p>
+<ol start="15">
+<li class="lvl-4">
+<p><strong>清理和退出</strong>:</p>
+<pre><code class="language-python">finally:
+    terminal.flush()
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(1)
+</code></pre>
+<p>在 <code>finally</code> 块中，确保终端、标准输出和标准错误的缓冲区被刷新，然后调用 <code>os._exit(1)</code> 立即终止进程。</p>
+</li>
+</ol>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>捕获管理器</strong>：函数尝试获取捕获管理器插件，并在超时发生时暂停全局捕获，以便输出捕获的内容。</p>
+</li>
+<li class="lvl-2">
+<p><strong>日志捕获</strong>：函数还尝试获取日志捕获插件，并输出捕获的日志。</p>
+</li>
+<li class="lvl-2">
+<p><strong>线程栈转储</strong>：函数输出所有线程的栈信息，有助于调试和诊断问题。</p>
+</li>
+<li class="lvl-2">
+<p><strong>立即退出</strong>：最终，函数通过 <code>os._exit(1)</code> 立即终止进程，确保测试因超时而失败。</p>
+</li>
+</ul>
+<h3 id="dump-stacks-fang-fa">dump_stacks方法</h3>
+<pre><code class="language-python">def dump_stacks(terminal):
+    """Dump the stacks of all threads except the current thread."""
+    current_ident = threading.current_thread().ident
+    for thread_ident, frame in sys._current_frames().items():
+        if thread_ident == current_ident:
+            continue
+        for t in threading.enumerate():
+            if t.ident == thread_ident:
+                thread_name = t.name
+                break
+        else:
+            thread_name = "&lt;unknown&gt;"
+        terminal.sep("~", title="Stack of %s (%s)" % (thread_name, thread_ident))
+        terminal.write("".join(traceback.format_stack(frame)))
+</code></pre>
+<p>这个函数用于转储除当前线程之外的所有线程的栈信息，通常在测试超时或其他需要调试多线程行为的情况下使用，提供了一种快速查看所有线程当前状态的方法。这对于识别死锁、长时间运行的任务或其他并发问题非常有用。</p>
+<ol>
+<li class="lvl-3">
+<p><strong>函数定义</strong>:</p>
+<pre><code class="language-python">def dump_stacks(terminal):
+</code></pre>
+</li>
+</ol>
+<p>定义了一个函数 <code>dump_stacks</code>，接收一个参数 <code>terminal</code>，这是用于输出信息的终端写入器。</p>
+<ol start="2">
+<li class="lvl-3">
+<p><strong>函数文档字符串</strong>:</p>
+<pre><code class="language-python">def dump_stacks(terminal):
+    """Dump the stacks of all threads except the current thread."""
+</code></pre>
+</li>
+</ol>
+<p>文档字符串说明了这个函数的作用是转储所有其他线程的栈信息，不包括当前线程。</p>
+<ol start="3">
+<li class="lvl-3">
+<p><strong>获取当前线程标识</strong>:</p>
+<pre><code class="language-python">current_ident = threading.current_thread().ident
+</code></pre>
+</li>
+</ol>
+<p>使用 <code>threading.current_thread().ident</code> 获取当前线程的唯一标识符。</p>
+<ol start="4">
+<li class="lvl-3">
+<p><strong>遍历所有线程的栈</strong>:</p>
+<pre><code class="language-python">for thread_ident, frame in sys._current_frames().items():
+</code></pre>
+</li>
+</ol>
+<p>使用 <code>sys._current_frames()</code> 获取一个字典，其中包含所有线程的标识符和它们的当前栈帧。</p>
+<ol start="5">
+<li class="lvl-3">
+<p><strong>跳过当前线程</strong>:</p>
+<pre><code class="language-python">if thread_ident == current_ident:
+    continue
+</code></pre>
+</li>
+</ol>
+<p>如果线程标识符与当前线程标识符相同，则跳过当前线程。</p>
+<ol start="6">
+<li class="lvl-3">
+<p><strong>获取线程名称</strong>:</p>
+<pre><code class="language-python">for t in threading.enumerate():
+    if t.ident == thread_ident:
+        thread_name = t.name
+        break
+else:
+    thread_name = "&lt;unknown&gt;"
+</code></pre>
+</li>
+</ol>
+<p>遍历所有线程，找到与当前标识符匹配的线程，并获取其名称。如果找不到，则将名称设置为 <code>&lt;unknown&gt;</code>。</p>
+<ol start="7">
+<li class="lvl-3">
+<p><strong>输出线程栈信息</strong>:</p>
+<pre><code class="language-python">terminal.sep("~", title="Stack of %s (%s)" % (thread_name, thread_ident))
+terminal.write("".join(traceback.format_stack(frame)))
+</code></pre>
+</li>
+</ol>
+<p>使用终端写入器输出一个分隔线，并标注标题为线程名称和标识符。然后输出该线程的栈信息，使用 <code>traceback.format_stack(frame)</code> 格式化栈帧。</p>
+<p>详细说明：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong>线程栈转储</strong>：函数输出所有其他线程的栈信息，有助于调试和诊断问题，特别是在测试超时或其他长时间运行的问题时。</p>
+</li>
+<li class="lvl-2">
+<p><strong>跳过当前线程</strong>：函数故意跳过当前线程的栈信息，因为当前线程可能不包含相关的上下文信息。</p>
+</li>
+<li class="lvl-2">
+<p><strong>线程名称获取</strong>：尝试获取线程的名称以提供更友好的输出。如果无法获取名称，则使用 <code>&lt;unknown&gt;</code> 作为占位符。</p>
+</li>
+<li class="lvl-2">
+<p><strong>输出格式</strong>：使用终端写入器输出格式化的栈信息，使其易于阅读和理解。</p>
+</li>
+</ul>
+<h1 id="jie-yu">结语</h1>
+<p><code>pytest-timeout</code> 是一个 <code>pytest</code> 插件，它为测试提供了超时功能，以下是其关键特性的总结：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>自动超时</strong>：允许你为测试用例设置一个最大执行时间限制，超过这个时间限制的测试将被自动终止。</p>
+</li>
+<li class="lvl-3">
+<p><strong>灵活的超时机制</strong>：支持两种超时机制——使用信号 (<code>signal</code>) 或线程 (<code>thread</code>) 来实现超时。</p>
+</li>
+<li class="lvl-3">
+<p><strong>命令行和配置文件选项</strong>：可以通过命令行参数或 <code>pytest</code> 配置文件来设置超时时间、方法和其他相关选项。</p>
+</li>
+<li class="lvl-3">
+<p><strong>调试支持</strong>：提供了选项来禁用调试器检测，允许在调试模式下运行测试而不触发超时。</p>
+</li>
+<li class="lvl-3">
+<p><strong>会话超时</strong>：除了单个测试用例的超时，还支持设置整个测试会话的超时时间。</p>
+</li>
+<li class="lvl-3">
+<p><strong>易于集成</strong>：与 <code>pytest</code> 紧密结合，易于安装和使用，为现有的测试流程添加了超时保护。</p>
+</li>
+<li class="lvl-3">
+<p><strong>报告和日志</strong>：在测试报告中提供超时信息，并在必要时输出所有线程的栈跟踪信息，有助于调试。</p>
+</li>
+</ol>
+<p>总的来说，<code>pytest-timeout</code> 插件通过为测试用例添加超时限制，帮助确保测试不会因为意外情况而无限期地挂起，提高了测试的可靠性和效率。</p>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/08/24/pytest_timeout/">https://gavin-wang-note.github.io/2025/08/24/pytest_timeout/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2999/12/28/why_choose_pytest/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="Why choose pytest?">
+                        
+                        <span class="card-title">Why choose pytest?</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            Why choose pytest? Happy testing, and may your code be as bug-free as a clear blue sky!
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2999-12-28
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/07/20/pytest_lazy_fixtures/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例依赖之pytest-lazy-fixtures源码解读">
+                        
+                        <span class="card-title">测试用例依赖之pytest-lazy-fixtures源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            试用例依赖之pytest-lazy-fixtures源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-07-20
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1109.2k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>
