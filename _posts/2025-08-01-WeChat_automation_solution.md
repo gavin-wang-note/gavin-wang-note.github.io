@@ -7,7 +7,7 @@ top: True
 hide: false
 cover: false
 coverImg:
-password:Bigtera@123!
+password: Bigtera@123!
 theme: flip
 toc: true
 mathjax: false
@@ -2368,3 +2368,5 @@ on:
 - pytest官方文档
 - Allure官方文档
 - 微信开发者工具
+
+
