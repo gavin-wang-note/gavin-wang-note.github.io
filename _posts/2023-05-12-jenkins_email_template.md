@@ -6,6 +6,7 @@ date: 2023-05-12
 author: "Gavin Wang"
 catalog: true
 top: true
+password: Bigtera@123!
 img: "img/in-post/jenkins/jenkins.jpg"
 summary: 介绍自用的一款Jenkins Email模板
 categories:

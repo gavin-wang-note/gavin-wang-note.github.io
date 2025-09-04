@@ -6,6 +6,7 @@ date:       2019-12-31
 author:     "Gavin Wang"
 catalog:    true
 cover:      true
+password: Bigtera@123!
 summary: 基于Nose Framework做分布式存储产品接口级自动化
 top: true
 categories:

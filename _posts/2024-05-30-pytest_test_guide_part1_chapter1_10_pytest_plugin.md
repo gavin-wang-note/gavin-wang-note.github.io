@@ -7,7 +7,7 @@ top: false
 hide: false
 cover: false
 coverImg:
-password:
+password: Bigtera@123!
 theme: flip
 toc: true
 mathjax: false
