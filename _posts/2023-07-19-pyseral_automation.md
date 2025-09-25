@@ -4,11 +4,11 @@ title:      "Windows下使用pyserial实现嵌入式产品串口自动化测试�
 subtitle:   "pyserial Embedded Automation Test Framework for Windows"
 date:       2023-07-19
 author:     "Gavin Wang"
-catalog:    true
-top: false
+catalog: true
+top: true
 img: "/img/pytest/pytest-8.png"
 summary: pytest基于pyserial模块做嵌入式产品串口功能自动化
-password: Pytest@123!
+password: Bigtera@123!
 theme: flip
 categories:
     - [Automation]
