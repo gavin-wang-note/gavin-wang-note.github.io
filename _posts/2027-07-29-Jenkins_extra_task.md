@@ -2,7 +2,7 @@
 title: Jenkins 任务里额外后台执行某个任务，不阻塞当前Jenkins任务
 date: 2027-07-29 23:00:00
 author: Gavin Wang
-img: "/img/pytest/pytest-2.png"
+img: 
 top: false
 hide: false
 cover: true

@@ -1,0 +1,175 @@
+@startuml
+!theme plain
+skinparam {
+  BackgroundColor #FFFFFF
+  ClassBackgroundColor #F8F9FA
+  ClassBorderColor #37474F
+  AbstractClassBackgroundColor #E3F2FD
+  AbstractClassBorderColor #1976D2
+  ArrowColor #455A64
+  ArrowThickness 1.5
+  PackageBackgroundColor #E8F5E8
+  PackageBorderColor #4CAF50
+  TitleBackgroundColor #007ACC
+  TitleBorderColor #007ACC
+  TitleFontColor #FFFFFF
+  NoteBackgroundColor #FFF9C4
+  NoteBorderColor #FFD54F
+  FontColor #333333
+}
+
+title "认证机制详细设计"
+
+package "认证抽象层" {
+  abstract class AuthBase {
+    {abstract} + authenticate(): bool
+    {abstract} + get_auth_headers(): Dict[str, str]
+    {abstract} + is_authenticated(): bool
+    {abstract} + logout(): bool
+    + refresh(): bool
+    + validate_token(): bool
+  }
+  
+  class AuthFactory {
+    - _auth_registry: Dict[str, Type[AuthBase]]
+    + register_auth_type(auth_type: str, auth_class: Type[AuthBase])
+    + create_auth(auth_type: str, **kwargs) -> AuthBase
+    + list_supported_auth_types() -> List[str]
+  }
+}
+
+package "具体认证实现" {
+  class NoAuth {
+    + authenticate(): bool
+    + get_auth_headers(): Dict[str, str]
+    + is_authenticated(): bool
+    + logout(): bool
+  }
+  
+  class BasicAuth {
+    - username: str
+    - password: str
+    - _authenticated: bool
+    + authenticate(): bool
+    + get_auth_headers(): Dict[str, str]
+    + is_authenticated(): bool
+    + logout(): bool
+    - _encode_credentials(): str
+  }
+  
+  class TokenAuth {
+    # token: Optional[str]
+    # token_type: str
+    # _authenticated: bool
+    + set_token(token: str)
+    + get_token(): Optional[str]
+    + get_auth_headers(): Dict[str, str]
+    + is_authenticated(): bool
+    + logout(): bool
+  }
+  
+  class JwtAuth {
+    - auth_endpoint: str
+    - username: str
+    - password: str
+    - token_header: str
+    - token_prefix: str
+    - _client: Optional[BaseClient]
+    + set_client(client: BaseClient)
+    + authenticate(): bool
+    + refresh_token(): bool
+    + validate_token_expiry(): bool
+    - _extract_token_from_response(response: Dict): str
+  }
+  
+  class ApiKeyAuth {
+    - api_key: str
+    - header_name: str
+    - query_param: Optional[str]
+    - _authenticated: bool
+    + authenticate(): bool
+    + get_auth_headers(): Dict[str, str]
+    + get_query_params(): Dict[str, str]
+    + is_authenticated(): bool
+    + logout(): bool
+  }
+  
+  class OAuth2Auth {
+    - client_id: str
+    - client_secret: str
+    - token_url: str
+    - scope: List[str]
+    - access_token: Optional[str]
+    - refresh_token: Optional[str]
+    + authenticate(): bool
+    + refresh_token(): bool
+    + get_auth_headers(): Dict[str, str]
+    - _request_token(grant_type: str, **kwargs): Dict
+  }
+}
+
+package "认证上下文" {
+  class AuthContext {
+    - auth_strategy: AuthBase
+    - context_data: Dict
+    + set_strategy(auth_strategy: AuthBase)
+    + authenticate(): bool
+    + get_auth_headers(): Dict[str, str]
+    + refresh(): bool
+    + validate(): bool
+  }
+  
+  class AuthManager {
+    - auth_contexts: Dict[str, AuthContext]
+    - default_auth: AuthBase
+    + register_auth_context(name: str, auth: AuthBase)
+    + get_auth_context(name: str) -> AuthContext
+    + authenticate_all(): Dict[str, bool]
+    + cleanup()
+  }
+}
+
+' 继承关系
+NoAuth --|> AuthBase
+BasicAuth --|> AuthBase
+TokenAuth --|> AuthBase
+JwtAuth --|> TokenAuth
+ApiKeyAuth --|> AuthBase
+OAuth2Auth --|> TokenAuth
+
+' 关联关系
+AuthFactory ..> AuthBase : 创建实例 >
+AuthContext *--> AuthBase : 使用策略 >
+AuthManager *--> AuthContext : 管理上下文 >
+
+' 依赖关系
+JwtAuth ..> BaseClient : 依赖HTTP客户端 >
+OAuth2Auth ..> BaseClient : 依赖HTTP客户端 >
+
+note top of AuthBase
+  认证基类定义了所有认证
+  机制必须实现的接口方法
+  支持统一的认证管理
+end note
+
+note right of AuthFactory
+  工厂模式实现认证类的
+  动态创建和注册管理
+  支持热插拔认证机制
+end note
+
+note bottom of JwtAuth
+  JWT认证支持自动令牌
+  刷新和过期验证，集成
+  了完整的令牌生命周期管理
+end note
+
+legend bottom
+  | 模式 | 应用 |
+  | :--- | :--- |
+  | 策略模式 | AuthContext使用不同的认证策略 |
+  | 工厂模式 | AuthFactory创建认证实例 |
+  | 模板方法 | AuthBase定义认证流程骨架 |
+end legend
+
+@enduml

@@ -11,7 +11,7 @@ password:
 theme: flip
 toc: true
 mathjax: false
-summary: selenium.common.exceptions.SessionNotCreatedException: Message: session not created
+summary: "selenium.common.exceptions.SessionNotCreatedException: Message: session not created"
 categories:
     - [pytest]
     - [Automation]

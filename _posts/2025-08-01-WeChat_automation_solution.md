@@ -7,7 +7,7 @@ top: True
 hide: false
 cover: false
 coverImg:
-password: Bigtera@123!
+password: 
 theme: flip
 toc: true
 mathjax: false
@@ -27,39 +27,6 @@ tags:
 
 **功能标签**: `功能测试` `UI自动化` `性能测试` `持续集成`
 
-![抽象的小程序自动化测试技术背景图](https://kimi-web-img.moonshot.cn/img/www.sensecore.cn/331c25229e34936c110cd5bdcb0b9ebc4c74aaae)
-
-## 目录
-
-- [引言](#引言)
-- [核心工具选型与技术栈](#核心工具选型与技术栈)
-  - [Minium：微信官方测试框架](#minium微信官方测试框架)
-  - [测试执行与报告工具](#测试执行与报告工具)
-  - [辅助工具](#辅助工具)
-- [环境搭建与配置](#环境搭建与配置)
-  - [基础环境准备](#基础环境准备)
-  - [Minium框架安装与配置](#minium框架安装与配置)
-  - [pytest与Allure集成](#pytest与allure集成)
-- [测试框架详细设计](#测试框架详细设计)
-  - [项目目录结构设计](#项目目录结构设计)
-  - [页面对象模型（Page Object）设计](#页面对象模型page-object设计)
-  - [测试用例组织与管理](#测试用例组织与管理)
-- [功能测试实现](#功能测试实现)
-  - [基于Minium的API测试](#基于minium的api测试)
-  - [网络请求与响应验证](#网络请求与响应验证)
-  - [数据驱动测试](#数据驱动测试)
-- [UI自动化测试实现](#ui自动化测试实现)
-  - [元素定位策略](#元素定位策略)
-  - [用户交互模拟](#用户交互模拟)
-  - [UI状态与数据校验](#ui状态与数据校验)
-- [性能测试实现](#性能测试实现)
-  - [性能数据采集](#性能数据采集)
-  - [性能测试用例设计与分析](#性能测试用例设计与分析)
-- [测试执行与报告生成](#测试执行与报告生成)
-  - [本地测试执行](#本地测试执行)
-  - [云端测试服务（可选）](#云端测试服务可选)
-  - [Allure报告生成与查看](#allure报告生成与查看)
-- [持续集成（CI/CD）集成](#持续集成cicd集成)
 
 ## 引言
 
@@ -262,7 +229,7 @@ pytest --help | grep allure
 
 一个清晰的项目目录结构是框架可维护性的基石。它应该能够直观地反映项目的组成部分，并方便团队成员快速定位代码。以下是一个推荐的目录结构，它融合了`pytest`的最佳实践和Page Object模式的思想 [[37]](https://blog.csdn.net/weixin_45754647/article/details/139133058) [[42]](https://tech.youzan.com/wei-xin-xiao-cheng-xu-zi-dong-hua-kuang-jia-shi-jian/)。
 
-```
+```ini
 wechat_miniprogram_automation/
 │
 ├── config/                      # 配置文件目录

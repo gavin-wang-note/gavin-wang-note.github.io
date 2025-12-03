@@ -2,7 +2,7 @@
 title: MySQL/Oracle数据库备份
 date: 2027-08-19 23:00:00
 author: Gavin Wang
-img: ""
+img:
 top: true
 hide: false
 cover: true

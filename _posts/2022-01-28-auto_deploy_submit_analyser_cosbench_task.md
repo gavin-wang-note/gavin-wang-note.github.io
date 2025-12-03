@@ -4,8 +4,8 @@ title:      "自动部署cosbench并提交任务与结果处理解析"
 subtitle:   "Auto deoloy cosbench, submit task and analyser result"
 date:       2022-01-28
 author:     "Gavin Wang"
-catalog:    true
-top: true
+catalog:   true 
+top: false 
 img: 
 categories:
     - [cosbench]

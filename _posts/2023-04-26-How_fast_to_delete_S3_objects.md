@@ -4,8 +4,8 @@ title:      "快速清除S3 Bucket下Objects"
 subtitle:   "Fast to delete S3 Objects"
 date:       2023-04-26
 author:     "Gavin Wang"
-catalog:    true
-top: true
+catalog:   true 
+top: false 
 categories: 
     - [ceph]
 tags:

@@ -1,0 +1,140 @@
+@startuml
+!theme plain
+skinparam {
+  BackgroundColor #FFFFFF
+  ComponentBackgroundColor #E3F2FD
+  ComponentBorderColor #1976D2
+  NodeBackgroundColor #FFE0B2
+  NodeBorderColor #FF9800
+  DatabaseBackgroundColor #E8F5E8
+  DatabaseBorderColor #4CAF50
+  ArrowColor #1565C0
+  ArrowThickness 2
+  CloudBackgroundColor #F5F5F5
+  CloudBorderColor #999999
+  TitleBackgroundColor #007ACC
+  TitleBorderColor #007ACC
+  TitleFontColor #FFFFFF
+}
+
+title "分布式性能测试工具物理部署架构"
+
+cloud "测试环境" as Cloud {
+  
+  node "主控制节点\n(Master Node)" as MasterNode {
+    component "CLI入口\nrun_platform.py" as CLI
+    component "配置管理器\nConfigManager" as ConfigMgr
+    component "产品管理器\nProductManager" as ProductMgr
+    component "分布式管理器\nDistributedManager" as DistMgr
+    component "报告生成器\nReportGenerator" as ReportGen
+    database "配置文件\nYAML/JSON" as ConfigDB
+    database "测试报告\nHTML/CSV" as ReportDB
+    
+    component "Locust Master服务" as LocustMaster {
+      component "Web UI\n端口:8089" as WebUI
+      component "Master核心\n端口:5557" as MasterCore
+    }
+  }
+
+  node "工作节点集群\n(Worker Cluster)" as WorkerCluster {
+    
+    node "工作节点 1\n(Worker Node 1)" as Worker1 {
+      component "Locust Worker" as WorkerProc1
+      component "SSH客户端" as SSH1
+    }
+    
+    node "工作节点 2\n(Worker Node 2)" as Worker2 {
+      component "Locust Worker" as WorkerProc2  
+      component "SSH客户端" as SSH2
+    }
+    
+    node "工作节点 N\n(Worker Node N)" as WorkerN {
+      component "Locust Worker" as WorkerProcN
+      component "SSH客户端" as SSHN
+    }
+  }
+
+  node "目标API服务\n(Target API)" as TargetEnv {
+    component "API服务 1" as API1
+    component "API服务 2" as API2
+    component "API服务 3" as API3
+  }
+}
+
+' 主节点内部连接
+CLI --> ConfigMgr : 读取配置
+CLI --> ProductMgr : 加载产品
+CLI --> DistMgr : 协调分布式
+ConfigMgr --> ConfigDB : 读写配置
+DistMgr --> LocustMaster : 控制Master
+ReportGen --> ReportDB : 存储报告
+LocustMaster --> WebUI : 提供Web界面
+LocustMaster --> MasterCore : 核心协调
+
+' 主节点到工作节点连接
+MasterCore --> WorkerProc1 : 任务分发\nTCP 5557
+MasterCore --> WorkerProc2 : 任务分发\nTCP 5557  
+MasterCore --> WorkerProcN : 任务分发\nTCP 5557
+
+DistMgr --> SSH1 : SSH管理连接
+DistMgr --> SSH2 : SSH管理连接
+DistMgr --> SSHN : SSH管理连接
+
+' SSH客户端到Worker进程连接
+SSH1 --> WorkerProc1 : 进程管理
+SSH2 --> WorkerProc2 : 进程管理
+SSHN --> WorkerProcN : 进程管理
+
+' 工作节点到目标API连接
+WorkerProc1 --> API1 : HTTP/HTTPS请求
+WorkerProc1 --> API2 : HTTP/HTTPS请求
+WorkerProc1 --> API3 : HTTP/HTTPS请求
+
+WorkerProc2 --> API1 : HTTP/HTTPS请求
+WorkerProc2 --> API2 : HTTP/HTTPS请求
+WorkerProc2 --> API3 : HTTP/HTTPS请求
+
+WorkerProcN --> API1 : HTTP/HTTPS请求
+WorkerProcN --> API2 : HTTP/HTTPS请求
+WorkerProcN --> API3 : HTTP/HTTPS请求
+
+' 数据收集流
+WorkerProc1 --> MasterCore : 上报统计数据
+WorkerProc2 --> MasterCore : 上报统计数据
+WorkerProcN --> MasterCore : 上报统计数据
+
+MasterCore --> ReportGen : 聚合性能数据
+
+note right of MasterNode
+  主控制节点职责：
+  • 测试流程协调
+  • 分布式环境管理
+  • 数据聚合分析
+  • 报告生成展示
+  • SSH Worker管理
+end note
+
+note left of WorkerCluster  
+  工作节点集群特性：
+  • 水平可扩展架构
+  • 自动负载均衡
+  • 通过SSH远程管理
+  • 执行实际API请求
+end note
+
+note bottom of TargetEnv
+  目标API服务：
+  • 待测试的API系统
+  • 支持多个服务实例
+  • 承受压力测试负载
+end note
+
+legend right
+  | 颜色 | 含义 |
+  | :--- | :--- |
+  | <color:#E3F2FD>蓝色</color> | 控制组件 |
+  | <color:#FFE0B2>橙色</color> | 计算节点 |
+  | <color:#E8F5E8>绿色</color> | 数据存储 |
+end legend
+
+@enduml
