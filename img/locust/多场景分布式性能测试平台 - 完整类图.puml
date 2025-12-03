@@ -1,0 +1,473 @@
+@startuml 多场景分布式性能测试平台 - 完整类图
+!define RECTANGLE class
+
+' 设置全局样式
+skinparam backgroundColor #F8F9FA
+skinparam componentStyle uml2
+skinparam rectangle {
+  BackgroundColor #E3F2FD
+  BorderColor #1976D2
+  ArrowColor #1976D2
+}
+
+skinparam class {
+  BackgroundColor #F3E5F5
+  BorderColor #7B1FA2
+  ArrowColor #7B1FA2
+  FontName Microsoft YaHei
+  FontSize 11
+}
+
+skinparam interface {
+  BackgroundColor #FFF3E0
+  BorderColor #FF9800
+  FontColor #E65100
+}
+
+' ========================================
+' 1. 核心执行层 (Execution Layer)
+' ========================================
+
+package "核心执行层" {
+  class run_platform << (R,#FF6B35) 主入口 >> {
+    -mode: str
+    -product: str
+    -scenario: str
+    +parse_arguments(): Dict
+    +validate_environment(): bool
+    +initialize_components(): bool
+    +start_test(): bool
+    +run(): int
+  }
+  
+  class locustfile << (R,#FF6B35) Locust入口文件 >> {
+    -_loaded_user_classes: List[Type]
+    +_load_and_register_user_classes(): void
+    +get_user_classes(): List[Type]
+    +setup_locust_events(): void
+  }
+}
+
+' ========================================
+' 2. 管理控制层 (Management Layer)
+' ========================================
+
+package "管理控制层" {
+  class ProductManager << (S,#4CAF50) 产品管理器 >> {
+    -_products: Dict[str, Dict]
+    -_available_products: List[str]
+    +register_product(name: str, module): void
+    +get_product(name: str): Dict
+    +_load_product(name: str): bool
+    +_scan_available_products(): List[str]
+    +list_available_products(): List[str]
+    +validate_product_exists(name: str): bool
+    +get_user_classes(product_name: str): List[Type[FastHttpUser]]
+    +get_product_path(product_name: str): str
+  }
+  
+  class ConfigManager << (S,#4CAF50) 配置管理器 >> {
+    -config: dict
+    -scenario_manager: ScenarioManager
+    -time_controller: TimeController
+    +get_target_host(): str
+    +get_stages(): List[Dict]
+    +get_test_duration(): int
+    +get_scenario(name: str): Dict
+    +validate_config(): Tuple[bool, str]
+    +load_config(file_path: str): bool
+  }
+  
+  class DistributedManager << (S,#4CAF50) 分布式管理器 >> {
+    -worker_configs: List[Dict]
+    -ssh_manager: SSHWorkerManager
+    +load_distributed_config(scenario_manager): bool
+    +validate_distributed_config(): Tuple[bool, str]
+    +check_distributed_environment(): Tuple[bool, str]
+    +start_distributed_workers(host: str, port: int, scenario: str): bool
+    +stop_distributed_workers(): void
+    +_validate_worker_distribution(web_port: int, users: int): bool
+  }
+  
+  class SSHWorkerManager << (S,#4CAF50) SSH管理器 >> {
+    -master_platform: str
+    -workers: List[Dict]
+    +initialize_workers(configs: List[Dict]): bool
+    +check_network_connectivity(): Tuple[bool, List[str]]
+    +check_ssh_connectivity(): Tuple[bool, List[str]]
+    +setup_ssh_trust(): bool
+    +start_locust_workers(host: str, port: int, scenario: str, product: str, root_path: Path): bool
+    +_verify_ssh_trust_exists(worker: Dict, public_key: str): bool
+    +_generate_ssh_keypair(): Tuple[str, str]
+  }
+  
+  class ScenarioManager << (U,#607D8B) 场景管理器 >> {
+    +scenarios: List[Dict]
+    +current_scenario_index: int
+    +load_scenarios(file): bool
+    +get_current_scenario(): Dict
+    +validate_scenarios(): bool
+    +get_scenario_by_name(name: str): Dict
+  }
+  
+  class TimeController << (U,#607D8B) 时间控制器 >> {
+    +start_time: float
+    +duration: int
+    +remaining: int
+    +is_running: bool
+    +start_timer(duration: int, name: str): void
+    +stop_timer(): void
+    +set_timeout_callback(callback: Callable): void
+    +check_timeout(): bool
+  }
+}
+
+' ========================================
+' 3. API测试框架层 (API Framework Layer)
+' ========================================
+
+package "API测试框架层" {
+  class ApiTestBase << (A,#2196F3) API测试基类 >> {
+    +validator: ResponseValidator
+    +test_data: Dict
+    +context: Dict
+    +on_start(): void
+    +on_stop(): void
+    +request(method: str, url: str, **kwargs): Any
+    +get(url: str, **kwargs): Any
+    +post(url: str, **kwargs): Any
+    +put(url: str, **kwargs): Any
+    +delete(url: str, **kwargs): Any
+    +assert_success(response_data: Any): void
+    +extract_data(response_data: Any, key_path: str): Any
+    +save_data(key: str, value: Any): void
+    +get_data(key: str, default: Any = None): Any
+  }
+  
+  class ApiUser << (A,#2196F3) API用户基类 >> {
+    +abstract: bool = True
+    +wait_time: callable
+    +auth_method: str
+    +auth_config: Dict
+    +base_url: str
+    +product_config: Dict
+    +auth: AuthBase
+    +session_data: Dict
+    +_auth_headers: Dict
+    +on_start(): void
+    +on_stop(): void
+    +_load_product_config(): void
+    +_init_auth(): void
+    +login(): void
+    +logout(): void
+    +save_session_data(key: str, value: Any): void
+    +get_session_data(key: str, default: Any = None): Any
+  }
+  
+  class ApiClientBase << (F,#FF9800) API客户端基类 >> {
+    +base_url: str
+    +session: Session
+    +auth: AuthBase
+    +timeout: int
+    +max_retries: int
+    +__init__(base_url: str, **kwargs): void
+    +get(url: str, **kwargs): Response
+    +post(url: str, **kwargs): Response
+    +put(url: str, **kwargs): Response
+    +delete(url: str, **kwargs): Response
+    +set_auth(auth: AuthBase): void
+    +is_authenticated(): bool
+  }
+  
+  class ResponseValidator << (F,#FF9800) 响应验证器 >> {
+    +errors: List[str]
+    +validate_response(response, expected_status, expected_schema, expected_data): bool
+    +get_errors(): List[str]
+    +clear_errors(): void
+    +validate_schema(data: Any, schema: Dict): bool
+    +validate_data(data: Any, expected: Dict): bool
+  }
+  
+  class ValidationRule << (F,#FF9800) 验证规则 >> {
+    +{static} is_type(data_type: type): bool
+    +{static} is_required(value: Any): bool
+    +{static} is_in_range(value: Any, min_val: Any, max_val: Any): bool
+    +{static} is_not_empty(value: Any): bool
+    +{static} is_email(value: str): bool
+    +{static} is_url(value: str): bool
+  }
+}
+
+' ========================================
+' 4. 认证框架 (Authentication Framework)
+' ========================================
+
+package "认证框架" {
+  abstract class AuthBase << (A,#9C27B0) 认证基类 >> {
+    #_authenticated: bool
+    +authenticate(): bool
+    +get_auth_headers(): Dict[str, str]
+    +is_authenticated(): bool
+    +logout(): bool
+  }
+  
+  class JWTAuth << (C,#9C27B0) JWT认证 >> {
+    +username: str
+    +password: str
+    +auth_endpoint: str
+    +token: str
+    +token_header: str
+    +token_prefix: str
+    +client: ApiClientBase
+    +authenticate(): bool
+    +refresh_token(): bool
+    +set_client(client: ApiClientBase): void
+  }
+  
+  class BasicAuth << (C,#9C27B0) 基础认证 >> {
+    +username: str
+    +password: str
+    +authenticate(): bool
+    +get_auth_headers(): Dict[str, str]
+  }
+  
+  class ApiKeyAuth << (C,#9C27B0) API密钥认证 >> {
+    +api_key: str
+    +header_name: str
+    +authenticate(): bool
+    +get_auth_headers(): Dict[str, str]
+  }
+  
+  class AuthFactory << (F,#FF9800) 认证工厂 >> {
+    +{static} create_auth(auth_type: str, **kwargs): AuthBase
+  }
+}
+
+' ========================================
+' 5. 产品实现层 (Product Implementation Layer)
+' ========================================
+
+package "产品实现层" {
+  class OneThingUser << (C,#E91E63) OneThing产品用户 >> {
+    +product_name: str
+    +endpoints: OneThingEndpoints
+    +task_1(): void
+    +task_2(): void
+    +validate_response(): void
+    +on_start(): void
+    +on_stop(): void
+  }
+  
+  class ExampleProductUser << (C,#E91E63) 示例产品用户 >> {
+    +product_name: str
+    +endpoints: ExampleProductEndpoints
+    +get_user_detail(): void
+    +create_user(): void
+    +get_product_list(): void
+    +complex_order_operation(): void
+    +on_start(): void
+    +on_stop(): void
+  }
+  
+  class OneThingClient << (C,#E91E63) OneThing客户端 >> {
+    +__init__(base_url: str, username: str, password: str, auth_type: str): void
+    +login(): Dict[str, Any]
+    +get_user_info(): Dict[str, Any]
+    +get_routers(): Dict[str, Any]
+    +query_process_list(): Dict[str, Any]
+    +query_release_scope(): Dict[str, Any]
+  }
+  
+  class ExampleProductClient << (C,#E91E63) 示例产品客户端 >> {
+    +__init__(base_url: str, **kwargs): void
+    +authenticate(): bool
+    +get_users(page: int, size: int): Dict[str, Any]
+    +create_user(user_data: Dict): Dict[str, Any]
+    +get_products(params: Dict): Dict[str, Any]
+    +create_order(order_data: Dict): Dict[str, Any]
+  }
+}
+
+' ========================================
+' 6. 工具支持层 (Utility Layer)
+' ========================================
+
+package "工具支持层" {
+  class logger << (T,#607D8B) 日志系统 >> {
+    +{static} info(message: str): void
+    +{static} debug(message: str): void
+    +{static} warning(message: str): void
+    +{static} error(message: str): void
+    +{static} progress(message: str): void
+    +{static} clear_progress(): void
+  }
+  
+  class ReportGenerator << (T,#607D8B) 报告生成器 >> {
+    +generate_html_report(stats_file: str, output_file: str): bool
+    +generate_csv_report(stats_file: str, output_file: str): bool
+    +generate_summary_report(test_results: Dict): str
+    +analyze_performance_metrics(metrics: Dict): Dict
+  }
+  
+  class ScenarioUtils << (T,#607D8B) 场景工具 >> {
+    +{static} get_current_product_name(): str
+    +{static} get_product_scenario_config(product_name: str): Dict
+    +{static} calculate_test_parameters(config: Dict): Dict
+    +{static} validate_test_config(config: Dict): Tuple[bool, str]
+  }
+}
+
+' ========================================
+' 7. 端点定义 (Endpoint Definitions)
+' ========================================
+
+package "端点定义" {
+  class OneThingEndpoints << (D,#795548) OneThing端点 >> {
+    +AUTH: Dict[str, str]
+    +USER: Dict[str, str]
+    +THEME: Dict[str, str]
+  }
+  
+  class ExampleProductEndpoints << (D,#795548) 示例产品端点 >> {
+    +USER: Dict[str, str]
+    +PRODUCT: Dict[str, str]
+    +ORDER: Dict[str, str]
+  }
+}
+
+' ========================================
+' 8. 数据和配置 (Data & Configuration)
+' ========================================
+
+package "配置数据" {
+  class TestScenarios << (C,#795548) 测试场景配置 >> {
+    +scenarios: List[Dict]
+    +api_config: Dict
+    +distributed_config: Dict
+    +load_from_yaml(file_path: str): bool
+    +get_scenario_config(name: str): Dict
+  }
+  
+  class ProductConfig << (C,#795548) 产品配置 >> {
+    +base_url: str
+    +auth_endpoint: str
+    +username: str
+    +password: str
+    +timeout: int
+    +validate(): bool
+  }
+}
+
+' ========================================
+' 9. 错误处理 (Error Handling)
+' ========================================
+
+package "错误处理" {
+  class HttpStatusCode << (E,#F44336) HTTP状态码 >> {
+    +OK: int = 200
+    +CREATED: int = 201
+    +BAD_REQUEST: int = 400
+    +UNAUTHORIZED: int = 401
+    +FORBIDDEN: int = 403
+    +NOT_FOUND: int = 404
+    +SERVER_ERROR: int = 500
+  }
+  
+  class CustomErrorCode << (E,#F44336) 自定义错误码 >> {
+    +AUTH_FAILED: int
+    +VALIDATION_ERROR: int
+    +RESOURCE_NOT_FOUND: int
+    +SYSTEM_BUSY: int
+    +NETWORK_ERROR: int
+  }
+  
+  class ApiError << (E,#F44336) API错误 >> {
+    +http_status: int
+    +error_code: CustomErrorCode
+    +message: str
+    +detail: Dict
+    +__init__(http_status: int, error_code: CustomErrorCode, message: str, detail: Dict): void
+  }
+  
+  class HttpStatusChecker << (E,#F44336) 状态码检查器 >> {
+    +{static} is_success(status_code: int): bool
+    +{static} is_client_error(status_code: int): bool
+    +{static} is_server_error(status_code: int): bool
+    +{static} is_redirect(status_code: int): bool
+  }
+}
+
+' ========================================
+' 继承关系 (Inheritance Relationships)
+' ========================================
+
+ApiUser --|> FastHttpUser : 继承
+OneThingUser --|> ApiUser : 继承
+ExampleProductUser --|> ApiUser : 继承
+
+OneThingClient --|> ApiClientBase : 继承
+ExampleProductClient --|> ApiClientBase : 继承
+
+JWTAuth --|> AuthBase : 继承
+BasicAuth --|> AuthBase : 继承
+ApiKeyAuth --|> AuthBase : 继承
+
+' ========================================
+' 组合关系 (Composition Relationships)
+' ========================================
+
+DistributedManager *-- SSHWorkerManager : 包含
+DistributedManager *-- ScenarioManager : 包含
+ConfigManager *-- ScenarioManager : 包含
+ConfigManager *-- TimeController : 包含
+
+ApiTestBase *-- ResponseValidator : 包含
+ApiUser *-- AuthBase : 包含
+ApiClientBase *-- AuthBase : 包含
+
+ProductManager o-- OneThingUser : 管理
+ProductManager o-- ExampleProductUser : 管理
+ProductManager o-- OneThingClient : 管理
+ProductManager o-- ExampleProductClient : 管理
+
+' ========================================
+' 依赖关系 (Dependency Relationships)
+' ========================================
+
+run_platform --> ProductManager : 依赖
+run_platform --> ConfigManager : 依赖
+run_platform --> DistributedManager : 依赖
+
+locustfile --> ProductManager : 依赖
+locustfile --> ApiUser : 依赖
+
+DistributedManager --> SSHWorkerManager : 依赖
+DistributedManager --> ConfigManager : 依赖
+DistributedManager --> ProductManager : 依赖
+
+SSHWorkerManager --> ScenarioManager : 依赖
+SSHWorkerManager --> ProductManager : 依赖
+
+OneThingUser --> OneThingEndpoints : 依赖
+ExampleProductUser --> ExampleProductEndpoints : 依赖
+OneThingUser --> OneThingClient : 依赖
+ExampleProductUser --> ExampleProductClient : 依赖
+
+AuthFactory --> JWTAuth : 创建
+AuthFactory --> BasicAuth : 创建
+AuthFactory --> ApiKeyAuth : 创建
+
+ApiTestBase --> ValidationRule : 使用
+ApiTestBase --> HttpStatusCode : 使用
+ApiTestBase --> ApiError : 抛出
+
+' ========================================
+' 关联关系 (Association Relationships)
+' ========================================
+
+ApiUser --> ScenarioUtils : 使用
+ApiTestBase --> ScenarioUtils : 使用
+DistributedManager --> TestScenarios : 读取
+ProductManager --> TestScenarios : 读取
+
+@enduml

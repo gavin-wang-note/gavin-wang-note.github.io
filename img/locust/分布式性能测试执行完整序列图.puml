@@ -1,0 +1,155 @@
+@startuml
+!theme plain
+skinparam {
+  BackgroundColor #FFFFFF
+  ParticipantBackgroundColor #E3F2FD
+  ParticipantBorderColor #1976D2
+  ActorBackgroundColor #FFE0B2
+  ActorBorderColor #FF9800
+  LifeLineBackgroundColor #F5F5F5
+  LifeLineBorderColor #666666
+  ArrowColor #1565C0
+  SequenceMessageAlignment center
+  SequenceArrowThickness 2
+  SequenceMessageColor #333333
+  SequenceActorFontColor #333333
+  SequenceLifeLineFontColor #333333
+  TitleBackgroundColor #007ACC
+  TitleBorderColor #007ACC
+  TitleFontColor #FFFFFF
+}
+
+title "分布式性能测试执行完整序列图"
+
+actor "用户" as User
+participant "CLI\nrun_platform.py" as CLI
+participant "配置管理器\nConfigManager" as Config
+participant "产品管理器\nProductManager" as PM
+participant "分布式管理器\nDistributedManager" as DM
+participant "SSH Worker管理器\nSSHWorkerManager" as SSH
+participant "Locust Master" as Master
+participant "Worker节点\nLocust Worker" as Worker
+participant "目标API服务器\nTarget API" as API
+participant "报告生成器\nReportGenerator" as Report
+participant "场景管理器\nScenarioManager" as Scenario
+
+User -> CLI: python run_platform.py --mode master --product example_product
+activate CLI #FFE0B2
+
+CLI -> CLI: 参数解析和环境验证
+CLI -> Config: 加载配置文件
+activate Config #E8F5E8
+
+Config --> CLI: 返回配置对象
+CLI -> PM: 验证产品存在性
+activate PM #E8F5E8
+
+PM --> CLI: 产品验证通过
+CLI -> Scenario: 设置当前场景
+activate Scenario #E8F5E8
+
+Scenario --> CLI: 场景设置完成
+
+CLI -> CLI: 检查分布式环境
+CLI -> DM: validate_distributed_config()
+activate DM #E3F2FD
+
+DM -> SSH: initialize_workers(worker_configs)
+activate SSH #E3F2FD
+
+SSH -> SSH: 建立SSH连接池
+SSH --> DM: Worker初始化完成
+
+DM -> SSH: setup_ssh_trust()
+SSH -> Worker: 配置SSH互信
+Worker --> SSH: SSH互信配置成功
+SSH --> DM: SSH互信建立完成
+
+DM -> SSH: check_locust_environment()
+SSH -> Worker: 检查Locust环境
+Worker --> SSH: 环境检查通过
+SSH --> DM: 环境验证通过
+
+DM --> CLI: 分布式环境验证通过
+
+CLI -> DM: start_distributed_master()
+DM -> Master: 启动Locust Master进程
+activate Master #FFCDD2
+
+Master --> DM: Master启动成功
+
+DM -> SSH: start_locust_workers(master_host, master_port)
+SSH -> Worker: 启动Locust Worker进程
+activate Worker #C8E6C9
+
+Worker -> Master: 注册Worker节点
+Master --> Worker: 分配任务配置
+
+Worker --> SSH: Worker启动成功
+SSH --> DM: 所有Worker启动完成
+DM --> CLI: 分布式集群启动成功
+
+CLI -> CLI: 开始执行测试场景
+
+loop 对于每个测试场景
+  CLI -> Scenario: 获取下一个场景配置
+  Scenario --> CLI: 返回场景信息
+  
+  CLI -> DM: 更新场景信息到所有Worker
+  DM -> SSH: 同步场景配置
+  SSH -> Worker: 更新场景配置
+  Worker --> SSH: 配置更新完成
+  SSH --> DM: 场景同步完成
+  
+  CLI -> Master: 通过API启动测试
+  Master -> Worker: 分发测试任务
+  
+  par 并发执行
+    Worker -> API: 发送API请求
+    activate API #F5F5F5
+    API --> Worker: 返回响应
+    deactivate API
+    
+    Worker -> Worker: 收集性能指标
+  end
+  
+  Worker -> Master: 上报统计数据
+  Master -> Master: 聚合性能数据
+end
+
+CLI -> Master: 停止测试
+Master -> Worker: 停止任务执行
+Worker --> Master: 确认停止
+
+CLI -> Report: 生成测试报告
+activate Report #FFF9C4
+
+Report -> Report: 处理性能数据
+Report -> Report: 生成可视化图表
+Report -> Report: 创建HTML报告
+Report --> CLI: 报告生成完成
+
+CLI -> User: 测试完成，报告已生成
+deactivate CLI
+
+note right of User
+  用户通过CLI启动测试流程
+  自动完成分布式环境
+  搭建和测试执行
+end note
+
+note left of Master
+  Locust Master负责：
+  • 任务调度分配
+  • 数据聚合统计
+  • Web界面服务
+end note
+
+note right of Worker
+  Worker节点职责：
+  • 执行API请求
+  • 收集性能指标
+  • 实时数据上报
+end note
+
+@enduml

@@ -1,0 +1,79 @@
+@startuml 性能测试工具架构图
+skinparam backgroundColor #F8FFF8
+skinparam componentStyle uml2
+skinparam component {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+skinparam node {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+skinparam database {
+  BackgroundColor #E8F5E9
+  BorderColor #2E7D32
+}
+skinparam arrowColor #2E7D32
+
+package "核心模块" {
+  [run_platform.py] as RunPlatform
+  [core/product_manager.py] as ProductManager
+  [core/distributed_manager.py] as DistributedManager
+  [core/locustfile.py] as LocustFile
+  [core/ssh_worker_manager.py] as SSHWorkerManager
+}
+
+package "配置管理" {
+  [config/config_manager.py] as ConfigManager
+  [config/test_scenarios.yaml] as ScenariosConfig
+}
+
+package "API测试框架" {
+  [api_framework/test_base.py] as TestBase
+  [api_framework/validator.py] as ResponseValidator
+}
+
+package "工具模块" {
+  [utils/logger.py] as Logger
+  [utils/ip_utils.py] as IPUtils
+}
+
+package "产品模块" {
+  [products/example_product/__init__.py] as ProductInit
+  [products/example_product/test_cases.py] as ProductTests
+}
+
+package "分布式环境" {
+  [Master节点] as Master
+  [Worker节点] as Worker
+}
+
+' 外部依赖
+[Locust] as Locust
+[SSH] as SSH
+
+' 主要调用关系
+RunPlatform --> ProductManager : 1. 产品注册与加载
+RunPlatform --> ConfigManager : 2. 配置读取与验证
+RunPlatform --> DistributedManager : 3. 分布式环境设置
+RunPlatform --> SSHWorkerManager : 4. Worker节点管理
+RunPlatform --> Logger : 5. 日志记录
+
+ConfigManager --> ScenariosConfig : 读取场景配置
+ProductManager --> ProductInit : 加载产品定义
+ProductManager --> ProductTests : 加载测试用例
+
+DistributedManager --> SSHWorkerManager : 管理Worker节点
+DistributedManager --> IPUtils : IP检测与优化
+SSHWorkerManager --> SSH : 远程节点操作
+
+TestBase --> ResponseValidator : 响应验证
+TestBase --> Logger : 测试日志
+
+RunPlatform --> LocustFile : 启动Locust测试
+LocustFile --> Locust : 调用Locust核心功能
+
+Master --> Worker : 分布式协调
+Worker --> LocustFile : 执行测试任务
+
+@enduml

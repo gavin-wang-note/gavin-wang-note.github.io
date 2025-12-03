@@ -1,0 +1,89 @@
+@startuml 性能测试工具调用流程图
+skinparam backgroundColor #F8FFF8
+skinparam arrowColor #2E7D32
+skinparam activityBorderColor #2E7D32
+skinparam activityBackgroundColor #E8F5E9
+skinparam activityDiamondBorderColor #2E7D32
+skinparam activityDiamondBackgroundColor #C8E6C9
+skinparam noteBackgroundColor #E8F5E9
+skinparam noteBorderColor #2E7D32
+
+start
+
+:用户启动run_platform.py;
+note right: 支持命令行参数：mode, product, scenario
+
+:初始化配置环境;
+note right: 设置环境变量、加载配置文件
+
+:执行early_master_ip_check;
+note right: 早期IP检测，确保分布式环境可用
+
+:验证产品存在性;
+note right: 检查指定产品是否存在于products目录
+
+:初始化ConfigManager;
+note right: 加载和验证测试场景配置
+
+fork
+  :初始化ProductManager;
+note right: 动态加载产品模块和测试用例
+fork again
+  :初始化Logger;
+note right: 设置日志级别和输出格式
+fork again
+  :初始化LocustManager;
+note right: 配置Locust运行参数
+end fork
+
+if (是否为分布式模式?) then (yes)
+  :调用setup_distributed_environment;
+  :检查Worker节点状态;
+  :通过SSH部署项目到Worker节点;
+  
+  if (是否为Master模式?) then (yes)
+    :启动Master进程;
+    :等待Worker连接;
+    :验证Worker连接状态;
+note right: 使用多种方法验证Worker连接：API、日志、Web界面
+  endif
+else
+  :启动本地Locust实例;
+endif
+
+:加载测试场景;
+note right: 支持单场景或多场景连续执行
+
+while (存在待执行场景?) is (yes)
+  :切换到当前场景;
+  :更新环境变量和共享文件;
+  
+  if (是否为standalone模式?) then (yes)
+    :启动standalone测试;
+    :wait_for_standalone_completion;
+    :监控测试进度;
+    :测试完成后生成报告;
+  else
+    :启动Web模式测试;
+    :通过API控制测试开始;
+    :wait_for_test_completion_with_stages;
+    
+    while (存在下一阶段?) is (yes)
+      :等待当前阶段完成;
+      :切换到下一阶段;
+      :更新用户数和生成率;
+    endwhile
+    
+    :测试完成后移动CSV文件;
+    :生成场景报告;
+  endif
+
+  :清理当前场景资源;
+endwhile
+
+:停止所有Locust进程;
+note right: 优雅关闭所有测试资源
+
+stop
+
+@enduml

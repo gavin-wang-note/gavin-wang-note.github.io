@@ -1,0 +1,2109 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例进度显示插件pytest-sugar源码解读, 软硬件测试">
+    <meta name="description" content="测试用例进度显示插件pytest-sugar源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例进度显示插件pytest-sugar源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例进度显示插件pytest-sugar源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2025-11-10
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    2.5k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    11 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest-sugar</code> 是一个用于美化 <code>pytest</code> 命令行输出的插件，它显示一个更好的进度条和有趣的提示信息。</p>
+<p>使用此插件后（一旦安装，默认自动使用此插件），执行用例效果参考如下图所示：</p>
+<img class="shadow" src="/img/loading.gif" data-original="/img/in-post/pytest-sugar_result.png" width="1200">
+<p>下文是关于 <code>pytest-sugar</code> 相关测试代码详细解析。</p>
+<h1 id="dao-ru-he-cha-jian-ding-yi">导入和插件定义</h1>
+<pre><code class="language-python">import re
+import pytest
+from pytest_sugar import strip_colors
+
+pytest_plugins = "pytester"
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>re</code></strong>：导入正则表达式模块，用于在文本中搜索模式。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>pytest</code></strong>：导入 <code>pytest</code>，作为测试框架。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>strip_colors</code></strong>：从 <code>pytest_sugar</code> 中导入 <code>strip_colors</code> 函数，用于移除带颜色的输出。</p>
+</li>
+<li class="lvl-2">
+<p><strong><code>pytest_plugins = "pytester"</code></strong>：启用 <code>pytest</code> 内置的 <code>pytester</code> 插件，以便在测试中使用 <code>testdir fixture</code>。</p>
+</li>
+</ul>
+<h1 id="huo-qu-ce-shi-bao-gao-zhong-de-ji-shu">获取测试报告中的计数</h1>
+<pre><code class="language-python">def get_counts(stdout):
+    output = strip_colors(stdout)
+
+    def _get(x):
+        m = re.search(r"\d %s" % x, output)
+        if m:
+            return m.group()[0]
+        return "n/a"
+
+    return {
+        x: _get(x)
+        for x in (
+            "passed",
+            "xpassed",
+            "failed",
+            "xfailed",
+            "deselected",
+            "error",
+            "rerun",
+            "skipped",
+        )
+    }
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>get_counts(stdout)</code></strong>：这个函数从测试报告输出中获取所有测试的计数。</p>
+<ul class="lvl-2">
+<li class="lvl-4"><strong><code>output = strip_colors(stdout)</code></strong>：移除输出中的颜色。</li>
+<li class="lvl-4"><strong><code>_get(x)</code></strong>：内部函数，使用正则表达式搜索测试计数。返回找到的第一个匹配项或 <code>'n/a'</code>。</li>
+<li class="lvl-4"><strong>返回的字典</strong>：包含所有测试状态及其对应的计数。</li>
+</ul>
+</li>
+</ul>
+<h1 id="duan-yan-ce-shi-ji-shu">断言测试计数</h1>
+<pre><code class="language-python">def assert_count(testdir, *args):
+    """Assert that n passed, n failed, ... matches"""
+    without_plugin = testdir.runpytest("-p", "no:sugar", *args).stdout.str()
+    with_plugin = testdir.runpytest("--force-sugar", *args).stdout.str()
+
+    count_without = get_counts(without_plugin)
+    count_with = get_counts(with_plugin)
+
+    assert count_without == count_with, (
+        "When running test with and without plugin, "
+        "the resulting output differs.\n\n"
+        "Without plugin: %s\n"
+        "With plugin: %s\n"
+        % (
+            ", ".join(f"{v} {k}" for k, v in count_without.items()),
+            ", ".join(f"{v} {k}" for k, v in count_with.items()),
+        )
+    )
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><strong><code>assert_count(testdir, *args)</code></strong>：运行测试并断言结果在启用和禁用 <code>pytest-sugar</code> 插件时是否一致。</p>
+<ul class="lvl-2">
+<li class="lvl-4"><strong><code>testdir.runpytest</code></strong>：运行 <code>pytest</code>。</li>
+<li class="lvl-4"><strong><code>get_counts()</code></strong>：获取测试状态计数。</li>
+<li class="lvl-4"><strong><code>assert count_without == count_with</code></strong>：断言结果一致。如果不一致，打印详细信息。</li>
+</ul>
+</li>
+</ul>
+<h1 id="ce-shi-lei-test-terminal-reporter">测试类TestTerminalReporter</h1>
+<p>以下是一个 <code>TestTerminalReporter</code> 测试类，包含多个测试方法，每个方法都有相应的注释解释。</p>
+<pre><code class="language-python">class TestTerminalReporter:
+    def test_new_summary(self, testdir):
+        # 创建一个简单的测试文件
+        testdir.makepyfile(
+            """
+            import pytest
+
+            def test_sample():
+                assert False
+            """
+        )
+        # 运行pytest并捕捉输出
+        output = testdir.runpytest("--force-sugar").stdout.str()
+        assert "test_new_summary.py:3 test_sample" in strip_colors(output)
+
+    def test_old_summary(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            def test_sample():
+                assert False
+            """
+        )
+        output = testdir.runpytest("--force-sugar", "--old-summary").stdout.str()
+        assert "test_old_summary.py:4: assert False" in strip_colors(output)
+
+    def test_xfail_true(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xfail
+            def test_sample():
+                assert True
+            """
+        )
+        assert_count(testdir)
+
+    def test_xfail_false(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xfail
+            def test_sample():
+                assert False
+            """
+        )
+        assert_count(testdir)
+
+    def test_report_header(self, testdir):
+        testdir.makeconftest(
+            """
+            def pytest_report_header(startdir):
+                pass
+            """
+        )
+        testdir.makepyfile(
+            """
+            def test():
+                pass
+            """
+        )
+        result = testdir.runpytest("--force-sugar")
+        assert result.ret == 0, result.stderr.str()
+
+    def test_xfail_strict_true(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xfail(strict=True)
+            def test_sample():
+                assert True
+            """
+        )
+        assert_count(testdir)
+
+    def test_xfail_strict_false(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xfail(strict=True)
+            def test_sample():
+                assert False
+            """
+        )
+        assert_count(testdir)
+
+    def test_xpass_true(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xpass
+            def test_sample():
+                assert True
+            """
+        )
+        assert_count(testdir)
+
+    def test_xpass_false(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xpass
+            def test_sample():
+                assert False
+            """
+        )
+        assert_count(testdir)
+
+    def test_flaky_test(self, testdir):
+        pytest.importorskip("pytest_rerunfailures")
+        testdir.makepyfile(
+            """
+            import pytest
+
+            COUNT = 0
+
+            @pytest.mark.flaky(reruns=10)
+            def test_flaky_test():
+                global COUNT
+                COUNT += 1
+                assert COUNT &gt;= 7
+            """
+        )
+        assert_count(testdir)
+
+    def test_xpass_strict(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            @pytest.mark.xfail(strict=True)
+            def test_xpass():
+                assert True
+            """
+        )
+        result = testdir.runpytest("--force-sugar")
+        result.stdout.fnmatch_lines(
+            [
+                "*test_xpass*",
+                "*XPASS(strict)*",
+                "*1 failed*",
+            ]
+        )
+
+    def test_teardown_errors(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            @pytest.yield_fixture
+            def fixt():
+                yield
+                raise Exception
+
+            def test_foo(fixt):
+                pass
+            """
+        )
+        assert_count(testdir)
+
+        result = testdir.runpytest("--force-sugar")
+        result.stdout.fnmatch_lines(
+            ["*ERROR at teardown of test_foo*", "*1 passed*", "*1 error*"]
+        )
+
+    def test_skipping_tests(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            @pytest.mark.skipif(True, reason='This must be skipped.')
+            def test_skip_this_if():
+                assert True
+            """
+        )
+        assert_count(testdir)
+
+    def test_deselecting_tests(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            @pytest.mark.example
+            def test_func():
+                assert True
+
+            def test_should_be():
+                assert False
+            """
+        )
+        assert_count(testdir)
+
+    def test_item_count_after_pytest_collection_modifyitems(self, testdir):
+        testdir.makeconftest(
+            """
+            import pytest
+
+            @pytest.hookimpl(hookwrapper=True, tryfirst=True)
+            def pytest_collection_modifyitems(config, items):
+                yield
+                items[:] = [x for x in items if x.name == 'test_one']
+            """
+        )
+        testdir.makepyfile(
+            """
+            def test_one():
+                print('test_one_passed')
+
+            def test_ignored():
+                assert 0
+            """
+        )
+        result = testdir.runpytest("-s")
+        result.stdout.fnmatch_lines(
+            [
+                "*test_one_passed*",
+                "*100%*",
+            ]
+        )
+        assert result.ret == 0
+
+    def test_fail(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            def test_func():
+                assert 0
+            """
+        )
+        result = testdir.runpytest("--force-sugar")
+        result.stdout.fnmatch_lines(
+            [
+                "* test_func *",
+                "    def test_func():",
+                "&gt;       assert 0",
+                "E       assert 0",
+            ]
+        )
+</code></pre>
+<h2 id="test-fail-unicode-crashline">test_fail_unicode_crashline</h2>
+<pre><code class="language-python">    def test_fail_unicode_crashline(self, testdir):
+        testdir.makepyfile(
+            """
+            # -*- coding: utf-8 -*-
+            import pytest
+            def test_func():
+                assert b'hello' == b'Bj\\xc3\\xb6rk Gu\\xc3\\xb0mundsd'
+            """
+        )
+        result = testdir.runpytest("--force-sugar")
+        result.stdout.fnmatch_lines(
+            [
+                "* test_func *",
+                "    def test_func():",
+                "&gt;       assert * == *",
+                "E       AssertionError: assert * == *",
+            ]
+        )
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个包含 <code>Unicode</code> 字符的测试文件，确保测试插件可以正确处理 <code>Unicode</code> 断言错误。</p>
+</li>
+<li class="lvl-2">
+<p>运行测试并检查输出是否包含预期的诊断信息。</p>
+</li>
+</ul>
+<h2 id="test-fail-in-fixture-and-test">test_fail_in_fixture_and_test</h2>
+<pre><code class="language-python">    def test_fail_in_fixture_and_test(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            def test_func():
+                assert False
+
+            def test_func2():
+                assert False
+
+            @pytest.fixture
+            def failure():
+                return 3/0
+
+            def test_lol(failure):
+                assert True
+            """
+        )
+        assert_count(testdir)
+        output = strip_colors(testdir.runpytest("--force-sugar").stdout.str())
+        assert output.count("         -") == 2
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个含有多个故障测试和一个故障装置的测试文件。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>assert_count</code> 检查测试结果。</p>
+</li>
+<li class="lvl-2">
+<p>移除颜色后检查输出中是否有两个破折号，用于标示错误位置。</p>
+</li>
+</ul>
+<h2 id="test-fail-fail">test_fail_fail</h2>
+<pre><code class="language-python">    def test_fail_fail(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+            def test_func():
+                assert 0
+            def test_func2():
+                assert 0
+            """
+        )
+        assert_count(testdir)
+        result = testdir.runpytest("--force-sugar")
+        result.stdout.fnmatch_lines(
+            [
+                "* test_func *",
+                "    def test_func():",
+                "&gt;       assert 0",
+                "E       assert 0",
+                "* test_func2 *",
+                "    def test_func2():",
+                "&gt;       assert 0",
+                "E       assert 0",
+            ]
+        )
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建两个都会失败的测试函数。</p>
+</li>
+<li class="lvl-2">
+<p>检查在启用和禁用 <code>pytest-sugar</code> 插件时，测试结果是否一致。</p>
+</li>
+<li class="lvl-2">
+<p>确认输出中显示的错误信息和断言失败。</p>
+</li>
+</ul>
+<h2 id="test-error-in-setup-then-pass">test_error_in_setup_then_pass</h2>
+<pre><code class="language-python">    def test_error_in_setup_then_pass(self, testdir):
+        testdir.makepyfile(
+            """
+            def setup_function(function):
+                print ("setup func")
+                if function is test_nada:
+                    assert 0
+            def test_nada():
+                pass
+            def test_zip():
+                pass
+            """
+        )
+        assert_count(testdir)
+        result = testdir.runpytest("--force-sugar")
+
+        result.stdout.fnmatch_lines(
+            [
+                "*ERROR at setup of test_nada*",
+                "",
+                "function = &lt;function test_nada at *",
+                "",
+                "*setup_function(function):*",
+                "*setup func*",
+                "*if function is test_nada:*",
+                "*assert 0*",
+                "test_error_in_setup_then_pass.py:4: AssertionError",
+                "*Captured stdout setup*",
+                "*setup func*",
+                "*1 passed*",
+            ]
+        )
+        assert result.ret != 0
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个在 <code>setup</code> 阶段会失败的测试文件，确保 <code>pytest-sugar</code> 可以处理 <code>setup</code> 错误。</p>
+</li>
+<li class="lvl-2">
+<p>检查结果输出中的错误信息，包括 <code>setup</code> 函数和 <code>assert</code> 语句的位置。</p>
+</li>
+</ul>
+<h2 id="test-error-in-teardown-then-pass">test_error_in_teardown_then_pass</h2>
+<pre><code class="language-python">    def test_error_in_teardown_then_pass(self, testdir):
+        testdir.makepyfile(
+            """
+            def teardown_function(function):
+                print ("teardown func")
+                if function is test_nada:
+                    assert 0
+            def test_nada():
+                pass
+            def test_zip():
+                pass
+            """
+        )
+        assert_count(testdir)
+        result = testdir.runpytest("--force-sugar")
+
+        result.stdout.fnmatch_lines(
+            [
+                "*ERROR at teardown of test_nada*",
+                "",
+                "function = &lt;function test_nada at*",
+                "",
+                "*def teardown_function(function):*",
+                "*teardown func*",
+                "*if function is test_nada*",
+                "&gt;*assert 0*",
+                "E*assert 0*",
+                "test_error_in_teardown_then_pass.py:4: AssertionError",
+                "*Captured stdout teardown*",
+                "teardown func",
+                "*2 passed*",
+            ]
+        )
+        assert result.ret != 0
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个在 <code>teardown</code> 阶段会失败的测试文件，确保 <code>pytest-sugar</code> 可以处理 <code>teardown</code> 错误。</p>
+</li>
+<li class="lvl-2">
+<p>检查结果输出中的错误信息，包括 <code>teardown</code> 函数和 <code>assert</code> 语句的位置。</p>
+</li>
+</ul>
+<h2 id="test-collect-error">test_collect_error</h2>
+<pre><code class="language-python">    def test_collect_error(self, testdir):
+        testdir.makepyfile("""raise ValueError(0)""")
+        assert_count(testdir)
+        result = testdir.runpytest("--force-sugar")
+        result.stdout.fnmatch_lines(
+            [
+                "*ERROR collecting test_collect_error.py*",
+                "test_collect_error.py:1: in &lt;module&gt;",
+                "    raise ValueError(0)",
+                "E   ValueError: 0",
+            ]
+        )
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个在导入时就会引发 <code>ValueError</code> 异常的测试文件。</p>
+</li>
+<li class="lvl-2">
+<p>检查 <code>pytest-sugar</code> 是否正确处理收集阶段的错误，并确保错误信息被正确打印。</p>
+</li>
+</ul>
+<h2 id="test-verbose">test_verbose</h2>
+<pre><code class="language-python">    def test_verbose(self, testdir):
+        testdir.makepyfile(
+            """
+            import pytest
+
+            def test_true():
+                assert True
+
+            def test_true2():
+                assert True
+
+            def test_false():
+                assert False
+
+            @pytest.mark.skip
+            def test_skip():
+                assert False
+
+            @pytest.mark.xpass
+            def test_xpass():
+                assert True
+
+            @pytest.mark.xfail
+            def test_xfail():
+                assert True
+            """
+        )
+        assert_count(testdir, "--verbose")
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个包含多种不同状态的测试文件，通过 <code>--verbose</code> 选项运行 <code>pytest</code>，确保 <code>pytest-sugar</code> 可以处理详细输出。</p>
+</li>
+<li class="lvl-2">
+<p>检查测试结果在启用和禁用 <code>pytest-sugar</code> 时是否一致。</p>
+</li>
+</ul>
+<h2 id="test-verbose-has-double-colon">test_verbose_has_double_colon</h2>
+<pre><code class="language-python">    def test_verbose_has_double_colon(self, testdir):
+        testdir.makepyfile(
+            """
+            def test_true():
+                assert True
+            """
+        )
+        output = testdir.runpytest("--force-sugar", "--verbose").stdout.str()
+        assert "test_verbose_has_double_colon.py::test_true" in strip_colors(output)
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个简单的测试文件，并运行 <code>pytest</code>，确保在启用 <code>pytest-sugar</code> 的情况下能够正确处理和显示带双冒号的测试名称。</p>
+</li>
+</ul>
+<h2 id="test-xdist">test_xdist</h2>
+<pre><code class="language-python">    def test_xdist(self, testdir):
+        pytest.importorskip("xdist")
+        testdir.makepyfile(
+            """
+            def test_nada():
+                pass
+            def test_zip():
+                pass
+            """
+        )
+        result = testdir.runpytest("--force-sugar", "-n2")
+
+        assert result.ret == 0, result.stderr.str()
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>检查 <code>pytest-sugar</code> 和 <code>pytest-xdist</code> 插件的兼容性。</p>
+</li>
+<li class="lvl-2">
+<p>创建简单的测试文件，通过 <code>-n2</code> 选项并行运行测试，确保测试在并行环境中正常运行。</p>
+</li>
+</ul>
+<h2 id="test-xdist-verbose">test_xdist_verbose</h2>
+<pre><code class="language-python">    def test_xdist_verbose(self, testdir):
+        pytest.importorskip("xdist")
+        testdir.makepyfile(
+            """
+            def test_nada():
+                pass
+            def test_zip():
+                pass
+            """
+        )
+        result = testdir.runpytest("--force-sugar", "-n2", "-v")
+
+        assert result.ret == 0, result.stderr.str()
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>对前一个测试方法稍作修改，启用详细输出以确保详细信息在并行环境中被正确显示。</p>
+</li>
+</ul>
+<h2 id="test-doctest">test_doctest</h2>
+<pre><code class="language-python">    def test_doctest(self, testdir):
+        """Test doctest-modules"""
+        testdir.makepyfile(
+            """
+            class ToTest():
+                @property
+                def doctest(self):
+                    \"\"\"
+                        &gt;&gt;&gt; Invalid doctest
+                    \"\"\"
+            """
+        )
+        result = testdir.runpytest("--force-sugar", "--doctest-modules")
+        assert result.ret == 1, result.stderr.str()
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建包含无效 <code>doctest</code> 的测试文件，确保 <code>pytest-sugar</code> 能够处理 <code>doctest</code> 模块并显示相关的错误信息。</p>
+</li>
+<li class="lvl-2">
+<p>运行测试并断言返回码为 1（表示测试失败）。</p>
+</li>
+</ul>
+<h2 id="test-doctest-lineno">test_doctest_lineno</h2>
+<pre><code class="language-python">    def test_doctest_lineno(self, testdir):
+        """Test location reported for doctest-modules"""
+        testdir.makepyfile(
+            """
+            def foobar():
+                '''
+                &gt;&gt;&gt; foobar()
+                '''
+                raise NotImplementedError
+            """
+        )
+        result = testdir.runpytest("--force-sugar", "--doctest-modules")
+        assert result.ret == 1, result.stderr.str()
+        result.stdout.fnmatch_lines(
+            [
+                "UNEXPECTED EXCEPTION: NotImplementedError()",
+                "*test_doctest_lineno.py:3: UnexpectedException",
+                "Results*:",
+                "*-*test_doctest_lineno.py*:3*",
+            ]
+        )
+</code></pre>
+<p>这个测试方法:</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>创建一个包含无效 <code>doctest</code> 的测试文件，并在测试中引发 <code>NotImplementedError</code> 异常。</p>
+</li>
+<li class="lvl-2">
+<p>运行测试并断言返回码为 1。</p>
+</li>
+<li class="lvl-2">
+<p>检查输出中是否正确显示了错误位置，包括文件名和行号。</p>
+</li>
+</ul>
+<h1 id="cao-zuo-bu-zou-ji-yan-zheng">操作步骤及验证</h1>
+<p>这些测试方法主要是为了确保 <code>pytest-sugar</code> 能够正确处理各种测试状态和错误，并在输出中提供有益的信息。以下是如何操作和确保 <code>pytest-sugar</code> 正常工作的操作步骤及验证方法：</p>
+<ol>
+<li class="lvl-3">
+<p><strong>环境要求</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">安装 <code>pytest</code>。</li>
+<li class="lvl-5">安装 <code>pytest-sugar</code>。</li>
+<li class="lvl-5">如果需要并发测试，安装 <code>pytest-xdist</code>。</li>
+<li class="lvl-5">如果需要测试重试功能，安装 <code>pytest-rerunfailures</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>运行测试</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">将 <code>test_example.py</code> 文件保存为 <code>parent.py</code> 和 <code>child.py</code>。</li>
+<li class="lvl-5">在终端中运行以下命令执行测试：<pre><code class="language-shell">pytest test_example.py
+</code></pre>
+</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong>检查输出</strong>：</p>
+<ul class="lvl-2">
+<li class="lvl-5">确认输出中没有报错，所有测试用例都正确执行。</li>
+<li class="lvl-5">检查是否显示了进度条和其他美化的输出。</li>
+</ul>
+</li>
+</ol>
+<h1 id="zong-jie">总结</h1>
+<p><code>pytest-sugar</code> 通过提供更好的输出格式和进度条等功能，帮助开发者在运行测试时更容易理解测试进度和结果。然而，在丰富的功能之后，确保插件与 <code>pytest</code> 和其他插件的兼容性至关重要。这份测试代码通过广泛的测试用例来验证 <code>pytest-sugar</code> 的功能和健壮性。</p>
+<p>这些测试验证了 <code>pytest-sugar</code> 在以下方面的行为：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>不同测试通过、失败、跳过和预期失败（<code>xfail</code>）的情况处理。</p>
+</li>
+<li class="lvl-2">
+<p>测试结果的总结及输出格式验证。</p>
+</li>
+<li class="lvl-2">
+<p>插件与 <code>pytest-xdist</code> 并行化插件的兼容性。</p>
+</li>
+<li class="lvl-2">
+<p>处理 <code>doctest</code> 并显示具体行号错误位置。</p>
+</li>
+</ul>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2025/11/10/pytest_sugar/">https://gavin-wang-note.github.io/2025/11/10/pytest_sugar/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2025/12/09/pytest_progress/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例进度展示pytest_progress源码解读">
+                        
+                        <span class="card-title">测试用例进度展示pytest_progress源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例执行过程中进度的展示，pytest_progress源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2025-12-09
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/10/05/pytest_repeat/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例重复执行插件pytest-repeat源码解读">
+                        
+                        <span class="card-title">测试用例重复执行插件pytest-repeat源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例重复执行插件pytest-repeat源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-10-05
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2025</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1064.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

@@ -1,0 +1,254 @@
+@startuml
+!theme plain
+skinparam {
+  BackgroundColor #FFFFFF
+  ClassBackgroundColor #F8F9FA
+  ClassBorderColor #007ACC
+  ArrowColor #0056B3
+  SequenceLifeLineBackgroundColor #F5F5F5
+  SequenceActorBackgroundColor #E3F2FD
+  PackageBackgroundColor #E8F5E8
+  PackageBorderColor #43B581
+  TitleBackgroundColor #007ACC
+  TitleBorderColor #007ACC
+  TitleFontColor #FFFFFF
+  NoteBackgroundColor #FFF9C4
+  NoteBorderColor #FFD54F
+  LegendBackgroundColor #F5F5F5
+  FontColor #333333
+  FontSize 12
+}
+
+title "分布式API性能测试框架 - 核心类关系图"
+
+package "用户交互层" {
+  class CLI {
+    - mode: str
+    - product_name: str  
+    - scenario_name: str
+    + parse_arguments()
+    + validate_environment()
+    + start_platform()
+    + show_help()
+  }
+
+  class TestOrchestrator {
+    - product_name: str
+    - mode: str
+    - locust_manager: LocustManager
+    - distributed_manager: DistributedManager
+    + run_scenario()
+    + run_all_scenarios()
+    + setup_distributed_environment()
+    + generate_final_report()
+  }
+}
+
+package "核心执行引擎" {
+  class ProductManager {
+    - _products: Dict
+    - _available_products: List
+    + register_product()
+    + get_product()
+    + validate_product_exists()
+    + get_user_classes()
+    + _load_product()
+  }
+
+  class DistributedManager {
+    - worker_configs: List
+    - master_host: str
+    - master_port: int
+    + load_distributed_config()
+    + validate_distributed_config()
+    + check_distributed_environment()
+    + start_distributed_workers()
+    + stop_distributed_workers()
+  }
+
+  class SSHWorkerManager {
+    - workers: List
+    - ssh_clients: Dict
+    + initialize_workers()
+    + setup_ssh_trust()
+    + start_locust_workers()
+    + stop_locust_workers()
+    + sync_project_to_workers()
+  }
+
+  class ReportGenerator {
+    - output_dir: Path
+    - template_path: Path
+    - test_scenarios: Dict
+    + set_test_scenario()
+    + generate_performance_report()
+    + generate_comparison_report()
+    + _generate_interactive_html_report()
+  }
+
+  class StageManager {
+    - environment: Any
+    - stages: List
+    - current_stage: int
+    - is_running: bool
+    + start_stages()
+    + stop_test()
+    + log_stage_info()
+    + calculate_max_users_and_duration()
+  }
+}
+
+package "API框架层" {
+  abstract class BaseClient {
+    # base_url: str
+    # session: requests.Session
+    # default_headers: Dict
+    + __init__(base_url, **kwargs)
+    + request(method, endpoint, **kwargs): Response
+    + authenticate(auth_info): bool
+    + get(endpoint, **kwargs): Response
+    + post(endpoint, **kwargs): Response
+    # _log_request(method, endpoint, **kwargs)
+    # _should_retry(response, exception): bool
+  }
+
+  abstract class BaseTest {
+    # client: BaseClient
+    # validator: Validator
+    + __init__(client)
+    + setup_task()
+    + teardown_task()
+    + run_test(scenario_name): void
+    + on_start()
+    + on_stop()
+  }
+
+  class AuthFactory {
+    + create_auth(auth_type, **kwargs): AuthBase
+  }
+
+  abstract class AuthBase {
+    + authenticate(): bool
+    + get_auth_headers(): Dict[str, str]
+    + is_authenticated(): bool
+    + logout(): bool
+  }
+
+  class Validator {
+    + validate_json_schema(response, schema): bool
+    + assert_status_code(response, expected_code): bool
+    + assert_contains(response, text): bool
+    + validate_response_time(response, max_time): bool
+  }
+}
+
+package "认证机制" {
+  class NoAuth {
+    + authenticate(): bool
+    + get_auth_headers(): Dict
+  }
+
+  class BasicAuth {
+    - username: str
+    - password: str
+    - _authenticated: bool
+    + authenticate(): bool
+    + get_auth_headers(): Dict
+  }
+
+  class JwtAuth {
+    - auth_endpoint: str
+    - username: str
+    - password: str
+    - token: str
+    + authenticate(): bool
+    + set_token(token)
+    + get_auth_headers(): Dict
+  }
+
+  class ApiKeyAuth {
+    - api_key: str
+    - header_name: str
+    + authenticate(): bool
+    + get_auth_headers(): Dict
+  }
+}
+
+package "业务插件层" {
+  class ExampleProductClient {
+    + get_posts()
+    + get_comments(post_id)
+    + create_post(data)
+  }
+
+  class ExampleProductTests {
+    + setup_task()
+    + task_get_posts()
+    + task_get_comments()
+    + task_create_post()
+  }
+
+  class JsonPlaceholderClient {
+    + get_users()
+    + get_posts_by_user(user_id)
+    + create_comment(data)
+  }
+
+  class JsonPlaceholderTests {
+    + setup_task()
+    + task_get_users()
+    + task_get_user_posts()
+    + task_create_comments()
+  }
+}
+
+' 关系定义
+CLI --> TestOrchestrator : creates >
+TestOrchestrator --> ProductManager : uses >
+TestOrchestrator --> DistributedManager : uses >
+TestOrchestrator --> ReportGenerator : uses >
+
+DistributedManager --> SSHWorkerManager : manages >
+ProductManager --> BaseClient : creates instances >
+ProductManager --> BaseTest : creates instances >
+
+BaseTest --> BaseClient : depends on >
+BaseTest --> Validator : uses >
+
+ExampleProductClient --|> BaseClient
+ExampleProductTests --|> BaseTest
+JsonPlaceholderClient --|> BaseClient
+JsonPlaceholderTests --|> BaseTest
+
+AuthFactory --> NoAuth : creates >
+AuthFactory --> BasicAuth : creates >
+AuthFactory --> JwtAuth : creates >
+AuthFactory --> ApiKeyAuth : creates >
+
+BaseClient ..> AuthBase : uses authentication >
+JwtAuth --|> TokenAuth
+BasicAuth --|> AuthBase
+ApiKeyAuth --|> AuthBase
+NoAuth --|> AuthBase
+
+StageManager --> TestOrchestrator : manages stages for >
+
+note right of BaseClient
+  提供统一的HTTP请求处理、
+  重试机制、认证管理等
+  基础功能
+end note
+
+note left of ProductManager
+  负责动态加载和管理
+  所有产品插件，实现
+  热插拔架构
+end note
+
+note bottom of DistributedManager
+  协调分布式测试环境，
+  管理Worker节点，
+  实现负载均衡
+end note
+
+@enduml
