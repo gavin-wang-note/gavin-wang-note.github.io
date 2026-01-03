@@ -27,6 +27,18 @@ tags:
 
 Pytest 实时测试报告与监控系统是一个基于 Flask + SocketIO 构建的高性能测试报告平台，提供实时的测试进度监控、详细的测试报告生成和跨环境配置管理功能。
 
+可视化HTML报告预览如下图所示：
+
+<p><img class="shadow" src="/img/in-post/pytest/测试结果分类联动.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/测试结果详情.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/进度100%时查看报告.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/进度与实时日志.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/配置详情查看.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/实时测试进度.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/实时日志级别可过滤.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/用例执行日志详情查看.png" width="1200" /></p>
+<p><img class="shadow" src="/img/in-post/pytest/最终报告概览.png" width="1200" /></p>
+
 ### 设计理念
 
 <p><img class="shadow" src="/img/report_monitor/设计理念.png" width="600" /></p>
