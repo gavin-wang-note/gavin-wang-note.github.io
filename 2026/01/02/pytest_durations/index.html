@@ -1,0 +1,1842 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="测试用例持续时间之pytest_durations源码解读, 软硬件测试">
+    <meta name="description" content="测试用例持续时间之pytest_durations源码解读">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', '');
+</script>
+
+
+    <title>测试用例持续时间之pytest_durations源码解读 | Transcendent</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<style type="text/css" lang="css">
+    #loading-container{
+        position: fixed;
+        top: 0;
+        left: 0;
+        min-height: 100vh;
+        width: 100vw;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #FFF;
+        text-align: center;
+        /* loader页面消失采用渐隐的方式*/
+        -webkit-transition: opacity 1s ease;
+        -moz-transition: opacity 1s ease;
+        -o-transition: opacity 1s ease;
+        transition: opacity 1s ease;
+    }
+    .loading-image{
+        width: 120px;
+        height: 50px;
+        transform: translate(-50%);
+    }
+
+    .loading-image div:nth-child(2) {
+        -webkit-animation: pacman-balls 1s linear 0s infinite;
+        animation: pacman-balls 1s linear 0s infinite
+    }
+
+    .loading-image div:nth-child(3) {
+        -webkit-animation: pacman-balls 1s linear .33s infinite;
+        animation: pacman-balls 1s linear .33s infinite
+    }
+
+    .loading-image div:nth-child(4) {
+        -webkit-animation: pacman-balls 1s linear .66s infinite;
+        animation: pacman-balls 1s linear .66s infinite
+    }
+
+    .loading-image div:nth-child(5) {
+        -webkit-animation: pacman-balls 1s linear .99s infinite;
+        animation: pacman-balls 1s linear .99s infinite
+    }
+
+   .loading-image div:first-of-type {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_up .5s 0s infinite;
+        animation: rotate_pacman_half_up .5s 0s infinite;
+    }
+    .loading-image div:nth-child(2) {
+        width: 0;
+        height: 0;
+        border: 25px solid #49b1f5;
+        border-right-color: transparent;
+        border-radius: 25px;
+        -webkit-animation: rotate_pacman_half_down .5s 0s infinite;
+        animation: rotate_pacman_half_down .5s 0s infinite;
+        margin-top: -50px;
+    }
+    @-webkit-keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @keyframes rotate_pacman_half_up {0% {transform: rotate(270deg)}50% {transform: rotate(1turn)}to {transform: rotate(270deg)}}
+
+    @-webkit-keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @keyframes rotate_pacman_half_down {0% {transform: rotate(90deg)}50% {transform: rotate(0deg)}to {transform: rotate(90deg)}}
+
+    @-webkit-keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+    @keyframes pacman-balls {75% {opacity: .7}to {transform: translate(-100px, -6.25px)}}
+
+
+    .loading-image div:nth-child(3),
+    .loading-image div:nth-child(4),
+    .loading-image div:nth-child(5),
+    .loading-image div:nth-child(6){
+        background-color: #49b1f5;
+        width: 15px;
+        height: 15px;
+        border-radius: 100%;
+        margin: 2px;
+        width: 10px;
+        height: 10px;
+        position: absolute;
+        transform: translateY(-6.25px);
+        top: 25px;
+        left: 100px;
+    }
+    .loading-text{
+        margin-bottom: 20vh;
+        text-align: center;
+        color: #2c3e50;
+        font-size: 2rem;
+        box-sizing: border-box;
+        padding: 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    @media only screen and (max-width: 500px) {
+         .loading-text{
+            font-size: 1.5rem;
+         }
+    }
+    .fadeout {
+        opacity: 0;
+        filter: alpha(opacity=0);
+    }
+    /* logo出现动画 */
+    @-webkit-keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);transform:translate3d(0,-100%,0)}100%{opacity:1;-webkit-transform:none;transform:none}}
+    @keyframes fadeInDown{0%{opacity:0;-webkit-transform:translate3d(0,-100%,0);}}
+ </style>
+ <script>
+(function () {
+    const loaded = function(){
+       setTimeout(function(){
+            const loader = document.getElementById("loading-container");
+            loader.className="fadeout" ;//使用渐隐的方法淡出loading page
+            // document.getElementById("body-wrap").style.display="flex";
+            setTimeout(function(){
+                loader.style.display="none";
+            },1000); 
+        },1000);//强制显示loading page 1s  
+    };
+    loaded();
+})()
+ </script><meta name="generator" content="Hexo 7.1.1">
+<style>.github-emoji { position: relative; display: inline-block; width: 1.2em; min-height: 1.2em; overflow: hidden; vertical-align: top; color: transparent; }  .github-emoji > span { position: relative; z-index: 10; }  .github-emoji img, .github-emoji .fancybox { margin: 0 !important; padding: 0 !important; border: none !important; outline: none !important; text-decoration: none !important; user-select: none !important; cursor: auto !important; }  .github-emoji img { height: 1.2em !important; width: 1.2em !important; position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important; user-select: none !important; cursor: auto !important; } .github-emoji-fallback { color: inherit; } .github-emoji-fallback img { opacity: 0 !important; }</style>
+<link rel="alternate" href="/atom.xml" title="Transcendent" type="application/atom+xml">
+</head>
+
+
+
+ <div id="loading-container">
+     <p class="loading-text">玩命加载中 . . . </p> 
+     <div class="loading-image">
+         <div></div>
+         <div></div>
+         <div></div>
+         <div></div> 
+         <div></div>
+     </div>
+ </div><body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Transcendent</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/stat" class="waves-effect waves-light">
+      
+      <i class="fas fa-list-alt" style="zoom: 0.6;"></i>
+      
+      <span>统计</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-bars" style="zoom: 0.6;"></i>
+      
+      <span>文章</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/archives">
+          
+          <i class="fas fa-archive" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>归档</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/categories">
+          
+          <i class="fas fa-bookmark" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>分类</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/tags">
+          
+          <i class="fas fa-tags" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>标签</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="" class="waves-effect waves-light">
+
+      
+      <i class="fas fa-star" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+      <i class="fas fa-chevron-down" aria-hidden="true" style="zoom: 0.6;"></i>
+    </a>
+    <ul class="sub-nav menus_item_child ">
+      
+      <li>
+        <a href="/about">
+          
+          <i class="fas fa-user-circle" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>知我</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/friends">
+          
+          <i class="fas fa-address-book" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>友链</span>
+        </a>
+      </li>
+      
+      <li>
+        <a href="/goodpapers">
+          
+          <i class="fas fa-coffee" style="margin-top: -20px; zoom: 0.6;"></i>
+          
+          <span>收藏</span>
+        </a>
+      </li>
+      
+    </ul>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/resume" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>简历</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/img/loading.gif" data-original="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Transcendent</div>
+        <div class="logo-desc">
+            
+            资深测试工程师一枚，擅长pytest
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/stat" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-list-alt"></i>
+			
+			统计
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-bars"></i>
+			
+			文章
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/archives " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-archive" style="position: absolute;left:50px" ></i>
+			      
+		          <span>归档</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/categories " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-bookmark" style="position: absolute;left:50px" ></i>
+			      
+		          <span>分类</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/tags " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-tags" style="position: absolute;left:50px" ></i>
+			      
+		          <span>标签</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="javascript:;">
+			
+				<i class="fa-fw fas fa-star"></i>
+			
+			关于
+			<span class="m-icon"><i class="fas fa-chevron-right"></i></span>
+		</a>
+            <ul  style="background:  ;" >
+              
+                <li>
+
+                  <a href="/about " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-user-circle" style="position: absolute;left:50px" ></i>
+			      
+		          <span>知我</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/friends " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-address-book" style="position: absolute;left:50px" ></i>
+			      
+		          <span>友链</span>
+                  </a>
+                </li>
+              
+                <li>
+
+                  <a href="/goodpapers " style="margin-left:75px">
+				  
+				   <i class="fa fas fa-coffee" style="position: absolute;left:50px" ></i>
+			      
+		          <span>收藏</span>
+                  </a>
+                </li>
+              
+            </ul>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/resume" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			简历
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/img/pytest/pytest-26.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">测试用例持续时间之pytest_durations源码解读</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Automation/">
+                                <span class="chip bg-color">Automation</span>
+                            </a>
+                        
+                            <a href="/tags/pytest/">
+                                <span class="chip bg-color">pytest</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/Automation/" class="post-category">
+                                Automation
+                            </a>
+                        
+                            <a href="/categories/pytest/" class="post-category">
+                                pytest
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2026-01-02
+                </div>
+                
+
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    4.9k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    19 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h1 id="gai-shu">概述</h1>
+<p><code>pytest-durations</code> 是一个 <code>pytest</code> 插件，用于测量测试的执行时间，包括测试用例的调用、设置和清理，以及 <code>fixture</code> 的设置和销毁。</p>
+<p><code>pytest_durations</code>插件默认被<code>pytest</code>安装&amp;使用，对应参数如下(使用<code>pytest -h</code>命令查看)：</p>
+<pre><code class="language-shell">  --durations=N         Show N slowest setup/test durations (N=0 for all)
+  --durations-min=N     Minimal duration in seconds for inclusion in slowest list. Default: 0.005.
+</code></pre>
+<p><code>pytest_durations</code>源码下载后解压，目录/文件参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/pytest-durations-1.2.0# ll
+total 36
+drwxr-xr-x 3 root root 4096 Jul  3 15:09 ./
+drwxr-xr-x 9 root root 4096 Jul 13 14:05 ../
+-rw-r--r-- 1 root root 1069 Apr 22  2022 LICENSE
+-rw-r--r-- 1 root root 4165 Apr 22  2022 PKG-INFO
+-rw-r--r-- 1 root root 1358 Apr 22  2022 pyproject.toml
+-rw-r--r-- 1 root root 3156 Apr 22  2022 README.md
+-rw-r--r-- 1 root root 4088 Apr 22  2022 setup.py
+drwxr-xr-x 3 root root 4096 Jul  3 15:08 src/
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0# cd src
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src# ll
+total 12
+drwxr-xr-x 3 root root 4096 Jul  3 15:08 ./
+drwxr-xr-x 3 root root 4096 Jul  3 15:09 ../
+drwxr-xr-x 2 root root 4096 Jul 15 09:40 pytest_durations/
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src# cd pytest_durations/
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src/pytest_durations# ll
+total 48
+drwxr-xr-x 2 root root 4096 Jul 15 09:40 ./
+drwxr-xr-x 3 root root 4096 Jul  3 15:08 ../
+-rw-r--r-- 1 root root  725 Apr 22  2022 helpers.py
+-rw-r--r-- 1 root root  109 Apr 22  2022 __init__.py
+-rw-r--r-- 1 root root  866 Apr 22  2022 measure.py
+-rw-r--r-- 1 root root 1351 Apr 22  2022 options.py
+-rw-r--r-- 1 root root 5664 Apr 22  2022 plugin.py
+-rw-r--r-- 1 root root 3244 Apr 22  2022 reporting.py
+-rw-r--r-- 1 root root  312 Apr 22  2022 ticker.py
+-rw-r--r-- 1 root root   81 Apr 22  2022 types.py
+-rw-r--r-- 1 root root 1816 Apr 22  2022 xdist.py
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src/pytest_durations#
+</code></pre>
+<ol>
+<li class="lvl-3">
+<p><strong><code>__init__.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">通常，这个文件用于初始化插件，使 <code>Python</code> 知道该目录应该被视为一个包。在 <code>pytest</code> 插件中，它可能包含插件的入口点。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>helpers.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含一些辅助函数，可能用于生成测试或 <code>fixture</code> 的唯一键，或检查 <code>fixture</code> 是否是共享的。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>measure.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含 <code>MeasureDuration</code> 类，这是一个上下文管理器，用于测量代码块的执行时间。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>ticker.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含获取当前时间戳的函数，可能用于测量持续时间。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>types.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">定义了插件中使用的数据类型，例如 <code>MeasurementsT</code>，这是一个字典类型，用于存储测量结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>options.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">可能包含处理命令行选项和配置的代码，例如 <code>--pytest-durations</code> 和 <code>--pytest-durations-min</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>reporting.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含生成报告的逻辑，例如 <code>get_report_rows</code> 和 <code>get_report_max_widths</code> 函数，用于格式化和显示测量结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>plugin.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这是插件的主要文件，定义了 <code>PystDurationPlugin</code> 类，实现了 <code>pytest</code> 插件的核心逻辑。它使用其他组件（如 <code>helpers.py</code>、<code>measure.py</code>、<code>reporting.py</code>）来测量测试的执行时间，并在测试结束时生成报告。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>xdist.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">处理与 <code>pytest-xdist</code> 插件的集成，确保在分布式测试环境中测量数据的正确收集和合并。</li>
+</ul>
+</li>
+</ol>
+<p>插件的运行和互相调用顺序通常如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>当 <code>pytest</code> 命令行工具启动时，它将加载所有可用的插件，包括 <code>pytest-durations</code>。</p>
+</li>
+<li class="lvl-2">
+<p>如果用户使用了与 <code>pytest-durations</code> 相关的命令行选项（如 <code>--pytest-durations</code>），<code>options.py</code> 将处理这些选项。</p>
+</li>
+<li class="lvl-2">
+<p>在 <code>pytest</code> 运行期间，<code>plugin.py</code> 中的钩子方法将被调用，以测量测试和 <code>fixture</code> 的执行时间：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>pytest_fixture_setup</code> 和 <code>pytest_fixture_post_finalizer</code> 用于测量 <code>fixture</code> 的设置和销毁时间。</li>
+<li class="lvl-4"><code>pytest_runtest_call</code>、<code>pytest_runtest_setup</code> 和 <code>pytest_runtest_teardown</code> 用于测量测试用例的不同阶段的执行时间。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><code>measure.py</code> 中的 <code>MeasureDuration</code> 上下文管理器被 <code>plugin.py</code> 用于测量指定代码块的执行时间。</p>
+</li>
+<li class="lvl-2">
+<p>测量结果将使用 <code>types.py</code> 中定义的类型存储。</p>
+</li>
+<li class="lvl-2">
+<p>当测试会话结束时，<code>plugin.py</code> 中的 <code>pytest_terminal_summary</code> 钩子方法将调用 <code>reporting.py</code> 中的函数来生成和显示测量结果的报告。</p>
+</li>
+<li class="lvl-2">
+<p>如果使用 <code>pytest-xdist</code> 进行分布式测试，<code>xdist.py</code> 将确保测量结果在不同的工作进程之间正确合并。</p>
+</li>
+</ul>
+<p><strong>请注意:</strong></p>
+<p>这个顺序是基于源码文件的功能和 <code>pytest</code> 插件的一般工作方式推断的。实际的调用顺序可能会根据 <code>pytest</code> 的版本和插件的具体实现有所不同。</p>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="helpers-py-wen-jian">helpers.py文件</h2>
+<p><code>helpers.py</code> 文件通常包含了一些工具函数，用于在 <code>pytest-durations</code> 插件或其他 pytest 插件中辅助处理测试用例和 <code>fixture</code> 的信息。</p>
+<h3 id="dao-ru-lei-xing-jian-cha">导入类型检查</h3>
+<pre><code class="language-python">from typing import TYPE_CHECKING
+</code></pre>
+<p>这行代码导入了 <code>TYPE_CHECKING</code>，它是一个标志，用于在类型检查时（例如使用 <code>mypy</code>）导入模块，而不在运行时导入，这样可以避免循环依赖和不必要的性能开销。</p>
+<h3 id="tiao-jian-dao-ru">条件导入</h3>
+<pre><code class="language-python">if TYPE_CHECKING:
+    from _pytest.fixtures import FixtureDef
+    from _pytest.nodes import Item
+</code></pre>
+<p>这个条件导入块只在类型检查时执行，它导入了 <code>FixtureDef</code> 和 <code>Item</code> 类型，这些类型用于指定函数参数的类型注解。</p>
+<h3 id="get-fixture-key-han-shu">_get_fixture_key 函数</h3>
+<pre><code class="language-python">def _get_fixture_key(fixturedef: "FixtureDef") -&gt; str:
+    """Return fixture name."""
+    return fixturedef.argname
+</code></pre>
+<p>这个函数接收一个 <code>FixtureDef</code> 对象作为参数，返回该 fixture 的名称，即 <code>argname</code> 属性的值。</p>
+<h3 id="get-test-key-han-shu">_get_test_key 函数</h3>
+<pre><code class="language-python">def _get_test_key(item: "Item") -&gt; str:
+    """Return test item name without filename part (class and function names only)."""
+</code></pre>
+<p>这个函数接收一个 <code>Item</code> 对象作为参数，返回测试项的名称，但不包括文件名部分。它通过以下步骤实现：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用 <code>split("::", 1)[1]</code> 移除 <code>nodeid</code> 中的文件名部分。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>split("[", 1)[0]</code> 移除 <code>nodeid</code> 中的参数部分。</p>
+</li>
+</ul>
+<h3 id="is-shared-fixture-han-shu">_is_shared_fixture 函数</h3>
+<pre><code class="language-python">def _is_shared_fixture(fixturedef: "FixtureDef") -&gt; bool:
+    """Return true if a fixture is shared."""
+    return fixturedef.scope != "function"
+</code></pre>
+<p>这个函数检查传入的 <code>FixtureDef</code> 对象，如果该 <code>fixture</code> 的作用域不是 “function”，则返回 <code>True</code>，表示这是一个共享 <code>fixture</code>。</p>
+<h2 id="ticker-py-wen-jian">ticker.py文件</h2>
+<p><code>ticker.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，它提供了一个用于获取当前时间戳的方法。</p>
+<h3 id="dao-ru-yu-ju">导入语句</h3>
+<pre><code class="language-python">from time import monotonic
+</code></pre>
+<p>这里导入了 <code>Python</code> 标准库 <code>time</code> 模块中的 <code>monotonic</code> 函数。<code>monotonic</code> 函数返回一个单调递增的时间值，这个值不会受到系统时间变化的影响，因此适合用于测量时间间隔。</p>
+<h3 id="chang-shi-dao-ru-freezegun">尝试导入 freezegun</h3>
+<pre><code class="language-python">try:
+    # if freezegun is installed, use its stored real function
+    import freezegun
+except ImportError:
+    pass
+else:
+    freezegun.configure(extend_ignore_list=[__name__])
+</code></pre>
+<p>这段代码尝试导入 <code>freezegun</code> 库，这是一个流行的 <code>Python</code> 测试库，允许开发者在测试中“冻结”时间。如果 <code>freezegun</code> 已安装，它将使用 <code>freezegun</code> 的时间替代 <code>monotonic</code> 函数的时间。<code>freezegun.configure</code> 调用配置 <code>freezegun</code> 忽略当前模块（<code>__name__</code>），这意味着 <code>pytest-durations</code> 插件的时间测量将不受 <code>freezegun</code> 的影响。</p>
+<h3 id="get-current-ticks-han-shu">get_current_ticks 函数</h3>
+<pre><code class="language-python">def get_current_ticks():
+    """Return uniformly increasing value in seconds."""
+    return monotonic()
+</code></pre>
+<p>这个函数是一个简单的封装器，它调用 <code>monotonic</code> 函数并返回结果。它的作用是提供一个统一的接口来获取当前时间的单调递增值，这个值以秒为单位。在正常的测试环境中，这将返回自某个固定点以来经过的时间。如果 <code>freezegun</code> 被安装并配置，这个函数将返回 <code>freezegun</code> 提供的时间值。</p>
+<h2 id="measure-py-wen-jian">measure.py文件</h2>
+<p><code>measure.py</code> 文件定义了一个用于测量代码块执行时间的上下文管理器 <code>MeasureDuration</code>。</p>
+<h3 id="dao-ru-yu-ju-1">导入语句</h3>
+<pre><code class="language-python">from typing import Type, TYPE_CHECKING
+from pytest_durations.ticker import get_current_ticks
+</code></pre>
+<p>这里导入了必要的类型注解和 <code>get_current_ticks</code> 函数，后者用于获取当前的滴答数（通常是单调时钟值，用于测量时间间隔）。</p>
+<h3 id="lei-ding-yi">类定义</h3>
+<pre><code class="language-python">class MeasureDuration:
+</code></pre>
+<p>定义了一个名为 <code>MeasureDuration</code> 的类，它是一个上下文管理器，用于测量代码块的执行时间。</p>
+<h3 id="lei-shu-xing">类属性</h3>
+<pre><code class="language-python">start: float  # monotonic clock value of block entrance
+end: float  # monotonic clock value of block exit
+duration: float  # duration of block execution in seconds
+</code></pre>
+<p>这些属性分别用于存储代码块开始时的单调时钟值、结束时的值，以及计算出的执行时间（以秒为单位）。</p>
+<h3 id="strong-enter-strong-fang-fa"><strong>enter</strong> 方法</h3>
+<pre><code class="language-python">def __enter__(self) -&gt; "MeasureDuration":
+    """Store block entrance time."""
+    self.start = get_current_ticks()
+    self.duration = 0.0
+    return self
+</code></pre>
+<p>当使用 <code>with</code> 语句进入上下文时，此方法被调用。它记录了代码块开始执行的时间，并将 <code>duration</code> 属性初始化为 0.0。然后返回 <code>MeasureDuration</code> 实例本身。</p>
+<h3 id="strong-exit-strong-fang-fa"><strong>exit</strong> 方法</h3>
+<pre><code class="language-python">def __exit__(self, exc_type: Type[Exception], exc_val: Exception, exc_tb: "TracebackType") -&gt; None:
+    """Store block exit time and calculate its duration."""
+    self.end = get_current_ticks()
+    self.duration += self.end - self.start
+    return None
+</code></pre>
+<p>当使用 <code>with</code> 语句退出上下文时，此方法被调用。它记录了代码块结束执行的时间，并通过当前时钟值减去开始时的时钟值来计算持续时间，然后更新 <code>duration</code> 属性。这个方法的返回值为 <code>None</code>，表示不抑制任何异常。</p>
+<h2 id="options-py-wen-jian">options.py文件</h2>
+<p><code>options.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，它定义了如何向 pytest 添加命令行选项，并在 <code>pytest</code> 配置阶段注册插件。</p>
+<h3 id="dao-ru-yu-ju-2">导入语句</h3>
+<pre><code class="language-python">from typing import NoReturn, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _pytest.config import PytestPluginManager, Config
+    from _pytest.config.argparsing import Parser
+</code></pre>
+<p>这里导入了必要的类型注解，并且在类型检查时导入了 <code>PytestPluginManager</code>、<code>Config</code> 和 <code>Parser</code> 类型。</p>
+<h3 id="mo-ren-zhi-ding-yi">默认值定义</h3>
+<pre><code class="language-python">DEFAULT_DURATIONS = 30
+DEFAULT_DURATIONS_MIN = 0.005
+</code></pre>
+<p>定义了两个默认值：<code>DEFAULT_DURATIONS</code> 是显示最慢测试数量的默认值，<code>DEFAULT_DURATIONS_MIN</code> 是包含在最慢测试列表中的最小持续时间（秒）。</p>
+<h3 id="pytest-addoption-han-shu">pytest_addoption 函数</h3>
+<pre><code class="language-python">def pytest_addoption(parser: "Parser", pluginmanager: "PytestPluginManager") -&gt; NoReturn:
+</code></pre>
+<p>这个函数在 <code>pytest</code> 命令行解析阶段被调用，用于添加自定义选项。</p>
+<pre><code class="language-python">group = parser.getgroup("pytest-durations")
+</code></pre>
+<p>创建或获取一个选项组，用于组织 <code>pytest-durations</code> 插件的命令行选项。</p>
+<pre><code class="language-python">group.addoption(
+    "--pytest-durations",
+    metavar="N",
+    type=int,
+    default=DEFAULT_DURATIONS,
+    help=f"Show N slowest setup/test durations (N=0 to disable plugin). Default {DEFAULT_DURATIONS}",
+)
+</code></pre>
+<p>添加一个命令行选项 <code>--pytest-durations</code>，允许用户指定显示的最慢测试数量。</p>
+<pre><code class="language-python">group.addoption(
+    "--pytest-durations-min",
+    metavar="N",
+    type=float,
+    default=DEFAULT_DURATIONS_MIN,
+    help=f"Minimal duration in seconds for inclusion in slowest list. Default {DEFAULT_DURATIONS_MIN}",
+)
+</code></pre>
+<p>添加另一个命令行选项 <code>--pytest-durations-min</code>，允许用户指定包含在最慢测试列表中的最小持续时间。</p>
+<h3 id="pytest-configure-han-shu">pytest_configure 函数</h3>
+<pre><code class="language-python">def pytest_configure(config: "Config") -&gt; NoReturn:
+</code></pre>
+<p>这个函数在 <code>pytest</code> 配置阶段被调用，用于根据命令行选项配置插件。</p>
+<pre><code class="language-python">if not config.getoption("--pytest-durations"):
+    return
+</code></pre>
+<p>如果用户没有指定 <code>--pytest-durations</code> 选项或将其设置为 0，表示禁用插件，则不进行进一步配置。</p>
+<pre><code class="language-python">from pytest_durations.plugin import PytestDurationPlugin
+</code></pre>
+<p>导入插件的实现。</p>
+<pre><code class="language-python">pluginmanager = config.pluginmanager
+</code></pre>
+<p>获取插件管理器。</p>
+<pre><code class="language-python">if pluginmanager.hasplugin("xdist"):
+    from pytest_durations.xdist import PytestDurationXdistMixin
+    PytestDurationPlugin = type("PytestDurationPlugin", (PytestDurationPlugin, PytestDurationXdistMixin), {})
+</code></pre>
+<p>检查是否使用了 <code>pytest-xdist</code> 插件，如果使用了，则将 <code>PytestDurationPlugin</code> 与 <code>PytestDurationXdistMixin</code> 混合，以支持分布式测试。</p>
+<pre><code class="language-python">pluginmanager.register(PytestDurationPlugin())
+</code></pre>
+<p>注册 <code>PytestDurationPlugin</code> 插件。</p>
+<h2 id="reporting-wen-jian">reporting文件</h2>
+<p><code>reporting.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，它定义了如何生成和格式化测试持续时间的报告。</p>
+<h3 id="lei-xing-bie-ming-he-chang-liang">类型别名和常量</h3>
+<pre><code class="language-python">ReportRowT = Tuple[str, str, str, str, str, str]
+TimeValuesT = Tuple[str, int, float, float, float, float]
+
+_SUM_COLUMN_IDX = 5
+_SORT_COLUMN_IDX = 5
+_COLUMNS_ORDER = (5, 0, 1, 4, 2, 3)
+_GRAND_TOTAL_STR = "grand total"
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>ReportRowT</code> 是报告行的类型别名，表示一个元组，包含六个字符串元素：名称、调用次数、最小时间、最大时间、平均时间和总时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>TimeValuesT</code> 是时间值的类型别名，表示一个元组，包含名称、时间列表长度、最小时间、最大时间、中位数时间和总时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>_SUM_COLUMN_IDX</code> 和 <code>_SORT_COLUMN_IDX</code> 是列索引，用于在排序和选择时引用总时间列。</p>
+</li>
+<li class="lvl-2">
+<p><code>_COLUMNS_ORDER</code> 是列的顺序，定义了报告行中各列的显示顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>_GRAND_TOTAL_STR</code> 是报告中总计行的标签。</p>
+</li>
+</ul>
+<h3 id="bao-gao-sheng-cheng-han-shu">报告生成函数</h3>
+<pre><code class="language-python">def get_report_rows(
+    measurements: Dict[str, List[float]],
+    duration_min: float = -1.0,
+    durations: int = 0,
+) -&gt; List[ReportRowT]:
+</code></pre>
+<p>这个函数生成测试持续时间的报告行。它接受一个字典 <code>measurements</code>，其中包含测试名称和对应的时间列表，以及两个可选参数：<code>duration_min</code>（最小持续时间阈值）和 <code>durations</code>（要显示的持续时间数量）。</p>
+<h3 id="bao-gao-xing-sheng-cheng-fu-zhu-han-shu">报告行生成辅助函数</h3>
+<pre><code class="language-python">def _get_report_header_row() -&gt; ReportRowT:
+</code></pre>
+<p>生成报告的标题行。</p>
+<pre><code class="language-python">def _get_report_footer_row(time_values: List[TimeValuesT]) -&gt; ReportRowT:
+</code></pre>
+<p>生成报告的总计行，使用 <code>time_values</code> 列表计算总计。</p>
+<pre><code class="language-python">def _get_report_timing_rows(time_values: List[TimeValuesT]) -&gt; List[ReportRowT]:
+</code></pre>
+<p>生成报告中的时间测量行，基于 <code>time_values</code> 列表。</p>
+<h3 id="bao-gao-lie-kuan-han-shu">报告列宽函数</h3>
+<pre><code class="language-python">def get_report_max_widths(report_rows: Collection[ReportRowT]) -&gt; Tuple[int, int, int, int, int, int]:
+</code></pre>
+<p>这个函数计算报告中每列的最大宽度，以便在格式化报告时保持列的对齐。</p>
+<h3 id="bao-gao-shu-ju-ge-shi-hua">报告数据格式化</h3>
+<p>在 <code>_get_report_footer_row</code> 和 <code>_get_report_timing_rows</code> 函数中，使用 <code>timedelta</code> 对象将时间值格式化为更易读的格式（例如，将秒转换为 <code>1 day, 3:45:00</code>）。</p>
+<h2 id="types-py-wen-jian">types.py文件</h2>
+<p><code>types.py</code> 文件定义了 <code>pytest-durations</code> 插件中使用的一个类型别名，用于类型注解。</p>
+<h3 id="lei-xing-bie-ming">类型别名</h3>
+<pre><code class="language-python">MeasurementsT = Dict[str, Dict[str, List[float]]]
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>MeasurementsT</code> 是一个类型别名，表示一个字典，其键是一个字符串（通常是测试函数或测试集合的名称），值是另一个字典。</p>
+</li>
+<li class="lvl-2">
+<p>内部字典的键也是一个字符串（可能表示 “call” 或其他相关的时间度量类别），值是一个浮点数列表，代表各个时间度量。</p>
+</li>
+</ul>
+<p>这个类型别名用于在整个插件中保持类型一致性，使得时间度量数据的存储和传递更加清晰和规范。通过使用 <code>MeasurementsT</code>，开发者可以轻松地识别和操作与测试相关的所有时间度量数据。</p>
+<p>例如，<code>MeasurementsT</code> 可以用于存储以下数据结构：</p>
+<pre><code class="language-python">{
+    "test_function_1": {
+        "call": [0.1, 0.2, 0.15],  # 测试函数1的调用时间列表
+    },
+    "test_function_2": {
+        "call": [0.3, 0.25],       # 测试函数2的调用时间列表
+    },
+    # ... 更多测试函数的时间度量
+}
+</code></pre>
+<p>在这个例子中，<code>MeasurementsT</code> 存储了不同测试函数的调用时间列表，这可以用于后续的性能分析和报告生成。</p>
+<h2 id="xdist-py-wen-jian">xdist.py文件</h2>
+<p><code>xdist.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，专门处理与 <code>pytest-xdist</code> 插件的集成，后者用于并行测试执行。</p>
+<h3 id="lei-xing-dao-ru">类型导入</h3>
+<pre><code class="language-python">from typing import Union, NoReturn, Optional, Any, TYPE_CHECKING
+</code></pre>
+<p>导入了必要的类型注解。</p>
+<h3 id="lei-xing-jian-cha-tiao-jian-dao-ru">类型检查条件导入</h3>
+<pre><code class="language-python">if TYPE_CHECKING:
+    from _pytest.config import ExitCode
+    from _pytest.main import Session
+    from xdist.workermanage import WorkerController
+    from pytest_durations.types import MeasurementsT
+</code></pre>
+<p>在类型检查时导入了一些额外的类型，以确保类型兼容性。</p>
+<h3 id="chang-liang-ding-yi">常量定义</h3>
+<pre><code class="language-python">_WORKEROUTPUT_KEY = "pytest_durations"
+</code></pre>
+<p>定义了一个常量，用作在 <code>pytest-xdist</code> 的工作进程之间传递测量数据的键。</p>
+<h3 id="pytest-duration-xdist-mixin-lei">PytestDurationXdistMixin 类</h3>
+<pre><code class="language-python">class PytestDurationXdistMixin:
+</code></pre>
+<p>这个类定义了一个混入（<code>mixin</code>），提供了在分布式测试环境中合并测量数据的方法。</p>
+<h3 id="cheng-yuan-bian-liang">成员变量</h3>
+<pre><code class="language-python">measurements: "MeasurementsT"
+</code></pre>
+<p>类变量 <code>measurements</code> 用于存储测试的测量数据，其类型为之前在 <code>types.py</code> 中定义的 <code>MeasurementsT</code>。</p>
+<h3 id="gou-zi-fang-fa">钩子方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True)
+def pytest_sessionfinish(self, session: "Session", exitstatus: Union[int, "ExitCode"]) -&gt; None:
+</code></pre>
+<p>在测试会话结束时调用，用于将测量数据发送到主进程。</p>
+<pre><code class="language-python">def pytest_testnodedown(self, node: "WorkerController", error: Optional[Any]) -&gt; NoReturn:
+</code></pre>
+<p>在 <code>pytest-xdist</code> 的工作节点（<code>worker node</code>）完成测试并断开连接时调用，用于合并该节点的测量数据。</p>
+<h3 id="shu-ju-he-bing-fang-fa">数据合并方法</h3>
+<pre><code class="language-python">def _extend_measurements(self, src: "MeasurementsT") -&gt; NoReturn:
+</code></pre>
+<p>私有方法，用于将源字典 <code>src</code> 中的测量数据合并到 <code>self.measurements</code> 中。如果目标类别（<code>category</code>）不存在，它会创建新的类别并复制数据；如果已存在，它会将新值追加到现有列表的末尾。</p>
+<h2 id="plugin-py-wen-jian">plugin.py文件</h2>
+<p><code>plugin.py</code> 文件是 <code>pytest-durations</code> 插件的核心，定义了插件的主要行为和与 <code>pytest</code> 的交互。</p>
+<h3 id="dao-ru-he-lei-xing-zhu-jie">导入和类型注解</h3>
+<p>文件开始处导入了必要的模块和类型注解，包括 <code>pytest</code> 的钩子（<code>hook</code>）和插件的其他组件。</p>
+<h3 id="lei-xing-jian-cha-tiao-jian-dao-ru-1">类型检查条件导入</h3>
+<pre><code class="language-python">if TYPE_CHECKING:
+    # 导入用于类型检查的额外类型
+</code></pre>
+<h3 id="category-lei">Category 类</h3>
+<pre><code class="language-python">class Category:
+    # 定义了测量类别的常量
+    FIXTURE_SETUP = "fixture"
+    TEST_CALL = "test"
+    TEST_SETUP = "setup"
+    TEST_TEARDOWN = "teardown"
+
+    @classmethod
+    def report_items(cls) -&gt; Iterable[Tuple[str, str]]:
+        # 生成报告项的元组，包括类别名称和显示名称
+</code></pre>
+<h3 id="pyst-duration-plugin-lei">PystDurationPlugin 类</h3>
+<pre><code class="language-python">class PytestDurationPlugin:
+    # 插件的主要类，实现了 `pytest` 插件的逻辑
+</code></pre>
+<p>这个类包含了测量测试和 <code>fixture</code> 执行时间的逻辑，以及生成报告的方法。</p>
+<h3 id="cheng-yuan-bian-liang-1">成员变量</h3>
+<pre><code class="language-python">measurements: "MeasurementsT"
+shared_fixture_duration: float
+last_fixture_teardown_start: float
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>measurements</code>：存储测量数据的字典。</p>
+</li>
+<li class="lvl-2">
+<p><code>shared_fixture_duration</code>：共享 <code>fixture</code> 设置的累计时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>last_fixture_teardown_start</code>：共享 <code>fixture</code> 销毁开始的时间戳。</p>
+</li>
+</ul>
+<h3 id="gou-zi-fang-fa-1">钩子方法</h3>
+<p>类中定义了多个 <code>pytest</code> 钩子方法，这些方法在 <code>pytest</code> 的不同阶段被调用：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>pytest_fixture_setup</code>：测量 <code>fixture</code> 设置的执行时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_fixture_post_finalizer</code>：计算 <code>fixture</code> 销毁的执行时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_runtest_call</code>：测量测试执行的时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_runtest_setup</code>：测量测试准备时间，排除共享 <code>fixture</code> 的时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_runtest_teardown</code>：测量测试清理时间，排除共享 <code>fixture</code> 的时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_terminal_summary</code>：在终端总结中添加持续时间报告。</p>
+</li>
+</ul>
+<h3 id="shang-xia-wen-guan-li-qi">上下文管理器</h3>
+<pre><code class="language-python">@contextmanager
+def _measure(self, category: str, key: str) -&gt; Iterable["MeasureDuration"]:
+    # 上下文管理器，用于测量代码块的执行时间
+</code></pre>
+<p>这个上下文管理器 <code>_measure</code> 用于测量指定类别和键的代码块的执行时间，并在测量完成后将结果添加到 <code>measurements</code> 字典中。</p>
+<h1 id="xiao-jie">小结</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>helpers.py</code> 中的这些函数提供了一种方法来处理和识别 <code>pytest</code> 中的 <code>fixtures</code> 和测试用例。通过这些工具函数，插件可以更容易地获取和操作测试相关的数据，例如，用于收集测试用例的持续时间数据。这些函数通常在插件的其它部分被调用，以辅助实现插件的主要功能。</p>
+</li>
+<li class="lvl-2">
+<p><code>MeasureDuration</code> 类提供了一个简单的上下文管理器，用于测量任何代码块的执行时间。通过重写 <code>__enter__</code> 和 <code>__exit__</code> 方法，它能够在代码块执行前后获取时间戳，并计算出执行时间。这个类可以在性能测试和分析中非常有用，帮助开发者了解代码块的执行效率。</p>
+</li>
+<li class="lvl-2">
+<p><code>ticker.py</code> 文件的作用是提供一个稳定的接口来获取当前时间，以便在测试中测量持续时间。通过考虑 <code>freezegun</code> 的存在，它确保了即使在时间被冻结的情况下，插件也能正常工作。这使得 <code>pytest-durations</code> 插件更加灵活和可靠，可以在不同的测试环境中使用。</p>
+</li>
+<li class="lvl-2">
+<p><code>options.py</code> 文件提供了命令行选项的添加和插件的配置逻辑。通过这些选项，用户可以控制插件的行为，例如显示最慢的测试数量和设置最小持续时间阈值。如果使用了 <code>pytest-xdist</code> 插件，它还会自动调整以支持分布式测试环境。</p>
+</li>
+<li class="lvl-2">
+<p><code>reporting.py</code> 文件包含了生成 <code>pytest-durations</code> 插件报告所需的所有逻辑。它提供了灵活的方式来选择和排序报告中的数据，并能够以一种格式化的方式展示这些数据。通过这些函数，插件能够生成一个清晰的性能报告，帮助用户识别测试中的性能瓶颈。</p>
+</li>
+<li class="lvl-2">
+<p><code>xdist.py</code> 文件确保了当使用 <code>pytest-xdist</code> 进行分布式测试时，<code>pytest-durations</code> 插件能够正确地收集和合并来自不同工作进程的测量数据。通过 <code>PytestDurationXdistMixin</code> 类，插件可以在测试会话结束时将数据发送到主进程，并在工作节点断开连接时合并数据，从而提供完整的测试持续时间报告。</p>
+</li>
+<li class="lvl-2">
+<p><code>plugin.py</code> 文件实现了 <code>pytest-durations</code> 插件的主要功能，包括测量测试和 <code>fixture</code> 的执行时间，以及在测试结束后生成详细的持续时间报告。通过使用 <code>pytest</code> 的钩子系统，插件能够在 <code>pytest</code> 的生命周期中插入自己的逻辑，从而提供对测试性能的深入洞察。</p>
+</li>
+</ul>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">Gavin Wang</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gavin-wang-note.github.io/2026/01/02/pytest_durations/">https://gavin-wang-note.github.io/2026/01/02/pytest_durations/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">Gavin Wang</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Automation/">
+                                    <span class="chip bg-color">Automation</span>
+                                </a>
+                            
+                                <a href="/tags/pytest/">
+                                    <span class="chip bg-color">pytest</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2999/12/27/pytest_gui_tool/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-2.png" class="responsive-img" alt="pytest GUI">
+                        
+                        <span class="card-title">pytest GUI</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            pytest用例执行可视化工具
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2999-12-27
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2025/12/09/pytest_progress/">
+                    <div class="card-image">
+                        
+                        <img src="/img/loading.gif" data-original="/img/pytest/pytest-26.jpg" class="responsive-img" alt="测试用例进度展示pytest_progress源码解读">
+                        
+                        <span class="card-title">测试用例进度展示pytest_progress源码解读</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            测试用例执行过程中进度的展示，pytest_progress源码解读
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2025-12-09
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/Automation/" class="post-category">
+                                    Automation
+                                </a>
+                            
+                            <a href="/categories/pytest/" class="post-category">
+                                    pytest
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Automation/">
+                        <span class="chip bg-color">Automation</span>
+                    </a>
+                    
+                    <a href="/tags/pytest/">
+                        <span class="chip bg-color">pytest</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('120')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: Transcendent<br />'
+            + '文章作者: Gavin Wang<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('2'),
+            headingSelector: 'h1, h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2026</span>
+            
+            <a href="/about" target="_blank">Gavin Wang</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            
+                <span id="translate">|&nbsp;繁/简：</span><a id="translateLink" href="javascript:translatePage();">繁</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">1078.3k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+
+
+    <a href="mailto:250556531@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=250556531" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 250556531" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+        <script type="text/javascript" src="/js/tw_cn.js"></script>
+        <script type="text/javascript">
+          var defaultEncoding = 2; //网站编写字体是否繁体，1-繁体，2-简体
+          var translateDelay = 0; //延迟时间,若不在前, 要设定延迟翻译时间, 如100表示100ms,默认为0
+          var cookieDomain = "https://gavin-wang-note.github.io"; //Cookie地址, 一定要设定, 通常为你的网址
+          var msgToTraditionalChinese = "繁"; //此处可以更改为你想要显示的文字
+          var msgToSimplifiedChinese = "简"; //同上，但两处均不建议更改
+          var translateButtonId = "translateLink"; //默认互换id
+          translateInitilization();
+        </script>
+    
+    
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
+    
+
+    
+
+    <!-- Baidu Analytics -->
+
+<script>
+    var _hmt = _hmt || [];
+    (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+    <script type="text/javascript" src="/libs/background/ribbon-dynamic.js" async="async"></script>
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>!function(r){r.imageLazyLoadSetting.processImages=t;var e=r.imageLazyLoadSetting.isSPA,c=(r.imageLazyLoadSetting.preloadRatio,n());function n(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(){e&&(c=n());for(var t,o=0;o<c.length;o++)0<=(t=(t=c[o]).getBoundingClientRect()).bottom&&0<=t.left&&t.top<=(r.innerHeight+240||document.documentElement.clientHeight+240)&&function(){var t,e,n,a,i=c[o];e=function(){c=c.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(n=new Image,a=t.getAttribute("data-original"),n.onload=function(){t.src=a,t.removeAttribute("data-original"),e&&e()},t.src!==a&&(n.src=a))}()}function a(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",a),r.addEventListener("resize",a),r.addEventListener("orientationchange",a)}(this);</script></body>
+
+</html>

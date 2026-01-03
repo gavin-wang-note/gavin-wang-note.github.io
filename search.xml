@@ -49137,6 +49137,180 @@ done
       </tags>
   </entry>
   <entry>
+    <title>shell计算精度</title>
+    <url>/2020/06/11/shell_calculation_accuracy/</url>
+    <content><![CDATA[<h1 id="gai-shu">概述</h1>
+<p>为何要写这篇文章，因为在上篇文章 <a href="https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/" target="_blank">stastic ES write speed by shell script</a>有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。</p>
+<h1 id="shi-jian">实践</h1>
+<h2 id="bc">bc</h2>
+<p>bc是比较常用的Linux中计算器了，简单方便，而且是支持浮点的。一般系统不自带，需要额外安装。</p>
+<pre><code class="language-shell">root@code80:~# echo 1+2 | bc
+3
+root@code80:~# echo 1.1*6 | bc
+6.6
+root@code80:~# echo 5/3 | bc
+1
+root@code80:~# echo 5/3.0 | bc
+1
+root@code80:~# echo 5.0/3 | bc
+1
+root@code80:~# echo 5.1/3 | bc
+1
+root@code80:~# echo "scale=2;5/3" | bc
+1.66
+root@code80:~# 
+root@code80:~# echo "scale=2;1/2" | bc
+.50
+root@code80:~# echo "scale=4;1/2" | bc
+.5000
+root@code80:~# 
+</code></pre>
+<p>这里有个问题，如果整数为0，这个整数不会显示，直接显示小数点，解决方法如下:</p>
+<pre><code class="language-shell">root@code80:~# echo "print 0;scale=2;1/2" | bc
+0.50
+root@code80:~#
+</code></pre>
+<h2 id="expr">expr</h2>
+<p>不支持浮点计算，即不支持小数，所以也常被用来判断变量内容或者结果是不是非0整数（expr 0的echo $?不是0）。</p>
+<p>另外，expr 后面的两个参数与运算符之间，一定要含有空格:</p>
+<pre><code class="language-shell">root@code80:~# expr 1+2
+1+2
+root@code80:~# expr 1 + 2
+3
+root@code80:~# expr 5/3
+5/3
+root@code80:~# expr 5 / 3
+1
+root@code80:~# expr 99 / 3.0
+expr: non-integer argument
+root@code80:~# expr 99 / 3
+33
+root@code80:~# expr 0
+0
+root@code80:~# echo $?
+1
+root@code80:~# 
+</code></pre>
+<h2 id="">$(())</h2>
+<p>此方法不支持浮点计算。</p>
+<pre><code class="language-shell">root@code80:~# echo $((1+2.0))
+bash: 1+2.0: syntax error: invalid arithmetic operator (error token is ".0")
+root@code80:~# echo $((1+2))
+3
+root@code80:~# echo $((10/2))
+5
+root@code80:~# echo $((10.1/2))
+bash: 10.1/2: syntax error: invalid arithmetic operator (error token is ".1/2")
+root@code80:~#
+</code></pre>
+<h2 id="let">let</h2>
+<p>不仅不支持浮点计算，而且还只能赋值，不能直接输出。</p>
+<pre><code class="language-shell">root@code80:~# let a=1+2
+root@code80:~# echo $a
+3
+root@code80:~# let b=10/5
+root@code80:~# echo $b
+2
+root@code80:~# let b=10/3
+root@code80:~# echo $b
+3
+root@code80:~# let c=1.1*2
+bash: let: c=1.1*2: syntax error: invalid arithmetic operator (error token is ".1*2")
+root@code80:~# 
+</code></pre>
+<p>上面的方法，bc一般系统不带需要自行安装，不是很方便，万一系统不联网，又没有安装包，没法使用；其他的几个方法，都不支持浮点数，是否有其他方法支持浮点数的？答案是肯定的，继续往下看。</p>
+<h1 id="ji-suan-fu-dian-shu">计算浮点数</h1>
+<p>这里，使用awk获浮点数。</p>
+<pre><code class="language-shell">root@code80:~# echo | awk "{print 10.2/2}"
+5.1
+root@code80:~# echo | awk "{print 10*2.1}"
+21
+root@code80:~# echo | awk "{print 10.2*2.1}"
+21.42
+root@code80:~# echo | awk "{print 10.2/2}"
+5.1
+root@code80:~# echo | awk "{print 10.2*2.1}"
+21.42
+root@code80:~# echo | awk "{print 10.2+2.1}"
+12.3
+root@code80:~# echo | awk "{print 10.2-2.1}"
+8.1
+root@code80:~# echo | awk '{print 10.2-2.1}'
+8.1
+root@code80:~# echo | awk '{print 10.2+2.1}'
+12.3
+root@code80:~# echo | awk '{print 10.2*2.1}'
+21.42
+root@code80:~# echo | awk '{print 10.2/2.1}'
+4.85714
+root@code80:~#
+</code></pre>
+<p>将数值参数化试试：</p>
+<pre><code class="language-shell">root@code80:~# pam1=10.2
+root@code80:~# pam2=2.1
+root@code80:~# pam3=2
+root@code80:~# echo | awk '{print $pam1/$pam2}'
+awk: cmd. line:1: (FILENAME=- FNR=1) fatal: division by zero attempted
+root@code80:~# echo | awk "{print $pam1/$pam2}"
+4.85714
+root@code80:~# echo | awk "{print $pam1*$pam2}"
+21.42
+root@code80:~# echo | awk "{print $pam1-$pam2}"
+8.1
+root@code80:~# echo | awk "{print $pam1-$pam2*$pam3}"
+6
+root@code80:~# echo | awk "{print ($pam1-$pam2)*$pam3}"
+16.2
+root@code80:~#
+</code></pre>
+<p>说明：</p>
+<p>这里awk后的print，在不使用参数/变量情况下，使用单引号和双引号都可以，推荐使用双引号，养成习惯。</p>
+<p>这里小数点后的位数不受控制，比如本文示例中计算出来的结果4.85714，小数点后有5位，如果只想保留指定位数的小数点，加上printf：</p>
+<pre><code class="language-shell">root@code80:~# echo | awk '{print 10/3}' 
+3.33333
+root@code80:~# echo | awk '{printf ("%.2f\n",10/3)}' 
+3.33
+root@code80:~# 
+</code></pre>
+<p>看看参数化后的执行效果:</p>
+<pre><code class="language-shell">root@code80:~# echo | awk "{printf ("%.2f\n",$pam1/$pam2)}"
+awk: cmd. line:1: {printf (%.2fn,10/3)}
+awk: cmd. line:1:          ^ syntax error
+root@code80:~# 
+root@code80:~# echo | awk '{printf ("%.2f\n",$pam1/$pam2)}'
+awk: cmd. line:1: (FILENAME=- FNR=1) fatal: division by zero attempted
+</code></pre>
+<p>报错了，这种情况，建议先在前面的echo中将需要使用的变量输出出来，再进行调用。</p>
+<pre><code class="language-shell">root@code80:~# echo $pam1 $pam2 | awk '{{printf ("%.2f\n", $1/$2)}}'
+3.33
+root@code80:~# 
+</code></pre>
+<p>说明：</p>
+<p>上面的命令示例中，保留2位小数，printf默认是保留6位。</p>
+<p>如果碰到科学计数类型的爆大数字，会出问题：</p>
+<pre><code class="language-shell">
+t@code80:~# echo "5.9637e+12/100" | bc
+(standard_in) 1: syntax error
+root@code80:~# 
+</code></pre>
+<p>解决方法如下：</p>
+<pre><code class="language-shell">root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.0f\n",$1)}'
+5963700000000
+root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.2f\n",$1)}'
+5963700000000.00
+root@code80:~# 
+</code></pre>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>shell</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>shell</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>API响应慢问题复现</title>
     <url>/2020/06/12/reproduce_slow_api_issue/</url>
     <content><![CDATA[<h1 id="gai-shu">概述</h1>
@@ -51584,180 +51758,6 @@ root@node76:~#
       </tags>
   </entry>
   <entry>
-    <title>shell计算精度</title>
-    <url>/2020/06/11/shell_calculation_accuracy/</url>
-    <content><![CDATA[<h1 id="gai-shu">概述</h1>
-<p>为何要写这篇文章，因为在上篇文章 <a href="https://gavin-wang-note.github.io/2020/06/10/stastic_ES_write_speed_by_shell_script/" target="_blank">stastic ES write speed by shell script</a>有使用shell去尝试统计ES的写入速度，需要精确到毫秒级别的时间差，但是尝试了expr，let，发现不行，而是awk却可以，所以本文汇总一下，以bash为例，shell中的计算精度问题。</p>
-<h1 id="shi-jian">实践</h1>
-<h2 id="bc">bc</h2>
-<p>bc是比较常用的Linux中计算器了，简单方便，而且是支持浮点的。一般系统不自带，需要额外安装。</p>
-<pre><code class="language-shell">root@code80:~# echo 1+2 | bc
-3
-root@code80:~# echo 1.1*6 | bc
-6.6
-root@code80:~# echo 5/3 | bc
-1
-root@code80:~# echo 5/3.0 | bc
-1
-root@code80:~# echo 5.0/3 | bc
-1
-root@code80:~# echo 5.1/3 | bc
-1
-root@code80:~# echo "scale=2;5/3" | bc
-1.66
-root@code80:~# 
-root@code80:~# echo "scale=2;1/2" | bc
-.50
-root@code80:~# echo "scale=4;1/2" | bc
-.5000
-root@code80:~# 
-</code></pre>
-<p>这里有个问题，如果整数为0，这个整数不会显示，直接显示小数点，解决方法如下:</p>
-<pre><code class="language-shell">root@code80:~# echo "print 0;scale=2;1/2" | bc
-0.50
-root@code80:~#
-</code></pre>
-<h2 id="expr">expr</h2>
-<p>不支持浮点计算，即不支持小数，所以也常被用来判断变量内容或者结果是不是非0整数（expr 0的echo $?不是0）。</p>
-<p>另外，expr 后面的两个参数与运算符之间，一定要含有空格:</p>
-<pre><code class="language-shell">root@code80:~# expr 1+2
-1+2
-root@code80:~# expr 1 + 2
-3
-root@code80:~# expr 5/3
-5/3
-root@code80:~# expr 5 / 3
-1
-root@code80:~# expr 99 / 3.0
-expr: non-integer argument
-root@code80:~# expr 99 / 3
-33
-root@code80:~# expr 0
-0
-root@code80:~# echo $?
-1
-root@code80:~# 
-</code></pre>
-<h2 id="">$(())</h2>
-<p>此方法不支持浮点计算。</p>
-<pre><code class="language-shell">root@code80:~# echo $((1+2.0))
-bash: 1+2.0: syntax error: invalid arithmetic operator (error token is ".0")
-root@code80:~# echo $((1+2))
-3
-root@code80:~# echo $((10/2))
-5
-root@code80:~# echo $((10.1/2))
-bash: 10.1/2: syntax error: invalid arithmetic operator (error token is ".1/2")
-root@code80:~#
-</code></pre>
-<h2 id="let">let</h2>
-<p>不仅不支持浮点计算，而且还只能赋值，不能直接输出。</p>
-<pre><code class="language-shell">root@code80:~# let a=1+2
-root@code80:~# echo $a
-3
-root@code80:~# let b=10/5
-root@code80:~# echo $b
-2
-root@code80:~# let b=10/3
-root@code80:~# echo $b
-3
-root@code80:~# let c=1.1*2
-bash: let: c=1.1*2: syntax error: invalid arithmetic operator (error token is ".1*2")
-root@code80:~# 
-</code></pre>
-<p>上面的方法，bc一般系统不带需要自行安装，不是很方便，万一系统不联网，又没有安装包，没法使用；其他的几个方法，都不支持浮点数，是否有其他方法支持浮点数的？答案是肯定的，继续往下看。</p>
-<h1 id="ji-suan-fu-dian-shu">计算浮点数</h1>
-<p>这里，使用awk获浮点数。</p>
-<pre><code class="language-shell">root@code80:~# echo | awk "{print 10.2/2}"
-5.1
-root@code80:~# echo | awk "{print 10*2.1}"
-21
-root@code80:~# echo | awk "{print 10.2*2.1}"
-21.42
-root@code80:~# echo | awk "{print 10.2/2}"
-5.1
-root@code80:~# echo | awk "{print 10.2*2.1}"
-21.42
-root@code80:~# echo | awk "{print 10.2+2.1}"
-12.3
-root@code80:~# echo | awk "{print 10.2-2.1}"
-8.1
-root@code80:~# echo | awk '{print 10.2-2.1}'
-8.1
-root@code80:~# echo | awk '{print 10.2+2.1}'
-12.3
-root@code80:~# echo | awk '{print 10.2*2.1}'
-21.42
-root@code80:~# echo | awk '{print 10.2/2.1}'
-4.85714
-root@code80:~#
-</code></pre>
-<p>将数值参数化试试：</p>
-<pre><code class="language-shell">root@code80:~# pam1=10.2
-root@code80:~# pam2=2.1
-root@code80:~# pam3=2
-root@code80:~# echo | awk '{print $pam1/$pam2}'
-awk: cmd. line:1: (FILENAME=- FNR=1) fatal: division by zero attempted
-root@code80:~# echo | awk "{print $pam1/$pam2}"
-4.85714
-root@code80:~# echo | awk "{print $pam1*$pam2}"
-21.42
-root@code80:~# echo | awk "{print $pam1-$pam2}"
-8.1
-root@code80:~# echo | awk "{print $pam1-$pam2*$pam3}"
-6
-root@code80:~# echo | awk "{print ($pam1-$pam2)*$pam3}"
-16.2
-root@code80:~#
-</code></pre>
-<p>说明：</p>
-<p>这里awk后的print，在不使用参数/变量情况下，使用单引号和双引号都可以，推荐使用双引号，养成习惯。</p>
-<p>这里小数点后的位数不受控制，比如本文示例中计算出来的结果4.85714，小数点后有5位，如果只想保留指定位数的小数点，加上printf：</p>
-<pre><code class="language-shell">root@code80:~# echo | awk '{print 10/3}' 
-3.33333
-root@code80:~# echo | awk '{printf ("%.2f\n",10/3)}' 
-3.33
-root@code80:~# 
-</code></pre>
-<p>看看参数化后的执行效果:</p>
-<pre><code class="language-shell">root@code80:~# echo | awk "{printf ("%.2f\n",$pam1/$pam2)}"
-awk: cmd. line:1: {printf (%.2fn,10/3)}
-awk: cmd. line:1:          ^ syntax error
-root@code80:~# 
-root@code80:~# echo | awk '{printf ("%.2f\n",$pam1/$pam2)}'
-awk: cmd. line:1: (FILENAME=- FNR=1) fatal: division by zero attempted
-</code></pre>
-<p>报错了，这种情况，建议先在前面的echo中将需要使用的变量输出出来，再进行调用。</p>
-<pre><code class="language-shell">root@code80:~# echo $pam1 $pam2 | awk '{{printf ("%.2f\n", $1/$2)}}'
-3.33
-root@code80:~# 
-</code></pre>
-<p>说明：</p>
-<p>上面的命令示例中，保留2位小数，printf默认是保留6位。</p>
-<p>如果碰到科学计数类型的爆大数字，会出问题：</p>
-<pre><code class="language-shell">
-t@code80:~# echo "5.9637e+12/100" | bc
-(standard_in) 1: syntax error
-root@code80:~# 
-</code></pre>
-<p>解决方法如下：</p>
-<pre><code class="language-shell">root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.0f\n",$1)}'
-5963700000000
-root@code80:~# echo "5.9637e+12/100" | awk '{printf ("%.2f\n",$1)}'
-5963700000000.00
-root@code80:~# 
-</code></pre>
-<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>shell</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
-        <tag>shell</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>利用oceanfile批量构造文件并统计cephfs速度</title>
     <url>/2020/07/06/calc_cephfs_write_speed/</url>
     <content><![CDATA[<h1 id="gai-shu">概述</h1>
@@ -51883,6 +51883,154 @@ done
       </categories>
       <tags>
         <tag>shell</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>热插拔设备</title>
+    <url>/2020/07/10/hot_swap_device/</url>
+    <content><![CDATA[<h1 id="gai-shu">概述</h1>
+<p>测试中碰到破坏RAID或下线磁盘的场景，需要从设备上拔盘，然后等产品侦测到对应Disk或VD异常后，再插回去，验证程序侦测及时性是否存在问题。</p>
+<p>由于要频繁的进出机房进行设备的拔出与插回操作，比较麻烦，是否有更便捷的方式进行操作呢？</p>
+<p>本文介绍同事推荐的，在有热交换驱动器情况下，通过scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。</p>
+<h1 id="shi-jian">实践</h1>
+<h2 id="yi-chu-she-bei">移除设备</h2>
+<pre><code class="language-shell">echo 'scsi remove-single-device 0 0 17 0' &gt; /proc/scsi/scsi
+</code></pre>
+<h2 id="tian-jia-she-bei">添加设备</h2>
+<pre><code class="language-shell">echo 'scsi add-single-device 0 0 17 0' &gt; /proc/scsi/scsi
+</code></pre>
+<p>其中，0 0 17 0 为对应磁盘的信息，参考如下：</p>
+<pre><code class="language-shell">root@node75:~# lsscsi 
+[0:0:0:0]    enclosu GIGABYTE S451 series      000a  -        
+[0:0:1:0]    enclosu GIGABYTE S451 series      000a  -        
+[0:0:17:0]   disk    ATA      INTEL SSDSC2KG48 0142  /dev/sdh 
+[0:2:0:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdb 
+[0:2:1:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sde 
+[0:2:2:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdc 
+[0:2:3:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdd 
+[1:0:0:0]    disk    ATA      INTEL SSDSC2KG24 0100  /dev/sdf 
+[2:0:0:0]    disk    ATA      INTEL SSDSC2KG24 0100  /dev/sdg 
+root@node75:~#
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN(分别对应本文的0，0，17，0)</p>
+</li>
+<li class="lvl-2">
+<p>第二列：设备类型</p>
+</li>
+<li class="lvl-2">
+<p>第3，4，5列：设备厂商，型号，版本信息  (Vendor,Model,Rev)</p>
+</li>
+<li class="lvl-2">
+<p>最后一列：Rev，设备主节点名，可以理解为设备在系统中的名称，如果是磁盘，则为/dev/sdxxx</p>
+</li>
+</ul>
+<p>单独展示一下这里的第三列，第四列，第五列信息：</p>
+<p>| <strong>第三列</strong>                     | <strong>第四列</strong>         | <strong>第五列</strong>                               |<br>
+| ------------------------------ | ------------------------------------------------------------ |<br>
+| AVAGO  | Gigabyte MR-3108   | 4.68    |</p>
+<p>分别对应着Vendor，Model， Rev，参考如下：</p>
+<pre><code class="language-shell">root@node75:/proc/scsi# lsscsi -c
+Attached devices: 
+Host: scsi0 Channel: 00 Target: 00 Lun: 00
+  Vendor: GIGABYTE Model: S451 series      Rev: 000a
+  Type:   Enclosure                        ANSI SCSI revision: 05
+Host: scsi0 Channel: 00 Target: 01 Lun: 00
+  Vendor: GIGABYTE Model: S451 series      Rev: 000a
+  Type:   Enclosure                        ANSI SCSI revision: 05
+Host: scsi0 Channel: 00 Target: 17 Lun: 00
+  Vendor: ATA      Model: INTEL SSDSC2KG48 Rev: 0142
+  Type:   Direct-Access                    ANSI SCSI revision: 06
+Host: scsi0 Channel: 02 Target: 00 Lun: 00
+  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+Host: scsi0 Channel: 02 Target: 01 Lun: 00
+  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+Host: scsi0 Channel: 02 Target: 02 Lun: 00
+  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+Host: scsi0 Channel: 02 Target: 03 Lun: 00
+  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+Host: scsi1 Channel: 00 Target: 00 Lun: 00
+  Vendor: ATA      Model: INTEL SSDSC2KG24 Rev: 0100
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+Host: scsi2 Channel: 00 Target: 00 Lun: 00
+  Vendor: ATA      Model: INTEL SSDSC2KG24 Rev: 0100
+  Type:   Direct-Access                    ANSI SCSI revision: 05
+root@node75:/proc/scsi#
+</code></pre>
+<p>热插拔磁盘后，对应的kern log信息片断参考如下:</p>
+<pre><code class="language-shell">Jul  9 13:46:46 node75 kernel: [ 8752.867575] sd 0:0:17:0: SCSI device is removed
+Jul  9 13:46:46 node75 kernel: [ 8752.867895] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
+Jul  9 13:46:46 node75 kernel: [ 8752.868087] print_req_error: I/O error, dev sda, sector 0
+Jul  9 13:46:46 node75 kernel: [ 8752.875385] sd 0:0:17:0: [sda] Synchronizing SCSI cache
+Jul  9 13:46:46 node75 kernel: [ 8752.875497] sd 0:0:17:0: [sda] Synchronize Cache(10) failed: Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK
+Jul  9 13:46:46 node75 kernel: [ 8752.895282] megaraid_sas 0000:af:00.0: scanning for scsi0...
+Jul  9 13:46:48 node75 kernel: [ 8754.164633] scsi 0:0:17:0: Direct-Access     ATA      INTEL SSDSC2KG48 0142 PQ: 0 ANSI: 6
+Jul  9 13:46:48 node75 kernel: [ 8754.166811] sd 0:0:17:0: Attached scsi generic sg2 type 0
+Jul  9 13:46:48 node75 kernel: [ 8754.166818] sd 0:0:17:0: [sdh] 937703088 512-byte logical blocks: (480 GB/447 GiB)
+Jul  9 13:46:48 node75 kernel: [ 8754.166821] sd 0:0:17:0: [sdh] 4096-byte physical blocks
+Jul  9 13:46:48 node75 kernel: [ 8754.166838] [830035]: scst: scst_register_device:1102:Attached to scsi0, channel 0, id 17, lun 0, type 0
+Jul  9 13:46:48 node75 kernel: [ 8754.167729] sd 0:0:17:0: [sdh] Write Protect is off
+Jul  9 13:46:48 node75 kernel: [ 8754.167731] sd 0:0:17:0: [sdh] Mode Sense: 9b 00 10 08
+Jul  9 13:46:48 node75 kernel: [ 8754.168049] sd 0:0:17:0: [sdh] Write cache: enabled, read cache: enabled, supports DPO and FUA
+Jul  9 13:46:48 node75 kernel: [ 8754.174319]  sdh: sdh1 sdh2
+Jul  9 13:46:48 node75 kernel: [ 8754.176615] sd 0:0:17:0: [sdh] Attached SCSI disk
+Jul  9 13:46:48 node75 kernel: [ 8754.739509] blk_partition_remap: fail for partition 2
+Jul  9 13:46:48 node75 kernel: [ 8754.739514] EXT4-fs error (device sda2): ext4_find_entry:1455: inode #2: comm ezrpcd: reading directory lblock 0
+Jul  9 13:46:52 node75 kernel: [ 8758.867351] sd 0:0:17:0: SCSI device is removed
+Jul  9 13:46:52 node75 kernel: [ 8758.867648] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
+Jul  9 13:46:52 node75 kernel: [ 8758.872546] sd 0:0:17:0: [sdh] Synchronizing SCSI cache
+Jul  9 13:46:52 node75 kernel: [ 8758.872627] sd 0:0:17:0: [sdh] Synchronize Cache(10) failed: Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK
+Jul  9 13:46:52 node75 kernel: [ 8758.897329] megaraid_sas 0000:af:00.0: scanning for scsi0...
+Jul  9 13:46:57 node75 kernel: [ 8763.163262] scsi 0:0:17:0: Direct-Access     ATA      INTEL SSDSC2KG48 0142 PQ: 0 ANSI: 6
+Jul  9 13:46:57 node75 kernel: [ 8763.165348] sd 0:0:17:0: Attached scsi generic sg2 type 0
+Jul  9 13:46:57 node75 kernel: [ 8763.165372] [830035]: scst: scst_register_device:1102:Attached to scsi0, channel 0, id 17, lun 0, type 0
+Jul  9 13:46:57 node75 kernel: [ 8763.166274] sd 0:0:17:0: [sdh] 937703088 512-byte logical blocks: (480 GB/447 GiB)
+Jul  9 13:46:57 node75 kernel: [ 8763.166279] sd 0:0:17:0: [sdh] 4096-byte physical blocks
+Jul  9 13:46:57 node75 kernel: [ 8763.166558] sd 0:0:17:0: [sdh] Write Protect is off
+Jul  9 13:46:57 node75 kernel: [ 8763.166561] sd 0:0:17:0: [sdh] Mode Sense: 9b 00 10 08
+Jul  9 13:46:57 node75 kernel: [ 8763.166893] sd 0:0:17:0: [sdh] Write cache: enabled, read cache: enabled, supports DPO and FUA
+Jul  9 13:46:57 node75 kernel: [ 8763.175450]  sdh: sdh1 sdh2
+Jul  9 13:46:57 node75 kernel: [ 8763.177604] sd 0:0:17:0: [sdh] Attached SCSI disk
+</code></pre>
+<p>BTW，本示例中，0:0:17:0: [sdh] 是一块SSD，做成JBOD模式，当JBOD对应盘正常在设备上运行时，是不支持Megacli/storcli下线磁盘指令的，一旦执行报错信息参考如下:</p>
+<pre><code class="language-shell">root@node75:~# storcli64 /c0/e1/s17 set offline
+Controller = 0
+Status = Failure
+Description = No drive found!
+
+Detailed Status :
+===============
+
+-----------------------------------------
+Drive      Status  ErrCd ErrMsg
+-----------------------------------------
+/c0/e1/s17 Failure   255 Drive not found
+-----------------------------------------
+
+
+root@node75:~#
+</code></pre>
+<h1 id="qi-ta">其他</h1>
+<p>上文中的热插拔，和 ‘Rescan SCSI/SATA Host Bus’ 有着异曲同工之处，毕竟方法都是多样的，，根据不同场合使用。</p>
+<pre><code class="language-shell">#/bin/bash
+# ReScan all SCSI/SATA Hosts
+for SHOST in /sys/class/scsi_host/host*; do
+    echo -n "Scanning ${SHOST##*/}..."
+    echo "- - -" &gt; ${SHOST}/scan
+    echo Done
+done
+</code></pre>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -52217,154 +52365,6 @@ https://wiki2.xbits.net:4430/hardware:lsi:wipefs%E6%B8%85%E9%99%A4raid%E4%BF%A1%
       </categories>
       <tags>
         <tag>ceph</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>热插拔设备</title>
-    <url>/2020/07/10/hot_swap_device/</url>
-    <content><![CDATA[<h1 id="gai-shu">概述</h1>
-<p>测试中碰到破坏RAID或下线磁盘的场景，需要从设备上拔盘，然后等产品侦测到对应Disk或VD异常后，再插回去，验证程序侦测及时性是否存在问题。</p>
-<p>由于要频繁的进出机房进行设备的拔出与插回操作，比较麻烦，是否有更便捷的方式进行操作呢？</p>
-<p>本文介绍同事推荐的，在有热交换驱动器情况下，通过scsi热插拔指令（scsi remove-single-device，scsi add-single-device），移除和回插某块设备。</p>
-<h1 id="shi-jian">实践</h1>
-<h2 id="yi-chu-she-bei">移除设备</h2>
-<pre><code class="language-shell">echo 'scsi remove-single-device 0 0 17 0' &gt; /proc/scsi/scsi
-</code></pre>
-<h2 id="tian-jia-she-bei">添加设备</h2>
-<pre><code class="language-shell">echo 'scsi add-single-device 0 0 17 0' &gt; /proc/scsi/scsi
-</code></pre>
-<p>其中，0 0 17 0 为对应磁盘的信息，参考如下：</p>
-<pre><code class="language-shell">root@node75:~# lsscsi 
-[0:0:0:0]    enclosu GIGABYTE S451 series      000a  -        
-[0:0:1:0]    enclosu GIGABYTE S451 series      000a  -        
-[0:0:17:0]   disk    ATA      INTEL SSDSC2KG48 0142  /dev/sdh 
-[0:2:0:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdb 
-[0:2:1:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sde 
-[0:2:2:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdc 
-[0:2:3:0]    disk    AVAGO    Gigabyte MR-3108 4.68  /dev/sdd 
-[1:0:0:0]    disk    ATA      INTEL SSDSC2KG24 0100  /dev/sdf 
-[2:0:0:0]    disk    ATA      INTEL SSDSC2KG24 0100  /dev/sdg 
-root@node75:~#
-</code></pre>
-<ul class="lvl-0">
-<li class="lvl-2">
-<p>第一列：SCSI设备id，这四个字段分别对应信息为：hostadapter id，SCSI channel on hostadapter，vd target ID， LUN(分别对应本文的0，0，17，0)</p>
-</li>
-<li class="lvl-2">
-<p>第二列：设备类型</p>
-</li>
-<li class="lvl-2">
-<p>第3，4，5列：设备厂商，型号，版本信息  (Vendor,Model,Rev)</p>
-</li>
-<li class="lvl-2">
-<p>最后一列：Rev，设备主节点名，可以理解为设备在系统中的名称，如果是磁盘，则为/dev/sdxxx</p>
-</li>
-</ul>
-<p>单独展示一下这里的第三列，第四列，第五列信息：</p>
-<p>| <strong>第三列</strong>                     | <strong>第四列</strong>         | <strong>第五列</strong>                               |<br>
-| ------------------------------ | ------------------------------------------------------------ |<br>
-| AVAGO  | Gigabyte MR-3108   | 4.68    |</p>
-<p>分别对应着Vendor，Model， Rev，参考如下：</p>
-<pre><code class="language-shell">root@node75:/proc/scsi# lsscsi -c
-Attached devices: 
-Host: scsi0 Channel: 00 Target: 00 Lun: 00
-  Vendor: GIGABYTE Model: S451 series      Rev: 000a
-  Type:   Enclosure                        ANSI SCSI revision: 05
-Host: scsi0 Channel: 00 Target: 01 Lun: 00
-  Vendor: GIGABYTE Model: S451 series      Rev: 000a
-  Type:   Enclosure                        ANSI SCSI revision: 05
-Host: scsi0 Channel: 00 Target: 17 Lun: 00
-  Vendor: ATA      Model: INTEL SSDSC2KG48 Rev: 0142
-  Type:   Direct-Access                    ANSI SCSI revision: 06
-Host: scsi0 Channel: 02 Target: 00 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi0 Channel: 02 Target: 01 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi0 Channel: 02 Target: 02 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi0 Channel: 02 Target: 03 Lun: 00
-  Vendor: AVAGO    Model: Gigabyte MR-3108 Rev: 4.68
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi1 Channel: 00 Target: 00 Lun: 00
-  Vendor: ATA      Model: INTEL SSDSC2KG24 Rev: 0100
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-Host: scsi2 Channel: 00 Target: 00 Lun: 00
-  Vendor: ATA      Model: INTEL SSDSC2KG24 Rev: 0100
-  Type:   Direct-Access                    ANSI SCSI revision: 05
-root@node75:/proc/scsi#
-</code></pre>
-<p>热插拔磁盘后，对应的kern log信息片断参考如下:</p>
-<pre><code class="language-shell">Jul  9 13:46:46 node75 kernel: [ 8752.867575] sd 0:0:17:0: SCSI device is removed
-Jul  9 13:46:46 node75 kernel: [ 8752.867895] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:46 node75 kernel: [ 8752.868087] print_req_error: I/O error, dev sda, sector 0
-Jul  9 13:46:46 node75 kernel: [ 8752.875385] sd 0:0:17:0: [sda] Synchronizing SCSI cache
-Jul  9 13:46:46 node75 kernel: [ 8752.875497] sd 0:0:17:0: [sda] Synchronize Cache(10) failed: Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK
-Jul  9 13:46:46 node75 kernel: [ 8752.895282] megaraid_sas 0000:af:00.0: scanning for scsi0...
-Jul  9 13:46:48 node75 kernel: [ 8754.164633] scsi 0:0:17:0: Direct-Access     ATA      INTEL SSDSC2KG48 0142 PQ: 0 ANSI: 6
-Jul  9 13:46:48 node75 kernel: [ 8754.166811] sd 0:0:17:0: Attached scsi generic sg2 type 0
-Jul  9 13:46:48 node75 kernel: [ 8754.166818] sd 0:0:17:0: [sdh] 937703088 512-byte logical blocks: (480 GB/447 GiB)
-Jul  9 13:46:48 node75 kernel: [ 8754.166821] sd 0:0:17:0: [sdh] 4096-byte physical blocks
-Jul  9 13:46:48 node75 kernel: [ 8754.166838] [830035]: scst: scst_register_device:1102:Attached to scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:48 node75 kernel: [ 8754.167729] sd 0:0:17:0: [sdh] Write Protect is off
-Jul  9 13:46:48 node75 kernel: [ 8754.167731] sd 0:0:17:0: [sdh] Mode Sense: 9b 00 10 08
-Jul  9 13:46:48 node75 kernel: [ 8754.168049] sd 0:0:17:0: [sdh] Write cache: enabled, read cache: enabled, supports DPO and FUA
-Jul  9 13:46:48 node75 kernel: [ 8754.174319]  sdh: sdh1 sdh2
-Jul  9 13:46:48 node75 kernel: [ 8754.176615] sd 0:0:17:0: [sdh] Attached SCSI disk
-Jul  9 13:46:48 node75 kernel: [ 8754.739509] blk_partition_remap: fail for partition 2
-Jul  9 13:46:48 node75 kernel: [ 8754.739514] EXT4-fs error (device sda2): ext4_find_entry:1455: inode #2: comm ezrpcd: reading directory lblock 0
-Jul  9 13:46:52 node75 kernel: [ 8758.867351] sd 0:0:17:0: SCSI device is removed
-Jul  9 13:46:52 node75 kernel: [ 8758.867648] [830035]: scst: scst_unregister_device:1188:Detached from scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:52 node75 kernel: [ 8758.872546] sd 0:0:17:0: [sdh] Synchronizing SCSI cache
-Jul  9 13:46:52 node75 kernel: [ 8758.872627] sd 0:0:17:0: [sdh] Synchronize Cache(10) failed: Result: hostbyte=DID_BAD_TARGET driverbyte=DRIVER_OK
-Jul  9 13:46:52 node75 kernel: [ 8758.897329] megaraid_sas 0000:af:00.0: scanning for scsi0...
-Jul  9 13:46:57 node75 kernel: [ 8763.163262] scsi 0:0:17:0: Direct-Access     ATA      INTEL SSDSC2KG48 0142 PQ: 0 ANSI: 6
-Jul  9 13:46:57 node75 kernel: [ 8763.165348] sd 0:0:17:0: Attached scsi generic sg2 type 0
-Jul  9 13:46:57 node75 kernel: [ 8763.165372] [830035]: scst: scst_register_device:1102:Attached to scsi0, channel 0, id 17, lun 0, type 0
-Jul  9 13:46:57 node75 kernel: [ 8763.166274] sd 0:0:17:0: [sdh] 937703088 512-byte logical blocks: (480 GB/447 GiB)
-Jul  9 13:46:57 node75 kernel: [ 8763.166279] sd 0:0:17:0: [sdh] 4096-byte physical blocks
-Jul  9 13:46:57 node75 kernel: [ 8763.166558] sd 0:0:17:0: [sdh] Write Protect is off
-Jul  9 13:46:57 node75 kernel: [ 8763.166561] sd 0:0:17:0: [sdh] Mode Sense: 9b 00 10 08
-Jul  9 13:46:57 node75 kernel: [ 8763.166893] sd 0:0:17:0: [sdh] Write cache: enabled, read cache: enabled, supports DPO and FUA
-Jul  9 13:46:57 node75 kernel: [ 8763.175450]  sdh: sdh1 sdh2
-Jul  9 13:46:57 node75 kernel: [ 8763.177604] sd 0:0:17:0: [sdh] Attached SCSI disk
-</code></pre>
-<p>BTW，本示例中，0:0:17:0: [sdh] 是一块SSD，做成JBOD模式，当JBOD对应盘正常在设备上运行时，是不支持Megacli/storcli下线磁盘指令的，一旦执行报错信息参考如下:</p>
-<pre><code class="language-shell">root@node75:~# storcli64 /c0/e1/s17 set offline
-Controller = 0
-Status = Failure
-Description = No drive found!
-
-Detailed Status :
-===============
-
------------------------------------------
-Drive      Status  ErrCd ErrMsg
------------------------------------------
-/c0/e1/s17 Failure   255 Drive not found
------------------------------------------
-
-
-root@node75:~#
-</code></pre>
-<h1 id="qi-ta">其他</h1>
-<p>上文中的热插拔，和 ‘Rescan SCSI/SATA Host Bus’ 有着异曲同工之处，毕竟方法都是多样的，，根据不同场合使用。</p>
-<pre><code class="language-shell">#/bin/bash
-# ReScan all SCSI/SATA Hosts
-for SHOST in /sys/class/scsi_host/host*; do
-    echo -n "Scanning ${SHOST##*/}..."
-    echo "- - -" &gt; ${SHOST}/scan
-    echo Done
-done
-</code></pre>
-<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -53360,81 +53360,6 @@ mysql -uroot -pp@ssw0rd testlink &lt; /var/www/html/testlink-1.9.20/install/sql/
       <tags>
         <tag>Linux</tag>
         <tag>shell</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Config QCT switch port network</title>
-    <url>/2021/02/09/config_qct_network_config/</url>
-    <content><![CDATA[<h1 id="overview">Overview</h1>
-<p>QCT 100G switch, need to do port adaptation.</p>
-<h1 id="action">Action</h1>
-<pre><code class="language-shell">admin@Switch:~$ sudo qnos-cli
-[sudo] password for admin: 
-
-(Switch) #configure 
-
-
-show interface port-mode
-
-
-interface 0/17
-
-
-(Switch) (Interface 0/17)#port-mode ?
-
-1x100G                   Configure the port as a single 100G port
-1x40G                    Configure the port as a single 40G port
-2x50G                    Configure the port as two 50G ports.
-4x10G                    Configure the port as four 10G ports
-4x25G                    Configure the port as four 25G ports
-
-(Switch) (Interface 0/17)#port-mode 1x100G
-
-(Switch) (Interface 0/18)#exit
-
-(Switch) (Config)#exit
-
-(Switch) #copy running-config startup-config
-</code></pre>
-<h1 id="she-zhi-ji-lian">设置级联</h1>
-<h2 id="swtich-a-cao-zuo">SwtichA 操作</h2>
-<pre><code class="language-shell">admin@Switch:~$ sudo qnos-cli
-(Switch) #configure
-(Switch) (Config)#interface port-channel 64
-(Switch) (Config)#no staticcapability
-(Switch) (Config)#switchport mode trunk
-(Switch) (Config)#mlag peer-link
-(Switch) (Config)#interface 0/31
-(Switch) (Interface 0/31)#channel-group 64 mode active
-(Switch) (Interface 0/31)#exit
-(Switch) (Config)#mlag
-(Switch) (Config)#mlag domain 1
-(Switch) (Config)#mlag peer-keepalive enable
-(Switch) (Config)#mlag peer-keepalive destination 172.17.75.248 source 172.17.75.249
-(Switch) (Config)#exit
-</code></pre>
-<h2 id="swtich-b-cao-zuo">SwtichB 操作</h2>
-<pre><code class="language-shell">admin@Switch:~$ sudo qnos-cli
-(Switch) #configure
-(Switch) (Config)#interface port-channel 64
-(Switch) (Config)#no staticcapability
-(Switch) (Config)#switchport mode trunk
-(Switch) (Config)#mlag peer-link
-(Switch) (Config)#interface 0/31
-(Switch) (Interface 0/31)#channel-group 64 mode active
-(Switch) (Interface 0/31)#exit
-(Switch) (Config)#mlag
-(Switch) (Config)#mlag domain 1
-(Switch) (Config)#mlag peer-keepalive enable
-(Switch) (Config)#mlag peer-keepalive destination 172.17.75.249 source 172.17.75.248
-(Switch) (Config)#exit
-</code></pre>
-<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
-      <categories>
-        <category>switch</category>
-      </categories>
-      <tags>
-        <tag>switch</tag>
       </tags>
   </entry>
   <entry>
@@ -55155,6 +55080,81 @@ class FileStore(Store):
       </categories>
       <tags>
         <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Config QCT switch port network</title>
+    <url>/2021/02/09/config_qct_network_config/</url>
+    <content><![CDATA[<h1 id="overview">Overview</h1>
+<p>QCT 100G switch, need to do port adaptation.</p>
+<h1 id="action">Action</h1>
+<pre><code class="language-shell">admin@Switch:~$ sudo qnos-cli
+[sudo] password for admin: 
+
+(Switch) #configure 
+
+
+show interface port-mode
+
+
+interface 0/17
+
+
+(Switch) (Interface 0/17)#port-mode ?
+
+1x100G                   Configure the port as a single 100G port
+1x40G                    Configure the port as a single 40G port
+2x50G                    Configure the port as two 50G ports.
+4x10G                    Configure the port as four 10G ports
+4x25G                    Configure the port as four 25G ports
+
+(Switch) (Interface 0/17)#port-mode 1x100G
+
+(Switch) (Interface 0/18)#exit
+
+(Switch) (Config)#exit
+
+(Switch) #copy running-config startup-config
+</code></pre>
+<h1 id="she-zhi-ji-lian">设置级联</h1>
+<h2 id="swtich-a-cao-zuo">SwtichA 操作</h2>
+<pre><code class="language-shell">admin@Switch:~$ sudo qnos-cli
+(Switch) #configure
+(Switch) (Config)#interface port-channel 64
+(Switch) (Config)#no staticcapability
+(Switch) (Config)#switchport mode trunk
+(Switch) (Config)#mlag peer-link
+(Switch) (Config)#interface 0/31
+(Switch) (Interface 0/31)#channel-group 64 mode active
+(Switch) (Interface 0/31)#exit
+(Switch) (Config)#mlag
+(Switch) (Config)#mlag domain 1
+(Switch) (Config)#mlag peer-keepalive enable
+(Switch) (Config)#mlag peer-keepalive destination 172.17.75.248 source 172.17.75.249
+(Switch) (Config)#exit
+</code></pre>
+<h2 id="swtich-b-cao-zuo">SwtichB 操作</h2>
+<pre><code class="language-shell">admin@Switch:~$ sudo qnos-cli
+(Switch) #configure
+(Switch) (Config)#interface port-channel 64
+(Switch) (Config)#no staticcapability
+(Switch) (Config)#switchport mode trunk
+(Switch) (Config)#mlag peer-link
+(Switch) (Config)#interface 0/31
+(Switch) (Interface 0/31)#channel-group 64 mode active
+(Switch) (Interface 0/31)#exit
+(Switch) (Config)#mlag
+(Switch) (Config)#mlag domain 1
+(Switch) (Config)#mlag peer-keepalive enable
+(Switch) (Config)#mlag peer-keepalive destination 172.17.75.249 source 172.17.75.248
+(Switch) (Config)#exit
+</code></pre>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
+      <categories>
+        <category>switch</category>
+      </categories>
+      <tags>
+        <tag>switch</tag>
       </tags>
   </entry>
   <entry>
@@ -57095,6 +57095,26 @@ root@scaler:/dev/disk/by-path#
       </tags>
   </entry>
   <entry>
+    <title>WebBIOS里取消磁盘的JBOD设置</title>
+    <url>/2021/06/15/webbios_disable_disk_jbod/</url>
+    <content><![CDATA[<h1 id="gai-shu">概述</h1>
+<p>环境之前有使用过storcli或megacli命令开启了JBOD模式，安装系统后始终无法进入系统，grub 引导出问题，BIOS的设置检查了几次，并未发现异常，boot device也是对的，始终无法解决重灌系统后开机问题。决定更换OS盘（换成其他的SAS盘），在更换后，碰到了本文要描述的问题：存在部分是RAID部分是JBOD盘，计划OS盘做RAID0,但WebBIOS里查看到此盘无法最RAID。</p>
+<p>本文记录如何在WebBIOS取消JBOD模式，仅附图片mark下，避免忘记。</p>
+<h1 id="chu-li-guo-cheng">处理过程</h1>
+<h2 id="zui-chu-pan-de-zhuang-kuang">最初盘的状况</h2>
+<img class="shadow" src="/img/in-post/disk_mix_mode.png" width="1200">
+<h2 id="qu-xiao-jbod">取消JBOD</h2>
+<p>开机启动进入WebBIOS，Controller Properties --&gt; ALter+N + 回车，连续三次，进入’Manage JBOD’ 界面，选择对应的JBOD driver，点击’OK’完成取消JBOD mode的设置， 可以按住shift与向下的箭头按钮，多选磁盘的</p>
+<img class="shadow" src="/img/in-post/disable_disks_jbod_mode.png" width="1200">
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
+      <categories>
+        <category>Linux</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>如何知道CPU降频了呢</title>
     <url>/2021/06/30/how_do_i_know_that_the_cpu_frequency_is_down/</url>
     <content><![CDATA[<h1 id="gai-shu">概述</h1>
@@ -57501,26 +57521,6 @@ $：匹配输入字符串的结束位置。<br>
       </categories>
       <tags>
         <tag>shell</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>WebBIOS里取消磁盘的JBOD设置</title>
-    <url>/2021/06/15/webbios_disable_disk_jbod/</url>
-    <content><![CDATA[<h1 id="gai-shu">概述</h1>
-<p>环境之前有使用过storcli或megacli命令开启了JBOD模式，安装系统后始终无法进入系统，grub 引导出问题，BIOS的设置检查了几次，并未发现异常，boot device也是对的，始终无法解决重灌系统后开机问题。决定更换OS盘（换成其他的SAS盘），在更换后，碰到了本文要描述的问题：存在部分是RAID部分是JBOD盘，计划OS盘做RAID0,但WebBIOS里查看到此盘无法最RAID。</p>
-<p>本文记录如何在WebBIOS取消JBOD模式，仅附图片mark下，避免忘记。</p>
-<h1 id="chu-li-guo-cheng">处理过程</h1>
-<h2 id="zui-chu-pan-de-zhuang-kuang">最初盘的状况</h2>
-<img class="shadow" src="/img/in-post/disk_mix_mode.png" width="1200">
-<h2 id="qu-xiao-jbod">取消JBOD</h2>
-<p>开机启动进入WebBIOS，Controller Properties --&gt; ALter+N + 回车，连续三次，进入’Manage JBOD’ 界面，选择对应的JBOD driver，点击’OK’完成取消JBOD mode的设置， 可以按住shift与向下的箭头按钮，多选磁盘的</p>
-<img class="shadow" src="/img/in-post/disable_disks_jbod_mode.png" width="1200">
-<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
-      <categories>
-        <category>Linux</category>
-      </categories>
-      <tags>
-        <tag>Linux</tag>
       </tags>
   </entry>
   <entry>
@@ -136916,6 +136916,508 @@ def pytest_configure(config):
       </tags>
   </entry>
   <entry>
+    <title>测试用例持续时间之pytest_durations源码解读</title>
+    <url>/2026/01/02/pytest_durations/</url>
+    <content><![CDATA[<h1 id="gai-shu">概述</h1>
+<p><code>pytest-durations</code> 是一个 <code>pytest</code> 插件，用于测量测试的执行时间，包括测试用例的调用、设置和清理，以及 <code>fixture</code> 的设置和销毁。</p>
+<p><code>pytest_durations</code>插件默认被<code>pytest</code>安装&amp;使用，对应参数如下(使用<code>pytest -h</code>命令查看)：</p>
+<pre><code class="language-shell">  --durations=N         Show N slowest setup/test durations (N=0 for all)
+  --durations-min=N     Minimal duration in seconds for inclusion in slowest list. Default: 0.005.
+</code></pre>
+<p><code>pytest_durations</code>源码下载后解压，目录/文件参考如下：</p>
+<pre><code class="language-shell">root@Gavin:~/pytest_plugin/pytest-durations-1.2.0# ll
+total 36
+drwxr-xr-x 3 root root 4096 Jul  3 15:09 ./
+drwxr-xr-x 9 root root 4096 Jul 13 14:05 ../
+-rw-r--r-- 1 root root 1069 Apr 22  2022 LICENSE
+-rw-r--r-- 1 root root 4165 Apr 22  2022 PKG-INFO
+-rw-r--r-- 1 root root 1358 Apr 22  2022 pyproject.toml
+-rw-r--r-- 1 root root 3156 Apr 22  2022 README.md
+-rw-r--r-- 1 root root 4088 Apr 22  2022 setup.py
+drwxr-xr-x 3 root root 4096 Jul  3 15:08 src/
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0# cd src
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src# ll
+total 12
+drwxr-xr-x 3 root root 4096 Jul  3 15:08 ./
+drwxr-xr-x 3 root root 4096 Jul  3 15:09 ../
+drwxr-xr-x 2 root root 4096 Jul 15 09:40 pytest_durations/
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src# cd pytest_durations/
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src/pytest_durations# ll
+total 48
+drwxr-xr-x 2 root root 4096 Jul 15 09:40 ./
+drwxr-xr-x 3 root root 4096 Jul  3 15:08 ../
+-rw-r--r-- 1 root root  725 Apr 22  2022 helpers.py
+-rw-r--r-- 1 root root  109 Apr 22  2022 __init__.py
+-rw-r--r-- 1 root root  866 Apr 22  2022 measure.py
+-rw-r--r-- 1 root root 1351 Apr 22  2022 options.py
+-rw-r--r-- 1 root root 5664 Apr 22  2022 plugin.py
+-rw-r--r-- 1 root root 3244 Apr 22  2022 reporting.py
+-rw-r--r-- 1 root root  312 Apr 22  2022 ticker.py
+-rw-r--r-- 1 root root   81 Apr 22  2022 types.py
+-rw-r--r-- 1 root root 1816 Apr 22  2022 xdist.py
+root@Gavin:~/pytest_plugin/pytest-durations-1.2.0/src/pytest_durations#
+</code></pre>
+<ol>
+<li class="lvl-3">
+<p><strong><code>__init__.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">通常，这个文件用于初始化插件，使 <code>Python</code> 知道该目录应该被视为一个包。在 <code>pytest</code> 插件中，它可能包含插件的入口点。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>helpers.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含一些辅助函数，可能用于生成测试或 <code>fixture</code> 的唯一键，或检查 <code>fixture</code> 是否是共享的。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>measure.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含 <code>MeasureDuration</code> 类，这是一个上下文管理器，用于测量代码块的执行时间。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>ticker.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含获取当前时间戳的函数，可能用于测量持续时间。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>types.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">定义了插件中使用的数据类型，例如 <code>MeasurementsT</code>，这是一个字典类型，用于存储测量结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>options.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">可能包含处理命令行选项和配置的代码，例如 <code>--pytest-durations</code> 和 <code>--pytest-durations-min</code>。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>reporting.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">包含生成报告的逻辑，例如 <code>get_report_rows</code> 和 <code>get_report_max_widths</code> 函数，用于格式化和显示测量结果。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>plugin.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">这是插件的主要文件，定义了 <code>PystDurationPlugin</code> 类，实现了 <code>pytest</code> 插件的核心逻辑。它使用其他组件（如 <code>helpers.py</code>、<code>measure.py</code>、<code>reporting.py</code>）来测量测试的执行时间，并在测试结束时生成报告。</li>
+</ul>
+</li>
+<li class="lvl-3">
+<p><strong><code>xdist.py</code></strong>:</p>
+<ul class="lvl-2">
+<li class="lvl-5">处理与 <code>pytest-xdist</code> 插件的集成，确保在分布式测试环境中测量数据的正确收集和合并。</li>
+</ul>
+</li>
+</ol>
+<p>插件的运行和互相调用顺序通常如下：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>当 <code>pytest</code> 命令行工具启动时，它将加载所有可用的插件，包括 <code>pytest-durations</code>。</p>
+</li>
+<li class="lvl-2">
+<p>如果用户使用了与 <code>pytest-durations</code> 相关的命令行选项（如 <code>--pytest-durations</code>），<code>options.py</code> 将处理这些选项。</p>
+</li>
+<li class="lvl-2">
+<p>在 <code>pytest</code> 运行期间，<code>plugin.py</code> 中的钩子方法将被调用，以测量测试和 <code>fixture</code> 的执行时间：</p>
+<ul class="lvl-2">
+<li class="lvl-4"><code>pytest_fixture_setup</code> 和 <code>pytest_fixture_post_finalizer</code> 用于测量 <code>fixture</code> 的设置和销毁时间。</li>
+<li class="lvl-4"><code>pytest_runtest_call</code>、<code>pytest_runtest_setup</code> 和 <code>pytest_runtest_teardown</code> 用于测量测试用例的不同阶段的执行时间。</li>
+</ul>
+</li>
+<li class="lvl-2">
+<p><code>measure.py</code> 中的 <code>MeasureDuration</code> 上下文管理器被 <code>plugin.py</code> 用于测量指定代码块的执行时间。</p>
+</li>
+<li class="lvl-2">
+<p>测量结果将使用 <code>types.py</code> 中定义的类型存储。</p>
+</li>
+<li class="lvl-2">
+<p>当测试会话结束时，<code>plugin.py</code> 中的 <code>pytest_terminal_summary</code> 钩子方法将调用 <code>reporting.py</code> 中的函数来生成和显示测量结果的报告。</p>
+</li>
+<li class="lvl-2">
+<p>如果使用 <code>pytest-xdist</code> 进行分布式测试，<code>xdist.py</code> 将确保测量结果在不同的工作进程之间正确合并。</p>
+</li>
+</ul>
+<p><strong>请注意:</strong></p>
+<p>这个顺序是基于源码文件的功能和 <code>pytest</code> 插件的一般工作方式推断的。实际的调用顺序可能会根据 <code>pytest</code> 的版本和插件的具体实现有所不同。</p>
+<h1 id="yuan-ma-jie-du">源码解读</h1>
+<h2 id="helpers-py-wen-jian">helpers.py文件</h2>
+<p><code>helpers.py</code> 文件通常包含了一些工具函数，用于在 <code>pytest-durations</code> 插件或其他 pytest 插件中辅助处理测试用例和 <code>fixture</code> 的信息。</p>
+<h3 id="dao-ru-lei-xing-jian-cha">导入类型检查</h3>
+<pre><code class="language-python">from typing import TYPE_CHECKING
+</code></pre>
+<p>这行代码导入了 <code>TYPE_CHECKING</code>，它是一个标志，用于在类型检查时（例如使用 <code>mypy</code>）导入模块，而不在运行时导入，这样可以避免循环依赖和不必要的性能开销。</p>
+<h3 id="tiao-jian-dao-ru">条件导入</h3>
+<pre><code class="language-python">if TYPE_CHECKING:
+    from _pytest.fixtures import FixtureDef
+    from _pytest.nodes import Item
+</code></pre>
+<p>这个条件导入块只在类型检查时执行，它导入了 <code>FixtureDef</code> 和 <code>Item</code> 类型，这些类型用于指定函数参数的类型注解。</p>
+<h3 id="get-fixture-key-han-shu">_get_fixture_key 函数</h3>
+<pre><code class="language-python">def _get_fixture_key(fixturedef: "FixtureDef") -&gt; str:
+    """Return fixture name."""
+    return fixturedef.argname
+</code></pre>
+<p>这个函数接收一个 <code>FixtureDef</code> 对象作为参数，返回该 fixture 的名称，即 <code>argname</code> 属性的值。</p>
+<h3 id="get-test-key-han-shu">_get_test_key 函数</h3>
+<pre><code class="language-python">def _get_test_key(item: "Item") -&gt; str:
+    """Return test item name without filename part (class and function names only)."""
+</code></pre>
+<p>这个函数接收一个 <code>Item</code> 对象作为参数，返回测试项的名称，但不包括文件名部分。它通过以下步骤实现：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p>使用 <code>split("::", 1)[1]</code> 移除 <code>nodeid</code> 中的文件名部分。</p>
+</li>
+<li class="lvl-2">
+<p>使用 <code>split("[", 1)[0]</code> 移除 <code>nodeid</code> 中的参数部分。</p>
+</li>
+</ul>
+<h3 id="is-shared-fixture-han-shu">_is_shared_fixture 函数</h3>
+<pre><code class="language-python">def _is_shared_fixture(fixturedef: "FixtureDef") -&gt; bool:
+    """Return true if a fixture is shared."""
+    return fixturedef.scope != "function"
+</code></pre>
+<p>这个函数检查传入的 <code>FixtureDef</code> 对象，如果该 <code>fixture</code> 的作用域不是 “function”，则返回 <code>True</code>，表示这是一个共享 <code>fixture</code>。</p>
+<h2 id="ticker-py-wen-jian">ticker.py文件</h2>
+<p><code>ticker.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，它提供了一个用于获取当前时间戳的方法。</p>
+<h3 id="dao-ru-yu-ju">导入语句</h3>
+<pre><code class="language-python">from time import monotonic
+</code></pre>
+<p>这里导入了 <code>Python</code> 标准库 <code>time</code> 模块中的 <code>monotonic</code> 函数。<code>monotonic</code> 函数返回一个单调递增的时间值，这个值不会受到系统时间变化的影响，因此适合用于测量时间间隔。</p>
+<h3 id="chang-shi-dao-ru-freezegun">尝试导入 freezegun</h3>
+<pre><code class="language-python">try:
+    # if freezegun is installed, use its stored real function
+    import freezegun
+except ImportError:
+    pass
+else:
+    freezegun.configure(extend_ignore_list=[__name__])
+</code></pre>
+<p>这段代码尝试导入 <code>freezegun</code> 库，这是一个流行的 <code>Python</code> 测试库，允许开发者在测试中“冻结”时间。如果 <code>freezegun</code> 已安装，它将使用 <code>freezegun</code> 的时间替代 <code>monotonic</code> 函数的时间。<code>freezegun.configure</code> 调用配置 <code>freezegun</code> 忽略当前模块（<code>__name__</code>），这意味着 <code>pytest-durations</code> 插件的时间测量将不受 <code>freezegun</code> 的影响。</p>
+<h3 id="get-current-ticks-han-shu">get_current_ticks 函数</h3>
+<pre><code class="language-python">def get_current_ticks():
+    """Return uniformly increasing value in seconds."""
+    return monotonic()
+</code></pre>
+<p>这个函数是一个简单的封装器，它调用 <code>monotonic</code> 函数并返回结果。它的作用是提供一个统一的接口来获取当前时间的单调递增值，这个值以秒为单位。在正常的测试环境中，这将返回自某个固定点以来经过的时间。如果 <code>freezegun</code> 被安装并配置，这个函数将返回 <code>freezegun</code> 提供的时间值。</p>
+<h2 id="measure-py-wen-jian">measure.py文件</h2>
+<p><code>measure.py</code> 文件定义了一个用于测量代码块执行时间的上下文管理器 <code>MeasureDuration</code>。</p>
+<h3 id="dao-ru-yu-ju-1">导入语句</h3>
+<pre><code class="language-python">from typing import Type, TYPE_CHECKING
+from pytest_durations.ticker import get_current_ticks
+</code></pre>
+<p>这里导入了必要的类型注解和 <code>get_current_ticks</code> 函数，后者用于获取当前的滴答数（通常是单调时钟值，用于测量时间间隔）。</p>
+<h3 id="lei-ding-yi">类定义</h3>
+<pre><code class="language-python">class MeasureDuration:
+</code></pre>
+<p>定义了一个名为 <code>MeasureDuration</code> 的类，它是一个上下文管理器，用于测量代码块的执行时间。</p>
+<h3 id="lei-shu-xing">类属性</h3>
+<pre><code class="language-python">start: float  # monotonic clock value of block entrance
+end: float  # monotonic clock value of block exit
+duration: float  # duration of block execution in seconds
+</code></pre>
+<p>这些属性分别用于存储代码块开始时的单调时钟值、结束时的值，以及计算出的执行时间（以秒为单位）。</p>
+<h3 id="strong-enter-strong-fang-fa"><strong>enter</strong> 方法</h3>
+<pre><code class="language-python">def __enter__(self) -&gt; "MeasureDuration":
+    """Store block entrance time."""
+    self.start = get_current_ticks()
+    self.duration = 0.0
+    return self
+</code></pre>
+<p>当使用 <code>with</code> 语句进入上下文时，此方法被调用。它记录了代码块开始执行的时间，并将 <code>duration</code> 属性初始化为 0.0。然后返回 <code>MeasureDuration</code> 实例本身。</p>
+<h3 id="strong-exit-strong-fang-fa"><strong>exit</strong> 方法</h3>
+<pre><code class="language-python">def __exit__(self, exc_type: Type[Exception], exc_val: Exception, exc_tb: "TracebackType") -&gt; None:
+    """Store block exit time and calculate its duration."""
+    self.end = get_current_ticks()
+    self.duration += self.end - self.start
+    return None
+</code></pre>
+<p>当使用 <code>with</code> 语句退出上下文时，此方法被调用。它记录了代码块结束执行的时间，并通过当前时钟值减去开始时的时钟值来计算持续时间，然后更新 <code>duration</code> 属性。这个方法的返回值为 <code>None</code>，表示不抑制任何异常。</p>
+<h2 id="options-py-wen-jian">options.py文件</h2>
+<p><code>options.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，它定义了如何向 pytest 添加命令行选项，并在 <code>pytest</code> 配置阶段注册插件。</p>
+<h3 id="dao-ru-yu-ju-2">导入语句</h3>
+<pre><code class="language-python">from typing import NoReturn, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _pytest.config import PytestPluginManager, Config
+    from _pytest.config.argparsing import Parser
+</code></pre>
+<p>这里导入了必要的类型注解，并且在类型检查时导入了 <code>PytestPluginManager</code>、<code>Config</code> 和 <code>Parser</code> 类型。</p>
+<h3 id="mo-ren-zhi-ding-yi">默认值定义</h3>
+<pre><code class="language-python">DEFAULT_DURATIONS = 30
+DEFAULT_DURATIONS_MIN = 0.005
+</code></pre>
+<p>定义了两个默认值：<code>DEFAULT_DURATIONS</code> 是显示最慢测试数量的默认值，<code>DEFAULT_DURATIONS_MIN</code> 是包含在最慢测试列表中的最小持续时间（秒）。</p>
+<h3 id="pytest-addoption-han-shu">pytest_addoption 函数</h3>
+<pre><code class="language-python">def pytest_addoption(parser: "Parser", pluginmanager: "PytestPluginManager") -&gt; NoReturn:
+</code></pre>
+<p>这个函数在 <code>pytest</code> 命令行解析阶段被调用，用于添加自定义选项。</p>
+<pre><code class="language-python">group = parser.getgroup("pytest-durations")
+</code></pre>
+<p>创建或获取一个选项组，用于组织 <code>pytest-durations</code> 插件的命令行选项。</p>
+<pre><code class="language-python">group.addoption(
+    "--pytest-durations",
+    metavar="N",
+    type=int,
+    default=DEFAULT_DURATIONS,
+    help=f"Show N slowest setup/test durations (N=0 to disable plugin). Default {DEFAULT_DURATIONS}",
+)
+</code></pre>
+<p>添加一个命令行选项 <code>--pytest-durations</code>，允许用户指定显示的最慢测试数量。</p>
+<pre><code class="language-python">group.addoption(
+    "--pytest-durations-min",
+    metavar="N",
+    type=float,
+    default=DEFAULT_DURATIONS_MIN,
+    help=f"Minimal duration in seconds for inclusion in slowest list. Default {DEFAULT_DURATIONS_MIN}",
+)
+</code></pre>
+<p>添加另一个命令行选项 <code>--pytest-durations-min</code>，允许用户指定包含在最慢测试列表中的最小持续时间。</p>
+<h3 id="pytest-configure-han-shu">pytest_configure 函数</h3>
+<pre><code class="language-python">def pytest_configure(config: "Config") -&gt; NoReturn:
+</code></pre>
+<p>这个函数在 <code>pytest</code> 配置阶段被调用，用于根据命令行选项配置插件。</p>
+<pre><code class="language-python">if not config.getoption("--pytest-durations"):
+    return
+</code></pre>
+<p>如果用户没有指定 <code>--pytest-durations</code> 选项或将其设置为 0，表示禁用插件，则不进行进一步配置。</p>
+<pre><code class="language-python">from pytest_durations.plugin import PytestDurationPlugin
+</code></pre>
+<p>导入插件的实现。</p>
+<pre><code class="language-python">pluginmanager = config.pluginmanager
+</code></pre>
+<p>获取插件管理器。</p>
+<pre><code class="language-python">if pluginmanager.hasplugin("xdist"):
+    from pytest_durations.xdist import PytestDurationXdistMixin
+    PytestDurationPlugin = type("PytestDurationPlugin", (PytestDurationPlugin, PytestDurationXdistMixin), {})
+</code></pre>
+<p>检查是否使用了 <code>pytest-xdist</code> 插件，如果使用了，则将 <code>PytestDurationPlugin</code> 与 <code>PytestDurationXdistMixin</code> 混合，以支持分布式测试。</p>
+<pre><code class="language-python">pluginmanager.register(PytestDurationPlugin())
+</code></pre>
+<p>注册 <code>PytestDurationPlugin</code> 插件。</p>
+<h2 id="reporting-wen-jian">reporting文件</h2>
+<p><code>reporting.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，它定义了如何生成和格式化测试持续时间的报告。</p>
+<h3 id="lei-xing-bie-ming-he-chang-liang">类型别名和常量</h3>
+<pre><code class="language-python">ReportRowT = Tuple[str, str, str, str, str, str]
+TimeValuesT = Tuple[str, int, float, float, float, float]
+
+_SUM_COLUMN_IDX = 5
+_SORT_COLUMN_IDX = 5
+_COLUMNS_ORDER = (5, 0, 1, 4, 2, 3)
+_GRAND_TOTAL_STR = "grand total"
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>ReportRowT</code> 是报告行的类型别名，表示一个元组，包含六个字符串元素：名称、调用次数、最小时间、最大时间、平均时间和总时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>TimeValuesT</code> 是时间值的类型别名，表示一个元组，包含名称、时间列表长度、最小时间、最大时间、中位数时间和总时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>_SUM_COLUMN_IDX</code> 和 <code>_SORT_COLUMN_IDX</code> 是列索引，用于在排序和选择时引用总时间列。</p>
+</li>
+<li class="lvl-2">
+<p><code>_COLUMNS_ORDER</code> 是列的顺序，定义了报告行中各列的显示顺序。</p>
+</li>
+<li class="lvl-2">
+<p><code>_GRAND_TOTAL_STR</code> 是报告中总计行的标签。</p>
+</li>
+</ul>
+<h3 id="bao-gao-sheng-cheng-han-shu">报告生成函数</h3>
+<pre><code class="language-python">def get_report_rows(
+    measurements: Dict[str, List[float]],
+    duration_min: float = -1.0,
+    durations: int = 0,
+) -&gt; List[ReportRowT]:
+</code></pre>
+<p>这个函数生成测试持续时间的报告行。它接受一个字典 <code>measurements</code>，其中包含测试名称和对应的时间列表，以及两个可选参数：<code>duration_min</code>（最小持续时间阈值）和 <code>durations</code>（要显示的持续时间数量）。</p>
+<h3 id="bao-gao-xing-sheng-cheng-fu-zhu-han-shu">报告行生成辅助函数</h3>
+<pre><code class="language-python">def _get_report_header_row() -&gt; ReportRowT:
+</code></pre>
+<p>生成报告的标题行。</p>
+<pre><code class="language-python">def _get_report_footer_row(time_values: List[TimeValuesT]) -&gt; ReportRowT:
+</code></pre>
+<p>生成报告的总计行，使用 <code>time_values</code> 列表计算总计。</p>
+<pre><code class="language-python">def _get_report_timing_rows(time_values: List[TimeValuesT]) -&gt; List[ReportRowT]:
+</code></pre>
+<p>生成报告中的时间测量行，基于 <code>time_values</code> 列表。</p>
+<h3 id="bao-gao-lie-kuan-han-shu">报告列宽函数</h3>
+<pre><code class="language-python">def get_report_max_widths(report_rows: Collection[ReportRowT]) -&gt; Tuple[int, int, int, int, int, int]:
+</code></pre>
+<p>这个函数计算报告中每列的最大宽度，以便在格式化报告时保持列的对齐。</p>
+<h3 id="bao-gao-shu-ju-ge-shi-hua">报告数据格式化</h3>
+<p>在 <code>_get_report_footer_row</code> 和 <code>_get_report_timing_rows</code> 函数中，使用 <code>timedelta</code> 对象将时间值格式化为更易读的格式（例如，将秒转换为 <code>1 day, 3:45:00</code>）。</p>
+<h2 id="types-py-wen-jian">types.py文件</h2>
+<p><code>types.py</code> 文件定义了 <code>pytest-durations</code> 插件中使用的一个类型别名，用于类型注解。</p>
+<h3 id="lei-xing-bie-ming">类型别名</h3>
+<pre><code class="language-python">MeasurementsT = Dict[str, Dict[str, List[float]]]
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>MeasurementsT</code> 是一个类型别名，表示一个字典，其键是一个字符串（通常是测试函数或测试集合的名称），值是另一个字典。</p>
+</li>
+<li class="lvl-2">
+<p>内部字典的键也是一个字符串（可能表示 “call” 或其他相关的时间度量类别），值是一个浮点数列表，代表各个时间度量。</p>
+</li>
+</ul>
+<p>这个类型别名用于在整个插件中保持类型一致性，使得时间度量数据的存储和传递更加清晰和规范。通过使用 <code>MeasurementsT</code>，开发者可以轻松地识别和操作与测试相关的所有时间度量数据。</p>
+<p>例如，<code>MeasurementsT</code> 可以用于存储以下数据结构：</p>
+<pre><code class="language-python">{
+    "test_function_1": {
+        "call": [0.1, 0.2, 0.15],  # 测试函数1的调用时间列表
+    },
+    "test_function_2": {
+        "call": [0.3, 0.25],       # 测试函数2的调用时间列表
+    },
+    # ... 更多测试函数的时间度量
+}
+</code></pre>
+<p>在这个例子中，<code>MeasurementsT</code> 存储了不同测试函数的调用时间列表，这可以用于后续的性能分析和报告生成。</p>
+<h2 id="xdist-py-wen-jian">xdist.py文件</h2>
+<p><code>xdist.py</code> 文件是 <code>pytest-durations</code> 插件的一部分，专门处理与 <code>pytest-xdist</code> 插件的集成，后者用于并行测试执行。</p>
+<h3 id="lei-xing-dao-ru">类型导入</h3>
+<pre><code class="language-python">from typing import Union, NoReturn, Optional, Any, TYPE_CHECKING
+</code></pre>
+<p>导入了必要的类型注解。</p>
+<h3 id="lei-xing-jian-cha-tiao-jian-dao-ru">类型检查条件导入</h3>
+<pre><code class="language-python">if TYPE_CHECKING:
+    from _pytest.config import ExitCode
+    from _pytest.main import Session
+    from xdist.workermanage import WorkerController
+    from pytest_durations.types import MeasurementsT
+</code></pre>
+<p>在类型检查时导入了一些额外的类型，以确保类型兼容性。</p>
+<h3 id="chang-liang-ding-yi">常量定义</h3>
+<pre><code class="language-python">_WORKEROUTPUT_KEY = "pytest_durations"
+</code></pre>
+<p>定义了一个常量，用作在 <code>pytest-xdist</code> 的工作进程之间传递测量数据的键。</p>
+<h3 id="pytest-duration-xdist-mixin-lei">PytestDurationXdistMixin 类</h3>
+<pre><code class="language-python">class PytestDurationXdistMixin:
+</code></pre>
+<p>这个类定义了一个混入（<code>mixin</code>），提供了在分布式测试环境中合并测量数据的方法。</p>
+<h3 id="cheng-yuan-bian-liang">成员变量</h3>
+<pre><code class="language-python">measurements: "MeasurementsT"
+</code></pre>
+<p>类变量 <code>measurements</code> 用于存储测试的测量数据，其类型为之前在 <code>types.py</code> 中定义的 <code>MeasurementsT</code>。</p>
+<h3 id="gou-zi-fang-fa">钩子方法</h3>
+<pre><code class="language-python">@pytest.hookimpl(tryfirst=True)
+def pytest_sessionfinish(self, session: "Session", exitstatus: Union[int, "ExitCode"]) -&gt; None:
+</code></pre>
+<p>在测试会话结束时调用，用于将测量数据发送到主进程。</p>
+<pre><code class="language-python">def pytest_testnodedown(self, node: "WorkerController", error: Optional[Any]) -&gt; NoReturn:
+</code></pre>
+<p>在 <code>pytest-xdist</code> 的工作节点（<code>worker node</code>）完成测试并断开连接时调用，用于合并该节点的测量数据。</p>
+<h3 id="shu-ju-he-bing-fang-fa">数据合并方法</h3>
+<pre><code class="language-python">def _extend_measurements(self, src: "MeasurementsT") -&gt; NoReturn:
+</code></pre>
+<p>私有方法，用于将源字典 <code>src</code> 中的测量数据合并到 <code>self.measurements</code> 中。如果目标类别（<code>category</code>）不存在，它会创建新的类别并复制数据；如果已存在，它会将新值追加到现有列表的末尾。</p>
+<h2 id="plugin-py-wen-jian">plugin.py文件</h2>
+<p><code>plugin.py</code> 文件是 <code>pytest-durations</code> 插件的核心，定义了插件的主要行为和与 <code>pytest</code> 的交互。</p>
+<h3 id="dao-ru-he-lei-xing-zhu-jie">导入和类型注解</h3>
+<p>文件开始处导入了必要的模块和类型注解，包括 <code>pytest</code> 的钩子（<code>hook</code>）和插件的其他组件。</p>
+<h3 id="lei-xing-jian-cha-tiao-jian-dao-ru-1">类型检查条件导入</h3>
+<pre><code class="language-python">if TYPE_CHECKING:
+    # 导入用于类型检查的额外类型
+</code></pre>
+<h3 id="category-lei">Category 类</h3>
+<pre><code class="language-python">class Category:
+    # 定义了测量类别的常量
+    FIXTURE_SETUP = "fixture"
+    TEST_CALL = "test"
+    TEST_SETUP = "setup"
+    TEST_TEARDOWN = "teardown"
+
+    @classmethod
+    def report_items(cls) -&gt; Iterable[Tuple[str, str]]:
+        # 生成报告项的元组，包括类别名称和显示名称
+</code></pre>
+<h3 id="pyst-duration-plugin-lei">PystDurationPlugin 类</h3>
+<pre><code class="language-python">class PytestDurationPlugin:
+    # 插件的主要类，实现了 `pytest` 插件的逻辑
+</code></pre>
+<p>这个类包含了测量测试和 <code>fixture</code> 执行时间的逻辑，以及生成报告的方法。</p>
+<h3 id="cheng-yuan-bian-liang-1">成员变量</h3>
+<pre><code class="language-python">measurements: "MeasurementsT"
+shared_fixture_duration: float
+last_fixture_teardown_start: float
+</code></pre>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>measurements</code>：存储测量数据的字典。</p>
+</li>
+<li class="lvl-2">
+<p><code>shared_fixture_duration</code>：共享 <code>fixture</code> 设置的累计时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>last_fixture_teardown_start</code>：共享 <code>fixture</code> 销毁开始的时间戳。</p>
+</li>
+</ul>
+<h3 id="gou-zi-fang-fa-1">钩子方法</h3>
+<p>类中定义了多个 <code>pytest</code> 钩子方法，这些方法在 <code>pytest</code> 的不同阶段被调用：</p>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>pytest_fixture_setup</code>：测量 <code>fixture</code> 设置的执行时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_fixture_post_finalizer</code>：计算 <code>fixture</code> 销毁的执行时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_runtest_call</code>：测量测试执行的时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_runtest_setup</code>：测量测试准备时间，排除共享 <code>fixture</code> 的时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_runtest_teardown</code>：测量测试清理时间，排除共享 <code>fixture</code> 的时间。</p>
+</li>
+<li class="lvl-2">
+<p><code>pytest_terminal_summary</code>：在终端总结中添加持续时间报告。</p>
+</li>
+</ul>
+<h3 id="shang-xia-wen-guan-li-qi">上下文管理器</h3>
+<pre><code class="language-python">@contextmanager
+def _measure(self, category: str, key: str) -&gt; Iterable["MeasureDuration"]:
+    # 上下文管理器，用于测量代码块的执行时间
+</code></pre>
+<p>这个上下文管理器 <code>_measure</code> 用于测量指定类别和键的代码块的执行时间，并在测量完成后将结果添加到 <code>measurements</code> 字典中。</p>
+<h1 id="xiao-jie">小结</h1>
+<ul class="lvl-0">
+<li class="lvl-2">
+<p><code>helpers.py</code> 中的这些函数提供了一种方法来处理和识别 <code>pytest</code> 中的 <code>fixtures</code> 和测试用例。通过这些工具函数，插件可以更容易地获取和操作测试相关的数据，例如，用于收集测试用例的持续时间数据。这些函数通常在插件的其它部分被调用，以辅助实现插件的主要功能。</p>
+</li>
+<li class="lvl-2">
+<p><code>MeasureDuration</code> 类提供了一个简单的上下文管理器，用于测量任何代码块的执行时间。通过重写 <code>__enter__</code> 和 <code>__exit__</code> 方法，它能够在代码块执行前后获取时间戳，并计算出执行时间。这个类可以在性能测试和分析中非常有用，帮助开发者了解代码块的执行效率。</p>
+</li>
+<li class="lvl-2">
+<p><code>ticker.py</code> 文件的作用是提供一个稳定的接口来获取当前时间，以便在测试中测量持续时间。通过考虑 <code>freezegun</code> 的存在，它确保了即使在时间被冻结的情况下，插件也能正常工作。这使得 <code>pytest-durations</code> 插件更加灵活和可靠，可以在不同的测试环境中使用。</p>
+</li>
+<li class="lvl-2">
+<p><code>options.py</code> 文件提供了命令行选项的添加和插件的配置逻辑。通过这些选项，用户可以控制插件的行为，例如显示最慢的测试数量和设置最小持续时间阈值。如果使用了 <code>pytest-xdist</code> 插件，它还会自动调整以支持分布式测试环境。</p>
+</li>
+<li class="lvl-2">
+<p><code>reporting.py</code> 文件包含了生成 <code>pytest-durations</code> 插件报告所需的所有逻辑。它提供了灵活的方式来选择和排序报告中的数据，并能够以一种格式化的方式展示这些数据。通过这些函数，插件能够生成一个清晰的性能报告，帮助用户识别测试中的性能瓶颈。</p>
+</li>
+<li class="lvl-2">
+<p><code>xdist.py</code> 文件确保了当使用 <code>pytest-xdist</code> 进行分布式测试时，<code>pytest-durations</code> 插件能够正确地收集和合并来自不同工作进程的测量数据。通过 <code>PytestDurationXdistMixin</code> 类，插件可以在测试会话结束时将数据发送到主进程，并在工作节点断开连接时合并数据，从而提供完整的测试持续时间报告。</p>
+</li>
+<li class="lvl-2">
+<p><code>plugin.py</code> 文件实现了 <code>pytest-durations</code> 插件的主要功能，包括测量测试和 <code>fixture</code> 的执行时间，以及在测试结束后生成详细的持续时间报告。通过使用 <code>pytest</code> 的钩子系统，插件能够在 <code>pytest</code> 的生命周期中插入自己的逻辑，从而提供对测试性能的深入洞察。</p>
+</li>
+</ul>
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
+      <categories>
+        <category>Automation</category>
+        <category>pytest</category>
+      </categories>
+      <tags>
+        <tag>Automation</tag>
+        <tag>pytest</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>pytest GUI</title>
     <url>/2999/12/27/pytest_gui_tool/</url>
     <content><![CDATA[<h1 id="pytest-gui-tool-she-ji-wen-dang">pytest GUI Tool 设计文档</h1>
@@ -143602,15 +144104,15 @@ python run_platform.py --list-scenarios
 <h2 id="xiang-mu-gai-shu">🎯 项目概述</h2>
 <p>Pytest 实时测试报告与监控系统是一个基于 Flask + SocketIO 构建的高性能测试报告平台，提供实时的测试进度监控、详细的测试报告生成和跨环境配置管理功能。</p>
 <p>可视化HTML报告预览如下图所示：</p>
-<p><img class="shadow" src="/img/in-post/pytest/测试结果分类联动.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/测试结果详情.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/进度100%时查看报告.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/进度与实时日志.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/配置详情查看.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/实时测试进度.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/实时日志级别可过滤.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/用例执行日志详情查看.png" width="1200"></p>
-<p><img class="shadow" src="/img/in-post/pytest/最终报告概览.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/测试结果分类联动.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/测试结果详情.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/进度百分百时查看报告.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/进度与实时日志.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/配置详情查看.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/实时测试进度.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/实时日志级别可过滤.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/用例执行日志详情查看.png" width="1200"></p>
+<p><img class="shadow" src="/img/pytest/最终报告概览.png" width="1200"></p>
 <h3 id="she-ji-li-nian">设计理念</h3>
 <p><img class="shadow" src="/img/report_monitor/设计理念.png" width="600"></p>
 <h2 id="he-xin-te-xing">✨ 核心特性</h2>
@@ -144206,5 +144708,13 @@ def compare_indexes(table1, table2):
         <tag>python</tag>
         <tag>Database</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>欢迎打赏!!!</title>
+    <url>/3000/12/31/about_tipping/</url>
+    <content><![CDATA[<p>欢迎扫码打赏！</p>
+<img src="/img/loading.gif" data-original="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+<img src="/img/loading.gif" data-original="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+<link rel="stylesheet" href="/css/spoiler.css" type="text/css"><script src="/js/spoiler.js" type="text/javascript" async></script>]]></content>
   </entry>
 </search>
