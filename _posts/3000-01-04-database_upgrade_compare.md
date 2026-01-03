@@ -3,9 +3,9 @@ title: 数据库升级可视化比较
 date: 3000-01-04 23:00:00
 author: Gavin Wang
 img: 
-top: True
+top: false
 hide: false
-cover: true
+cover: false
 coverImg:
 password:
 theme: flip
